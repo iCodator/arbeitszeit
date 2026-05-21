@@ -26,9 +26,12 @@ def run_migrations(conn: sqlite3.Connection) -> list[str]:
             continue
 
         sql = path.read_text(encoding="utf-8")
+        statements = [s.strip() for s in sql.split(";") if s.strip()]
 
         try:
-            conn.executescript(sql)
+            conn.execute("BEGIN")
+            for stmt in statements:
+                conn.execute(stmt)
             conn.execute(
                 "INSERT INTO schema_migrations (version, applied_at) VALUES (?, datetime('now'))",
                 (version,),

@@ -1,7 +1,5 @@
 PRAGMA foreign_keys = ON;
 
-BEGIN;
-
 CREATE TABLE schema_migrations (
     version TEXT NOT NULL PRIMARY KEY,
     applied_at TEXT NOT NULL
@@ -364,5 +362,3 @@ CREATE INDEX idx_audit_log_object_event_at
 
 CREATE INDEX idx_audit_log_employee_event_at
     ON audit_log(employee_id, event_at);
-
-COMMIT;

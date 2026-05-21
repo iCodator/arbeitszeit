@@ -1,5 +1,3 @@
-BEGIN;
-
 INSERT INTO work_schedule_versions (
     scope_type,
     scope_employee_id,
@@ -74,5 +72,3 @@ SELECT
     )
 FROM system_config
 WHERE change_origin = 'SYSTEM_SEED';
-
-COMMIT;
