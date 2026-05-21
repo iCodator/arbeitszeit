@@ -28,7 +28,7 @@ class Employee:
 @dataclass(frozen=True)
 class UserAccount:
     id: int
-    employee_id: int
+    employee_id: int | None
     username: str
     role: UserRole
     is_active: bool
@@ -43,6 +43,10 @@ class RfidCard:
     valid_from: date
     valid_until: date | None
     replaced_by_card_id: int | None
+
+    def __post_init__(self) -> None:
+        if self.valid_until is not None and self.valid_until < self.valid_from:
+            raise ValueError("valid_until darf nicht vor valid_from liegen.")
 
 
 @dataclass(frozen=True)
@@ -71,6 +75,14 @@ class WorkScheduleVersion:
     valid_until: date | None
     change_origin: ChangeOrigin
     changed_by_user_id: int | None
+
+    def __post_init__(self) -> None:
+        if self.scope_type == ScopeType.GLOBAL and self.scope_employee_id is not None:
+            raise ValueError("Globale Regelarbeitszeit darf keinen Mitarbeiterbezug haben.")
+        if self.scope_type == ScopeType.EMPLOYEE and self.scope_employee_id is None:
+            raise ValueError("Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben.")
+        if self.valid_until is not None and self.valid_until < self.valid_from:
+            raise ValueError("valid_until darf nicht vor valid_from liegen.")
 
 
 @dataclass(frozen=True)

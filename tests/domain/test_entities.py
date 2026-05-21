@@ -1,21 +1,57 @@
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
-from arbeitszeit.domain.entities import ReviewCase, Supplement
+from arbeitszeit.domain.entities import ReviewCase, RfidCard, Supplement, WorkScheduleVersion
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingType,
+    CardStatus,
+    ChangeOrigin,
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    ScopeType,
 )
 
 _NOW = datetime(2024, 1, 15, 10, 0, tzinfo=timezone.utc)
+_TODAY = date(2024, 1, 15)
+_YESTERDAY = date(2024, 1, 14)
+_TOMORROW = date(2024, 1, 16)
+
+
+def _rfid_card(**overrides):
+    defaults = dict(
+        id=1,
+        employee_id=1,
+        uid_hash="abc123",
+        status=CardStatus.ACTIVE,
+        valid_from=_TODAY,
+        valid_until=None,
+        replaced_by_card_id=None,
+    )
+    return RfidCard(**{**defaults, **overrides})
+
+
+def _work_schedule(**overrides):
+    from datetime import time
+    defaults = dict(
+        id=1,
+        scope_type=ScopeType.GLOBAL,
+        scope_employee_id=None,
+        weekday=1,
+        start_time=time(7, 30),
+        end_time=time(16, 0),
+        valid_from=_TODAY,
+        valid_until=None,
+        change_origin=ChangeOrigin.SYSTEM_SEED,
+        changed_by_user_id=None,
+    )
+    return WorkScheduleVersion(**{**defaults, **overrides})
 
 
 def _review_case(**overrides):
@@ -148,3 +184,47 @@ def test_supplement_rejected_ohne_freigabedaten_ist_ungueltig():
             approved_by_user_id=None,
             approved_at=None,
         )
+
+
+# --- RfidCard ---
+
+def test_rfid_card_ohne_valid_until_ist_gueltig():
+    card = _rfid_card(valid_from=_TODAY, valid_until=None)
+    assert card.valid_until is None
+
+
+def test_rfid_card_valid_until_nach_valid_from_ist_gueltig():
+    card = _rfid_card(valid_from=_TODAY, valid_until=_TOMORROW)
+    assert card.valid_until == _TOMORROW
+
+
+def test_rfid_card_valid_until_vor_valid_from_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _rfid_card(valid_from=_TODAY, valid_until=_YESTERDAY)
+
+
+# --- WorkScheduleVersion ---
+
+def test_work_schedule_global_ohne_mitarbeiterbezug_ist_gueltig():
+    ws = _work_schedule(scope_type=ScopeType.GLOBAL, scope_employee_id=None)
+    assert ws.scope_employee_id is None
+
+
+def test_work_schedule_global_mit_mitarbeiterbezug_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _work_schedule(scope_type=ScopeType.GLOBAL, scope_employee_id=5)
+
+
+def test_work_schedule_employee_mit_mitarbeiterbezug_ist_gueltig():
+    ws = _work_schedule(scope_type=ScopeType.EMPLOYEE, scope_employee_id=3)
+    assert ws.scope_employee_id == 3
+
+
+def test_work_schedule_employee_ohne_mitarbeiterbezug_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _work_schedule(scope_type=ScopeType.EMPLOYEE, scope_employee_id=None)
+
+
+def test_work_schedule_valid_until_vor_valid_from_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _work_schedule(valid_from=_TODAY, valid_until=_YESTERDAY)
