@@ -18,6 +18,18 @@ def validate_booking_sequence(
     day_bookings: Sequence[BookingType],
 ) -> ValidationResult:
     # day_bookings must be in chronological order
+    if not day_bookings:
+        if booking_type in (BookingType.GO, BookingType.BREAK_END, BookingType.BREAK_START):
+            raise InvalidBookingSequenceError(
+                f"Erste Tagesbuchung darf nicht {booking_type} sein."
+            )
+        return ValidationResult(
+            accepted=True,
+            initial_status=BookingStatus.OPEN,
+            reason_code=None,
+            follow_up_case_types=(),
+        )
+
     open_work = _has_open_work(day_bookings)
     open_break = _has_open_break(day_bookings)
 

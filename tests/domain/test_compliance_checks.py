@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.domain.entities import TimeBooking
-from arbeitszeit.domain.enums import BookingSource, BookingStatus, BookingType, ReviewCaseType
+from arbeitszeit.domain.enums import BookingSource, BookingStatus, BookingType, ReviewCaseType, ReviewSeverity
 from arbeitszeit.domain.services.compliance_checks import (
     check_break_compliance,
     check_max_hours,
@@ -30,6 +30,17 @@ def _dt(hour: int, minute: int = 0) -> datetime:
     return datetime(2024, 1, 15, hour, minute, tzinfo=timezone.utc)
 
 
+def _has(flags, case_type: ReviewCaseType) -> bool:
+    return any(f.case_type == case_type for f in flags)
+
+
+def _severity(flags, case_type: ReviewCaseType) -> ReviewSeverity | None:
+    for f in flags:
+        if f.case_type == case_type:
+            return f.severity
+    return None
+
+
 # --- check_break_compliance ---
 
 def test_keine_pausenverletzung_bei_kurzer_arbeitszeit():
@@ -45,7 +56,7 @@ def test_pausenverletzung_ueber_6h_ohne_ausreichende_pause():
         _booking(BookingType.GO, 14),
     ]
     flags = check_break_compliance(bookings)
-    assert ReviewCaseType.POSSIBLE_BREAK_VIOLATION in flags
+    assert _has(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION)
 
 
 def test_pausenverletzung_ueber_9h_ohne_45min_pause():
@@ -56,7 +67,8 @@ def test_pausenverletzung_ueber_9h_ohne_45min_pause():
         _booking(BookingType.GO, 17, 30),
     ]
     flags = check_break_compliance(bookings)
-    assert ReviewCaseType.POSSIBLE_BREAK_VIOLATION in flags
+    assert _has(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION)
+    assert _severity(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION) == ReviewSeverity.CRITICAL
 
 
 def test_keine_pausenverletzung_mit_ausreichender_pause():
@@ -76,28 +88,31 @@ def test_keine_ueberschreitung_bei_normaler_arbeitszeit():
     assert check_max_hours(bookings) == []
 
 
-def test_max_hours_verletzung_ueber_8h():
+def test_max_hours_warnung_ueber_8h():
     bookings = [_booking(BookingType.COME, 7), _booking(BookingType.GO, 15, 1)]
     flags = check_max_hours(bookings)
-    assert ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION in flags
+    assert _has(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
+    assert _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.WARN
 
 
-def test_max_hours_verletzung_ueber_10h():
+def test_max_hours_eskalation_ueber_10h():
     bookings = [_booking(BookingType.COME, 7), _booking(BookingType.GO, 17, 1)]
     flags = check_max_hours(bookings)
-    assert ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION in flags
+    assert _has(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
+    assert _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.CRITICAL
 
 
 # --- check_rest_period ---
 
 def test_keine_ruhezeiverletzung_bei_ausreichender_ruhezeit():
     last_go = datetime(2024, 1, 15, 17, 0, tzinfo=timezone.utc)
-    next_come = datetime(2024, 1, 16, 5, 0, tzinfo=timezone.utc)  # 12h später
+    next_come = datetime(2024, 1, 16, 5, 0, tzinfo=timezone.utc)
     assert check_rest_period(last_go, next_come) == []
 
 
 def test_ruhezeit_verletzung_unter_11h():
     last_go = datetime(2024, 1, 15, 18, 0, tzinfo=timezone.utc)
-    next_come = datetime(2024, 1, 16, 4, 0, tzinfo=timezone.utc)  # nur 10h später
+    next_come = datetime(2024, 1, 16, 4, 0, tzinfo=timezone.utc)
     flags = check_rest_period(last_go, next_come)
-    assert ReviewCaseType.POSSIBLE_REST_VIOLATION in flags
+    assert _has(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION)
+    assert _severity(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION) == ReviewSeverity.CRITICAL
