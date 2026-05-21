@@ -15,6 +15,10 @@ class InactiveCardError(DomainError):
     code = "INACTIVE_CARD"
 
 
+class InactiveEmployeeError(DomainError):
+    code = "INACTIVE_EMPLOYEE"
+
+
 class InvalidBookingSequenceError(DomainError):
     code = "INVALID_BOOKING_SEQUENCE"
 
