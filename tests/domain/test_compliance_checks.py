@@ -22,7 +22,9 @@ def _booking(booking_type: BookingType, hour: int, minute: int = 0) -> TimeBooki
         source=BookingSource.TERMINAL,
         status=BookingStatus.OK,
         terminal_id=None,
+        rfid_card_id=None,
         device_event_id=None,
+        note=None,
     )
 
 

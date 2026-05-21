@@ -78,3 +78,8 @@ class ApprovalStatus(StrEnum):
     PENDING = "PENDING"
     APPROVED = "APPROVED"
     REJECTED = "REJECTED"
+
+
+class ScopeType(StrEnum):
+    GLOBAL = "GLOBAL"
+    EMPLOYEE = "EMPLOYEE"

@@ -11,6 +11,7 @@ from arbeitszeit.domain.enums import (
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    ScopeType,
     UserRole,
 )
 
@@ -19,7 +20,8 @@ from arbeitszeit.domain.enums import (
 class Employee:
     id: int
     personnel_no: str
-    full_name: str
+    first_name: str
+    last_name: str
     is_active: bool
 
 
@@ -38,7 +40,9 @@ class RfidCard:
     employee_id: int
     uid_hash: str
     status: CardStatus
-    assigned_at: datetime
+    valid_from: date
+    valid_until: date | None
+    replaced_by_card_id: int | None
 
 
 @dataclass(frozen=True)
@@ -50,12 +54,16 @@ class TimeBooking:
     source: BookingSource
     status: BookingStatus
     terminal_id: int | None
+    rfid_card_id: int | None
     device_event_id: int | None
+    note: str | None
 
 
 @dataclass(frozen=True)
 class WorkScheduleVersion:
     id: int
+    scope_type: ScopeType
+    scope_employee_id: int | None
     weekday: int
     start_time: time
     end_time: time
@@ -72,20 +80,44 @@ class ReviewCase:
     case_type: ReviewCaseType
     severity: ReviewSeverity
     status: ReviewCaseStatus
+    description: str
     booking_id: int | None
     created_at: datetime
-    resolved_at: datetime | None
+    closed_at: datetime | None
+    closed_by_user_id: int | None
+
+    def __post_init__(self) -> None:
+        open_statuses = {ReviewCaseStatus.OPEN, ReviewCaseStatus.IN_REVIEW}
+        closed_statuses = {ReviewCaseStatus.RESOLVED, ReviewCaseStatus.CLOSED_WITH_NOTE}
+        if self.status in open_statuses:
+            if self.closed_at is not None or self.closed_by_user_id is not None:
+                raise ValueError("Offener Prüffall darf keine Schließungsdaten haben.")
+        elif self.status in closed_statuses:
+            if self.closed_at is None or self.closed_by_user_id is None:
+                raise ValueError("Geschlossener Prüffall muss Schließungsdaten haben.")
 
 
 @dataclass(frozen=True)
 class Supplement:
     id: int
     employee_id: int
+    related_booking_id: int | None
     booking_type: BookingType
-    booked_at: datetime
+    event_at: datetime
+    recorded_at: datetime
     reason: str
-    created_by_user_id: int
+    recorded_by_user_id: int
     approval_status: ApprovalStatus
+    approved_by_user_id: int | None
+    approved_at: datetime | None
+
+    def __post_init__(self) -> None:
+        if self.approval_status == ApprovalStatus.PENDING:
+            if self.approved_by_user_id is not None or self.approved_at is not None:
+                raise ValueError("Ausstehender Nachtrag darf keine Freigabedaten haben.")
+        else:
+            if self.approved_by_user_id is None or self.approved_at is None:
+                raise ValueError("Freigegebener oder abgelehnter Nachtrag muss Freigabedaten haben.")
 
 
 @dataclass(frozen=True)
@@ -105,8 +137,9 @@ class BookingCorrection:
 class AuditLogEntry:
     id: int
     event_type: str
-    performed_by_user_id: int | None
-    target_table: str | None
-    target_id: int | None
-    detail: str | None
-    created_at: datetime
+    object_type: str
+    object_id: int
+    user_id: int | None
+    employee_id: int | None
+    event_at: datetime
+    details_json: str
