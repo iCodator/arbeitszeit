@@ -25,6 +25,9 @@ def run_migrations(conn: sqlite3.Connection) -> list[str]:
         if version in applied:
             continue
 
+        if not (version.isdigit() and len(version) == 4):
+            raise ValueError(f"Ungültiger Migrationsname: {path.name!r}")
+
         sql = path.read_text(encoding="utf-8")
         version_insert = (
             "INSERT INTO schema_migrations (version, applied_at) "
