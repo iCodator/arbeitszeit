@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Protocol
+from typing import Literal, Protocol
 
 from arbeitszeit.domain.entities import (
     AuditLogEntry,
@@ -12,7 +12,7 @@ from arbeitszeit.domain.entities import (
     UserAccount,
     WorkScheduleVersion,
 )
-from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus
+from arbeitszeit.domain.enums import BookingStatus, ChangeOrigin, ReviewCaseStatus
 
 
 class EmployeeRepository(Protocol):
@@ -47,7 +47,13 @@ class WorkScheduleRepository(Protocol):
 class ReviewCaseRepository(Protocol):
     def add(self, case: ReviewCase) -> ReviewCase: ...
     def list_open_for_employee(self, employee_id: int) -> list[ReviewCase]: ...
-    def resolve(self, case_id: int, status: ReviewCaseStatus, closed_by_user_id: int, note: str | None = None) -> None: ...
+    def resolve(
+        self,
+        case_id: int,
+        status: Literal[ReviewCaseStatus.RESOLVED, ReviewCaseStatus.CLOSED_WITH_NOTE],
+        closed_by_user_id: int,
+        note: str | None = None,
+    ) -> None: ...
 
 
 class SupplementRepository(Protocol):
@@ -69,3 +75,12 @@ class AuditLogRepository(Protocol):
 
 class SystemConfigRepository(Protocol):
     def get_current(self, config_key: str) -> str | None: ...
+    def set_current(
+        self,
+        config_key: str,
+        value_json: str,
+        change_origin: ChangeOrigin,
+        changed_by_user_id: int | None,
+        changed_at: datetime,
+        reason: str | None = None,
+    ) -> None: ...
