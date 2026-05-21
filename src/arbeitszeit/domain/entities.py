@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, time
 
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
@@ -57,10 +57,10 @@ class TimeBooking:
 class WorkScheduleVersion:
     id: int
     weekday: int
-    start_time: str
-    end_time: str
-    valid_from: str
-    valid_until: str | None
+    start_time: time
+    end_time: time
+    valid_from: date
+    valid_until: date | None
     change_origin: ChangeOrigin
     changed_by_user_id: int | None
 
@@ -94,8 +94,10 @@ class BookingCorrection:
     original_booking_id: int
     corrected_by_user_id: int
     reason: str
-    new_booking_type: BookingType | None
-    new_booked_at: datetime | None
+    old_booking_type: BookingType
+    old_booked_at: datetime
+    new_booking_type: BookingType
+    new_booked_at: datetime
     created_at: datetime
 
 

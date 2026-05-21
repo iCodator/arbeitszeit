@@ -1,6 +1,11 @@
 class DomainError(Exception):
     code: str = "DOMAIN_ERROR"
 
+    def __init__(self, message: str = "", **context: object) -> None:
+        super().__init__(message or self.code)
+        self.message = message or self.code
+        self.context = context
+
 
 class UnknownCardError(DomainError):
     code = "UNKNOWN_CARD"
