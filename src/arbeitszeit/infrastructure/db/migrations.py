@@ -26,17 +26,14 @@ def run_migrations(conn: sqlite3.Connection) -> list[str]:
             continue
 
         sql = path.read_text(encoding="utf-8")
-        statements = [s.strip() for s in sql.split(";") if s.strip()]
+        version_insert = (
+            "INSERT INTO schema_migrations (version, applied_at) "
+            f"VALUES ('{version}', datetime('now'))"
+        )
+        script = f"BEGIN;\n{sql}\n{version_insert};\nCOMMIT;"
 
         try:
-            conn.execute("BEGIN")
-            for stmt in statements:
-                conn.execute(stmt)
-            conn.execute(
-                "INSERT INTO schema_migrations (version, applied_at) VALUES (?, datetime('now'))",
-                (version,),
-            )
-            conn.commit()
+            conn.executescript(script)
         except Exception:
             conn.rollback()
             raise
