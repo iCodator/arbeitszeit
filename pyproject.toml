@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arbeitszeit"
+version = "0.1.0"
+description = "Lokales Zeiterfassungssystem für eine Zahnarztpraxis"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "evdev>=1.7",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

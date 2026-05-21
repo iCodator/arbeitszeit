@@ -1,0 +1,89 @@
+import sqlite3
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
+
+from arbeitszeit.infrastructure.db.connection import open_connection
+from arbeitszeit.infrastructure.db.migrations import run_migrations
+
+_EXPECTED_TABLES = {
+    "schema_migrations",
+    "employees",
+    "user_accounts",
+    "rfid_cards",
+    "terminals",
+    "time_bookings",
+    "booking_status_history",
+    "booking_corrections",
+    "supplements",
+    "review_cases",
+    "review_case_actions",
+    "work_schedule_versions",
+    "system_config",
+    "device_events",
+    "system_events",
+    "audit_log",
+}
+
+
+@pytest.fixture
+def conn(tmp_path):
+    db = tmp_path / "test.db"
+    c = open_connection(db)
+    yield c
+    c.close()
+
+
+def _table_names(conn: sqlite3.Connection) -> set[str]:
+    rows = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table'"
+    ).fetchall()
+    return {row[0] for row in rows}
+
+
+def test_leere_db_wird_vollstaendig_migriert(conn):
+    executed = run_migrations(conn)
+
+    assert set(executed) == {"0001", "0002"}
+    assert _EXPECTED_TABLES == _table_names(conn)
+
+
+def test_erneutes_ausfuehren_ist_idempotent(conn):
+    run_migrations(conn)
+    executed_second = run_migrations(conn)
+
+    assert executed_second == []
+    assert _EXPECTED_TABLES == _table_names(conn)
+
+
+def test_seed_daten_vorhanden_nach_migration(conn):
+    run_migrations(conn)
+
+    schedule_rows = conn.execute(
+        "SELECT weekday, start_time, end_time FROM work_schedule_versions ORDER BY weekday"
+    ).fetchall()
+    assert len(schedule_rows) == 5
+
+    weekdays = {row[0]: (row[1], row[2]) for row in schedule_rows}
+    assert weekdays[1] == ("07:30", "18:00")
+    assert weekdays[4] == ("07:30", "14:00")
+    assert weekdays[5] == ("07:30", "16:00")
+
+    config_keys = {
+        row[0]
+        for row in conn.execute("SELECT config_key FROM system_config").fetchall()
+    }
+    assert "app.timezone" in config_keys
+    assert "backup.nas_enabled" in config_keys
+
+
+def test_audit_log_enthaelt_seed_eintraege(conn):
+    run_migrations(conn)
+
+    count = conn.execute(
+        "SELECT COUNT(*) FROM audit_log WHERE event_type = 'SEEDED'"
+    ).fetchone()[0]
+    assert count == 9
