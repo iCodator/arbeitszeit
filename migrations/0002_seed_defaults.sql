@@ -75,7 +75,4 @@ SELECT
 FROM system_config
 WHERE change_origin = 'SYSTEM_SEED';
 
-INSERT INTO schema_migrations (version, applied_at)
-VALUES ('0002', datetime('now'));
-
 COMMIT;
