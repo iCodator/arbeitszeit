@@ -29,9 +29,9 @@ INSERT INTO system_config (
     reason
 ) VALUES
     ('app.timezone',                              '"Europe/Berlin"', 1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup'),
-    ('booking.grace_seconds_after_numpad_select', '30',             1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup'),
-    ('backup.nas_enabled',                        'false',          1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup'),
-    ('backup.nas_path',                           'null',           1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup');
+    ('booking.grace_seconds_after_numpad_select', 30,              1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup'),
+    ('backup.nas_enabled',                        'false',         1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup'),
+    ('backup.nas_path',                           'null',          1, 'SYSTEM_SEED', NULL, '2026-01-01T00:00:00', 'initial default setup');
 
 INSERT INTO audit_log (
     event_type, object_type, object_id,
