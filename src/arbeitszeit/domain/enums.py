@@ -58,7 +58,7 @@ class CardStatus(StrEnum):
 class UserRole(StrEnum):
     EMPLOYEE = "EMPLOYEE"
     ADMIN = "ADMIN"
-    AUDITOR = "AUDITOR"
+    REVIEWER = "REVIEWER"
     TECH = "TECH"
 
 

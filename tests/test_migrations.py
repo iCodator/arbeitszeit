@@ -92,3 +92,28 @@ def test_audit_log_enthaelt_seed_eintraege(conn):
         "SELECT COUNT(*) FROM audit_log WHERE event_type = 'SEEDED'"
     ).fetchone()[0]
     assert count == 9
+
+
+def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
+    run_migrations(conn)
+
+    versions = {
+        row[0]
+        for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
+    }
+    assert versions == {"0001", "0002"}
+
+
+def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
+    run_migrations(conn)
+    run_migrations(conn)
+
+    schedule_count = conn.execute(
+        "SELECT COUNT(*) FROM work_schedule_versions"
+    ).fetchone()[0]
+    assert schedule_count == 5
+
+    config_count = conn.execute(
+        "SELECT COUNT(*) FROM system_config"
+    ).fetchone()[0]
+    assert config_count == 4

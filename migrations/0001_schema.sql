@@ -24,7 +24,7 @@ CREATE TABLE user_accounts (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('EMPLOYEE', 'ADMIN', 'AUDITOR', 'TECH')),
+    role TEXT NOT NULL CHECK (role IN ('EMPLOYEE', 'ADMIN', 'REVIEWER', 'TECH')),
     employee_id INTEGER,
     active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
     created_at TEXT NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE user_accounts (
 
 CREATE TABLE rfid_cards (
     id INTEGER PRIMARY KEY,
-    uid TEXT NOT NULL UNIQUE,
+    uid_hash TEXT NOT NULL UNIQUE,
     employee_id INTEGER NOT NULL,
     status TEXT NOT NULL CHECK (status IN ('ACTIVE', 'INACTIVE', 'REPLACED', 'LOST')),
     valid_from TEXT NOT NULL,
@@ -264,7 +264,7 @@ CREATE TABLE device_events (
         )
     ),
     terminal_id INTEGER,
-    rfid_uid_raw TEXT,
+    rfid_uid_hash TEXT,
     payload_json TEXT,
     occurred_at TEXT NOT NULL,
     related_time_booking_id INTEGER,
