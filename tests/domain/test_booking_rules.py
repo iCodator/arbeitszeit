@@ -57,3 +57,16 @@ def test_go_bei_offener_pause():
             BookingType.GO,
             [BookingType.COME, BookingType.BREAK_START],
         )
+
+
+def test_break_start_ohne_offene_arbeitsphase():
+    with pytest.raises(InvalidBookingSequenceError):
+        validate_booking_sequence(BookingType.BREAK_START, [])
+
+
+def test_break_start_nach_go():
+    with pytest.raises(InvalidBookingSequenceError):
+        validate_booking_sequence(
+            BookingType.BREAK_START,
+            [BookingType.COME, BookingType.GO],
+        )
