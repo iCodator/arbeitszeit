@@ -13,12 +13,14 @@ from arbeitszeit.infrastructure.db.migrations import run_migrations
 def main() -> None:
     db_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("arbeitszeit.db")
     conn = open_connection(db_path)
-    executed = run_migrations(conn)
-    conn.close()
+    try:
+        executed = run_migrations(conn)
+    finally:
+        conn.close()
 
     if executed:
-        for v in executed:
-            print(f"Migration {v} angewendet.")
+        for version in executed:
+            print(f"Migration {version} angewendet.")
     else:
         print("Keine neuen Migrationen.")
 

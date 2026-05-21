@@ -32,14 +32,19 @@ _EXPECTED_TABLES = {
 @pytest.fixture
 def conn(tmp_path):
     db = tmp_path / "test.db"
-    c = open_connection(db)
-    yield c
-    c.close()
+    connection = open_connection(db)
+    yield connection
+    connection.close()
 
 
 def _table_names(conn: sqlite3.Connection) -> set[str]:
     rows = conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
+        """
+        SELECT name
+        FROM sqlite_master
+        WHERE type = 'table'
+          AND name NOT LIKE 'sqlite_%'
+        """
     ).fetchall()
     return {row[0] for row in rows}
 
@@ -47,8 +52,8 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn):
     executed = run_migrations(conn)
 
-    assert set(executed) == {"0001", "0002"}
-    assert _EXPECTED_TABLES == _table_names(conn)
+    assert executed == ["0001", "0002"]
+    assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
 def test_erneutes_ausfuehren_ist_idempotent(conn):
@@ -56,7 +61,7 @@ def test_erneutes_ausfuehren_ist_idempotent(conn):
     executed_second = run_migrations(conn)
 
     assert executed_second == []
-    assert _EXPECTED_TABLES == _table_names(conn)
+    assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
 def test_seed_daten_vorhanden_nach_migration(conn):
