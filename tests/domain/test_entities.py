@@ -83,6 +83,8 @@ def _supplement(**overrides):
         approval_status=ApprovalStatus.PENDING,
         approved_by_user_id=None,
         approved_at=None,
+        rejected_by_user_id=None,
+        rejected_at=None,
     )
     return Supplement(**{**defaults, **overrides})
 
@@ -158,6 +160,15 @@ def test_supplement_pending_mit_freigabedaten_ist_ungueltig():
         )
 
 
+def test_supplement_pending_mit_ablehnungsdaten_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _supplement(
+            approval_status=ApprovalStatus.PENDING,
+            rejected_by_user_id=3,
+            rejected_at=_NOW,
+        )
+
+
 def test_supplement_approved_mit_freigabedaten_ist_gueltig():
     s = _supplement(
         approval_status=ApprovalStatus.APPROVED,
@@ -177,12 +188,42 @@ def test_supplement_approved_ohne_freigabedaten_ist_ungueltig():
         )
 
 
-def test_supplement_rejected_ohne_freigabedaten_ist_ungueltig():
+def test_supplement_approved_mit_ablehnungsdaten_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _supplement(
+            approval_status=ApprovalStatus.APPROVED,
+            approved_by_user_id=3,
+            approved_at=_NOW,
+            rejected_by_user_id=5,
+            rejected_at=_NOW,
+        )
+
+
+def test_supplement_rejected_mit_ablehnungsdaten_ist_gueltig():
+    s = _supplement(
+        approval_status=ApprovalStatus.REJECTED,
+        rejected_by_user_id=4,
+        rejected_at=_NOW,
+    )
+    assert s.rejected_by_user_id == 4
+    assert s.rejected_at == _NOW
+
+
+def test_supplement_rejected_ohne_ablehnungsdaten_ist_ungueltig():
     with pytest.raises(ValueError):
         _supplement(
             approval_status=ApprovalStatus.REJECTED,
-            approved_by_user_id=None,
-            approved_at=None,
+        )
+
+
+def test_supplement_rejected_mit_freigabedaten_ist_ungueltig():
+    with pytest.raises(ValueError):
+        _supplement(
+            approval_status=ApprovalStatus.REJECTED,
+            rejected_by_user_id=4,
+            rejected_at=_NOW,
+            approved_by_user_id=3,
+            approved_at=_NOW,
         )
 
 

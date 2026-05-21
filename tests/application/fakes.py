@@ -100,7 +100,10 @@ class FakeRfidCardRepository:
 
     def get_active_by_uid_hash(self, uid_hash: str) -> RfidCard | None:
         return next(
-            (c for c in self._store.values() if c.uid_hash == uid_hash and c.status == CardStatus.ACTIVE),
+            (
+                c for c in self._store.values()
+                if c.uid_hash == uid_hash and c.status == CardStatus.ACTIVE
+            ),
             None,
         )
 
@@ -123,10 +126,13 @@ class FakeTimeBookingRepository:
         return self._store.get(booking_id)
 
     def list_for_employee_on_day(self, employee_id: int, day: date) -> list[TimeBooking]:
-        return [
-            b for b in self._store.values()
-            if b.employee_id == employee_id and b.booked_at.date() == day
-        ]
+        return sorted(
+            (
+                b for b in self._store.values()
+                if b.employee_id == employee_id and b.booked_at.date() == day
+            ),
+            key=lambda b: b.booked_at,
+        )
 
     def list_open_for_employee(self, employee_id: int) -> list[TimeBooking]:
         return [
@@ -134,11 +140,16 @@ class FakeTimeBookingRepository:
             if b.employee_id == employee_id and b.status == BookingStatus.OPEN
         ]
 
-    def list_between(self, employee_id: int, from_dt: datetime, to_dt: datetime) -> list[TimeBooking]:
-        return [
-            b for b in self._store.values()
-            if b.employee_id == employee_id and from_dt <= b.booked_at <= to_dt
-        ]
+    def list_between(
+        self, employee_id: int, from_dt: datetime, to_dt: datetime
+    ) -> list[TimeBooking]:
+        return sorted(
+            (
+                b for b in self._store.values()
+                if b.employee_id == employee_id and from_dt <= b.booked_at <= to_dt
+            ),
+            key=lambda b: b.booked_at,
+        )
 
     def set_status(
         self,
@@ -204,8 +215,11 @@ class FakeWorkScheduleRepository:
         weekday: int | None = None,
         scope_employee_id: int | None = None,
     ) -> list[WorkScheduleVersion]:
-        # scope_employee_id=None filtert auf GLOBAL (scope_employee_id IS NULL)
-        result = [v for v in self._store.values() if v.scope_employee_id == scope_employee_id]
+        scope_type = ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
+        result = [
+            v for v in self._store.values()
+            if v.scope_type == scope_type and v.scope_employee_id == scope_employee_id
+        ]
         if weekday is not None:
             result = [v for v in result if v.weekday == weekday]
         return result
@@ -242,6 +256,7 @@ class FakeReviewCaseRepository:
             status=status,
             closed_at=datetime.now(timezone.utc),
             closed_by_user_id=closed_by_user_id,
+            note=note,
         )
 
 
@@ -276,8 +291,8 @@ class FakeSupplementRepository:
         self._store[supplement_id] = dataclasses.replace(
             existing,
             approval_status=ApprovalStatus.REJECTED,
-            approved_by_user_id=rejected_by_user_id,
-            approved_at=rejected_at,
+            rejected_by_user_id=rejected_by_user_id,
+            rejected_at=rejected_at,
         )
 
 

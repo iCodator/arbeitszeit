@@ -97,6 +97,7 @@ class ReviewCase:
     created_at: datetime
     closed_at: datetime | None
     closed_by_user_id: int | None
+    note: str | None = None
 
     def __post_init__(self) -> None:
         open_statuses = {ReviewCaseStatus.OPEN, ReviewCaseStatus.IN_REVIEW}
@@ -122,14 +123,33 @@ class Supplement:
     approval_status: ApprovalStatus
     approved_by_user_id: int | None
     approved_at: datetime | None
+    rejected_by_user_id: int | None = None
+    rejected_at: datetime | None = None
 
     def __post_init__(self) -> None:
         if self.approval_status == ApprovalStatus.PENDING:
             if self.approved_by_user_id is not None or self.approved_at is not None:
-                raise ValueError("Ausstehender Nachtrag darf keine Freigabedaten haben.")
-        else:
+                raise ValueError(
+                    "Ausstehender Nachtrag darf keine Freigabedaten haben."
+                )
+            if self.rejected_by_user_id is not None or self.rejected_at is not None:
+                raise ValueError(
+                    "Ausstehender Nachtrag darf keine Ablehnungsdaten haben."
+                )
+        elif self.approval_status == ApprovalStatus.APPROVED:
             if self.approved_by_user_id is None or self.approved_at is None:
-                raise ValueError("Freigegebener oder abgelehnter Nachtrag muss Freigabedaten haben.")
+                raise ValueError("Genehmigter Nachtrag muss Freigabedaten haben.")
+            if self.rejected_by_user_id is not None or self.rejected_at is not None:
+                raise ValueError(
+                    "Genehmigter Nachtrag darf keine Ablehnungsdaten haben."
+                )
+        elif self.approval_status == ApprovalStatus.REJECTED:
+            if self.rejected_by_user_id is None or self.rejected_at is None:
+                raise ValueError("Abgelehnter Nachtrag muss Ablehnungsdaten haben.")
+            if self.approved_by_user_id is not None or self.approved_at is not None:
+                raise ValueError(
+                    "Abgelehnter Nachtrag darf keine Freigabedaten haben."
+                )
 
 
 @dataclass(frozen=True)

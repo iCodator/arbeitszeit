@@ -52,7 +52,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn):
     executed = run_migrations(conn)
 
-    assert executed == ["0001", "0002", "0003"]
+    assert executed == ["0001", "0002", "0003", "0004"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
@@ -101,7 +101,7 @@ def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
         row[0]
         for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
     }
-    assert versions == {"0001", "0002", "0003"}
+    assert versions == {"0001", "0002", "0003", "0004"}
 
 
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
