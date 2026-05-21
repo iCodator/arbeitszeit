@@ -184,31 +184,36 @@ class FakeWorkScheduleRepository:
         on_date: date,
         employee_id: int | None = None,
     ) -> WorkScheduleVersion | None:
-        # EMPLOYEE-Scope hat Vorrang vor GLOBAL
-        if employee_id is not None:
-            employee_version = next(
-                (
-                    v for v in self._store.values()
-                    if v.weekday == weekday
-                    and v.scope_type == ScopeType.EMPLOYEE
-                    and v.scope_employee_id == employee_id
-                    and v.valid_from <= on_date
-                    and (v.valid_until is None or v.valid_until >= on_date)
-                ),
-                None,
-            )
-            if employee_version is not None:
-                return employee_version
-        return next(
-            (
-                v for v in self._store.values()
-                if v.weekday == weekday
-                and v.scope_type == ScopeType.GLOBAL
+        def _matches(v: WorkScheduleVersion) -> bool:
+            return (
+                v.weekday == weekday
                 and v.valid_from <= on_date
                 and (v.valid_until is None or v.valid_until >= on_date)
+            )
+
+        if employee_id is not None:
+            candidates = sorted(
+                (
+                    v for v in self._store.values()
+                    if _matches(v)
+                    and v.scope_type == ScopeType.EMPLOYEE
+                    and v.scope_employee_id == employee_id
+                ),
+                key=lambda v: v.valid_from,
+                reverse=True,
+            )
+            if candidates:
+                return candidates[0]
+
+        candidates = sorted(
+            (
+                v for v in self._store.values()
+                if _matches(v) and v.scope_type == ScopeType.GLOBAL
             ),
-            None,
+            key=lambda v: v.valid_from,
+            reverse=True,
         )
+        return candidates[0] if candidates else None
 
     def list_versions(
         self,

@@ -143,6 +143,17 @@ def test_review_case_closed_with_note_ohne_schliessungsdaten_ist_ungueltig():
         )
 
 
+def test_review_case_closed_with_note_mit_note_ist_gueltig():
+    case = _review_case(
+        status=ReviewCaseStatus.CLOSED_WITH_NOTE,
+        closed_at=_NOW,
+        closed_by_user_id=5,
+        note="Besprochen und dokumentiert.",
+    )
+    assert case.note == "Besprochen und dokumentiert."
+    assert case.closed_by_user_id == 5
+
+
 # --- Supplement ---
 
 def test_supplement_pending_ohne_freigabedaten_ist_gueltig():

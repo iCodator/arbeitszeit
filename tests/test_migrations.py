@@ -104,6 +104,23 @@ def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
     assert versions == {"0001", "0002", "0003", "0004"}
 
 
+def test_migration_0004_fuegt_neue_spalten_ein(conn):
+    run_migrations(conn)
+
+    supplement_cols = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(supplements)").fetchall()
+    }
+    assert "rejected_by_user_id" in supplement_cols
+    assert "rejected_at" in supplement_cols
+
+    review_cols = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(review_cases)").fetchall()
+    }
+    assert "note" in review_cols
+
+
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
     run_migrations(conn)
     run_migrations(conn)
