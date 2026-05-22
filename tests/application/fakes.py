@@ -56,7 +56,10 @@ class FakeEmployeeRepository:
 
     def get_active_by_personnel_no(self, personnel_no: str) -> Employee | None:
         return next(
-            (e for e in self._store.values() if e.personnel_no == personnel_no and e.is_active),
+            (
+                e for e in self._store.values()
+                if e.personnel_no == personnel_no and e.is_active
+            ),
             None,
         )
 
@@ -126,7 +129,9 @@ class FakeTimeBookingRepository:
     def get_by_id(self, booking_id: int) -> TimeBooking | None:
         return self._store.get(booking_id)
 
-    def list_for_employee_on_day(self, employee_id: int, day: date) -> list[TimeBooking]:
+    def list_for_employee_on_day(
+        self, employee_id: int, day: date
+    ) -> list[TimeBooking]:
         return sorted(
             (
                 b for b in self._store.values()
@@ -176,7 +181,6 @@ class FakeWorkScheduleRepository:
 
     def close_version(self, version_id: int, valid_until: date) -> None:
         existing = self._store[version_id]
-        # dataclasses.replace triggers __post_init__ → valid_until < valid_from raises ValueError
         self._store[version_id] = dataclasses.replace(existing, valid_until=valid_until)
 
     def get_effective(
@@ -221,7 +225,9 @@ class FakeWorkScheduleRepository:
         weekday: int | None = None,
         scope_employee_id: int | None = None,
     ) -> list[WorkScheduleVersion]:
-        scope_type = ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
+        scope_type = (
+            ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
+        )
         result = [
             v for v in self._store.values()
             if v.scope_type == scope_type and v.scope_employee_id == scope_employee_id
@@ -281,9 +287,14 @@ class FakeSupplementRepository:
         return self._store.get(supplement_id)
 
     def list_pending(self) -> list[Supplement]:
-        return [s for s in self._store.values() if s.approval_status == ApprovalStatus.PENDING]
+        return [
+            s for s in self._store.values()
+            if s.approval_status == ApprovalStatus.PENDING
+        ]
 
-    def approve(self, supplement_id: int, approved_by_user_id: int, approved_at: datetime) -> None:
+    def approve(
+        self, supplement_id: int, approved_by_user_id: int, approved_at: datetime
+    ) -> None:
         existing = self._store[supplement_id]
         self._store[supplement_id] = dataclasses.replace(
             existing,
@@ -292,7 +303,9 @@ class FakeSupplementRepository:
             approved_at=approved_at,
         )
 
-    def reject(self, supplement_id: int, rejected_by_user_id: int, rejected_at: datetime) -> None:
+    def reject(
+        self, supplement_id: int, rejected_by_user_id: int, rejected_at: datetime
+    ) -> None:
         existing = self._store[supplement_id]
         self._store[supplement_id] = dataclasses.replace(
             existing,
