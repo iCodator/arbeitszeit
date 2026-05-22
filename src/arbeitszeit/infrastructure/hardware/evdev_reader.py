@@ -9,16 +9,22 @@ Voraussetzungen:
   - Prozess benötigt Lesezugriff auf die Gerätedateien
     (Gruppe 'input' oder root, oder udev-Regel)
 
+Lebenszyklus: Die aufrufende Schicht ist für close() verantwortlich.
+Empfohlen ist try/finally oder ein Context Manager, damit close()
+auch bei Ausnahmen sicher erreicht wird.
+
 Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutzt.
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
+import select
+import time
 from datetime import datetime, timezone
 
 from evdev import InputDevice, categorize, ecodes
 
 from arbeitszeit.domain.enums import BookingType
 
-from .ports import EmptyUidError, HardwareReader, RawBookingRequest
+from .ports import EmptyUidError, HardwareReader, HardwareTimeoutError, RawBookingRequest
 from .uid_hash import hash_uid
 
 # Numpad-Tasten 1–4 (KP-Variante und normale Ziffern) → BookingType
@@ -33,21 +39,27 @@ _NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType] = {
     "KEY_4":   BookingType.BREAK_END,
 }
 
-# HID-Tastatur-Keycodes → ASCII-Zeichen (ohne Shift)
-_KEY_CHAR: dict[str, str] = {
+# Nur Hex-Zeichen (0–9, A–F) – RFID-Lesegeräte liefern ausschließlich Hex-UIDs.
+# Andere alphanumerische Zeichen werden bewusst ignoriert (kein Rauschen/Fremdeingaben).
+_HEX_KEY_CHAR: dict[str, str] = {
     **{f"KEY_{d}": d for d in "0123456789"},
-    **{f"KEY_{c}": c.lower() for c in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"},
+    **{f"KEY_{c}": c.lower() for c in "ABCDEF"},
     **{f"KEY_KP{d}": d for d in "0123456789"},
 }
+_HEX_KEY_CHAR_SHIFT: dict[str, str] = {k: v.upper() for k, v in _HEX_KEY_CHAR.items()}
 
-# Mit Shift (für Lesegeräte, die Uppercase oder Sonderzeichen ausgeben)
-_KEY_CHAR_SHIFT: dict[str, str] = {
-    **{k: v.upper() for k, v in _KEY_CHAR.items()},
-}
+# Timeout (Sekunden) für den RFID-Lesevorgang nach Buchungstyp-Auswahl.
+_RFID_READ_TIMEOUT: float = 5.0
 
 
 class EvdevHardwareReader(HardwareReader):
-    """Liest Buchungsanfragen von physischen evdev-Geräten."""
+    """Liest Buchungsanfragen von physischen evdev-Geräten.
+
+    grab=True (Standard) schließt die Geräte exklusiv für andere Prozesse.
+    Sinnvoll im Kiosk-Betrieb; für Diagnose/Test grab=False übergeben.
+    Bei Prozessabsturz mit grab=True kann das Gerät temporär blockiert bleiben –
+    Absturzverhalten und Reconnect-Logik gehören in die aufrufende Schicht.
+    """
 
     def __init__(
         self,
@@ -64,8 +76,11 @@ class EvdevHardwareReader(HardwareReader):
 
     def read_next(self) -> RawBookingRequest:
         booking_type = self._read_booking_type()
+        # occurred_at erst nach vollständiger UID-Lesung:
+        # Setzt den Zeitstempel auf den Abschluss der Buchungsanforderung,
+        # nicht auf den Zwischenstand nach Tastenauswahl.
+        raw_uid = self._read_rfid_uid(timeout=_RFID_READ_TIMEOUT).strip()
         occurred_at = datetime.now(timezone.utc)
-        raw_uid = self._read_rfid_uid().strip()
         if not raw_uid:
             raise EmptyUidError(
                 "RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen."
@@ -91,30 +106,48 @@ class EvdevHardwareReader(HardwareReader):
                 return bt
         raise OSError("Numpad-Gerät unerwartet geschlossen.")
 
-    def _read_rfid_uid(self) -> str:
+    def _read_rfid_uid(self, timeout: float) -> str:
+        """Liest Hex-UID vom RFID-Reader bis Enter oder Timeout.
+
+        Wirft HardwareTimeoutError wenn innerhalb von `timeout` Sekunden
+        keine vollständige UID (abgeschlossen durch Enter) gelesen wird.
+        Nicht-Hex-Zeichen werden ignoriert.
+        """
         chars: list[str] = []
         shift_active = False
-        for event in self._rfid.read_loop():
-            if event.type != ecodes.EV_KEY:
-                continue
-            key_event = categorize(event)
-            keycode = key_event.keycode
-            if isinstance(keycode, list):
-                keycode = keycode[0]
-            if key_event.keystate == key_event.key_down:
-                if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):
-                    shift_active = True
-                elif keycode in ("KEY_ENTER", "KEY_KPENTER"):
-                    break
-                else:
-                    char_map = _KEY_CHAR_SHIFT if shift_active else _KEY_CHAR
-                    c = char_map.get(keycode)
-                    if c is not None:
-                        chars.append(c)
-            elif key_event.keystate == key_event.key_up:
-                if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):
-                    shift_active = False
-        return "".join(chars)
+        deadline = time.monotonic() + timeout
+
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise HardwareTimeoutError(
+                    f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit."
+                )
+            ready, _, _ = select.select([self._rfid.fd], [], [], remaining)
+            if not ready:
+                raise HardwareTimeoutError(
+                    f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit."
+                )
+            for event in self._rfid.read():
+                if event.type != ecodes.EV_KEY:
+                    continue
+                key_event = categorize(event)
+                keycode = key_event.keycode
+                if isinstance(keycode, list):
+                    keycode = keycode[0]
+                if key_event.keystate == key_event.key_down:
+                    if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):
+                        shift_active = True
+                    elif keycode in ("KEY_ENTER", "KEY_KPENTER"):
+                        return "".join(chars)
+                    else:
+                        char_map = _HEX_KEY_CHAR_SHIFT if shift_active else _HEX_KEY_CHAR
+                        c = char_map.get(keycode)
+                        if c is not None:
+                            chars.append(c)
+                elif key_event.keystate == key_event.key_up:
+                    if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):
+                        shift_active = False
 
     def close(self) -> None:
         for dev in (self._numpad, self._rfid):

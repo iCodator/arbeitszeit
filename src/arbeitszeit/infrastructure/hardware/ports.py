@@ -9,6 +9,10 @@ class EmptyUidError(RuntimeError):
     """RFID-Lesegerät lieferte eine leere oder nicht mappbare UID."""
 
 
+class HardwareTimeoutError(RuntimeError):
+    """RFID-Lesevorgang hat das Zeitlimit überschritten."""
+
+
 @dataclass(frozen=True)
 class RawBookingRequest:
     booking_type: BookingType
