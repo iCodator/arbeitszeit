@@ -105,7 +105,8 @@ def test_hash_uid_gross_klein_sensitiv():
 
 
 def test_simulated_reader_erfuellt_hardware_reader_protocol():
-    sim: HardwareReader = SimulatedHardwareReader()
+    sim = SimulatedHardwareReader()
+    assert isinstance(sim, HardwareReader)
     sim.inject(BookingType.COME, "HASH", occurred_at=_T)
     req = sim.read_next()
     assert req.booking_type == BookingType.COME

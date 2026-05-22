@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from arbeitszeit.domain.enums import BookingType
 
@@ -16,6 +16,7 @@ class RawBookingRequest:
     occurred_at: datetime
 
 
+@runtime_checkable
 class HardwareReader(Protocol):
     def read_next(self) -> RawBookingRequest: ...
     def close(self) -> None: ...
