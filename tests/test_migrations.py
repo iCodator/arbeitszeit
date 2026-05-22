@@ -68,7 +68,8 @@ def test_seed_daten_vorhanden_nach_migration(conn):
     run_migrations(conn)
 
     schedule_rows = conn.execute(
-        "SELECT weekday, start_time, end_time FROM work_schedule_versions ORDER BY weekday"
+        "SELECT weekday, start_time, end_time "
+        "FROM work_schedule_versions ORDER BY weekday"
     ).fetchall()
     assert len(schedule_rows) == 5
 

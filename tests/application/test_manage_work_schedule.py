@@ -8,10 +8,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import ChangeWorkScheduleCommand
-from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+from arbeitszeit.application.use_cases.manage_work_schedule import (
+    ManageWorkScheduleUseCase,
+)
 from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
 from arbeitszeit.domain.errors import ConflictError, ValidationError
-
 from tests.application.fakes import FakeUnitOfWork
 
 
@@ -166,11 +167,13 @@ def test_rollback_bei_validation_error():
 def test_employee_scope_unabhaengig_von_global():
     uow = _make_uow()
     uc = ManageWorkScheduleUseCase(uow)
-    uc.execute(_cmd(scope_type=ScopeType.GLOBAL, scope_employee_id=None, valid_from=date(2025, 6, 1)))
+    uc.execute(_cmd(
+        scope_type=ScopeType.GLOBAL, scope_employee_id=None, valid_from=date(2025, 6, 1)
+    ))
 
-    result = uc.execute(
-        _cmd(scope_type=ScopeType.EMPLOYEE, scope_employee_id=42, valid_from=date(2025, 1, 1))
-    )
+    result = uc.execute(_cmd(
+        scope_type=ScopeType.EMPLOYEE, scope_employee_id=42, valid_from=date(2025, 1, 1)
+    ))
 
     assert result.new_version_id > 0
     assert result.superseded_version_id is None

@@ -6,7 +6,12 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
-from arbeitszeit.domain.entities import ReviewCase, RfidCard, Supplement, WorkScheduleVersion
+from arbeitszeit.domain.entities import (
+    ReviewCase,
+    RfidCard,
+    Supplement,
+    WorkScheduleVersion,
+)
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingType,

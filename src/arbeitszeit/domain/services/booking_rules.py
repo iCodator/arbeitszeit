@@ -2,7 +2,10 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from arbeitszeit.domain.enums import BookingStatus, BookingType, ReviewCaseType
-from arbeitszeit.domain.errors import InvalidBookingSequenceError, OpenPhaseConflictError
+from arbeitszeit.domain.errors import (
+    InvalidBookingSequenceError,
+    OpenPhaseConflictError,
+)
 
 
 @dataclass(frozen=True)
@@ -19,7 +22,9 @@ def validate_booking_sequence(
 ) -> ValidationResult:
     # day_bookings must be in chronological order
     if not day_bookings:
-        if booking_type in (BookingType.GO, BookingType.BREAK_END, BookingType.BREAK_START):
+        if booking_type in (
+            BookingType.GO, BookingType.BREAK_END, BookingType.BREAK_START
+        ):
             raise InvalidBookingSequenceError(
                 f"Erste Tagesbuchung darf nicht {booking_type} sein."
             )
@@ -37,11 +42,15 @@ def validate_booking_sequence(
         if open_work:
             raise InvalidBookingSequenceError("COME nach offenem COME nicht zulässig.")
         if open_break:
-            raise InvalidBookingSequenceError("COME während offener Pause nicht zulässig.")
+            raise InvalidBookingSequenceError(
+                "COME während offener Pause nicht zulässig."
+            )
 
     elif booking_type == BookingType.GO:
         if not open_work:
-            raise InvalidBookingSequenceError("GO ohne offene Arbeitsphase nicht zulässig.")
+            raise InvalidBookingSequenceError(
+                "GO ohne offene Arbeitsphase nicht zulässig."
+            )
         if open_break:
             raise OpenPhaseConflictError("GO bei offener Pause: Pause zuerst schließen.")
 
@@ -49,11 +58,15 @@ def validate_booking_sequence(
         if not open_work:
             raise InvalidBookingSequenceError("BREAK_START ohne offene Arbeitsphase.")
         if open_break:
-            raise InvalidBookingSequenceError("BREAK_START bei offener Pause nicht zulässig.")
+            raise InvalidBookingSequenceError(
+                "BREAK_START bei offener Pause nicht zulässig."
+            )
 
     elif booking_type == BookingType.BREAK_END:
         if not open_break:
-            raise InvalidBookingSequenceError("BREAK_END ohne offene Pause nicht zulässig.")
+            raise InvalidBookingSequenceError(
+                "BREAK_END ohne offene Pause nicht zulässig."
+            )
 
     return ValidationResult(
         accepted=True,

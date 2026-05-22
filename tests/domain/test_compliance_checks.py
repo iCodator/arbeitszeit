@@ -5,7 +5,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.domain.entities import TimeBooking
-from arbeitszeit.domain.enums import BookingSource, BookingStatus, BookingType, ReviewCaseType, ReviewSeverity
+from arbeitszeit.domain.enums import (
+    BookingSource,
+    BookingStatus,
+    BookingType,
+    ReviewCaseType,
+    ReviewSeverity,
+)
 from arbeitszeit.domain.services.compliance_checks import (
     check_break_compliance,
     check_max_hours,
@@ -70,7 +76,9 @@ def test_pausenverletzung_ueber_9h_ohne_45min_pause():
     ]
     flags = check_break_compliance(bookings)
     assert _has(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION)
-    assert _severity(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION) == ReviewSeverity.CRITICAL
+    assert (
+        _severity(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION) == ReviewSeverity.CRITICAL
+    )
 
 
 def test_keine_pausenverletzung_mit_ausreichender_pause():
@@ -94,14 +102,18 @@ def test_max_hours_warnung_ueber_8h():
     bookings = [_booking(BookingType.COME, 7), _booking(BookingType.GO, 15, 1)]
     flags = check_max_hours(bookings)
     assert _has(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
-    assert _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.WARN
+    assert (
+        _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.WARN
+    )
 
 
 def test_max_hours_eskalation_ueber_10h():
     bookings = [_booking(BookingType.COME, 7), _booking(BookingType.GO, 17, 1)]
     flags = check_max_hours(bookings)
     assert _has(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
-    assert _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.CRITICAL
+    assert (
+        _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.CRITICAL
+    )
 
 
 # --- check_rest_period ---
@@ -117,4 +129,6 @@ def test_ruhezeit_verletzung_unter_11h():
     next_come = datetime(2024, 1, 16, 4, 0, tzinfo=timezone.utc)
     flags = check_rest_period(last_go, next_come)
     assert _has(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION)
-    assert _severity(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION) == ReviewSeverity.CRITICAL
+    assert (
+        _severity(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION) == ReviewSeverity.CRITICAL
+    )

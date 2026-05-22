@@ -6,7 +6,10 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.domain.enums import BookingType
-from arbeitszeit.domain.errors import InvalidBookingSequenceError, OpenPhaseConflictError
+from arbeitszeit.domain.errors import (
+    InvalidBookingSequenceError,
+    OpenPhaseConflictError,
+)
 from arbeitszeit.domain.services.booking_rules import validate_booking_sequence
 
 

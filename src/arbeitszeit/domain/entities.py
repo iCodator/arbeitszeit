@@ -87,7 +87,7 @@ class WorkScheduleVersion:
             )
         if not (1 <= self.weekday <= 7):
             raise ValueError(
-                f"Wochentag muss zwischen 1 (Mo) und 7 (So) liegen, nicht {self.weekday}."
+                f"Wochentag {self.weekday} ungültig, muss 1–7 sein."
             )
         if self.start_time >= self.end_time:
             raise ValueError(

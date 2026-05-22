@@ -18,7 +18,6 @@ from arbeitszeit.domain.enums import (
     ReviewSeverity,
 )
 from arbeitszeit.domain.errors import NotFoundError
-
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 17, 0, tzinfo=timezone.utc)
@@ -28,7 +27,8 @@ _EARLIER = datetime(2025, 3, 10, 8, 0, tzinfo=timezone.utc)
 def _make_uow_with_booking() -> tuple[FakeUnitOfWork, int]:
     uow = FakeUnitOfWork()
     emp = uow.employee_repo.add(Employee(
-        id=0, personnel_no="E001", first_name="Anna", last_name="Muster", is_active=True,
+        id=0, personnel_no="E001", first_name="Anna",
+        last_name="Muster", is_active=True,
     ))
     booking = uow.time_booking_repo.add(TimeBooking(
         id=0,

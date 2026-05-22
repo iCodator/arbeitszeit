@@ -7,11 +7,12 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import CreateSupplementCommand
-from arbeitszeit.application.use_cases.register_supplement import RegisterSupplementUseCase
+from arbeitszeit.application.use_cases.register_supplement import (
+    RegisterSupplementUseCase,
+)
 from arbeitszeit.domain.entities import Employee
 from arbeitszeit.domain.enums import ApprovalStatus, BookingType, ReviewCaseStatus
 from arbeitszeit.domain.errors import NotFoundError
-
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)

@@ -22,7 +22,6 @@ from arbeitszeit.domain.errors import (
     OpenPhaseConflictError,
     UnknownCardError,
 )
-
 from tests.application.fakes import FakeUnitOfWork
 
 _DATE = date(2025, 3, 10)
@@ -32,7 +31,9 @@ def _T(h: int, m: int = 0) -> datetime:
     return datetime(_DATE.year, _DATE.month, _DATE.day, h, m, tzinfo=timezone.utc)
 
 
-def _make_uow(employee_active: bool = True, card_status: CardStatus = CardStatus.ACTIVE) -> FakeUnitOfWork:
+def _make_uow(
+    employee_active: bool = True, card_status: CardStatus = CardStatus.ACTIVE
+) -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
     emp = uow.employee_repo.add(Employee(
         id=0, personnel_no="E001", first_name="Anna", last_name="Muster",
@@ -58,7 +59,9 @@ def _cmd(**overrides) -> BookCommand:
     return BookCommand(**{**defaults, **overrides})
 
 
-def _add_booking(uow: FakeUnitOfWork, booking_type: BookingType, hour: int) -> TimeBooking:
+def _add_booking(
+    uow: FakeUnitOfWork, booking_type: BookingType, hour: int
+) -> TimeBooking:
     return uow.time_booking_repo.add(TimeBooking(
         id=0, employee_id=1, booking_type=booking_type,
         booked_at=_T(hour), source=BookingSource.TERMINAL,
