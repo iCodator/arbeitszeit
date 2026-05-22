@@ -332,3 +332,15 @@ def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(supplement_id, approving_user_id=employee_user.id))
+
+
+def test_inaktiver_benutzer_loest_permission_denied():
+    uow, supplement_id = _make_uow_with_pending_supplement()
+    inactive = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="inactive_reviewer",
+        role=UserRole.REVIEWER, is_active=False,
+    ))
+    uc = ApproveSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(supplement_id, approving_user_id=inactive.id))

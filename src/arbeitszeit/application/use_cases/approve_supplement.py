@@ -69,7 +69,11 @@ class ApproveSupplementUseCase:
     def execute(self, cmd: ApproveSupplementCommand) -> ApproveSupplementResult:
         with self._uow:
             approver = self._uow.user_account_repo.get_by_id(cmd.approving_user_id)
-            if approver is None or approver.role not in {UserRole.REVIEWER, UserRole.ADMIN}:
+            if (
+                approver is None
+                or not approver.is_active
+                or approver.role not in {UserRole.REVIEWER, UserRole.ADMIN}
+            ):
                 raise PermissionDeniedError(
                     f"Benutzer {cmd.approving_user_id} ist nicht berechtigt, "
                     "Nachträge freizugeben."

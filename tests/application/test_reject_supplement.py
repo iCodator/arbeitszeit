@@ -9,25 +9,31 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import RejectSupplementCommand
 from arbeitszeit.application.use_cases.reject_supplement import RejectSupplementUseCase
-from arbeitszeit.domain.entities import ReviewCase, Supplement
+from arbeitszeit.domain.entities import ReviewCase, Supplement, UserAccount
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingType,
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    UserRole,
 )
-from arbeitszeit.domain.errors import NotFoundError, ValidationError
+from arbeitszeit.domain.errors import NotFoundError, PermissionDeniedError, ValidationError
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
 _EVENT_AT = datetime(2025, 3, 10, 8, 0, tzinfo=timezone.utc)
+_REJECTOR_ID = 1  # id des REVIEWER-UserAccounts (erstes Element im Fake-Store)
 
 
 def _make_uow_with_pending_supplement(
     related_booking_id: int | None = None,
 ) -> tuple[FakeUnitOfWork, int]:
     uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
     supplement = uow.supplement_repo.add(Supplement(
         id=0,
         employee_id=1,
@@ -46,19 +52,62 @@ def _make_uow_with_pending_supplement(
     return uow, supplement.id
 
 
+def _uow_with_rejector() -> FakeUnitOfWork:
+    uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
+    return uow
+
+
 def _cmd(supplement_id: int, **overrides) -> RejectSupplementCommand:
     defaults = dict(
         supplement_id=supplement_id,
-        rejected_by_user_id=3,
+        rejected_by_user_id=_REJECTOR_ID,
         reason="Zeitraum nicht plausibel",
     )
     return RejectSupplementCommand(**{**defaults, **overrides})
 
 
+# --- Rollenprüfung ---
+
+def test_unbekannter_benutzer_loest_permission_denied():
+    uow = FakeUnitOfWork()
+    uc = RejectSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(supplement_id=1, rejected_by_user_id=999))
+
+
+def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
+    uow = FakeUnitOfWork()
+    emp_user = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="emp",
+        role=UserRole.EMPLOYEE, is_active=True,
+    ))
+    uc = RejectSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(supplement_id=1, rejected_by_user_id=emp_user.id))
+
+
+def test_inaktiver_benutzer_loest_permission_denied():
+    uow = FakeUnitOfWork()
+    inactive = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="inactive_reviewer",
+        role=UserRole.REVIEWER, is_active=False,
+    ))
+    uc = RejectSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(supplement_id=1, rejected_by_user_id=inactive.id))
+
+
 # --- Fehlerbehandlung ---
 
 def test_nachtrag_nicht_gefunden_loest_not_found_error():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_rejector()
     uc = RejectSupplementUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -77,7 +126,7 @@ def test_nachtrag_nicht_pending_loest_validation_error():
 # --- Fehlerpfade hinterlassen keine Spuren ---
 
 def test_fehler_kein_commit_kein_audit_log():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_rejector()
     uc = RejectSupplementUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -98,7 +147,7 @@ def test_supplement_erhaelt_status_rejected():
     s = uow.supplement_repo.get_by_id(supplement_id)
     assert s is not None
     assert s.approval_status == ApprovalStatus.REJECTED
-    assert s.rejected_by_user_id == 3
+    assert s.rejected_by_user_id == _REJECTOR_ID
     assert s.rejected_at is not None
     assert uow.committed
 

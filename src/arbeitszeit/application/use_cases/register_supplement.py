@@ -22,7 +22,11 @@ class RegisterSupplementUseCase:
     def execute(self, cmd: CreateSupplementCommand) -> SupplementResult:
         with self._uow:
             actor = self._uow.user_account_repo.get_by_id(cmd.recorded_by_user_id)
-            if actor is None or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}:
+            if (
+                actor is None
+                or not actor.is_active
+                or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}
+            ):
                 raise PermissionDeniedError(
                     f"Benutzer {cmd.recorded_by_user_id} ist nicht berechtigt, "
                     "Nachträge zu erfassen."
@@ -38,6 +42,9 @@ class RegisterSupplementUseCase:
                     f"Mitarbeiter {cmd.employee_id} ist inaktiv."
                 )
 
+            # Hinweis: cmd.related_booking_id wird nicht auf Existenz geprüft.
+            # Falls Nachträge immer auf eine echte Buchung zeigen müssen, wäre
+            # time_booking_repo.get_by_id(cmd.related_booking_id) hier zu ergänzen.
             supplement = self._uow.supplement_repo.add(Supplement(
                 id=0,
                 employee_id=cmd.employee_id,

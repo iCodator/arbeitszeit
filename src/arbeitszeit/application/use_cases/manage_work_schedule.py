@@ -20,7 +20,11 @@ class ManageWorkScheduleUseCase:
                     "Regelarbeitszeitänderungen erfordern einen authentifizierten Benutzer."
                 )
             actor = self._uow.user_account_repo.get_by_id(cmd.changed_by_user_id)
-            if actor is None or actor.role != UserRole.ADMIN:
+            if (
+                actor is None
+                or not actor.is_active
+                or actor.role != UserRole.ADMIN
+            ):
                 raise PermissionDeniedError(
                     f"Benutzer {cmd.changed_by_user_id} ist nicht berechtigt, "
                     "Regelarbeitszeiten zu ändern (nur ADMIN)."

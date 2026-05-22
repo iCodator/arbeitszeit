@@ -181,6 +181,9 @@ class BookingCorrection:
 class AuditLogEntry:
     id: int
     event_type: str
+    # object_type ist immer der exakte Tabellenname der betroffenen Entität
+    # (z. B. "time_bookings", "supplements", "booking_corrections").
+    # Einheitliche Konvention für Auswertungen und Filterung im audit_log.
     object_type: str
     object_id: int
     user_id: int | None

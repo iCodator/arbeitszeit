@@ -271,3 +271,15 @@ def test_benutzer_ohne_admin_rolle_loest_permission_denied():
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(changed_by_user_id=reviewer.id))
+
+
+def test_inaktiver_admin_loest_permission_denied():
+    uow = _make_uow()
+    inactive = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="inactive_admin",
+        role=UserRole.ADMIN, is_active=False,
+    ))
+    uc = ManageWorkScheduleUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(changed_by_user_id=inactive.id))

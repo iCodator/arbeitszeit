@@ -6,7 +6,8 @@ from arbeitszeit.application.results import RejectSupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain.entities import AuditLogEntry
 from arbeitszeit.domain.enums import ApprovalStatus, ReviewCaseStatus, ReviewCaseType
-from arbeitszeit.domain.errors import NotFoundError, ValidationError
+from arbeitszeit.domain.enums import UserRole
+from arbeitszeit.domain.errors import NotFoundError, PermissionDeniedError, ValidationError
 
 
 class RejectSupplementUseCase:
@@ -15,6 +16,17 @@ class RejectSupplementUseCase:
 
     def execute(self, cmd: RejectSupplementCommand) -> RejectSupplementResult:
         with self._uow:
+            rejector = self._uow.user_account_repo.get_by_id(cmd.rejected_by_user_id)
+            if (
+                rejector is None
+                or not rejector.is_active
+                or rejector.role not in {UserRole.REVIEWER, UserRole.ADMIN}
+            ):
+                raise PermissionDeniedError(
+                    f"Benutzer {cmd.rejected_by_user_id} ist nicht berechtigt, "
+                    "Nachträge abzulehnen."
+                )
+
             supplement = self._uow.supplement_repo.get_by_id(cmd.supplement_id)
             if supplement is None:
                 raise NotFoundError(

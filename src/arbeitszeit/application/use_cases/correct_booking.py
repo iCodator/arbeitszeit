@@ -17,7 +17,11 @@ class CorrectBookingUseCase:
     def execute(self, cmd: CreateCorrectionCommand) -> CorrectionResult:
         with self._uow:
             actor = self._uow.user_account_repo.get_by_id(cmd.corrected_by_user_id)
-            if actor is None or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}:
+            if (
+                actor is None
+                or not actor.is_active
+                or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}
+            ):
                 raise PermissionDeniedError(
                     f"Benutzer {cmd.corrected_by_user_id} ist nicht berechtigt, "
                     "Buchungen zu korrigieren."

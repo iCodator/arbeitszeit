@@ -79,6 +79,18 @@ def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
         uc.execute(_cmd(recorded_by_user_id=emp_user.id))
 
 
+def test_inaktiver_benutzer_loest_permission_denied():
+    uow = FakeUnitOfWork()
+    inactive = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="inactive_reviewer",
+        role=UserRole.REVIEWER, is_active=False,
+    ))
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(recorded_by_user_id=inactive.id))
+
+
 # --- Fehlerbehandlung ---
 
 def test_unbekannter_mitarbeiter_loest_not_found_error():
