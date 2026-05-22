@@ -35,6 +35,19 @@ class CreateCorrectionCommand:
 
 
 @dataclass(frozen=True, slots=True)
+class ApproveSupplementCommand:
+    supplement_id: int
+    approved_by_user_id: int
+
+
+@dataclass(frozen=True, slots=True)
+class RejectSupplementCommand:
+    supplement_id: int
+    rejected_by_user_id: int
+    reason: str
+
+
+@dataclass(frozen=True, slots=True)
 class ChangeWorkScheduleCommand:
     scope_type: ScopeType
     scope_employee_id: int | None

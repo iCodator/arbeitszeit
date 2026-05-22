@@ -27,3 +27,17 @@ class CorrectionResult:
 class WorkScheduleChangeResult:
     new_version_id: int
     superseded_version_id: int | None
+
+
+@dataclass(frozen=True, slots=True)
+class ApproveSupplementResult:
+    supplement_id: int
+    booking_id: int
+    booking_status: BookingStatus
+    follow_up_case_ids: tuple[int, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RejectSupplementResult:
+    supplement_id: int
+    review_case_id: int | None
