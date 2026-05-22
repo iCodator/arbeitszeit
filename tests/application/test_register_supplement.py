@@ -148,3 +148,48 @@ def test_related_booking_id_wird_durchgereicht():
     supplement = uow.supplement_repo.get_by_id(result.supplement_id)
     assert supplement is not None
     assert supplement.related_booking_id == 42
+
+
+# --- Fehlerpfade hinterlassen keine Spuren ---
+
+def test_not_found_error_kein_commit_kein_audit_log():
+    uow = FakeUnitOfWork()
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(NotFoundError):
+        uc.execute(_cmd(employee_id=99))
+
+    assert not uow.committed
+    assert len(uow.audit_log_repo.entries) == 0
+    assert len(uow.supplement_repo.list_pending()) == 0
+
+
+def test_inactive_employee_error_kein_commit_kein_audit_log():
+    uow = FakeUnitOfWork()
+    uow.employee_repo.add(Employee(
+        id=0, personnel_no="E002", first_name="Max",
+        last_name="Inaktiv", is_active=False,
+    ))
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(InactiveEmployeeError):
+        uc.execute(_cmd(employee_id=1))
+
+    assert not uow.committed
+    assert len(uow.audit_log_repo.entries) == 0
+    assert len(uow.supplement_repo.list_pending()) == 0
+
+
+# --- ReviewCase-Beschreibung ---
+
+def test_review_case_description_enthaelt_fachliche_referenz():
+    uow = _make_uow_with_employee()
+    uc = RegisterSupplementUseCase(uow)
+
+    uc.execute(_cmd())
+
+    cases = uow.review_case_repo.list_open_for_employee(1)
+    desc = cases[0].description
+    assert "Nachtrag #" in desc
+    assert "COME" in desc
+    assert str(_NOW.date()) in desc
