@@ -54,7 +54,7 @@ class RegisterSupplementUseCase:
                 severity=ReviewSeverity.INFO,
                 status=ReviewCaseStatus.OPEN,
                 description=(
-                    f"Nachtrag #{supplement.id}: {cmd.booking_type} "
+                    f"Nachtrag #{supplement.id}: {cmd.booking_type.value} "
                     f"am {cmd.event_at.date()} — {cmd.reason}"
                 ),
                 booking_id=cmd.related_booking_id,
