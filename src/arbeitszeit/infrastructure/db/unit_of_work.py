@@ -16,7 +16,11 @@ from arbeitszeit.infrastructure.db.repositories import (
 
 
 class SQLiteUnitOfWork:
-    def __init__(self, conn: sqlite3.Connection) -> None:
+    def __init__(
+        self,
+        conn: sqlite3.Connection,
+        audit_conn: sqlite3.Connection | None = None,
+    ) -> None:
         self._conn = conn
         self._transaction_open = False
         self.employee_repo = SQLiteEmployeeRepository(conn)
@@ -27,7 +31,10 @@ class SQLiteUnitOfWork:
         self.review_case_repo = SQLiteReviewCaseRepository(conn)
         self.supplement_repo = SQLiteSupplementRepository(conn)
         self.booking_correction_repo = SQLiteBookingCorrectionRepository(conn)
-        self.audit_log_repo = SQLiteAuditLogRepository(conn)
+        # audit_conn: separate autocommit-Verbindung für rollback-resistente Einträge.
+        # Ohne audit_conn greift SQLiteAuditLogRepository auf conn zurück –
+        # Audit-Einträge vor einem Rollback gehen dann verloren.
+        self.audit_log_repo = SQLiteAuditLogRepository(conn, audit_conn)
         self.system_config_repo = SQLiteSystemConfigRepository(conn)
 
     def __enter__(self) -> "SQLiteUnitOfWork":

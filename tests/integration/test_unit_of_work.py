@@ -1,27 +1,41 @@
+import json
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
+from arbeitszeit.domain.entities import AuditLogEntry
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 
 @pytest.fixture
-def conn(tmp_path):
-    db = tmp_path / "test.db"
-    connection = open_connection(db)
+def db_path(tmp_path):
+    return tmp_path / "test.db"
+
+
+@pytest.fixture
+def conn(db_path):
+    connection = open_connection(db_path)
     run_migrations(connection)
     yield connection
     connection.close()
 
 
 @pytest.fixture
-def uow(conn):
-    return SQLiteUnitOfWork(conn)
+def audit_conn(db_path, conn):  # conn zuerst, damit Migrationen angewendet sind
+    connection = open_connection(db_path)
+    yield connection
+    connection.close()
+
+
+@pytest.fixture
+def uow(conn, audit_conn):
+    return SQLiteUnitOfWork(conn, audit_conn)
 
 
 # --- Transaktionsverhalten ---
@@ -136,3 +150,28 @@ def test_mehrfache_transaktionen_hintereinander(conn, uow):
         "SELECT COUNT(*) FROM employees WHERE personnel_no IN ('E010', 'E011')"
     ).fetchone()[0]
     assert count == 2
+
+
+# --- Audit-Log: Persistenz bei Rollback (via audit_conn) ---
+
+def test_audit_log_bleibt_nach_rollback_erhalten(conn, uow):
+    entry = AuditLogEntry(
+        id=0,
+        event_type="BOOKING_REJECTED_UNKNOWN_CARD",
+        object_type="rfid_cards",
+        object_id=0,
+        user_id=None,
+        employee_id=None,
+        event_at=datetime(2025, 3, 10, 8, 0, tzinfo=timezone.utc),
+        details_json=json.dumps({"uid_hash": "abc", "terminal_id": 1}),
+    )
+
+    with pytest.raises(ValueError):
+        with uow:
+            uow.audit_log_repo.add(entry)
+            raise ValueError("simulierte Abweisung")
+
+    count = conn.execute(
+        "SELECT COUNT(*) FROM audit_log WHERE event_type = 'BOOKING_REJECTED_UNKNOWN_CARD'"
+    ).fetchone()[0]
+    assert count == 1, "Audit-Log-Eintrag muss rollback-resistent sein"

@@ -36,7 +36,11 @@ class TimeBookingRepository(Protocol):
     def get_by_id(self, booking_id: int) -> TimeBooking | None: ...
     def list_for_employee_on_day(
         self, employee_id: int, day: date
-    ) -> list[TimeBooking]: ...
+    ) -> list[TimeBooking]:
+        # Muss aufsteigend nach booked_at sortiert zurückgeben.
+        # Compliance-Prüfungen (Pausen, Ruhezeit, Maximalstunden) setzen
+        # chronologische Reihenfolge voraus.
+        ...
     def list_open_for_employee(self, employee_id: int) -> list[TimeBooking]: ...
     def list_between(
         self, employee_id: int, from_dt: datetime, to_dt: datetime
@@ -96,7 +100,13 @@ class BookingCorrectionRepository(Protocol):
 
 
 class AuditLogRepository(Protocol):
-    def add(self, entry: AuditLogEntry) -> AuditLogEntry: ...
+    def add(self, entry: AuditLogEntry) -> AuditLogEntry:
+        # Implementierungen MÜSSEN Persistenz auch dann garantieren, wenn die
+        # aufrufende UnitOfWork-Transaktion nachträglich zurückgerollt wird.
+        # Grund: Abweisungen (UnknownCard, InactiveCard) schreiben hier vor
+        # dem Rollback — das ist auditpflichtig und darf nicht verloren gehen.
+        # SQLite-Implementierung: separate autocommit-Verbindung verwenden.
+        ...
 
 
 class SystemConfigRepository(Protocol):
