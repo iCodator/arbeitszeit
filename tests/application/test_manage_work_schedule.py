@@ -192,3 +192,44 @@ def test_employee_scope_unabhaengig_von_global():
 
     assert result.new_version_id > 0
     assert result.superseded_version_id is None
+
+
+def test_employee_scopes_verschiedener_mitarbeiter_sind_unabhaengig():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+    uc.execute(_cmd(
+        scope_type=ScopeType.EMPLOYEE, scope_employee_id=42, valid_from=date(2025, 6, 1)
+    ))
+
+    result = uc.execute(_cmd(
+        scope_type=ScopeType.EMPLOYEE, scope_employee_id=43, valid_from=date(2025, 1, 1)
+    ))
+
+    assert result.new_version_id > 0
+    assert result.superseded_version_id is None
+
+
+# --- Kein Audit-Log bei Fehler ---
+
+def test_kein_audit_log_bei_conflict_error():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+    uc.execute(_cmd(valid_from=date(2025, 1, 1)))
+    log_count_before = len(uow.audit_log_repo.entries)
+
+    with pytest.raises(ConflictError):
+        uc.execute(_cmd(valid_from=date(2025, 1, 1), start_time=time(8, 0)))
+
+    assert len(uow.audit_log_repo.entries) == log_count_before
+
+
+def test_kein_audit_log_bei_validation_error():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+    uc.execute(_cmd(valid_from=date(2025, 6, 1)))
+    log_count_before = len(uow.audit_log_repo.entries)
+
+    with pytest.raises(ValidationError):
+        uc.execute(_cmd(valid_from=date(2025, 1, 1)))
+
+    assert len(uow.audit_log_repo.entries) == log_count_before
