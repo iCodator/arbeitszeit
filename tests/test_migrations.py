@@ -210,6 +210,29 @@ def test_migration_0005_datensatz_bleibt_erhalten(conn, tmp_path):
     assert row["device_event_id"] is None
 
 
+def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(
+    conn, tmp_path
+):
+    partial_dir = tmp_path / "partial"
+    partial_dir.mkdir()
+    shutil.copy(_MIGRATIONS_ROOT / "0001_schema.sql", partial_dir / "0001_schema.sql")
+    run_migrations(conn, migrations_dir=partial_dir)
+
+    # Kaputte Migration nachträglich hinzufügen:
+    # employees existiert bereits nach 0001 → OperationalError
+    broken = partial_dir / "0002_broken.sql"
+    broken.write_text("CREATE TABLE employees (x TEXT);")
+
+    with pytest.raises(Exception):
+        run_migrations(conn, migrations_dir=partial_dir)
+
+    versions = {
+        row[0]
+        for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
+    }
+    assert "0002" not in versions
+
+
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
     run_migrations(conn)
     run_migrations(conn)
