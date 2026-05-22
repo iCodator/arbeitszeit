@@ -1,3 +1,4 @@
+from types import TracebackType
 from typing import Protocol
 
 from arbeitszeit.domain.ports.repositories import (
@@ -31,7 +32,7 @@ class UnitOfWork(Protocol):
     def __enter__(self) -> "UnitOfWork": ...
     def __exit__(
         self,
-        exc_type: type | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
-        exc_tb: object,
+        exc_tb: TracebackType | None,
     ) -> None: ...

@@ -2,6 +2,7 @@ import dataclasses
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
+from types import TracebackType
 from typing import Literal
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
@@ -227,7 +228,7 @@ class FakeWorkScheduleRepository:
         ]
         if weekday is not None:
             result = [v for v in result if v.weekday == weekday]
-        return result
+        return sorted(result, key=lambda v: v.valid_from)
 
 
 class FakeReviewCaseRepository:
@@ -377,9 +378,9 @@ class FakeUnitOfWork:
 
     def __exit__(
         self,
-        exc_type: type | None,
+        exc_type: type[BaseException] | None,
         exc_val: BaseException | None,
-        exc_tb: object,
+        exc_tb: TracebackType | None,
     ) -> None:
         if exc_type is not None:
             self.rollback()
