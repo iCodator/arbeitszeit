@@ -26,21 +26,25 @@ def run_migrations(
         if version in applied:
             continue
 
+        # version.isdigit() + len == 4 stellt sicher, dass der f-String
+        # ausschließlich vier Dezimalziffern einbettet – kein Injection-Risiko.
         if not (version.isdigit() and len(version) == 4):
             raise ValueError(f"Ungültiger Migrationsname: {path.name!r}")
 
         sql = path.read_text(encoding="utf-8")
+        # Migration-SQL und Versionsregistrierung in einer einzigen Transaktion,
+        # damit "angewendet" und "registriert" untrennbar sind.
+        script = (
+            f"BEGIN;\n{sql}\n"
+            f"INSERT INTO schema_migrations (version, applied_at)"
+            f" VALUES ('{version}', datetime('now'));\n"
+            f"COMMIT;"
+        )
         try:
-            conn.executescript(f"BEGIN;\n{sql}\nCOMMIT;")
+            conn.executescript(script)
         except Exception:
             conn.rollback()
             raise
-
-        conn.execute(
-            "INSERT INTO schema_migrations (version, applied_at) "
-            "VALUES (?, datetime('now'))",
-            (version,),
-        )
 
         executed.append(version)
         applied.add(version)
