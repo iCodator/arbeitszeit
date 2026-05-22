@@ -64,6 +64,20 @@ def test_buchung_nicht_gefunden_loest_not_found_error():
         uc.execute(_cmd(booking_id=99))
 
 
+def test_fehlender_mitarbeiterdatensatz_loest_not_found_error():
+    uow = FakeUnitOfWork()
+    booking = uow.time_booking_repo.add(TimeBooking(
+        id=0, employee_id=99, booking_type=BookingType.COME,
+        booked_at=_EARLIER, source=BookingSource.TERMINAL,
+        status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
+        device_event_id=None, note=None,
+    ))
+    uc = CorrectBookingUseCase(uow)
+
+    with pytest.raises(NotFoundError):
+        uc.execute(_cmd(booking.id))
+
+
 def test_buchung_erhaelt_status_corrected():
     uow, booking_id = _make_uow_with_booking()
     uc = CorrectBookingUseCase(uow)

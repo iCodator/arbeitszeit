@@ -22,7 +22,11 @@ class CorrectBookingUseCase:
                 )
 
             employee = self._uow.employee_repo.get_by_id(booking.employee_id)
-            if employee is not None and not employee.is_active:
+            if employee is None:
+                raise NotFoundError(
+                    f"Mitarbeiter {booking.employee_id} nicht gefunden."
+                )
+            if not employee.is_active:
                 raise InactiveEmployeeError(
                     f"Mitarbeiter {booking.employee_id} ist inaktiv."
                 )
