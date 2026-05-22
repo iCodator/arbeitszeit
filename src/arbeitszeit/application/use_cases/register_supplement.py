@@ -11,7 +11,7 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
-from arbeitszeit.domain.errors import NotFoundError
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
 
 
 class RegisterSupplementUseCase:
@@ -24,6 +24,10 @@ class RegisterSupplementUseCase:
             if employee is None:
                 raise NotFoundError(
                     f"Mitarbeiter {cmd.employee_id} nicht gefunden."
+                )
+            if not employee.is_active:
+                raise InactiveEmployeeError(
+                    f"Mitarbeiter {cmd.employee_id} ist inaktiv."
                 )
 
             supplement = self._uow.supplement_repo.add(Supplement(
@@ -38,6 +42,8 @@ class RegisterSupplementUseCase:
                 approval_status=ApprovalStatus.PENDING,
                 approved_by_user_id=None,
                 approved_at=None,
+                rejected_by_user_id=None,
+                rejected_at=None,
             ))
 
             now = datetime.now(timezone.utc)
@@ -65,12 +71,19 @@ class RegisterSupplementUseCase:
                 user_id=cmd.recorded_by_user_id,
                 employee_id=cmd.employee_id,
                 event_at=now,
-                details_json=json.dumps({
-                    "booking_type": cmd.booking_type,
-                    "event_at": cmd.event_at.isoformat(),
-                    "related_booking_id": cmd.related_booking_id,
-                    "review_case_id": review_case.id,
-                }),
+                details_json=json.dumps(
+                    {
+                        "booking_type": cmd.booking_type.value,
+                        "event_at": cmd.event_at.isoformat(),
+                        "recorded_at": cmd.recorded_at.isoformat(),
+                        "related_booking_id": cmd.related_booking_id,
+                        "reason": cmd.reason,
+                        "approval_status": ApprovalStatus.PENDING.value,
+                        "review_case_id": review_case.id,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
             ))
 
             self._uow.commit()

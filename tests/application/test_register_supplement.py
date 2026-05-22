@@ -12,7 +12,7 @@ from arbeitszeit.application.use_cases.register_supplement import (
 )
 from arbeitszeit.domain.entities import Employee
 from arbeitszeit.domain.enums import ApprovalStatus, BookingType, ReviewCaseStatus
-from arbeitszeit.domain.errors import NotFoundError
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
@@ -51,6 +51,18 @@ def test_unbekannter_mitarbeiter_loest_not_found_error():
         uc.execute(_cmd(employee_id=99))
 
 
+def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
+    uow = FakeUnitOfWork()
+    uow.employee_repo.add(Employee(
+        id=0, personnel_no="E002", first_name="Max",
+        last_name="Inaktiv", is_active=False,
+    ))
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(InactiveEmployeeError):
+        uc.execute(_cmd(employee_id=1))
+
+
 def test_nachtrag_wird_angelegt():
     uow = _make_uow_with_employee()
     uc = RegisterSupplementUseCase(uow)
@@ -72,6 +84,8 @@ def test_nachtrag_ist_pending():
     assert supplement.approval_status == ApprovalStatus.PENDING
     assert supplement.approved_by_user_id is None
     assert supplement.approved_at is None
+    assert supplement.rejected_by_user_id is None
+    assert supplement.rejected_at is None
 
 
 def test_review_case_wird_angelegt():
@@ -107,6 +121,22 @@ def test_audit_log_eintrag_vorhanden():
     assert entry.event_type == "SUPPLEMENT_CREATED"
     assert entry.object_type == "supplements"
     assert entry.employee_id == 1
+
+
+def test_audit_log_enthaelt_fachliche_felder():
+    import json
+    uow = _make_uow_with_employee()
+    uc = RegisterSupplementUseCase(uow)
+
+    result = uc.execute(_cmd(related_booking_id=7))
+
+    details = json.loads(uow.audit_log_repo.entries[0].details_json)
+    assert details["booking_type"] == "COME"
+    assert details["reason"] == "Vergessen einzustempeln"
+    assert details["approval_status"] == "PENDING"
+    assert details["related_booking_id"] == 7
+    assert details["review_case_id"] == result.review_case_id
+    assert "recorded_at" in details
 
 
 def test_related_booking_id_wird_durchgereicht():
