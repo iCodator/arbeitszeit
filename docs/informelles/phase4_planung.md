@@ -209,7 +209,7 @@ Sicherung einbezogen. Exportdateien sind auditpflichtige Ausgabedokumente.
 Backup-Skript sichert export_dir zusammen mit der DB-Datei auf denselben NAS-Pfad.
 
 
-### Schritt 7c – BookUseCase vervollständigen  ← OFFEN
+### Schritt 7c – BookUseCase vervollständigen  ✓ ERLEDIGT
 
 (V3 §7.9 Pflichtanforderung / ArbZG §5 + Regelwerk v3 §5/§9/§10)
 
@@ -411,6 +411,6 @@ Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslosbar).
 
 ## Verifikation (laufend)
 
-  pytest tests/                # 211 Tests grün (Stand 2026-05-22)
+  pytest tests/                # 216 Tests grün (Stand 2026-05-22, nach Schritt 7c)
   pytest tests/integration/    # Integrationstests grün
   python -m ruff check .       # keine Verstösse

@@ -1,5 +1,5 @@
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -8,12 +8,15 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.use_cases.book_time import BookUseCase
-from arbeitszeit.domain.entities import Employee, RfidCard, TimeBooking
+from arbeitszeit.domain.entities import Employee, RfidCard, TimeBooking, WorkScheduleVersion
 from arbeitszeit.domain.enums import (
     BookingSource,
     BookingStatus,
     BookingType,
     CardStatus,
+    ChangeOrigin,
+    ReviewCaseType,
+    ScopeType,
 )
 from arbeitszeit.domain.errors import (
     InactiveCardError,
@@ -68,6 +71,31 @@ def _add_booking(
         booked_at=_T(hour), source=BookingSource.TERMINAL,
         status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
         device_event_id=None, note=None,
+    ))
+
+
+def _add_booking_at(
+    uow: FakeUnitOfWork, booking_type: BookingType, dt: datetime
+) -> TimeBooking:
+    return uow.time_booking_repo.add(TimeBooking(
+        id=0, employee_id=1, booking_type=booking_type,
+        booked_at=dt, source=BookingSource.TERMINAL,
+        status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
+        device_event_id=None, note=None,
+    ))
+
+
+def _add_global_schedule(
+    uow: FakeUnitOfWork,
+    weekday: int,
+    start: time,
+    end: time,
+) -> None:
+    uow.work_schedule_repo.add(WorkScheduleVersion(
+        id=0, scope_type=ScopeType.GLOBAL, scope_employee_id=None,
+        weekday=weekday, start_time=start, end_time=end,
+        valid_from=date(2000, 1, 1), valid_until=None,
+        change_origin=ChangeOrigin.SYSTEM_SEED, changed_by_user_id=None,
     ))
 
 
@@ -253,3 +281,71 @@ def test_device_event_id_wird_in_buchung_gespeichert():
     saved = uow.time_booking_repo.get_by_id(result.booking_id)
     assert saved is not None
     assert saved.device_event_id == 42
+
+
+# --- Abweisungsprotokoll ---
+
+def test_unbekannte_karte_schreibt_audit_log():
+    uow = _make_uow()
+    uc = BookUseCase(uow)
+
+    with pytest.raises(Exception):
+        uc.execute(_cmd(uid_hash="unbekannt"))
+
+    entries = [e for e in uow.audit_log_repo.entries
+               if e.event_type == "BOOKING_REJECTED_UNKNOWN_CARD"]
+    assert len(entries) == 1
+
+
+def test_inaktive_karte_schreibt_audit_log():
+    uow = _make_uow(card_status=CardStatus.INACTIVE)
+    uc = BookUseCase(uow)
+
+    with pytest.raises(Exception):
+        uc.execute(_cmd())
+
+    entries = [e for e in uow.audit_log_repo.entries
+               if e.event_type == "BOOKING_REJECTED_INACTIVE_CARD"]
+    assert len(entries) == 1
+
+
+# --- Ruhezeitprüfung (V3 §7.9 / ArbZG §5) ---
+
+def test_go_nach_weniger_als_11h_ruhezeit_hat_status_needs_review():
+    _YESTERDAY = _DATE - timedelta(days=1)
+
+    def _TY(h: int) -> datetime:
+        return datetime(_YESTERDAY.year, _YESTERDAY.month, _YESTERDAY.day, h, 0,
+                        tzinfo=timezone.utc)
+
+    uow = _make_uow()
+    # Vortag: COME 08:00 → GO 20:00
+    _add_booking_at(uow, BookingType.COME, _TY(8))
+    _add_booking_at(uow, BookingType.GO, _TY(20))
+    # Heute: COME 06:00 (nur 10h Ruhezeit nach 20:00 gestern)
+    _add_booking_at(uow, BookingType.COME, _T(6))
+    uc = BookUseCase(uow)
+
+    # GO heute → Ruhezeitprüfung: 20:00 → 06:00 = 10h < 11h → CRITICAL → NEEDS_REVIEW
+    result = uc.execute(_cmd(booking_type=BookingType.GO, booked_at=_T(14)))
+
+    assert result.status == BookingStatus.NEEDS_REVIEW
+    cases = uow.review_case_repo.list_open_for_employee(1)
+    assert any(c.case_type == ReviewCaseType.POSSIBLE_REST_VIOLATION for c in cases)
+
+
+# --- Regelzeitfenster (Regelwerk §9/§10) ---
+
+def test_come_ausserhalb_regelzeitfenster_erzeugt_review_case():
+    # _DATE = 2025-03-10, isoweekday = 1 (Montag)
+    uow = _make_uow()
+    _add_global_schedule(uow, weekday=1, start=time(8, 0), end=time(17, 0))
+    uc = BookUseCase(uow)
+
+    # COME um 06:00 – vor Fensterbeginn 08:00
+    result = uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(6)))
+
+    assert result.status == BookingStatus.OPEN
+    assert len(result.follow_up_case_ids) > 0
+    cases = uow.review_case_repo.list_open_for_employee(1)
+    assert any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)

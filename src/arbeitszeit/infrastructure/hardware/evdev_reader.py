@@ -14,7 +14,6 @@ Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 from datetime import datetime, timezone
 
-import evdev
 from evdev import InputDevice, categorize, ecodes
 
 from arbeitszeit.domain.enums import BookingType
