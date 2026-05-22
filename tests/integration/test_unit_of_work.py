@@ -175,3 +175,35 @@ def test_audit_log_bleibt_nach_rollback_erhalten(conn, uow):
         "SELECT COUNT(*) FROM audit_log WHERE event_type = 'BOOKING_REJECTED_UNKNOWN_CARD'"
     ).fetchone()[0]
     assert count == 1, "Audit-Log-Eintrag muss rollback-resistent sein"
+
+
+def test_audit_log_schreibbar_waehrend_conn_nur_liest(conn, uow):
+    # Spiegelt das Produktionsszenario in book_time.py:
+    # Bei Abweisung (UnknownCard/InactiveCard) führt conn ausschließlich SELECTs aus
+    # und hat keinen WRITE-Lock. WAL-Modus erlaubt audit_conn zu schreiben,
+    # weil SHARED + ein paralleler Writer koexistieren können.
+    # SQLite-Einschränkung: Hat conn bereits einen WRITE-Lock (INSERT/UPDATE),
+    # würde audit_conn blockiert – das passiert in den Ablehnungspfaden aber nicht.
+    entry = AuditLogEntry(
+        id=0,
+        event_type="BOOKING_REJECTED_INACTIVE_CARD",
+        object_type="rfid_cards",
+        object_id=1,
+        user_id=None,
+        employee_id=None,
+        event_at=datetime(2025, 3, 10, 8, 0, tzinfo=timezone.utc),
+        details_json=json.dumps({"card_id": 1, "card_status": "INACTIVE"}),
+    )
+
+    with pytest.raises(ValueError):
+        with uow:
+            # Nur READ auf conn (kein WRITE-Lock-Upgrade) – wie bei Kartenabweisung
+            conn.execute("SELECT COUNT(*) FROM employees").fetchone()
+            # audit_conn schreibt parallel: gelingt dank WAL + SHARED-Lock auf conn
+            uow.audit_log_repo.add(entry)
+            raise ValueError("Abweisung simuliert")
+
+    audit_count = conn.execute(
+        "SELECT COUNT(*) FROM audit_log WHERE event_type = 'BOOKING_REJECTED_INACTIVE_CARD'"
+    ).fetchone()[0]
+    assert audit_count == 1

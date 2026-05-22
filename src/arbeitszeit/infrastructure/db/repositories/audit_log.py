@@ -9,9 +9,12 @@ class SQLiteAuditLogRepository:
         conn: sqlite3.Connection,
         audit_conn: sqlite3.Connection | None = None,
     ) -> None:
-        # audit_conn ist eine separate autocommit-Verbindung (kein BEGIN/ROLLBACK).
-        # Schreibt sie ist garantiert persistiert, auch wenn conn zurückgerollt wird.
-        # Wenn audit_conn None ist, wird conn genutzt – dann gilt die Garantie NICHT.
+        # audit_conn muss mit isolation_level=None geöffnet sein (open_connection tut das)
+        # und darf nie ein BEGIN erhalten. Dann gilt für sqlite3 mit isolation_level=None:
+        # Jedes DML-Statement committed automatisch (kein aktiver Transaction-Kontext).
+        # SQLiteUnitOfWork ruft BEGIN/COMMIT/ROLLBACK ausschließlich auf conn, nie auf
+        # audit_conn – die Autocommit-Garantie ist damit durch die Architektur gesichert.
+        # Ohne audit_conn fällt write auf conn zurück: kein Rollback-Schutz.
         self._write_conn = audit_conn if audit_conn is not None else conn
 
     def add(self, entry: AuditLogEntry) -> AuditLogEntry:
