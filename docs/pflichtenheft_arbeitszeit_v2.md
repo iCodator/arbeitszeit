@@ -128,19 +128,36 @@ Das System muss Konfiguration, Geräteverfügbarkeit, NAS-Erreichbarkeit, Datenb
 
 ### 7.11 Export
 
-Das System muss Excel-Exporte für Gesamt, Tag, Woche, Monat und einzelne Mitarbeiter erzeugen können.[cite:185][cite:54]
+Das System muss Export- und Berichtsfunktionen für Gesamt, Tag, Woche, Monat und einzelne Mitarbeiter bereitstellen. Es muss dabei mindestens CSV-Exporte für die Weiterverarbeitung sowie PDF-Berichte für druckbare Auswertungen erzeugen können.[^1]
+
+Mindestens folgende Anforderungen sind vorzusehen:[^1]
+
+- CSV-Exporte für detaillierte Buchungsdaten sowie für verdichtete Tages-, Wochen- und Monatsauswertungen.[^1]
+- PDF-Berichte für Tages-, Wochen- und Monatsauswertungen sowie für einzelne Mitarbeiter.[^1]
+- Angabe von Zeitraum, Erstellungszeitpunkt und eindeutiger Zuordnung zu Mitarbeiter oder Praxis in jedem Export oder Bericht.[^1]
+- In detaillierten Exporten mindestens: Mitarbeiterkennung oder Mitarbeitername, Datum, Uhrzeit, Buchungsart, ableitbare Dauer, Status, Kennzeichnung von Korrekturen oder Nachträgen sowie relevante Prüfflags.[^1]
+- In verdichteten Berichten mindestens: summierte Arbeitszeit, Anzahl und Dauer der Pausen, Anzahl offener Buchungen, Anzahl von Warn- und Prüfstatus sowie Anzahl von Korrekturen und Nachträgen im jeweiligen Zeitraum.[^1]
+- In PDF-Berichten zusätzlich kurze erläuternde Hinweise zu offenen Buchungen, Korrekturen, Nachträgen und relevanten Prüfhinweisen, ohne die tabellarische Lesbarkeit zu beeinträchtigen.[^2][^1]
+- Nachvollziehbare Benennung und Ablage der Exportdateien in einem definierten Exportverzeichnis.[^1]
+- Einbeziehung der Exportdateien in das Schutz-, Backup- und Archivierungskonzept.[^1]
+
 
 ### 7.12 Pflichtauswertungen
 
-Das System muss mindestens folgende Prüfauswertungen unterstützen:[cite:185][cite:333][cite:339]
+Das System muss Pflichtauswertungen bereitstellen, mit denen offene, auffällige, korrigierte und nachgetragene Sachverhalte gezielt geprüft und nachvollzogen werden können. Die Auswertungen müssen nach Zeitraum und Mitarbeiter filterbar sein und sowohl in der Anwendung einsehbar als auch exportierbar sein.[^2][^1]
 
-- offene Buchungen,
-- Korrekturen,
-- Nachträge,
-- mögliche Pausenverstöße,
-- mögliche Ruhezeitverstöße,
-- mögliche Überschreitung der täglichen Arbeitszeit,
-- Buchungen außerhalb des Regelzeitfensters.[cite:185]
+Mindestens folgende Pflichtauswertungen sind vorzusehen:[^1]
+
+- offene Buchungen und offene Pausen,[^2][^1]
+- Korrekturen mit Bezug auf alten und neuen Zustand, Begründung, korrigierende Person und Zeitstempel,[^2][^1]
+- Nachträge mit Kennzeichnung als nachträglich erfasster Datensatz, Begründung und Freigabebezug, soweit vorgesehen,[^2][^1]
+- mögliche Pausenverstöße,[^2][^1]
+- mögliche Ruhezeitverstöße,[^2][^1]
+- mögliche Überschreitungen der täglichen Arbeitszeit,[^2][^1]
+- Buchungen außerhalb des Regelzeitfensters,[^2][^1]
+- Buchungen und Vorgänge mit Warn- oder Prüfstatus.[^2][^1]
+
+Die Pflichtauswertungen müssen mindestens den betroffenen Mitarbeiter, Datum oder Zeitraum, den jeweiligen Prüf- oder Statusgrund sowie den aktuellen Bearbeitungs- oder Klärungsstand enthalten. Sie müssen so gestaltet sein, dass berechtigte Personen offene und auffällige Fälle regelmäßig prüfen, dokumentieren und nachverfolgen können.[^2][^1]
 
 ## 8. Nichtfunktionale Anforderungen
 
@@ -165,17 +182,18 @@ Es dürfen nur die für Zeiterfassung, Prüfung, Korrektur, Nachweis und Verwalt
 ### 9.1 Plattform
 
 Zielplattform ist Lubuntu oder ein vergleichbares Linux-System auf einem dedizierten Terminalgerät.[cite:187]
-
 ### 9.2 Komponenten
 
-Erforderlich sind mindestens:[cite:185]
+Erforderlich sind mindestens:[^1]
 
-- Python 3,
-- SQLite,
-- RFID-Reader,
-- separates USB-Numpad,
-- optional NAS-Anbindung,
-- Bibliotheken `evdev` und `openpyxl`.[cite:74][cite:54][cite:242]
+- Python 3,[^1]
+- SQLite,[^1]
+- RFID-Reader,[^1]
+- separates USB-Numpad,[^1]
+- optionale NAS-Anbindung,[^1]
+- Bibliothek `evdev`,[^1]
+- eine geeignete Komponente zur Erzeugung von PDF-Berichten.[^1]
+
 
 ### 9.3 Systemzeit
 
