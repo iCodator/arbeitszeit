@@ -1,3 +1,4 @@
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -151,3 +152,37 @@ def test_restore_aus_backup_behaelt_schema_migrations(tmp_path):
     versions = [r["version"] for r in rows]
     assert "0001" in versions
     assert "0002" in versions
+
+
+# --- Fehlerpfade ---
+
+
+def test_nas_sync_fehler_wirft_called_process_error(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    service.create_local_backup(now=_NOW)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        service.sync_to_nas(Path("/nonexistent/nas/path"))
+
+
+def test_restore_aus_nicht_existierender_datei_wirft_file_not_found(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+
+    with pytest.raises(FileNotFoundError):
+        service.restore_from(tmp_path / "ghost.db")
+
+
+def test_restore_aus_beschaedigter_datei_schlaegt_fehl(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+
+    corrupt = tmp_path / "corrupt.db"
+    corrupt.write_bytes(b"this is not a valid sqlite database file")
+
+    with pytest.raises(Exception):
+        service.restore_from(corrupt)

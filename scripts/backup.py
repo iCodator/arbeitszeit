@@ -46,7 +46,8 @@ def main() -> None:
     config = SQLiteSystemConfigRepository(conn)
     nas_enabled = json.loads(config.get_current("backup.nas_enabled") or "false")
     nas_path_json = config.get_current("backup.nas_path")
-    nas_path = Path(json.loads(nas_path_json)) if nas_path_json and json.loads(nas_path_json) else None
+    _nas_path_raw = json.loads(nas_path_json) if nas_path_json else None
+    nas_path = Path(_nas_path_raw) if _nas_path_raw else None
     conn.close()
 
     service = SQLiteBackupService(db_path, backup_dir)

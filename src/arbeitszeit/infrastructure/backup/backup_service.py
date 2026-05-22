@@ -1,3 +1,4 @@
+import json
 import sqlite3
 import subprocess
 from dataclasses import dataclass
@@ -33,6 +34,10 @@ class SQLiteBackupService:
                 dst.close()
         finally:
             src.close()
+        self._log_audit(
+            "BACKUP_CREATED",
+            {"backup_path": str(backup_path), "size_bytes": backup_path.stat().st_size},
+        )
         return backup_path
 
     def sync_to_nas(self, nas_path: Path) -> None:
@@ -52,16 +57,31 @@ class SQLiteBackupService:
         """Stellt die Datenbank aus einer Backup-Datei wieder her.
 
         Vorbedingung: Keine offenen Verbindungen zur Ziel-DB beim Aufruf.
+        Führt nach dem Restore PRAGMA integrity_check aus.
         """
+        if not backup_path.exists():
+            raise FileNotFoundError(f"Backup-Datei nicht gefunden: {backup_path}")
         src = sqlite3.connect(str(backup_path))
         try:
             dst = sqlite3.connect(str(self._db_path))
             try:
                 src.backup(dst)
+                result = dst.execute("PRAGMA integrity_check").fetchone()[0]
+                if result != "ok":
+                    raise RuntimeError(
+                        f"Integritätsprüfung der wiederhergestellten DB fehlgeschlagen: {result}"
+                    )
             finally:
                 dst.close()
         finally:
             src.close()
+        self._log_audit(
+            "RESTORE_COMPLETED",
+            {
+                "backup_path": str(backup_path),
+                "backup_mtime": backup_path.stat().st_mtime,
+            },
+        )
 
     def run(self, *, nas_path: Path | None = None) -> BackupResult:
         """Erstellt lokales Backup und synchronisiert optional zum NAS."""
@@ -75,3 +95,21 @@ class SQLiteBackupService:
             size_bytes=backup_path.stat().st_size,
             synced_to_nas=synced,
         )
+
+    def _log_audit(self, event_type: str, details: dict) -> None:
+        """Schreibt einen Audit-Log-Eintrag direkt in die Hauptdatenbank."""
+        conn = sqlite3.connect(str(self._db_path), isolation_level=None)
+        try:
+            conn.execute(
+                "INSERT INTO audit_log "
+                "(event_type, object_type, object_id, user_id, employee_id, "
+                "event_at, details_json) "
+                "VALUES (?, 'BACKUP', 0, NULL, NULL, ?, ?)",
+                (
+                    event_type,
+                    datetime.now(timezone.utc).isoformat(),
+                    json.dumps(details, default=str),
+                ),
+            )
+        finally:
+            conn.close()
