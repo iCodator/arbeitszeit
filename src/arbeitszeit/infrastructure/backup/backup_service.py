@@ -46,16 +46,24 @@ class SQLiteBackupService:
 
     def sync_to_nas(self, nas_path: Path) -> None:
         """Synchronisiert backup_dir → NAS via rsync. Wirft CalledProcessError bei Fehler."""
-        subprocess.run(
-            [
-                "rsync",
-                "--archive",
-                "--delete",
-                f"{self._backup_dir}/",
-                f"{nas_path}/",
-            ],
-            check=True,
-        )
+        try:
+            subprocess.run(
+                [
+                    "rsync",
+                    "--archive",
+                    "--delete",
+                    f"{self._backup_dir}/",
+                    f"{nas_path}/",
+                ],
+                check=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            self._log_audit(
+                "BACKUP_SYNC_FAILED",
+                {"nas_path": str(nas_path), "returncode": exc.returncode},
+            )
+            raise
+        self._log_audit("BACKUP_SYNCED_TO_NAS", {"nas_path": str(nas_path)})
 
     def restore_from(self, backup_path: Path) -> None:
         """Stellt die Datenbank aus einer Backup-Datei wieder her.
@@ -79,6 +87,9 @@ class SQLiteBackupService:
                 dst.close()
         finally:
             src.close()
+        # Eintrag landet in der gerade wiederhergestellten DB — das ist gewollt:
+        # RESTORE_COMPLETED ist ein nachgelagertes Betriebsereignis im neuen Ist-Zustand,
+        # kein Teil des gesicherten Stands.
         self._log_audit(
             "RESTORE_COMPLETED",
             {
