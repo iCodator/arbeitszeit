@@ -70,6 +70,12 @@ class BookUseCase:
 
     def execute(self, cmd: BookCommand) -> BookResult:
         with self._uow:
+            # INVARIANTE Ablehnungspfade: Vor jedem audit_log_repo.add() in einem
+            # Ablehnungspfad (UnknownCard/InactiveCard) darf conn keine Schreiboperation
+            # (INSERT/UPDATE/DELETE) ausgeführt haben. Schreibt conn bereits, hält es
+            # einen WRITE-Lock; audit_conn kann dann trotz WAL nicht schreiben.
+            # Aktuell sind hier nur SELECTs vor dem ersten Ablehnungs-Audit-Write –
+            # diese Reihenfolge muss bei Erweiterungen gewahrt bleiben.
             card = self._uow.rfid_card_repo.get_by_uid_hash(cmd.uid_hash)
             if card is None:
                 self._uow.audit_log_repo.add(AuditLogEntry(
