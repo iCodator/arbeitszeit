@@ -1,6 +1,6 @@
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -19,7 +19,13 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, ValidationError
+from arbeitszeit.domain.errors import (
+    InactiveEmployeeError,
+    InvalidBookingSequenceError,
+    NotFoundError,
+    OpenPhaseConflictError,
+    ValidationError,
+)
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
@@ -95,6 +101,58 @@ def test_fehlender_mitarbeiter_loest_not_found_error():
         uc.execute(_cmd(supplement_id))
 
 
+def test_go_als_erste_buchung_loest_invalid_sequence_error():
+    uow, supplement_id = _make_uow_with_pending_supplement(
+        booking_type=BookingType.GO
+    )
+    uc = ApproveSupplementUseCase(uow)
+
+    with pytest.raises(InvalidBookingSequenceError):
+        uc.execute(_cmd(supplement_id))
+
+
+def test_break_end_ohne_offene_pause_loest_invalid_sequence_error():
+    from arbeitszeit.domain.entities import TimeBooking
+    from arbeitszeit.domain.enums import BookingStatus as BS
+    uow, supplement_id = _make_uow_with_pending_supplement(
+        booking_type=BookingType.BREAK_END
+    )
+    uow.time_booking_repo.add(TimeBooking(
+        id=0, employee_id=1, booking_type=BookingType.COME,
+        booked_at=_EVENT_AT - timedelta(hours=1),
+        source=BookingSource.TERMINAL, status=BS.OPEN,
+        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
+    ))
+    uc = ApproveSupplementUseCase(uow)
+
+    with pytest.raises(InvalidBookingSequenceError):
+        uc.execute(_cmd(supplement_id))
+
+
+def test_go_bei_offener_pause_loest_open_phase_conflict():
+    from arbeitszeit.domain.entities import TimeBooking
+    from arbeitszeit.domain.enums import BookingStatus as BS
+    uow, supplement_id = _make_uow_with_pending_supplement(
+        booking_type=BookingType.GO
+    )
+    uow.time_booking_repo.add(TimeBooking(
+        id=0, employee_id=1, booking_type=BookingType.COME,
+        booked_at=_EVENT_AT - timedelta(hours=2),
+        source=BookingSource.TERMINAL, status=BS.OPEN,
+        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
+    ))
+    uow.time_booking_repo.add(TimeBooking(
+        id=0, employee_id=1, booking_type=BookingType.BREAK_START,
+        booked_at=_EVENT_AT - timedelta(hours=1),
+        source=BookingSource.TERMINAL, status=BS.OPEN,
+        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
+    ))
+    uc = ApproveSupplementUseCase(uow)
+
+    with pytest.raises(OpenPhaseConflictError):
+        uc.execute(_cmd(supplement_id))
+
+
 # --- Fehlerpfade hinterlassen keine Spuren ---
 
 def test_fehler_kein_commit_kein_audit_log():
@@ -152,7 +210,6 @@ def test_buchung_hat_status_open_fuer_come():
 
 
 def test_buchung_ohne_compliance_flags_hat_status_ok():
-    from datetime import timedelta
     from arbeitszeit.domain.entities import TimeBooking
     from arbeitszeit.domain.enums import BookingStatus as BS
     uow, supplement_id = _make_uow_with_pending_supplement(

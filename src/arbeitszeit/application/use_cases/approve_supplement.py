@@ -14,7 +14,14 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, ValidationError
+from arbeitszeit.domain.errors import (
+    InactiveEmployeeError,
+    InvalidBookingSequenceError,
+    NotFoundError,
+    OpenPhaseConflictError,
+    ValidationError,
+)
+from arbeitszeit.domain.services.booking_rules import validate_booking_sequence
 from arbeitszeit.domain.services.compliance_checks import (
     ComplianceFlag,
     check_break_compliance,
@@ -88,6 +95,11 @@ class ApproveSupplementUseCase:
             day_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 supplement.employee_id, supplement.event_at.date()
             )
+            validate_booking_sequence(
+                supplement.booking_type,
+                [b.booking_type for b in day_bookings],
+            )
+
             placeholder = TimeBooking(
                 id=0,
                 employee_id=supplement.employee_id,
