@@ -5,7 +5,8 @@ from arbeitszeit.application.commands import ChangeWorkScheduleCommand
 from arbeitszeit.application.results import WorkScheduleChangeResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain.entities import AuditLogEntry, WorkScheduleVersion
-from arbeitszeit.domain.errors import ConflictError, ValidationError
+from arbeitszeit.domain.enums import UserRole
+from arbeitszeit.domain.errors import ConflictError, PermissionDeniedError, ValidationError
 
 
 class ManageWorkScheduleUseCase:
@@ -14,6 +15,17 @@ class ManageWorkScheduleUseCase:
 
     def execute(self, cmd: ChangeWorkScheduleCommand) -> WorkScheduleChangeResult:
         with self._uow:
+            if cmd.changed_by_user_id is None:
+                raise PermissionDeniedError(
+                    "Regelarbeitszeitänderungen erfordern einen authentifizierten Benutzer."
+                )
+            actor = self._uow.user_account_repo.get_by_id(cmd.changed_by_user_id)
+            if actor is None or actor.role != UserRole.ADMIN:
+                raise PermissionDeniedError(
+                    f"Benutzer {cmd.changed_by_user_id} ist nicht berechtigt, "
+                    "Regelarbeitszeiten zu ändern (nur ADMIN)."
+                )
+
             repo = self._uow.work_schedule_repo
 
             current = repo.get_effective(

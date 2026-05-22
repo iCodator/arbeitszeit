@@ -11,7 +11,8 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
+from arbeitszeit.domain.enums import UserRole
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
 
 
 class RegisterSupplementUseCase:
@@ -20,6 +21,13 @@ class RegisterSupplementUseCase:
 
     def execute(self, cmd: CreateSupplementCommand) -> SupplementResult:
         with self._uow:
+            actor = self._uow.user_account_repo.get_by_id(cmd.recorded_by_user_id)
+            if actor is None or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}:
+                raise PermissionDeniedError(
+                    f"Benutzer {cmd.recorded_by_user_id} ist nicht berechtigt, "
+                    "Nachträge zu erfassen."
+                )
+
             employee = self._uow.employee_repo.get_by_id(cmd.employee_id)
             if employee is None:
                 raise NotFoundError(

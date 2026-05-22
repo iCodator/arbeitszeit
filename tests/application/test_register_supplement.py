@@ -10,22 +10,36 @@ from arbeitszeit.application.commands import CreateSupplementCommand
 from arbeitszeit.application.use_cases.register_supplement import (
     RegisterSupplementUseCase,
 )
-from arbeitszeit.domain.entities import Employee
-from arbeitszeit.domain.enums import ApprovalStatus, BookingType, ReviewCaseStatus
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
+from arbeitszeit.domain.entities import Employee, UserAccount
+from arbeitszeit.domain.enums import ApprovalStatus, BookingType, ReviewCaseStatus, UserRole
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
+_ACTOR_ID = 1  # id des REVIEWER-UserAccounts (erstes Element im Fake-Store)
 
 
-def _make_uow_with_employee() -> FakeUnitOfWork:
+def _make_uow_with_employee(employee_active: bool = True) -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
     uow.employee_repo.add(Employee(
         id=0,
         personnel_no="E001",
         first_name="Anna",
         last_name="Muster",
-        is_active=True,
+        is_active=employee_active,
+    ))
+    return uow
+
+
+def _uow_with_actor() -> FakeUnitOfWork:
+    uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
     ))
     return uow
 
@@ -38,13 +52,37 @@ def _cmd(**overrides) -> CreateSupplementCommand:
         event_at=_NOW,
         recorded_at=_NOW,
         reason="Vergessen einzustempeln",
-        recorded_by_user_id=2,
+        recorded_by_user_id=_ACTOR_ID,
     )
     return CreateSupplementCommand(**{**defaults, **overrides})
 
 
-def test_unbekannter_mitarbeiter_loest_not_found_error():
+# --- Rollenprüfung ---
+
+def test_unbekannter_benutzer_loest_permission_denied():
     uow = FakeUnitOfWork()
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(recorded_by_user_id=999))
+
+
+def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
+    uow = FakeUnitOfWork()
+    emp_user = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="emp",
+        role=UserRole.EMPLOYEE, is_active=True,
+    ))
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(recorded_by_user_id=emp_user.id))
+
+
+# --- Fehlerbehandlung ---
+
+def test_unbekannter_mitarbeiter_loest_not_found_error():
+    uow = _uow_with_actor()
     uc = RegisterSupplementUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -52,11 +90,7 @@ def test_unbekannter_mitarbeiter_loest_not_found_error():
 
 
 def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
-    uow = FakeUnitOfWork()
-    uow.employee_repo.add(Employee(
-        id=0, personnel_no="E002", first_name="Max",
-        last_name="Inaktiv", is_active=False,
-    ))
+    uow = _make_uow_with_employee(employee_active=False)
     uc = RegisterSupplementUseCase(uow)
 
     with pytest.raises(InactiveEmployeeError):
@@ -153,7 +187,7 @@ def test_related_booking_id_wird_durchgereicht():
 # --- Fehlerpfade hinterlassen keine Spuren ---
 
 def test_not_found_error_kein_commit_kein_audit_log():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_actor()
     uc = RegisterSupplementUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -165,11 +199,7 @@ def test_not_found_error_kein_commit_kein_audit_log():
 
 
 def test_inactive_employee_error_kein_commit_kein_audit_log():
-    uow = FakeUnitOfWork()
-    uow.employee_repo.add(Employee(
-        id=0, personnel_no="E002", first_name="Max",
-        last_name="Inaktiv", is_active=False,
-    ))
+    uow = _make_uow_with_employee(employee_active=False)
     uc = RegisterSupplementUseCase(uow)
 
     with pytest.raises(InactiveEmployeeError):

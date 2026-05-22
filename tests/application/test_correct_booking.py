@@ -1,3 +1,5 @@
+import dataclasses
+import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -8,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import CreateCorrectionCommand
 from arbeitszeit.application.use_cases.correct_booking import CorrectBookingUseCase
-from arbeitszeit.domain.entities import Employee, ReviewCase, TimeBooking
+from arbeitszeit.domain.entities import Employee, ReviewCase, TimeBooking, UserAccount
 from arbeitszeit.domain.enums import (
     BookingSource,
     BookingStatus,
@@ -16,16 +18,22 @@ from arbeitszeit.domain.enums import (
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    UserRole,
 )
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 17, 0, tzinfo=timezone.utc)
 _EARLIER = datetime(2025, 3, 10, 8, 0, tzinfo=timezone.utc)
+_ACTOR_ID = 1  # id des REVIEWER-UserAccounts (erstes Element im Fake-Store)
 
 
 def _make_uow_with_booking() -> tuple[FakeUnitOfWork, int]:
     uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
     emp = uow.employee_repo.add(Employee(
         id=0, personnel_no="E001", first_name="Anna",
         last_name="Muster", is_active=True,
@@ -45,10 +53,19 @@ def _make_uow_with_booking() -> tuple[FakeUnitOfWork, int]:
     return uow, booking.id
 
 
+def _uow_with_actor() -> FakeUnitOfWork:
+    uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
+    return uow
+
+
 def _cmd(booking_id: int, **overrides) -> CreateCorrectionCommand:
     defaults = dict(
         original_booking_id=booking_id,
-        corrected_by_user_id=2,
+        corrected_by_user_id=_ACTOR_ID,
         reason="Falscher Typ eingestempelt",
         new_booking_type=BookingType.GO,
         new_booked_at=_NOW,
@@ -56,8 +73,32 @@ def _cmd(booking_id: int, **overrides) -> CreateCorrectionCommand:
     return CreateCorrectionCommand(**{**defaults, **overrides})
 
 
+# --- Rollenprüfung ---
+
+def test_unbekannter_benutzer_loest_permission_denied():
+    uow, booking_id = _make_uow_with_booking()
+    uc = CorrectBookingUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(booking_id, corrected_by_user_id=999))
+
+
+def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
+    uow, booking_id = _make_uow_with_booking()
+    emp_user = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="emp",
+        role=UserRole.EMPLOYEE, is_active=True,
+    ))
+    uc = CorrectBookingUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(booking_id, corrected_by_user_id=emp_user.id))
+
+
+# --- Fehlerbehandlung ---
+
 def test_buchung_nicht_gefunden_loest_not_found_error():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_actor()
     uc = CorrectBookingUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -65,7 +106,7 @@ def test_buchung_nicht_gefunden_loest_not_found_error():
 
 
 def test_fehlender_mitarbeiterdatensatz_loest_not_found_error():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_actor()
     booking = uow.time_booking_repo.add(TimeBooking(
         id=0, employee_id=99, booking_type=BookingType.COME,
         booked_at=_EARLIER, source=BookingSource.TERMINAL,
@@ -159,7 +200,6 @@ def test_audit_log_eintrag_vorhanden():
 
 
 def test_audit_log_enthaelt_fachliche_felder():
-    import json
     uow, booking_id = _make_uow_with_booking()
     uc = CorrectBookingUseCase(uow)
 
@@ -176,7 +216,6 @@ def test_audit_log_enthaelt_fachliche_felder():
 def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
     uow, booking_id = _make_uow_with_booking()
     emp = uow.employee_repo.get_by_id(1)
-    import dataclasses
     uow.employee_repo._store[1] = dataclasses.replace(emp, is_active=False)
     uc = CorrectBookingUseCase(uow)
 
@@ -187,7 +226,6 @@ def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
 def test_inaktiver_mitarbeiter_kein_commit_kein_audit_log():
     uow, booking_id = _make_uow_with_booking()
     emp = uow.employee_repo.get_by_id(1)
-    import dataclasses
     uow.employee_repo._store[1] = dataclasses.replace(emp, is_active=False)
     uow.committed = False
     uc = CorrectBookingUseCase(uow)

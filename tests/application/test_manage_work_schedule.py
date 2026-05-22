@@ -11,13 +11,21 @@ from arbeitszeit.application.commands import ChangeWorkScheduleCommand
 from arbeitszeit.application.use_cases.manage_work_schedule import (
     ManageWorkScheduleUseCase,
 )
-from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
-from arbeitszeit.domain.errors import ConflictError, ValidationError
+from arbeitszeit.domain.entities import UserAccount
+from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+from arbeitszeit.domain.errors import ConflictError, PermissionDeniedError, ValidationError
 from tests.application.fakes import FakeUnitOfWork
+
+_ADMIN_ID = 1  # id des ADMIN-UserAccounts (erstes Element im Fake-Store)
 
 
 def _make_uow() -> FakeUnitOfWork:
-    return FakeUnitOfWork()
+    uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="admin",
+        role=UserRole.ADMIN, is_active=True,
+    ))
+    return uow
 
 
 def _cmd(**overrides) -> ChangeWorkScheduleCommand:
@@ -29,7 +37,7 @@ def _cmd(**overrides) -> ChangeWorkScheduleCommand:
         end_time=time(16, 0),
         valid_from=date(2025, 1, 1),
         change_origin=ChangeOrigin.ADMIN_UI,
-        changed_by_user_id=1,
+        changed_by_user_id=_ADMIN_ID,
         reason=None,
     )
     return ChangeWorkScheduleCommand(**{**defaults, **overrides})
@@ -233,3 +241,33 @@ def test_kein_audit_log_bei_validation_error():
         uc.execute(_cmd(valid_from=date(2025, 1, 1)))
 
     assert len(uow.audit_log_repo.entries) == log_count_before
+
+
+# --- Rollenprüfung ---
+
+def test_changed_by_user_id_none_loest_permission_denied():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(changed_by_user_id=None))
+
+
+def test_unbekannter_benutzer_loest_permission_denied():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(changed_by_user_id=999))
+
+
+def test_benutzer_ohne_admin_rolle_loest_permission_denied():
+    uow = _make_uow()
+    reviewer = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
+    uc = ManageWorkScheduleUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(changed_by_user_id=reviewer.id))

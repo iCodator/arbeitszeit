@@ -245,7 +245,7 @@ Neuer Testfall: Abgewiesene Buchung erzeugt Audit-Log-Eintrag.
 Deckt V3 §7.9 (ArbZG §5) und V3 §16-Testpflicht "Unterschreitung der Ruhezeit" ab.
 
 
-### Schritt 7d – Rollenprüfung nachziehen  ← OFFEN
+### Schritt 7d – Rollenprüfung nachziehen  ✓ ERLEDIGT
 
 Siehe vollständige Beschreibung weiter unten (nach Schritt 8).
 

@@ -6,7 +6,8 @@ from arbeitszeit.application.results import CorrectionResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection
 from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
+from arbeitszeit.domain.enums import UserRole
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
 
 
 class CorrectBookingUseCase:
@@ -15,6 +16,13 @@ class CorrectBookingUseCase:
 
     def execute(self, cmd: CreateCorrectionCommand) -> CorrectionResult:
         with self._uow:
+            actor = self._uow.user_account_repo.get_by_id(cmd.corrected_by_user_id)
+            if actor is None or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}:
+                raise PermissionDeniedError(
+                    f"Benutzer {cmd.corrected_by_user_id} ist nicht berechtigt, "
+                    "Buchungen zu korrigieren."
+                )
+
             booking = self._uow.time_booking_repo.get_by_id(cmd.original_booking_id)
             if booking is None:
                 raise NotFoundError(
