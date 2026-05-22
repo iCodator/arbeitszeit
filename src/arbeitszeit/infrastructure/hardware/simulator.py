@@ -3,10 +3,10 @@ from datetime import datetime, timezone
 
 from arbeitszeit.domain.enums import BookingType
 
-from .ports import RawBookingRequest
+from .ports import HardwareReader, RawBookingRequest
 
 
-class SimulatedHardwareReader:
+class SimulatedHardwareReader(HardwareReader):
     """In-Memory-Simulator für Tests und Entwicklung ohne physische Hardware."""
 
     def __init__(self) -> None:

@@ -5,6 +5,10 @@ from typing import Protocol
 from arbeitszeit.domain.enums import BookingType
 
 
+class EmptyUidError(RuntimeError):
+    """RFID-Lesegerät lieferte eine leere oder nicht mappbare UID."""
+
+
 @dataclass(frozen=True)
 class RawBookingRequest:
     booking_type: BookingType

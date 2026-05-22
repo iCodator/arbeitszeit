@@ -8,6 +8,8 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.domain.enums import BookingType
 from arbeitszeit.infrastructure.hardware import (
+    EmptyUidError,
+    HardwareReader,
     RawBookingRequest,
     SimulatedHardwareReader,
     hash_uid,
@@ -97,3 +99,26 @@ def test_hash_uid_ist_sha256_hex():
 
 def test_hash_uid_gross_klein_sensitiv():
     assert hash_uid("aabbccdd") != hash_uid("AABBCCDD")
+
+
+# --- Protocol-Konformität ---
+
+
+def test_simulated_reader_erfuellt_hardware_reader_protocol():
+    sim: HardwareReader = SimulatedHardwareReader()
+    sim.inject(BookingType.COME, "HASH", occurred_at=_T)
+    req = sim.read_next()
+    assert req.booking_type == BookingType.COME
+    sim.close()
+
+
+# --- EmptyUidError ---
+
+
+def test_empty_uid_error_ist_runtime_error_subklasse():
+    assert issubclass(EmptyUidError, RuntimeError)
+
+
+def test_empty_uid_error_kann_als_runtime_error_gefangen_werden():
+    with pytest.raises(RuntimeError):
+        raise EmptyUidError("test")

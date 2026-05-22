@@ -19,7 +19,7 @@ from evdev import InputDevice, categorize, ecodes
 
 from arbeitszeit.domain.enums import BookingType
 
-from .ports import RawBookingRequest
+from .ports import EmptyUidError, HardwareReader, RawBookingRequest
 from .uid_hash import hash_uid
 
 # Numpad-Tasten 1–4 (KP-Variante und normale Ziffern) → BookingType
@@ -47,7 +47,7 @@ _KEY_CHAR_SHIFT: dict[str, str] = {
 }
 
 
-class EvdevHardwareReader:
+class EvdevHardwareReader(HardwareReader):
     """Liest Buchungsanfragen von physischen evdev-Geräten."""
 
     def __init__(
@@ -66,7 +66,11 @@ class EvdevHardwareReader:
     def read_next(self) -> RawBookingRequest:
         booking_type = self._read_booking_type()
         occurred_at = datetime.now(timezone.utc)
-        raw_uid = self._read_rfid_uid()
+        raw_uid = self._read_rfid_uid().strip()
+        if not raw_uid:
+            raise EmptyUidError(
+                "RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen."
+            )
         return RawBookingRequest(
             booking_type=booking_type,
             uid_hash=hash_uid(raw_uid),
