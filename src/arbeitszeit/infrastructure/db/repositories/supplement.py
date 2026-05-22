@@ -3,6 +3,7 @@ from datetime import datetime
 
 from arbeitszeit.domain.entities import Supplement
 from arbeitszeit.domain.enums import ApprovalStatus, BookingType
+from arbeitszeit.domain.errors import NotFoundError
 
 from ._helpers import _parse_dt
 
@@ -72,20 +73,24 @@ class SQLiteSupplementRepository:
     def approve(
         self, supplement_id: int, approved_by_user_id: int, approved_at: datetime
     ) -> None:
-        self._conn.execute(
+        cursor = self._conn.execute(
             "UPDATE supplements SET approval_status = 'APPROVED', "
             "approved_by_user_id = ?, approved_at = ? WHERE id = ?",
             (approved_by_user_id, approved_at.isoformat(), supplement_id),
         )
+        if cursor.rowcount == 0:
+            raise NotFoundError(f"Supplement {supplement_id} nicht gefunden.")
 
     def reject(
         self, supplement_id: int, rejected_by_user_id: int, rejected_at: datetime
     ) -> None:
-        self._conn.execute(
+        cursor = self._conn.execute(
             "UPDATE supplements SET approval_status = 'REJECTED', "
             "rejected_by_user_id = ?, rejected_at = ? WHERE id = ?",
             (rejected_by_user_id, rejected_at.isoformat(), supplement_id),
         )
+        if cursor.rowcount == 0:
+            raise NotFoundError(f"Supplement {supplement_id} nicht gefunden.")
 
 
 def _row_to_supplement(row: sqlite3.Row) -> Supplement:

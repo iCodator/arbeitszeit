@@ -4,6 +4,7 @@ from typing import Literal
 
 from arbeitszeit.domain.entities import ReviewCase
 from arbeitszeit.domain.enums import ReviewCaseStatus, ReviewCaseType, ReviewSeverity
+from arbeitszeit.domain.errors import NotFoundError
 
 from ._helpers import _parse_dt
 
@@ -68,12 +69,14 @@ class SQLiteReviewCaseRepository:
         note: str | None = None,
     ) -> None:
         now = datetime.now(timezone.utc).isoformat()
-        self._conn.execute(
+        cursor = self._conn.execute(
             "UPDATE review_cases "
             "SET status = ?, closed_at = ?, closed_by_user_id = ?, note = ? "
             "WHERE id = ?",
             (status.value, now, closed_by_user_id, note, case_id),
         )
+        if cursor.rowcount == 0:
+            raise NotFoundError(f"ReviewCase {case_id} nicht gefunden.")
 
 
 def _row_to_case(row: sqlite3.Row) -> ReviewCase:

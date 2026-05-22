@@ -58,6 +58,8 @@ class SQLiteTimeBookingRepository:
     def list_for_employee_on_day(
         self, employee_id: int, day: date
     ) -> list[TimeBooking]:
+        # `day` muss ein UTC-Kalendertag sein, konsistent mit UTC-normalisierten booked_at-Werten.
+        # Die Application-Schicht ist verantwortlich für die Normalisierung vor dem Aufruf.
         day_start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
         next_day = day_start + timedelta(days=1)
         rows = self._conn.execute(

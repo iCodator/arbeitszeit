@@ -98,6 +98,8 @@ class SQLiteWorkScheduleRepository:
         weekday: int | None = None,
         scope_employee_id: int | None = None,
     ) -> list[WorkScheduleVersion]:
+        # scope_employee_id=None bedeutet GLOBAL-Scope (kein "alle Scopes").
+        # Caller, der EMPLOYEE-Versionen sucht, muss eine konkrete employee_id übergeben.
         scope_type = (
             ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
         )
