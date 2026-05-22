@@ -6,7 +6,7 @@ from arbeitszeit.application.results import CorrectionResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection
 from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus
-from arbeitszeit.domain.errors import NotFoundError
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
 
 
 class CorrectBookingUseCase:
@@ -21,6 +21,14 @@ class CorrectBookingUseCase:
                     f"Buchung {cmd.original_booking_id} nicht gefunden."
                 )
 
+            employee = self._uow.employee_repo.get_by_id(booking.employee_id)
+            if employee is not None and not employee.is_active:
+                raise InactiveEmployeeError(
+                    f"Mitarbeiter {booking.employee_id} ist inaktiv."
+                )
+
+            now = datetime.now(timezone.utc)
+
             correction = self._uow.booking_correction_repo.add(BookingCorrection(
                 id=0,
                 original_booking_id=booking.id,
@@ -30,7 +38,7 @@ class CorrectBookingUseCase:
                 old_booked_at=booking.booked_at,
                 new_booking_type=cmd.new_booking_type,
                 new_booked_at=cmd.new_booked_at,
-                created_at=datetime.now(timezone.utc),
+                created_at=now,
             ))
 
             self._uow.time_booking_repo.set_status(
@@ -55,7 +63,6 @@ class CorrectBookingUseCase:
                     review_case_id = case.id
                     break
 
-            now = datetime.now(timezone.utc)
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type="BOOKING_CORRECTED",
@@ -64,14 +71,20 @@ class CorrectBookingUseCase:
                 user_id=cmd.corrected_by_user_id,
                 employee_id=booking.employee_id,
                 event_at=now,
-                details_json=json.dumps({
-                    "original_booking_id": booking.id,
-                    "old_booking_type": booking.booking_type,
-                    "old_booked_at": booking.booked_at.isoformat(),
-                    "new_booking_type": cmd.new_booking_type,
-                    "new_booked_at": cmd.new_booked_at.isoformat(),
-                    "review_case_id": review_case_id,
-                }),
+                details_json=json.dumps(
+                    {
+                        "original_booking_id": booking.id,
+                        "old_booking_type": booking.booking_type.value,
+                        "old_booked_at": booking.booked_at.isoformat(),
+                        "new_booking_type": cmd.new_booking_type.value,
+                        "new_booked_at": cmd.new_booked_at.isoformat(),
+                        "reason": cmd.reason,
+                        "status_after": BookingStatus.CORRECTED.value,
+                        "review_case_id": review_case_id,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
             ))
 
             self._uow.commit()

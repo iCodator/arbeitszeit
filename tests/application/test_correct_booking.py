@@ -17,7 +17,7 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
-from arbeitszeit.domain.errors import NotFoundError
+from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 17, 0, tzinfo=timezone.utc)
@@ -142,3 +142,44 @@ def test_audit_log_eintrag_vorhanden():
     assert entry.event_type == "BOOKING_CORRECTED"
     assert entry.object_type == "booking_corrections"
     assert entry.employee_id == 1
+
+
+def test_audit_log_enthaelt_fachliche_felder():
+    import json
+    uow, booking_id = _make_uow_with_booking()
+    uc = CorrectBookingUseCase(uow)
+
+    uc.execute(_cmd(booking_id))
+
+    details = json.loads(uow.audit_log_repo.entries[0].details_json)
+    assert details["old_booking_type"] == "COME"
+    assert details["new_booking_type"] == "GO"
+    assert details["reason"] == "Falscher Typ eingestempelt"
+    assert details["status_after"] == "CORRECTED"
+    assert details["original_booking_id"] == booking_id
+
+
+def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
+    uow, booking_id = _make_uow_with_booking()
+    emp = uow.employee_repo.get_by_id(1)
+    import dataclasses
+    uow.employee_repo._store[1] = dataclasses.replace(emp, is_active=False)
+    uc = CorrectBookingUseCase(uow)
+
+    with pytest.raises(InactiveEmployeeError):
+        uc.execute(_cmd(booking_id))
+
+
+def test_inaktiver_mitarbeiter_kein_commit_kein_audit_log():
+    uow, booking_id = _make_uow_with_booking()
+    emp = uow.employee_repo.get_by_id(1)
+    import dataclasses
+    uow.employee_repo._store[1] = dataclasses.replace(emp, is_active=False)
+    uow.committed = False
+    uc = CorrectBookingUseCase(uow)
+
+    with pytest.raises(InactiveEmployeeError):
+        uc.execute(_cmd(booking_id))
+
+    assert not uow.committed
+    assert len(uow.audit_log_repo.entries) == 0
