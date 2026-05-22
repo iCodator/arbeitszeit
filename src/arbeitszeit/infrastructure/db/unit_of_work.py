@@ -31,7 +31,7 @@ class SQLiteUnitOfWork:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        # Rollback nur wenn noch eine Transaktion offen ist.
-        # Nach commit() ist _transaction_open False → kein spurious ROLLBACK.
-        if exc_type is not None and self._transaction_open:
+        # Jede noch offene Transaktion wird zurückgerollt – mit oder ohne Exception.
+        # Nur ein explizites commit() schliesst die Transaktion ohne Rollback.
+        if self._transaction_open:
             self.rollback()

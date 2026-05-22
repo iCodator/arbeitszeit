@@ -100,6 +100,21 @@ def test_transaction_open_flag_nach_rollback_false(conn, uow):
     assert not uow._transaction_open
 
 
+def test_vergessenes_commit_rollt_automatisch_zurueck(conn, uow):
+    with uow:
+        conn.execute(
+            "INSERT INTO employees "
+            "(personnel_no, first_name, last_name, active, created_at, updated_at) "
+            "VALUES ('E005', 'Kein', 'Commit', 1, '2025-01-01', '2025-01-01')"
+        )
+        # commit() absichtlich weggelassen
+
+    count = conn.execute(
+        "SELECT COUNT(*) FROM employees WHERE personnel_no = 'E005'"
+    ).fetchone()[0]
+    assert count == 0
+
+
 def test_mehrfache_transaktionen_hintereinander(conn, uow):
     with uow:
         conn.execute(
