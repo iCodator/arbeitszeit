@@ -9,6 +9,16 @@ Voraussetzungen:
   - Prozess benötigt Lesezugriff auf die Gerätedateien
     (Gruppe 'input' oder root, oder udev-Regel)
 
+Unterstütztes Reader-Modell:
+  EvdevHardwareReader setzt voraus, dass der RFID-Reader seine UID als
+  HID-Tastatureingabe liefert: Hex-Zeichen (0–9, A–F, mit oder ohne Shift),
+  abgeschlossen durch Enter. Nicht-Hex-Zeichen werden ignoriert; Präfixe,
+  Suffixe oder abweichende Kodierungen erfordern eine angepasste Reader-Policy.
+
+_read_booking_type() blockiert unbegrenzt, bis eine gültige Taste gedrückt
+wird. Das ist beabsichtigt: Das System wartet im Idle auf eine Buchungsauswahl.
+Timeout-Logik für den Wartezustand gehört in die aufrufende Betriebsschicht.
+
 Lebenszyklus: Die aufrufende Schicht ist für close() verantwortlich.
 Empfohlen ist try/finally oder ein Context Manager, damit close()
 auch bei Ausnahmen sicher erreicht wird.
@@ -50,6 +60,15 @@ _HEX_KEY_CHAR_SHIFT: dict[str, str] = {k: v.upper() for k, v in _HEX_KEY_CHAR.it
 
 # Timeout (Sekunden) für den RFID-Lesevorgang nach Buchungstyp-Auswahl.
 _RFID_READ_TIMEOUT: float = 5.0
+
+
+def map_rfid_key(keycode: str, shift_active: bool) -> str | None:
+    """Bildet einen HID-Keycode auf ein Hex-Zeichen ab, oder None bei Nicht-Hex.
+
+    Testbar ohne Hardware: enthält die gesamte Filterlogik des RFID-Lesevorgangs.
+    """
+    char_map = _HEX_KEY_CHAR_SHIFT if shift_active else _HEX_KEY_CHAR
+    return char_map.get(keycode)
 
 
 class EvdevHardwareReader(HardwareReader):
@@ -141,8 +160,7 @@ class EvdevHardwareReader(HardwareReader):
                     elif keycode in ("KEY_ENTER", "KEY_KPENTER"):
                         return "".join(chars)
                     else:
-                        char_map = _HEX_KEY_CHAR_SHIFT if shift_active else _HEX_KEY_CHAR
-                        c = char_map.get(keycode)
+                        c = map_rfid_key(keycode, shift_active)
                         if c is not None:
                             chars.append(c)
                 elif key_event.keystate == key_event.key_up:
