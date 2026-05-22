@@ -52,7 +52,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn):
     executed = run_migrations(conn)
 
-    assert executed == ["0001", "0002", "0003", "0004"]
+    assert executed == ["0001", "0002", "0003", "0004", "0005"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
@@ -102,7 +102,7 @@ def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
         row[0]
         for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
     }
-    assert versions == {"0001", "0002", "0003", "0004"}
+    assert versions == {"0001", "0002", "0003", "0004", "0005"}
 
 
 def test_migration_0004_fuegt_neue_spalten_ein(conn):
@@ -120,6 +120,22 @@ def test_migration_0004_fuegt_neue_spalten_ein(conn):
         for row in conn.execute("PRAGMA table_info(review_cases)").fetchall()
     }
     assert "note" in review_cols
+
+
+def test_migration_0005_fuegt_device_event_id_ein(conn):
+    run_migrations(conn)
+
+    tb_cols = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(time_bookings)").fetchall()
+    }
+    assert "device_event_id" in tb_cols
+
+    fk_targets = {
+        row[2]
+        for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
+    }
+    assert "device_events" in fk_targets
 
 
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
