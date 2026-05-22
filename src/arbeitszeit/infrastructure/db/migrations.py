@@ -30,17 +30,17 @@ def run_migrations(
             raise ValueError(f"Ungültiger Migrationsname: {path.name!r}")
 
         sql = path.read_text(encoding="utf-8")
-        version_insert = (
-            "INSERT INTO schema_migrations (version, applied_at) "
-            f"VALUES ('{version}', datetime('now'))"
-        )
-        script = f"BEGIN;\n{sql}\n{version_insert};\nCOMMIT;"
-
         try:
-            conn.executescript(script)
+            conn.executescript(f"BEGIN;\n{sql}\nCOMMIT;")
         except Exception:
             conn.rollback()
             raise
+
+        conn.execute(
+            "INSERT INTO schema_migrations (version, applied_at) "
+            "VALUES (?, datetime('now'))",
+            (version,),
+        )
 
         executed.append(version)
         applied.add(version)
