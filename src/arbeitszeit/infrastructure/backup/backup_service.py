@@ -56,11 +56,18 @@ class SQLiteBackupService:
                     f"{nas_path}/",
                 ],
                 check=True,
+                capture_output=True,
+                text=True,
             )
         except subprocess.CalledProcessError as exc:
             self._log_audit(
                 "BACKUP_SYNC_FAILED",
-                {"nas_path": str(nas_path), "returncode": exc.returncode},
+                {
+                    "nas_path": str(nas_path),
+                    "returncode": exc.returncode,
+                    "cmd": exc.cmd,
+                    "stderr": exc.stderr,
+                },
             )
             raise
         self._log_audit("BACKUP_SYNCED_TO_NAS", {"nas_path": str(nas_path)})

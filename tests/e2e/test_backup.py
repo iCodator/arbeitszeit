@@ -1,3 +1,4 @@
+import json
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -36,6 +37,18 @@ def _count_employees(path: Path) -> int:
     count = conn.execute("SELECT COUNT(*) FROM employees").fetchone()[0]
     conn.close()
     return count
+
+
+def _audit_events(path: Path) -> list[dict]:
+    conn = open_connection(path)
+    rows = conn.execute(
+        "SELECT event_type, details_json FROM audit_log ORDER BY id"
+    ).fetchall()
+    conn.close()
+    return [
+        {"event_type": r["event_type"], "details": json.loads(r["details_json"])}
+        for r in rows
+    ]
 
 
 # --- create_local_backup ---
@@ -186,3 +199,57 @@ def test_restore_aus_beschaedigter_datei_schlaegt_fehl(tmp_path):
 
     with pytest.raises(Exception):
         service.restore_from(corrupt)
+
+
+# --- Audit-Log-Verifikation ---
+
+
+def test_backup_erstellt_audit_eintrag(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    service.create_local_backup(now=_NOW)
+
+    events = _audit_events(db)
+    assert any(e["event_type"] == "BACKUP_CREATED" for e in events)
+
+
+def test_restore_erstellt_audit_eintrag(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    backup_path = service.create_local_backup(now=_NOW)
+    service.restore_from(backup_path)
+
+    events = _audit_events(db)
+    assert any(e["event_type"] == "RESTORE_COMPLETED" for e in events)
+
+
+def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    service.create_local_backup(now=_NOW)
+
+    nas_dir = tmp_path / "nas"
+    nas_dir.mkdir()
+    service.sync_to_nas(nas_dir)
+
+    events = _audit_events(db)
+    assert any(e["event_type"] == "BACKUP_SYNCED_TO_NAS" for e in events)
+
+
+def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    service.create_local_backup(now=_NOW)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        service.sync_to_nas(Path("/nonexistent/nas/path"))
+
+    events = _audit_events(db)
+    failed = next(e for e in events if e["event_type"] == "BACKUP_SYNC_FAILED")
+    assert failed["details"]["returncode"] != 0
+    assert "cmd" in failed["details"]
+    assert "stderr" in failed["details"]
