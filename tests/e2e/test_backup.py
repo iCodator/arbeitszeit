@@ -1,6 +1,7 @@
 import json
 import subprocess
 import sys
+from unittest.mock import Mock
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -234,6 +235,20 @@ def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path):
     nas_dir = tmp_path / "nas"
     nas_dir.mkdir()
     service.sync_to_nas(nas_dir)
+
+    events = _audit_events(db)
+    assert any(e["event_type"] == "BACKUP_SYNCED_TO_NAS" for e in events)
+
+
+def test_nas_sync_audit_eintrag_ohne_rsync(tmp_path, monkeypatch):
+    """Isolierter Test: BACKUP_SYNCED_TO_NAS ohne Abhängigkeit von rsync."""
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    service.create_local_backup(now=_NOW)
+
+    monkeypatch.setattr(subprocess, "run", Mock())
+    service.sync_to_nas(tmp_path / "nas")
 
     events = _audit_events(db)
     assert any(e["event_type"] == "BACKUP_SYNCED_TO_NAS" for e in events)
