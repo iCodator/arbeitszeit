@@ -14,9 +14,11 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
+from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import (
     InactiveEmployeeError,
     NotFoundError,
+    PermissionDeniedError,
     ValidationError,
 )
 from arbeitszeit.domain.services.booking_rules import validate_booking_sequence
@@ -66,6 +68,13 @@ class ApproveSupplementUseCase:
 
     def execute(self, cmd: ApproveSupplementCommand) -> ApproveSupplementResult:
         with self._uow:
+            approver = self._uow.user_account_repo.get_by_id(cmd.approving_user_id)
+            if approver is None or approver.role not in {UserRole.REVIEWER, UserRole.ADMIN}:
+                raise PermissionDeniedError(
+                    f"Benutzer {cmd.approving_user_id} ist nicht berechtigt, "
+                    "Nachträge freizugeben."
+                )
+
             supplement = self._uow.supplement_repo.get_by_id(cmd.supplement_id)
             if supplement is None:
                 raise NotFoundError(
@@ -89,7 +98,7 @@ class ApproveSupplementUseCase:
 
             now = datetime.now(timezone.utc)
             self._uow.supplement_repo.approve(
-                supplement.id, cmd.approved_by_user_id, now
+                supplement.id, cmd.approving_user_id, now
             )
 
             review_case_id: int | None = None
@@ -104,7 +113,7 @@ class ApproveSupplementUseCase:
                     self._uow.review_case_repo.resolve(
                         case.id,
                         status=ReviewCaseStatus.RESOLVED,
-                        closed_by_user_id=cmd.approved_by_user_id,
+                        closed_by_user_id=cmd.approving_user_id,
                     )
                     review_case_id = case.id
                     break
@@ -174,7 +183,7 @@ class ApproveSupplementUseCase:
                 event_type="SUPPLEMENT_APPROVED",
                 object_type="supplements",
                 object_id=supplement.id,
-                user_id=cmd.approved_by_user_id,
+                user_id=cmd.approving_user_id,
                 employee_id=supplement.employee_id,
                 event_at=now,
                 details_json=json.dumps(

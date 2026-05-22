@@ -37,7 +37,7 @@ class CreateCorrectionCommand:
 @dataclass(frozen=True, slots=True)
 class ApproveSupplementCommand:
     supplement_id: int
-    approved_by_user_id: int
+    approving_user_id: int
 
 
 @dataclass(frozen=True, slots=True)

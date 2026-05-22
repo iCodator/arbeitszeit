@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import ApproveSupplementCommand
 from arbeitszeit.application.use_cases.approve_supplement import ApproveSupplementUseCase
-from arbeitszeit.domain.entities import Employee, ReviewCase, Supplement
+from arbeitszeit.domain.entities import Employee, ReviewCase, Supplement, UserAccount
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingSource,
@@ -18,12 +18,14 @@ from arbeitszeit.domain.enums import (
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    UserRole,
 )
 from arbeitszeit.domain.errors import (
     InactiveEmployeeError,
     InvalidBookingSequenceError,
     NotFoundError,
     OpenPhaseConflictError,
+    PermissionDeniedError,
     ValidationError,
 )
 from tests.application.fakes import FakeUnitOfWork
@@ -32,12 +34,19 @@ _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
 _EVENT_AT = datetime(2025, 3, 10, 8, 0, tzinfo=timezone.utc)
 
 
+_APPROVER_ID = 1  # id des REVIEWER-UserAccounts (erstes Element im Fake-Store)
+
+
 def _make_uow_with_pending_supplement(
     employee_active: bool = True,
     related_booking_id: int | None = None,
     booking_type: BookingType = BookingType.COME,
 ) -> tuple[FakeUnitOfWork, int]:
     uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
     emp = uow.employee_repo.add(Employee(
         id=0, personnel_no="E001", first_name="Anna",
         last_name="Muster", is_active=employee_active,
@@ -61,14 +70,23 @@ def _make_uow_with_pending_supplement(
 
 
 def _cmd(supplement_id: int, **overrides) -> ApproveSupplementCommand:
-    defaults = dict(supplement_id=supplement_id, approved_by_user_id=3)
+    defaults = dict(supplement_id=supplement_id, approving_user_id=_APPROVER_ID)
     return ApproveSupplementCommand(**{**defaults, **overrides})
+
+
+def _uow_with_reviewer() -> FakeUnitOfWork:
+    uow = FakeUnitOfWork()
+    uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=None, username="reviewer",
+        role=UserRole.REVIEWER, is_active=True,
+    ))
+    return uow
 
 
 # --- Fehlerbehandlung ---
 
 def test_nachtrag_nicht_gefunden_loest_not_found_error():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_reviewer()
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -156,7 +174,7 @@ def test_go_bei_offener_pause_loest_open_phase_conflict():
 # --- Fehlerpfade hinterlassen keine Spuren ---
 
 def test_fehler_kein_commit_kein_audit_log():
-    uow = FakeUnitOfWork()
+    uow = _uow_with_reviewer()
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(NotFoundError):
@@ -177,7 +195,7 @@ def test_supplement_erhaelt_status_approved():
     s = uow.supplement_repo.get_by_id(supplement_id)
     assert s is not None
     assert s.approval_status == ApprovalStatus.APPROVED
-    assert s.approved_by_user_id == 3
+    assert s.approved_by_user_id == _APPROVER_ID
     assert s.approved_at is not None
     assert uow.committed
 
@@ -292,3 +310,25 @@ def test_audit_log_enthaelt_fachliche_felder():
     assert details["booking_id"] == result.booking_id
     assert details["booking_type"] == "COME"
     assert details["booking_status"] == "OPEN"
+
+
+# --- Rollenprüfung ---
+
+def test_unbekannter_benutzer_loest_permission_denied():
+    uow, supplement_id = _make_uow_with_pending_supplement()
+    uc = ApproveSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(supplement_id, approving_user_id=999))
+
+
+def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
+    uow, supplement_id = _make_uow_with_pending_supplement()
+    employee_user = uow.user_account_repo.add(UserAccount(
+        id=0, employee_id=1, username="employee",
+        role=UserRole.EMPLOYEE, is_active=True,
+    ))
+    uc = ApproveSupplementUseCase(uow)
+
+    with pytest.raises(PermissionDeniedError):
+        uc.execute(_cmd(supplement_id, approving_user_id=employee_user.id))
