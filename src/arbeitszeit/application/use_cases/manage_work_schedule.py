@@ -75,6 +75,18 @@ class ManageWorkScheduleUseCase:
                         "valid_from": cmd.valid_from.isoformat(),
                         "change_origin": cmd.change_origin.value,
                         "superseded_version_id": superseded_id,
+                        "previous_valid_from": (
+                            current.valid_from.isoformat()
+                            if current is not None else None
+                        ),
+                        "previous_start_time": (
+                            current.start_time.isoformat(timespec="minutes")
+                            if current is not None else None
+                        ),
+                        "previous_end_time": (
+                            current.end_time.isoformat(timespec="minutes")
+                            if current is not None else None
+                        ),
                         "reason": cmd.reason,
                     },
                     ensure_ascii=False,

@@ -144,6 +144,21 @@ def test_audit_log_enthaelt_fachliche_felder():
     assert details["end_time"] == "16:00"
     assert details["change_origin"] == "ADMIN_UI"
     assert details["superseded_version_id"] == first.new_version_id
+    assert details["previous_valid_from"] == "2025-01-01"
+    assert details["previous_start_time"] == "07:30"
+    assert details["previous_end_time"] == "16:00"
+
+
+def test_audit_log_erste_version_hat_keine_previous_felder():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+
+    uc.execute(_cmd(valid_from=date(2025, 1, 1)))
+
+    details = json.loads(uow.audit_log_repo.entries[0].details_json)
+    assert details["previous_valid_from"] is None
+    assert details["previous_start_time"] is None
+    assert details["previous_end_time"] is None
 
 
 # --- Transaktionsverhalten ---
