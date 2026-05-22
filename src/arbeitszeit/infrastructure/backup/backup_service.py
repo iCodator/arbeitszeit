@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from arbeitszeit.domain.entities import AuditLogEntry
+from arbeitszeit.infrastructure.db.connection import open_connection
+from arbeitszeit.infrastructure.db.repositories import SQLiteAuditLogRepository
+
 
 @dataclass(frozen=True)
 class BackupResult:
@@ -97,19 +101,18 @@ class SQLiteBackupService:
         )
 
     def _log_audit(self, event_type: str, details: dict) -> None:
-        """Schreibt einen Audit-Log-Eintrag direkt in die Hauptdatenbank."""
-        conn = sqlite3.connect(str(self._db_path), isolation_level=None)
+        conn = open_connection(self._db_path)
         try:
-            conn.execute(
-                "INSERT INTO audit_log "
-                "(event_type, object_type, object_id, user_id, employee_id, "
-                "event_at, details_json) "
-                "VALUES (?, 'BACKUP', 0, NULL, NULL, ?, ?)",
-                (
-                    event_type,
-                    datetime.now(timezone.utc).isoformat(),
-                    json.dumps(details, default=str),
-                ),
-            )
+            repo = SQLiteAuditLogRepository(conn)
+            repo.add(AuditLogEntry(
+                id=0,
+                event_type=event_type,
+                object_type="BACKUP",
+                object_id=0,
+                user_id=None,
+                employee_id=None,
+                event_at=datetime.now(timezone.utc),
+                details_json=json.dumps(details, default=str),
+            ))
         finally:
             conn.close()
