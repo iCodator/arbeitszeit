@@ -4,10 +4,6 @@ from pathlib import Path
 _MIGRATIONS_DIR = Path(__file__).resolve().parents[4] / "migrations"
 
 
-def _migration_files() -> list[Path]:
-    return sorted(_MIGRATIONS_DIR.glob("[0-9][0-9][0-9][0-9]_*.sql"))
-
-
 def _applied_versions(conn: sqlite3.Connection) -> set[str]:
     try:
         rows = conn.execute("SELECT version FROM schema_migrations").fetchall()
@@ -16,11 +12,16 @@ def _applied_versions(conn: sqlite3.Connection) -> set[str]:
     return {str(row["version"]) for row in rows}
 
 
-def run_migrations(conn: sqlite3.Connection) -> list[str]:
+def run_migrations(
+    conn: sqlite3.Connection,
+    migrations_dir: Path | None = None,
+) -> list[str]:
+    if migrations_dir is None:
+        migrations_dir = _MIGRATIONS_DIR
     executed: list[str] = []
     applied = _applied_versions(conn)
 
-    for path in _migration_files():
+    for path in sorted(migrations_dir.glob("[0-9][0-9][0-9][0-9]_*.sql")):
         version = path.name.split("_", maxsplit=1)[0]
         if version in applied:
             continue

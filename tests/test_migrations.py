@@ -1,3 +1,4 @@
+import shutil
 import sqlite3
 import sys
 from pathlib import Path
@@ -136,6 +137,77 @@ def test_migration_0005_fuegt_device_event_id_ein(conn):
         for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
     }
     assert "device_events" in fk_targets
+
+
+def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(conn):
+    run_migrations(conn)
+
+    fk_targets = {
+        row[2]
+        for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
+    }
+    assert {"employees", "rfid_cards", "terminals", "device_events"} == fk_targets
+
+    index_names = {
+        row[0]
+        for row in conn.execute(
+            "SELECT name FROM sqlite_master "
+            "WHERE type = 'index' AND tbl_name = 'time_bookings' "
+            "AND name NOT LIKE 'sqlite_%'"
+        ).fetchall()
+    }
+    assert "idx_time_bookings_employee_booked_at" in index_names
+    assert "idx_time_bookings_status_booked_at" in index_names
+
+    ddl = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'time_bookings'"
+    ).fetchone()["sql"]
+    assert "booking_type IN ('COME', 'GO', 'BREAK_START', 'BREAK_END')" in ddl
+    assert "source IN ('TERMINAL', 'MANUAL', 'IMPORT')" in ddl
+    assert "'OK'" in ddl and "'OPEN'" in ddl and "'NEEDS_REVIEW'" in ddl
+
+
+_MIGRATIONS_ROOT = Path(__file__).parents[1] / "migrations"
+_MIGRATIONS_UP_TO_0004 = [
+    "0001_schema.sql",
+    "0002_seed_defaults.sql",
+    "0003_cleanup_booking_status.sql",
+    "0004_supplement_reject_fields_and_review_note.sql",
+]
+
+
+def test_migration_0005_datensatz_bleibt_erhalten(conn, tmp_path):
+    partial_dir = tmp_path / "partial"
+    partial_dir.mkdir()
+    for fname in _MIGRATIONS_UP_TO_0004:
+        shutil.copy(_MIGRATIONS_ROOT / fname, partial_dir / fname)
+
+    run_migrations(conn, migrations_dir=partial_dir)
+
+    conn.execute("BEGIN")
+    conn.execute(
+        "INSERT INTO employees "
+        "(personnel_no, first_name, last_name, active, created_at, updated_at) "
+        "VALUES ('E001', 'Test', 'User', 1, '2025-01-01T00:00:00', '2025-01-01T00:00:00')"
+    )
+    employee_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    conn.execute(
+        "INSERT INTO time_bookings "
+        "(employee_id, booking_type, booked_at, source, current_status, created_at) "
+        "VALUES (?, 'COME', '2025-01-01T07:30:00+00:00', 'TERMINAL', 'OPEN', "
+        "'2025-01-01T07:30:00+00:00')",
+        (employee_id,),
+    )
+    conn.execute("COMMIT")
+
+    run_migrations(conn)  # wendet 0005 an
+
+    row = conn.execute(
+        "SELECT device_event_id FROM time_bookings WHERE employee_id = ?",
+        (employee_id,),
+    ).fetchone()
+    assert row is not None
+    assert row["device_event_id"] is None
 
 
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
