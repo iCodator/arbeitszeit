@@ -15,6 +15,7 @@ from arbeitszeit.domain.enums import (
 from arbeitszeit.domain.errors import (
     InactiveCardError,
     InactiveEmployeeError,
+    NotFoundError,
     UnknownCardError,
 )
 from arbeitszeit.domain.services.booking_rules import validate_booking_sequence
@@ -54,7 +55,11 @@ class BookUseCase:
                 raise InactiveCardError(f"Karte {card.id} ist nicht aktiv.")
 
             employee = self._uow.employee_repo.get_by_id(card.employee_id)
-            if employee is None or not employee.is_active:
+            if employee is None:
+                raise NotFoundError(
+                    f"Mitarbeiter {card.employee_id} nicht gefunden."
+                )
+            if not employee.is_active:
                 raise InactiveEmployeeError(
                     f"Mitarbeiter {card.employee_id} ist nicht aktiv."
                 )

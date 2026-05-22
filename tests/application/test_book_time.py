@@ -19,6 +19,7 @@ from arbeitszeit.domain.errors import (
     InactiveCardError,
     InactiveEmployeeError,
     InvalidBookingSequenceError,
+    NotFoundError,
     OpenPhaseConflictError,
     UnknownCardError,
 )
@@ -93,6 +94,15 @@ def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
     uc = BookUseCase(uow)
 
     with pytest.raises(InactiveEmployeeError):
+        uc.execute(_cmd())
+
+
+def test_fehlender_mitarbeiterdatensatz_loest_not_found_error():
+    uow = _make_uow()
+    uow.employee_repo._store.clear()
+    uc = BookUseCase(uow)
+
+    with pytest.raises(NotFoundError):
         uc.execute(_cmd())
 
 
