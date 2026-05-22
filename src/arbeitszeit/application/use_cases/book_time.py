@@ -8,6 +8,7 @@ from arbeitszeit.domain.entities import AuditLogEntry, ReviewCase, TimeBooking
 from arbeitszeit.domain.enums import (
     BookingStatus,
     BookingType,
+    CardStatus,
     ReviewCaseStatus,
     ReviewSeverity,
 )
@@ -18,24 +19,25 @@ from arbeitszeit.domain.errors import (
 )
 from arbeitszeit.domain.services.booking_rules import validate_booking_sequence
 from arbeitszeit.domain.services.compliance_checks import (
+    ComplianceFlag,
     check_break_compliance,
     check_max_hours,
 )
 
 
-def _determine_status(
+def _evaluate_booking(
     booking_type: BookingType,
     projected: list[TimeBooking],
-) -> BookingStatus:
+) -> tuple[BookingStatus, list[ComplianceFlag]]:
     if booking_type in (BookingType.COME, BookingType.BREAK_START):
-        return BookingStatus.OPEN
+        return BookingStatus.OPEN, []
 
     flags = check_break_compliance(projected) + check_max_hours(projected)
     if not flags:
-        return BookingStatus.OK
+        return BookingStatus.OK, []
     if any(f.severity == ReviewSeverity.CRITICAL for f in flags):
-        return BookingStatus.NEEDS_REVIEW
-    return BookingStatus.WARN
+        return BookingStatus.NEEDS_REVIEW, flags
+    return BookingStatus.WARN, flags
 
 
 class BookUseCase:
@@ -48,7 +50,6 @@ class BookUseCase:
             if card is None:
                 raise UnknownCardError(f"Unbekannte RFID-UID: {cmd.uid_hash}")
 
-            from arbeitszeit.domain.enums import CardStatus
             if card.status != CardStatus.ACTIVE:
                 raise InactiveCardError(f"Karte {card.id} ist nicht aktiv.")
 
@@ -80,7 +81,7 @@ class BookUseCase:
                 note=None,
             )
             projected = list(day_bookings) + [placeholder]
-            status = _determine_status(cmd.booking_type, projected)
+            status, flags = _evaluate_booking(cmd.booking_type, projected)
 
             booking = self._uow.time_booking_repo.add(
                 TimeBooking(
@@ -100,22 +101,20 @@ class BookUseCase:
             now = datetime.now(timezone.utc)
             follow_up_case_ids: list[int] = []
 
-            if status in (BookingStatus.WARN, BookingStatus.NEEDS_REVIEW):
-                flags = check_break_compliance(projected) + check_max_hours(projected)
-                for flag in flags:
-                    case = self._uow.review_case_repo.add(ReviewCase(
-                        id=0,
-                        employee_id=employee.id,
-                        case_type=flag.case_type,
-                        severity=flag.severity,
-                        status=ReviewCaseStatus.OPEN,
-                        description=f"Automatisch erkannt bei Buchung #{booking.id}",
-                        booking_id=booking.id,
-                        created_at=now,
-                        closed_at=None,
-                        closed_by_user_id=None,
-                    ))
-                    follow_up_case_ids.append(case.id)
+            for flag in flags:
+                case = self._uow.review_case_repo.add(ReviewCase(
+                    id=0,
+                    employee_id=employee.id,
+                    case_type=flag.case_type,
+                    severity=flag.severity,
+                    status=ReviewCaseStatus.OPEN,
+                    description=f"Automatisch erkannt bei Buchung #{booking.id}",
+                    booking_id=booking.id,
+                    created_at=now,
+                    closed_at=None,
+                    closed_by_user_id=None,
+                ))
+                follow_up_case_ids.append(case.id)
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
@@ -125,13 +124,18 @@ class BookUseCase:
                 user_id=None,
                 employee_id=employee.id,
                 event_at=now,
-                details_json=json.dumps({
-                    "booking_type": cmd.booking_type,
-                    "booked_at": cmd.booked_at.isoformat(),
-                    "status": status,
-                    "terminal_id": cmd.terminal_id,
-                    "follow_up_case_ids": follow_up_case_ids,
-                }),
+                details_json=json.dumps(
+                    {
+                        "booking_type": cmd.booking_type.value,
+                        "booked_at": cmd.booked_at.isoformat(),
+                        "status": status.value,
+                        "terminal_id": cmd.terminal_id,
+                        "rfid_card_id": card.id,
+                        "follow_up_case_ids": follow_up_case_ids,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
             ))
 
             self._uow.commit()
