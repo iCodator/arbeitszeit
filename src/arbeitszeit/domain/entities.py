@@ -78,9 +78,21 @@ class WorkScheduleVersion:
 
     def __post_init__(self) -> None:
         if self.scope_type == ScopeType.GLOBAL and self.scope_employee_id is not None:
-            raise ValueError("Globale Regelarbeitszeit darf keinen Mitarbeiterbezug haben.")
+            raise ValueError(
+                "Globale Regelarbeitszeit darf keinen Mitarbeiterbezug haben."
+            )
         if self.scope_type == ScopeType.EMPLOYEE and self.scope_employee_id is None:
-            raise ValueError("Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben.")
+            raise ValueError(
+                "Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben."
+            )
+        if not (1 <= self.weekday <= 7):
+            raise ValueError(
+                f"Wochentag muss zwischen 1 (Mo) und 7 (So) liegen, nicht {self.weekday}."
+            )
+        if self.start_time >= self.end_time:
+            raise ValueError(
+                "start_time muss vor end_time liegen."
+            )
         if self.valid_until is not None and self.valid_until < self.valid_from:
             raise ValueError("valid_until darf nicht vor valid_from liegen.")
 

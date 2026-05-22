@@ -1,6 +1,5 @@
 import json
-from datetime import datetime, timezone
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 from arbeitszeit.application.commands import ChangeWorkScheduleCommand
 from arbeitszeit.application.results import WorkScheduleChangeResult
@@ -66,14 +65,21 @@ class ManageWorkScheduleUseCase:
                 user_id=cmd.changed_by_user_id,
                 employee_id=None,
                 event_at=datetime.now(timezone.utc),
-                details_json=json.dumps({
-                    "weekday": cmd.weekday,
-                    "scope_type": cmd.scope_type,
-                    "scope_employee_id": cmd.scope_employee_id,
-                    "valid_from": cmd.valid_from.isoformat(),
-                    "superseded_version_id": superseded_id,
-                    "reason": cmd.reason,
-                }),
+                details_json=json.dumps(
+                    {
+                        "weekday": cmd.weekday,
+                        "scope_type": cmd.scope_type.value,
+                        "scope_employee_id": cmd.scope_employee_id,
+                        "start_time": cmd.start_time.isoformat(timespec="minutes"),
+                        "end_time": cmd.end_time.isoformat(timespec="minutes"),
+                        "valid_from": cmd.valid_from.isoformat(),
+                        "change_origin": cmd.change_origin.value,
+                        "superseded_version_id": superseded_id,
+                        "reason": cmd.reason,
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
             ))
 
             self._uow.commit()

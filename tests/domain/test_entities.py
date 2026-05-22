@@ -280,3 +280,22 @@ def test_work_schedule_employee_ohne_mitarbeiterbezug_ist_ungueltig():
 def test_work_schedule_valid_until_vor_valid_from_ist_ungueltig():
     with pytest.raises(ValueError):
         _work_schedule(valid_from=_TODAY, valid_until=_YESTERDAY)
+
+
+def test_work_schedule_ungueltige_wochentage_sind_ungueltig():
+    with pytest.raises(ValueError):
+        _work_schedule(weekday=0)
+    with pytest.raises(ValueError):
+        _work_schedule(weekday=8)
+
+
+def test_work_schedule_start_time_nach_end_time_ist_ungueltig():
+    from datetime import time
+    with pytest.raises(ValueError):
+        _work_schedule(start_time=time(16, 0), end_time=time(7, 30))
+
+
+def test_work_schedule_gleiche_start_und_end_time_ist_ungueltig():
+    from datetime import time
+    with pytest.raises(ValueError):
+        _work_schedule(start_time=time(8, 0), end_time=time(8, 0))

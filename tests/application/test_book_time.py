@@ -26,7 +26,10 @@ from arbeitszeit.domain.errors import (
 from tests.application.fakes import FakeUnitOfWork
 
 _DATE = date(2025, 3, 10)
-_T = lambda h, m=0: datetime(_DATE.year, _DATE.month, _DATE.day, h, m, tzinfo=timezone.utc)
+
+
+def _T(h: int, m: int = 0) -> datetime:
+    return datetime(_DATE.year, _DATE.month, _DATE.day, h, m, tzinfo=timezone.utc)
 
 
 def _make_uow(employee_active: bool = True, card_status: CardStatus = CardStatus.ACTIVE) -> FakeUnitOfWork:

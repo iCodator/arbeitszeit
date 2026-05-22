@@ -1,3 +1,4 @@
+import json
 import sys
 from datetime import date, time
 from pathlib import Path
@@ -125,6 +126,39 @@ def test_audit_log_eintrag_vorhanden():
     entry = uow.audit_log_repo.entries[0]
     assert entry.event_type == "WORK_SCHEDULE_CHANGED"
     assert entry.object_type == "work_schedule_versions"
+
+
+def test_audit_log_enthaelt_fachliche_felder():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+
+    first = uc.execute(_cmd(valid_from=date(2025, 1, 1)))
+    uow.committed = False
+    uc.execute(_cmd(valid_from=date(2025, 6, 1), start_time=time(8, 0)))
+
+    entry = uow.audit_log_repo.entries[1]
+    details = json.loads(entry.details_json)
+    assert details["scope_type"] == "GLOBAL"
+    assert details["start_time"] == "08:00"
+    assert details["end_time"] == "16:00"
+    assert details["change_origin"] == "ADMIN_UI"
+    assert details["superseded_version_id"] == first.new_version_id
+
+
+# --- Transaktionsverhalten ---
+
+def test_rollback_bei_validation_error():
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+    uc.execute(_cmd(valid_from=date(2025, 6, 1)))
+    uow.committed = False
+    uow.rolled_back = False
+
+    with pytest.raises(ValidationError):
+        uc.execute(_cmd(valid_from=date(2025, 1, 1)))
+
+    assert uow.rolled_back
+    assert not uow.committed
 
 
 # --- Scope-Trennung ---
