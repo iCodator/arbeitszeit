@@ -24,6 +24,10 @@ class Employee:
     last_name: str
     is_active: bool
 
+    def __post_init__(self) -> None:
+        if not self.personnel_no.strip():
+            raise ValueError("personnel_no darf nicht leer oder nur Leerzeichen sein.")
+
 
 @dataclass(frozen=True)
 class UserAccount:
@@ -32,6 +36,10 @@ class UserAccount:
     username: str
     role: UserRole
     is_active: bool
+
+    def __post_init__(self) -> None:
+        if not self.username.strip():
+            raise ValueError("username darf nicht leer oder nur Leerzeichen sein.")
 
 
 @dataclass(frozen=True)
@@ -120,6 +128,13 @@ class ReviewCase:
         elif self.status in closed_statuses:
             if self.closed_at is None or self.closed_by_user_id is None:
                 raise ValueError("Geschlossener Prüffall muss Schließungsdaten haben.")
+            if (
+                self.status == ReviewCaseStatus.CLOSED_WITH_NOTE
+                and not (self.note or "").strip()
+            ):
+                raise ValueError(
+                    "CLOSED_WITH_NOTE erfordert eine nicht-leere Begründung (note)."
+                )
 
 
 @dataclass(frozen=True)
@@ -155,12 +170,20 @@ class Supplement:
                 raise ValueError(
                     "Genehmigter Nachtrag darf keine Ablehnungsdaten haben."
                 )
+            if self.approved_at < self.recorded_at:
+                raise ValueError(
+                    "approved_at darf nicht vor recorded_at liegen."
+                )
         elif self.approval_status == ApprovalStatus.REJECTED:
             if self.rejected_by_user_id is None or self.rejected_at is None:
                 raise ValueError("Abgelehnter Nachtrag muss Ablehnungsdaten haben.")
             if self.approved_by_user_id is not None or self.approved_at is not None:
                 raise ValueError(
                     "Abgelehnter Nachtrag darf keine Freigabedaten haben."
+                )
+            if self.rejected_at < self.recorded_at:
+                raise ValueError(
+                    "rejected_at darf nicht vor recorded_at liegen."
                 )
 
 
@@ -176,14 +199,24 @@ class BookingCorrection:
     new_booked_at: datetime
     created_at: datetime
 
+    def __post_init__(self) -> None:
+        if self.created_at < self.old_booked_at:
+            raise ValueError(
+                "created_at darf nicht vor old_booked_at liegen — "
+                "eine Korrektur kann nicht vor der Originalbuchung erstellt worden sein."
+            )
+
 
 @dataclass(frozen=True)
 class AuditLogEntry:
     id: int
     event_type: str
-    # object_type ist immer der exakte Tabellenname der betroffenen Entität
-    # (z. B. "time_bookings", "supplements", "booking_corrections").
-    # Einheitliche Konvention für Auswertungen und Filterung im audit_log.
+    # object_type Konvention:
+    #   Entitätsereignisse: exakter Tabellenname in snake_case
+    #     (z. B. "time_bookings", "supplements", "booking_corrections").
+    #   Systemereignisse ohne DB-Zeile: beschreibender snake_case-Bezeichner
+    #     (z. B. "backup_service").
+    # Einheitliche snake_case-Schreibweise für alle Werte.
     object_type: str
     object_id: int
     user_id: int | None

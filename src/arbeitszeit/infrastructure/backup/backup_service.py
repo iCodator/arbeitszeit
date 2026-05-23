@@ -125,7 +125,7 @@ class SQLiteBackupService:
             repo.add(AuditLogEntry(
                 id=0,
                 event_type=event_type,
-                object_type="BACKUP",
+                object_type="backup_service",
                 object_id=0,
                 user_id=None,
                 employee_id=None,
