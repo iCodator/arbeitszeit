@@ -89,7 +89,7 @@ TimeBooking
 
 WorkScheduleVersion
   id, scope_type: ScopeType, scope_employee_id: int | None,
-  weekday: int (0=Mo–6=So), start_time: time, end_time: time,
+  weekday: int (1=Mo–7=So, ISO-Wochentag, konsistent mit Python isoweekday()), start_time: time, end_time: time,
   valid_from: date, valid_until: date | None,
   change_origin: ChangeOrigin, changed_by_user_id: int | None,
   reason: str | None

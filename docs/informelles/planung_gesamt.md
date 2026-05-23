@@ -260,7 +260,7 @@ Alle Commands als `@dataclass(frozen=True, slots=True)`:
 `ChangeWorkScheduleCommand`:
 - `scope_type: ScopeType`
 - `scope_employee_id: int | None`
-- `weekday: int`
+- `weekday: int` — 1=Mo bis 7=So (ISO-Wochentag, konsistent mit `isoweekday()`)
 - `start_time: time`
 - `end_time: time`
 - `valid_from: date`

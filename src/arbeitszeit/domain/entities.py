@@ -93,9 +93,11 @@ class WorkScheduleVersion:
             raise ValueError(
                 "Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben."
             )
+        # weekday 1–7 entspricht ISO-Wochentag (1=Mo, 7=So), konsistent mit
+        # Python datetime.isoweekday() und dem Schema-CHECK in work_schedule_versions.
         if not (1 <= self.weekday <= 7):
             raise ValueError(
-                f"Wochentag {self.weekday} ungültig, muss 1–7 sein."
+                f"Wochentag {self.weekday} ungültig, muss 1–7 sein (ISO: 1=Mo, 7=So)."
             )
         if self.start_time >= self.end_time:
             raise ValueError(
