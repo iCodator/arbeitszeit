@@ -284,7 +284,7 @@ Deckt V3 §9.3, Regelwerk v3 §21 und V3 §16-Testpflicht "Systemzeitabweichung"
 
 ---
 
-## Schritt 8 – infrastructure/export/  ← OFFEN
+## Schritt 8 – infrastructure/export/  ← IN ARBEIT
 
 Kein Excel/openpyxl. PDF-Bibliothek: **reportlab** (rein Python, stabil,
 tabellarische Verwaltungsberichte, keine externen Binaries, Linux-kompatibel).
