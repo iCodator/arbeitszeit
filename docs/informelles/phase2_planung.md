@@ -9,11 +9,14 @@ Businessregeln und Repository-Protokolle. Keine Datenbank, keine Anwendungsfäll
 
 Zielstruktur
 ------------
+
+```
 src/arbeitszeit/domain/
 ├── __init__.py
 ├── enums.py
 ├── errors.py
 ├── entities.py
+├── audit_events.py
 ├── ports/
 │   ├── __init__.py
 │   └── repositories.py
@@ -21,263 +24,264 @@ src/arbeitszeit/domain/
     ├── __init__.py
     ├── booking_rules.py
     └── compliance_checks.py
+```
 
 
-enums.py  – 11 StrEnum-Klassen
--------------------------------
-Alle Enums erben von StrEnum (Python 3.11+), sodass .value ein String ist
-und JSON-Serialisierung ohne Konvertierung möglich wird.
+enums.py – 11 StrEnum-Klassen
+------------------------------
+Alle Enums erben von StrEnum (Python 3.11+).
 
-BookingType       COME, GO, BREAK_START, BREAK_END
-BookingStatus     OPEN, OK, WARN, NEEDS_REVIEW, CORRECTED, CLOSED_WITH_NOTE
-                  (CLOSED_WITH_NOTE wurde in Phase 3 ergänzt; V3 Regelwerk §11)
-ReviewCaseType    MANUAL_ENTRY_REVIEW, POSSIBLE_MAX_HOURS_VIOLATION,
-                  BREAK_COMPLIANCE_ISSUE, REST_PERIOD_VIOLATION
-ReviewCaseStatus  OPEN, IN_REVIEW, RESOLVED, CLOSED_WITH_NOTE
-ReviewSeverity    INFO, WARN, CRITICAL
-CardStatus        ACTIVE, INACTIVE, LOST
-UserRole          EMPLOYEE, ADMIN, REVIEWER, TECH
-BookingSource     TERMINAL, MANUAL, SYSTEM
-ChangeOrigin      SYSTEM_SEED, ADMIN_UI, MIGRATION
-ApprovalStatus    PENDING, APPROVED, REJECTED
-ScopeType         GLOBAL, EMPLOYEE
+- `BookingType`       COME, GO, BREAK_START, BREAK_END
+- `BookingStatus`     OPEN, OK, WARN, NEEDS_REVIEW, CORRECTED, CLOSED_WITH_NOTE
+- `ReviewCaseType`    OPEN_WORK_PHASE, OPEN_BREAK_PHASE, OUTSIDE_SCHEDULE_WINDOW,
+                      POSSIBLE_BREAK_VIOLATION, POSSIBLE_REST_VIOLATION,
+                      POSSIBLE_MAX_HOURS_VIOLATION, IMPLAUSIBLE_SEQUENCE,
+                      UNKNOWN_CARD_ATTEMPT, INACTIVE_CARD_ATTEMPT,
+                      TIME_ANOMALY, MANUAL_ENTRY_REVIEW
+- `ReviewCaseStatus`  OPEN, IN_REVIEW, RESOLVED, CLOSED_WITH_NOTE
+- `ReviewSeverity`    INFO, WARN, CRITICAL
+- `CardStatus`        ACTIVE, INACTIVE, REPLACED, LOST
+- `UserRole`          EMPLOYEE, ADMIN, REVIEWER, TECH
+- `BookingSource`     TERMINAL, MANUAL, IMPORT
+- `ChangeOrigin`      SYSTEM_SEED, ADMIN_UI, MIGRATION
+- `ApprovalStatus`    PENDING, APPROVED, REJECTED
+- `ScopeType`         GLOBAL, EMPLOYEE
 
+Abweichungen gegenüber Ursprungsplan:
 
-errors.py  – 1 Basisklasse + 9 Subklassen
-------------------------------------------
-DomainError(Exception)
-  __init__(message="", **context): speichert context-Dict für strukturierte
-  Fehlerinformation ohne String-Parsing durch den Aufrufer
-
-UnknownCardError(DomainError)      RFID-Hash unbekannt
-InactiveCardError(DomainError)     Karte bekannt, aber nicht ACTIVE
-InactiveEmployeeError(DomainError) Mitarbeiter ist inaktiv
-InvalidBookingSequenceError(DomainError)  fachlich unzulässige Buchungsfolge
-OpenPhaseConflictError(DomainError)  Offene Phase bei GO (Pause nicht geschlossen)
-PermissionDeniedError(DomainError) Autorisierungsfehler
-ValidationError(DomainError)       Allgemeiner Validierungsfehler
-NotFoundError(DomainError)         Entität nicht gefunden
-ConflictError(DomainError)         Kollision (z.B. gleiche valid_from)
+- `ReviewCaseType`: Plan nannte nur 4 Werte (MANUAL_ENTRY_REVIEW,
+  POSSIBLE_MAX_HOURS_VIOLATION, BREAK_COMPLIANCE_ISSUE, REST_PERIOD_VIOLATION);
+  tatsächlich 11 Werte implementiert. `BREAK_COMPLIANCE_ISSUE` und
+  `REST_PERIOD_VIOLATION` existieren nicht — korrekte Namen sind
+  `POSSIBLE_BREAK_VIOLATION` und `POSSIBLE_REST_VIOLATION`.
+- `CardStatus`: REPLACED ergänzt (Plan hatte nur ACTIVE, INACTIVE, LOST).
+- `BookingSource`: IMPORT statt SYSTEM.
 
 
-entities.py  – 9 frozen Dataclasses
---------------------------------------
-Alle Entitäten: @dataclass(frozen=True, slots=True).
-Invarianten werden in __post_init__ geprüft und werfen ValueError.
-Fachliche Checks (Buchungsfolge, Compliance) gehören in services/, nicht hier.
+errors.py – 1 Basisklasse + 9 Subklassen
+-----------------------------------------
 
-Employee
+- `DomainError(Exception)` — mit `code`-Attribut und `context`-Dict
+- `UnknownCardError(DomainError)` — RFID-Hash unbekannt
+- `InactiveCardError(DomainError)` — Karte bekannt, aber nicht ACTIVE
+- `InactiveEmployeeError(DomainError)` — Mitarbeiter ist inaktiv
+- `InvalidBookingSequenceError(DomainError)` — fachlich unzulässige Buchungsfolge
+- `OpenPhaseConflictError(DomainError)` — offene Phase bei GO
+- `PermissionDeniedError(DomainError)` — Autorisierungsfehler
+- `ValidationError(DomainError)` — allgemeiner Validierungsfehler
+- `NotFoundError(DomainError)` — Entität nicht gefunden
+- `ConflictError(DomainError)` — Kollision (z. B. gleiche valid_from)
+
+
+entities.py – 9 frozen @dataclass
+----------------------------------
+Alle: `@dataclass(frozen=True, slots=True)`.
+Invarianten in `__post_init__`, werfen `ValueError`.
+
+**Employee**
   id, personnel_no, first_name, last_name, is_active: bool
-  Keine Invariante – alle Felder orthogonal.
+  Invariante: `personnel_no` darf nicht leer oder nur Leerzeichen sein.
+  (Plan: „Keine Invariante" — tatsächlich vorhanden.)
 
-UserAccount
-  id, username, password_hash, role: UserRole, employee_id: int | None
-  Keine Invariante – employee_id None erlaubt (System-Accounts).
+**UserAccount**
+  id, username, password_hash, role: UserRole, employee_id: int | None, is_active: bool
+  Invariante: `username` darf nicht leer oder nur Leerzeichen sein.
+  (Plan: „Keine Invariante" — tatsächlich vorhanden.)
 
-RfidCard
+**RfidCard**
   id, uid_hash, employee_id, status: CardStatus,
-  valid_from: date, valid_until: date | None,
-  replaced_by_card_id: int | None
-  Invariante: valid_until >= valid_from (wenn valid_until gesetzt).
+  valid_from: date, valid_until: date | None, replaced_by_card_id: int | None
+  Invariante: `valid_until >= valid_from` (wenn gesetzt).
 
-TimeBooking
+**TimeBooking**
   id, employee_id, booking_type: BookingType, booked_at: datetime,
   source: BookingSource, status: BookingStatus,
   terminal_id: int | None, rfid_card_id: int | None,
   device_event_id: int | None, note: str | None
-  Keine Invariante – Status wird durch Use Case gesetzt.
+  Keine Invariante — Status wird durch Use Case gesetzt.
 
-WorkScheduleVersion
+**WorkScheduleVersion**
   id, scope_type: ScopeType, scope_employee_id: int | None,
-  weekday: int (1=Mo–7=So, ISO-Wochentag, konsistent mit Python isoweekday()), start_time: time, end_time: time,
+  weekday: int (1=Mo–7=So), start_time: time, end_time: time,
   valid_from: date, valid_until: date | None,
-  change_origin: ChangeOrigin, changed_by_user_id: int | None,
-  reason: str | None
+  change_origin: ChangeOrigin, changed_by_user_id: int | None, reason: str | None
   Invarianten:
-  - scope_type == EMPLOYEE → scope_employee_id nicht None
-  - scope_type == GLOBAL  → scope_employee_id muss None sein
+  - GLOBAL → scope_employee_id muss None sein
+  - EMPLOYEE → scope_employee_id darf nicht None sein
+  - weekday muss zwischen 1 und 7 liegen
   - end_time > start_time
-  - valid_until >= valid_from (wenn valid_until gesetzt)
+  - valid_until >= valid_from (wenn gesetzt)
 
-ReviewCase
+**ReviewCase**
   id, employee_id, case_type: ReviewCaseType, severity: ReviewSeverity,
   status: ReviewCaseStatus, description: str,
   booking_id: int | None, note: str | None,
-  created_at: datetime, closed_at: datetime | None,
+  detected_at: datetime, closed_at: datetime | None,
   closed_by_user_id: int | None
-  Invariante: Status-Konsistenz mit Schließungsdaten:
+  Invarianten:
   - OPEN / IN_REVIEW → closed_at und closed_by_user_id müssen None sein
   - RESOLVED / CLOSED_WITH_NOTE → closed_at und closed_by_user_id müssen gesetzt sein
+  - CLOSED_WITH_NOTE → note darf nicht leer sein
 
-Supplement
+**Supplement**
   id, employee_id, related_booking_id: int | None,
   booking_type: BookingType, event_at: datetime, recorded_at: datetime,
   reason: str, recorded_by_user_id: int, approval_status: ApprovalStatus,
   approved_by_user_id: int | None, approved_at: datetime | None,
   rejected_by_user_id: int | None, rejected_at: datetime | None
-  Invarianten (ApprovalStatus ↔ Freigabe-/Ablehnungsdaten):
-  - PENDING   → approved_* und rejected_* alle None
-  - APPROVED  → approved_by_user_id und approved_at gesetzt, rejected_* None
-  - REJECTED  → rejected_by_user_id und rejected_at gesetzt, approved_* None
+  Invarianten:
+  - PENDING → alle approved_* und rejected_* None
+  - APPROVED → approved_by_user_id und approved_at gesetzt, rejected_* None;
+               approved_at >= recorded_at
+  - REJECTED → rejected_by_user_id und rejected_at gesetzt, approved_* None;
+               rejected_at >= recorded_at
 
-BookingCorrection
+**BookingCorrection**
   id, original_booking_id, corrected_by_user_id, reason: str,
   old_booking_type: BookingType, old_booked_at: datetime,
   new_booking_type: BookingType, new_booked_at: datetime,
   created_at: datetime
-  Keine Invariante – historischer Datensatz, alle Felder pflichtend.
+  Invariante: created_at >= old_booked_at (Korrektur kann nicht vor Original liegen).
+  (Plan: „Keine Invariante" — tatsächlich vorhanden.)
 
-AuditLogEntry
+**AuditLogEntry**
   id, event_type: str, object_type: str, object_id: int,
   user_id: int | None, employee_id: int | None,
   event_at: datetime, details_json: str
-  Keine Invariante – Nachweis-Datensatz, write-once.
+  Keine Invariante — Nachweis-Datensatz, write-once.
+
+
+audit_events.py
+---------------
+Zentraler Katalog aller Audit-Event-Typ-Konstanten (nicht im Ursprungsplan, sinnvolle Ergänzung).
+Konstanten: TIME_BOOKED, BOOKING_REJECTED_UNKNOWN_CARD, BOOKING_REJECTED_INACTIVE_CARD,
+BOOKING_CORRECTED, SUPPLEMENT_CREATED, SUPPLEMENT_APPROVED, SUPPLEMENT_REJECTED,
+WORK_SCHEDULE_CHANGED, BACKUP_CREATED, BACKUP_SYNCED_TO_NAS,
+BACKUP_SYNC_FAILED, RESTORE_COMPLETED.
+Verhindert freie String-Literale im Code (Regelwerk v3 §11-konform).
 
 
 services/booking_rules.py
 --------------------------
-validate_booking_sequence(booking_type, day_bookings: Sequence[BookingType])
-  → ValidationResult | raises InvalidBookingSequenceError | OpenPhaseConflictError
+
+`validate_booking_sequence(booking_type, day_bookings: Sequence[TimeBooking])`
+→ `ValidationResult` | raises `InvalidBookingSequenceError` | `OpenPhaseConflictError`
 
 Regeln (day_bookings in chronologischer Reihenfolge):
-  Leere Liste:
-    COME → akzeptiert (erste Tagesbuchung)
-    GO / BREAK_START / BREAK_END → InvalidBookingSequenceError
 
-  COME:
-    offene Arbeitsphase vorhanden → InvalidBookingSequenceError
-    offene Pause vorhanden        → InvalidBookingSequenceError
+- Leere Liste: COME → akzeptiert; GO/BREAK_START/BREAK_END → InvalidBookingSequenceError
+- COME: offene Arbeitsphase oder offene Pause vorhanden → InvalidBookingSequenceError
+- GO: keine offene Arbeitsphase → InvalidBookingSequenceError;
+      offene Pause → OpenPhaseConflictError
+- BREAK_START: keine offene Arbeitsphase oder offene Pause vorhanden → InvalidBookingSequenceError
+- BREAK_END: keine offene Pause → InvalidBookingSequenceError
 
-  GO:
-    keine offene Arbeitsphase → InvalidBookingSequenceError
-    offene Pause vorhanden    → OpenPhaseConflictError (Pause zuerst schließen)
+Hilfsfunktionen: `_has_open_work(day_bookings)`, `_has_open_break(day_bookings)`
 
-  BREAK_START:
-    keine offene Arbeitsphase → InvalidBookingSequenceError
-    offene Pause vorhanden    → InvalidBookingSequenceError
-
-  BREAK_END:
-    keine offene Pause        → InvalidBookingSequenceError
-
-Hilfsfunktionen:
-  _has_open_work(day_bookings) → bool   (COME ohne folgendes GO)
-  _has_open_break(day_bookings) → bool  (BREAK_START ohne folgendes BREAK_END)
-
-ValidationResult: @dataclass(frozen=True)
+`ValidationResult`: @dataclass(frozen=True)
   accepted: bool, initial_status: BookingStatus,
   reason_code: str | None, follow_up_case_types: tuple[ReviewCaseType, ...]
-  (Hinweis: initial_status und follow_up_case_types werden im Use Case
-   nicht ausgewertet; Status und Compliance werden in _evaluate_booking
-   bestimmt. ValidationResult ist primär ein Acknowledge-Objekt.)
 
 
 services/compliance_checks.py
 ------------------------------
-Drei Prüffunktionen; alle nehmen eine projizierte Buchungsliste
-(Tagesbuchungen + neue Buchung als Placeholder) entgegen.
-Alle fünf ArbZG-Prüfhilfen aus Pflichtenheft v3 §7.9 sind Pflichtanforderung.
+Pflichtanforderung Pflichtenheft v3 §7.9 (ArbZG §3/4/5).
 
-check_break_compliance(bookings: list[TimeBooking]) → list[ComplianceFlag]
-  Prüft zwei separate ArbZG §4-Schwellen (beide Pflicht laut V3 §7.9):
+`ComplianceFlag`: @dataclass(frozen=True)
+  case_type: ReviewCaseType, severity: ReviewSeverity
 
-  1. >6h Arbeitszeit ohne jede Pause (ArbZG §4 Abs. 1, erste Schwelle)
-  2. >9h Arbeitszeit ohne ausreichende Gesamtpause (ArbZG §4 Abs. 1, zweite Schwelle)
+`check_break_compliance(day_bookings: Sequence[TimeBooking]) → list[ComplianceFlag]`
+  Nutzt `_work_stats()` für Nettoarbeitszeit, Gesamtpause, längsten ununterbrochenen Block.
+  Zwei Schwellen (beide Pflicht, ArbZG §4):
+  - >6h ununterbrochener Block ohne Pause → POSSIBLE_BREAK_VIOLATION, WARN
+  - >9h Nettoarbeitszeit mit <45min Gesamtpause → POSSIBLE_BREAK_VIOLATION, CRITICAL
+  - >6h Nettoarbeitszeit mit <30min Gesamtpause → POSSIBLE_BREAK_VIOLATION, WARN
+  (Plan nannte `BREAK_COMPLIANCE_ISSUE` als case_type — tatsächlich `POSSIBLE_BREAK_VIOLATION`.)
 
-  Erzeugt BREAK_COMPLIANCE_ISSUE bei Unterschreitung.
+`check_max_hours(day_bookings: Sequence[TimeBooking]) → list[ComplianceFlag]`
+  Zwei Schwellen (ArbZG §3):
+  - >10h Nettoarbeitszeit → POSSIBLE_MAX_HOURS_VIOLATION, CRITICAL
+  - >8h Nettoarbeitszeit → POSSIBLE_MAX_HOURS_VIOLATION, WARN
 
-check_max_hours(bookings: list[TimeBooking]) → list[ComplianceFlag]
-  Prüft zwei separate ArbZG §3-Schwellen (beide Pflicht laut V3 §7.9):
-
-  1. >8h werktäglich → WARN-Flag (ArbZG §3: Regelmaximum)
-  2. >10h täglich → CRITICAL-Flag (ArbZG §3: absolutes Maximum)
-
-  Erzeugt POSSIBLE_MAX_HOURS_VIOLATION bei Überschreitung.
-
-check_rest_period(bookings_today, bookings_yesterday: list[TimeBooking])
-  → list[ComplianceFlag]
-  Prüft: Ruhezeit zwischen letztem GO gestern und erstem COME heute ≥ 11h.
-  Erzeugt REST_PERIOD_VIOLATION bei Unterschreitung (ArbZG §5).
-  V3 §7.9 PFLICHTANFORDERUNG – nicht optional.
-  Deferred auf Phase 4 (Vortages-Kontext fehlt in Phase 3);
-  Integration in BookUseCase + ApproveSupplementUseCase nach Schritt 1b Phase 4.
-
-ComplianceFlag: @dataclass(frozen=True)
-  case_type: ReviewCaseType, severity: ReviewSeverity, description: str
+`check_rest_period(last_go: datetime, next_come: datetime) → list[ComplianceFlag]`
+  Nimmt zwei datetime-Objekte entgegen (nicht zwei Buchungslisten wie ursprünglich geplant).
+  <11h zwischen letztem GO und nächstem COME → POSSIBLE_REST_VIOLATION, CRITICAL (ArbZG §5).
+  V3 §7.9 Pflichtanforderung. Integration in BookUseCase + ApproveSupplementUseCase
+  nach Phase 4/Schritt 1b.
 
 V3-Design-Entscheidung (Regelwerk v3 §11):
-  POSSIBLE_BREAK_VIOLATION, POSSIBLE_REST_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION
-  und MANUAL_ENTRY werden nicht als BookingStatus-Werte realisiert, sondern:
-  - POSSIBLE_*: ReviewCase mit ReviewCaseType + ReviewSeverity (abfragbar, auswertbar)
-  - MANUAL_ENTRY: BookingSource.MANUAL auf TimeBooking (kombinierbar mit OK/WARN/NEEDS_REVIEW)
-  Diese Trennung ist fachlich ausdrucksstärker (Status und Herkunft orthogonal) und
-  V3-konform: report_queries.py leitet alle Fakten konsistent ab (Regelwerk v3 §11).
+  POSSIBLE_* werden als ReviewCase (ReviewCaseType + ReviewSeverity) abgebildet,
+  nicht als BookingStatus. MANUAL_ENTRY → BookingSource.MANUAL. Beide Dimensionen
+  orthogonal. report_queries.py ist einzige Ableitungsquelle für alle Ausgabekanäle.
 
 
-ports/repositories.py  – 10 Protocol-Interfaces
--------------------------------------------------
-Alle als typing.Protocol definiert. Keine Basisklasse, keine Vererbung.
-Infrastruktur-Implementierungen in Phase 4; Fake-Implementierungen in
-tests/application/fakes.py.
+ports/repositories.py – 10 Protocol-Interfaces
+-----------------------------------------------
+Alle als `typing.Protocol`. Infrastruktur-Implementierungen in Phase 4.
 
-EmployeeRepository
-  get_by_id(id) → Employee | None
-  get_active_by_personnel_no(no) → Employee | None
+**EmployeeRepository**
+  `get_by_id(id) → Employee | None`
+  `get_active_by_personnel_no(no) → Employee | None`
 
-UserAccountRepository
-  get_by_id(id) → UserAccount | None
-  get_by_username(username) → UserAccount | None
+**UserAccountRepository**
+  `get_by_id(id) → UserAccount | None`
+  `get_by_username(username) → UserAccount | None`
 
-RfidCardRepository
-  get_by_uid_hash(hash) → RfidCard | None          (beliebiger Status)
-  get_active_by_uid_hash(hash) → RfidCard | None   (nur ACTIVE)
-  get_by_id(id) → RfidCard | None
+**RfidCardRepository**
+  `get_by_uid_hash(hash) → RfidCard | None`         (beliebiger Status)
+  `get_active_by_uid_hash(hash) → RfidCard | None`  (nur ACTIVE)
+  `get_by_id(id) → RfidCard | None`
 
-TimeBookingRepository
-  add(booking) → TimeBooking
-  get_by_id(id) → TimeBooking | None
-  list_for_employee_on_day(id, day) → list[TimeBooking]
-  list_open_for_employee(id) → list[TimeBooking]
-  list_between(id, from_dt, to_dt) → list[TimeBooking]
-  set_status(id, status, reason=None, changed_by_user_id=None) → None
+**TimeBookingRepository**
+  `add(booking) → TimeBooking`
+  `get_by_id(id) → TimeBooking | None`
+  `list_for_employee_on_day(id, day) → list[TimeBooking]`  (chronologisch sortiert)
+  `list_open_for_employee(id) → list[TimeBooking]`
+  `list_between(id, from_dt, to_dt) → list[TimeBooking]`
+  `set_status(id, status, reason=None, changed_by_user_id=None) → None`
 
-WorkScheduleRepository
-  add(version) → WorkScheduleVersion
-  close_version(id, valid_until) → None
-  get_effective(weekday, on_date, employee_id=None) → WorkScheduleVersion | None
+**WorkScheduleRepository**
+  `add(version) → WorkScheduleVersion`
+  `close_version(id, valid_until) → None`
+  `get_effective(weekday, on_date, employee_id=None) → WorkScheduleVersion | None`
     EMPLOYEE-Scope hat Vorrang vor GLOBAL
-  list_versions(weekday=None, scope_employee_id=None) → list[WorkScheduleVersion]
+  `list_versions(weekday=None, scope_employee_id=None) → list[WorkScheduleVersion]`
 
-ReviewCaseRepository
-  add(case) → ReviewCase
-  list_open_for_employee(id) → list[ReviewCase]
-    (Status OPEN oder IN_REVIEW)
-  resolve(case_id, status, closed_by_user_id, note=None) → None
-    status: Literal[RESOLVED, CLOSED_WITH_NOTE]
+**ReviewCaseRepository**
+  `add(case) → ReviewCase`
+  `list_open_for_employee(id) → list[ReviewCase]`  (Status OPEN oder IN_REVIEW)
+  `resolve(case_id, status, closed_by_user_id, note=None) → None`
 
-SupplementRepository
-  add(supplement) → Supplement
-  get_by_id(id) → Supplement | None
-  list_pending() → list[Supplement]
-  approve(id, approved_by_user_id, approved_at) → None
-  reject(id, rejected_by_user_id, rejected_at) → None
+**SupplementRepository**
+  `add(supplement) → Supplement`
+  `get_by_id(id) → Supplement | None`
+  `list_pending() → list[Supplement]`
+  `approve(id, approved_by_user_id, approved_at) → None`
+  `reject(id, rejected_by_user_id, rejected_at) → None`
 
-BookingCorrectionRepository
-  add(correction) → BookingCorrection
-  list_for_booking(booking_id) → list[BookingCorrection]
+**BookingCorrectionRepository**
+  `add(correction) → BookingCorrection`
+  `list_for_booking(booking_id) → list[BookingCorrection]`
 
-AuditLogRepository
-  add(entry) → AuditLogEntry
+**AuditLogRepository**
+  `add(entry) → AuditLogEntry`
 
-SystemConfigRepository
-  get_current(config_key) → str | None
-  set_current(key, value_json, change_origin, changed_by_user_id, changed_at,
-              reason=None) → None
+**SystemConfigRepository**
+  `get_current(config_key) → str | None`
+  `set_current(key, value_json, change_origin, changed_by_user_id, changed_at, reason=None) → None`
 
 
 Testverteilung Phase 2
 -----------------------
-tests/domain/test_entities.py        – 19 Invariantentests
-tests/domain/test_booking_rules.py   – 10 Tests
-tests/domain/test_compliance_checks.py – 9 Tests (inkl. check_rest_period)
-Gesamt: 38 Tests (+ 6 Migrations = 44 aus der ursprünglichen Planungsnotiz;
-  tatsächlich 53 domain+migration Tests nach Erweiterungen in Phase 3)
+
+```
+tests/domain/test_entities.py          – 42 Tests  (Plan: 19)
+tests/domain/test_booking_rules.py     – 10 Tests  (Plan: 10 ✓)
+tests/domain/test_compliance_checks.py –  9 Tests  (Plan:  9 ✓)
+tests/domain/test_audit_events.py      –  2 Tests  (neu, nicht im Plan)
+Gesamt tests/domain/                   – 63 Tests  (Plan: 38/44)
+```
+
+test_entities.py hat 42 statt 19 Tests — tiefere Invarianten-Abdeckung,
+insbesondere Supplement-Freigabe-/Ablehnungsdaten mit Zeitlichkeitsprüfung
+und zusätzliche Edge Cases für ReviewCase und WorkScheduleVersion.
