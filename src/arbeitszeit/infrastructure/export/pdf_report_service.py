@@ -143,6 +143,26 @@ def _supplement_table(supplements: list[SupplementRow]) -> Table:
     return t
 
 
+_HINWEISE: list[tuple[str, str]] = [
+    ("OPEN",
+     "Buchung noch offen – die zugehörige Abschluss-Buchung (GO bzw. BREAK_END) "
+     "steht noch aus. Prüfung oder manuelle Klärung erforderlich."),
+    ("WARN",
+     "Auffällig – ein Hinweis liegt vor (z. B. Buchung außerhalb des Regelzeitfensters, "
+     "Arbeitszeit über 8 h). Keine zwingende Prüfung, aber Aufmerksamkeit empfohlen."),
+    ("NEEDS_REVIEW",
+     "Prüfpflichtig – ein kritischer Befund liegt vor (z. B. Arbeitszeit über 10 h, "
+     "Ruhezeit unter 11 h). Muss von einem Prüfer bearbeitet und abgeschlossen werden."),
+    ("Nachträge",
+     "Manuell nachträglich erfasste Buchungen (Quelle: MANUAL). "
+     "Freigabestatus: PENDING = noch offen, APPROVED = genehmigt, REJECTED = abgelehnt."),
+    ("Korrekturen",
+     "Buchungen, die von einem Bearbeiter korrigiert wurden. "
+     "Die ursprüngliche Buchung bleibt mit Status CORRECTED erhalten; "
+     "der neue Zustand ist in der Korrekturtabelle (Alter/Neuer Typ und Zeitpunkt) dokumentiert."),
+]
+
+
 def _build_pdf(
     path: Path,
     title: str,
@@ -213,6 +233,11 @@ def _build_pdf(
         story.append(t)
     else:
         story.append(_p("Keine offenen Prüffälle."))
+
+    # Erläuterungen
+    story.append(_space())
+    story.append(_h2("Erläuterungen"))
+    story.append(_meta_table(_HINWEISE))
 
     doc.build(story)
 
@@ -323,6 +348,24 @@ def create_monthly_report(
     return path
 
 
+def _employee_identity(
+    conn: sqlite3.Connection,
+    employee_id: int,
+    bookings: list[BookingRow],
+) -> tuple[str, str]:
+    """Gibt (personnel_no, employee_name) zurück – bevorzugt aus der DB-Stammdaten."""
+    row = conn.execute(
+        "SELECT personnel_no, first_name || ' ' || last_name AS name "
+        "FROM employees WHERE id = ?",
+        (employee_id,),
+    ).fetchone()
+    if row:
+        return row["personnel_no"], row["name"]
+    if bookings:
+        return bookings[0].personnel_no, bookings[0].employee_name
+    return str(employee_id), f"MA {employee_id}"
+
+
 def create_employee_report(
     conn: sqlite3.Connection,
     employee_id: int,
@@ -335,10 +378,8 @@ def create_employee_report(
     if now is None:
         now = datetime.now(timezone.utc)
 
-    # MA-Kennnummer aus den Buchungen ermitteln (erster Treffer)
     bookings = list_bookings(conn, from_dt, to_dt, employee_id=employee_id)
-    personnel_no = bookings[0].personnel_no if bookings else str(employee_id)
-    employee_name = bookings[0].employee_name if bookings else f"MA {employee_id}"
+    personnel_no, employee_name = _employee_identity(conn, employee_id, bookings)
 
     export_dir.mkdir(parents=True, exist_ok=True)
     filename = (

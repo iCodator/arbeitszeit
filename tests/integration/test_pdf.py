@@ -1,12 +1,13 @@
 """Integrationstests für pdf_report_service.py.
 
 Prüft: PDF wird erzeugt, hat validen Header, enthält Inhalt (Seitenanzahl > 0),
-Dateiname entspricht Konvention.
+Dateiname entspricht Konvention, Pflichtabschnitte und Erläuterungen vorhanden.
 """
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import pypdf
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
@@ -52,6 +53,16 @@ def _insert_booking(conn, employee_id: int, booking_type: str = "COME",
 def _is_valid_pdf(path: Path) -> bool:
     with path.open("rb") as f:
         return f.read(4) == b"%PDF"
+
+
+def _pdf_text(path: Path) -> str:
+    reader = pypdf.PdfReader(str(path))
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
+
+
+_PFLICHT_ABSCHNITTE = [
+    "Buchungen", "Korrekturen", "Nachträge", "Offene Prüffälle", "Erläuterungen",
+]
 
 
 # ---------------------------------------------------------------------------
@@ -183,3 +194,67 @@ def test_alle_vier_berichtstypen_erzeugen_gueltige_pdfs(conn, export_dir):
         assert path.exists(), f"Nicht erzeugt: {path}"
         assert _is_valid_pdf(path), f"Kein valides PDF: {path}"
         assert path.stat().st_size > 1000, f"Zu klein: {path}"
+
+
+# ---------------------------------------------------------------------------
+# Inhaltsprüfung: Pflichtabschnitte und Erläuterungen
+# ---------------------------------------------------------------------------
+
+def test_tagesbericht_enthaelt_pflichtabschnitte(conn, export_dir):
+    _base_setup(conn)
+    path = create_daily_report(conn, date(2025, 6, 1), export_dir, now=_REPORT_NOW)
+    text = _pdf_text(path)
+    for abschnitt in _PFLICHT_ABSCHNITTE:
+        assert abschnitt in text, f"Abschnitt fehlt im Tagesbericht: {abschnitt}"
+
+
+def test_wochenbericht_enthaelt_pflichtabschnitte(conn, export_dir):
+    _base_setup(conn)
+    path = create_weekly_report(conn, 2025, 23, export_dir, now=_REPORT_NOW)
+    text = _pdf_text(path)
+    for abschnitt in _PFLICHT_ABSCHNITTE:
+        assert abschnitt in text, f"Abschnitt fehlt im Wochenbericht: {abschnitt}"
+
+
+def test_monatsbericht_enthaelt_pflichtabschnitte(conn, export_dir):
+    _base_setup(conn)
+    path = create_monthly_report(conn, 2025, 6, export_dir, now=_REPORT_NOW)
+    text = _pdf_text(path)
+    for abschnitt in _PFLICHT_ABSCHNITTE:
+        assert abschnitt in text, f"Abschnitt fehlt im Monatsbericht: {abschnitt}"
+
+
+def test_mitarbeiterbericht_enthaelt_pflichtabschnitte(conn, export_dir):
+    emp_id = _base_setup(conn)
+    path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
+    text = _pdf_text(path)
+    for abschnitt in _PFLICHT_ABSCHNITTE:
+        assert abschnitt in text, f"Abschnitt fehlt im Mitarbeiterbericht: {abschnitt}"
+
+
+def test_erlaeuterungen_enthalten_statusbegriffe(conn, export_dir):
+    """Pflichtenheft v3 §7.11: Berichte müssen Statusterminologie erläutern."""
+    _base_setup(conn)
+    path = create_daily_report(conn, date(2025, 6, 1), export_dir, now=_REPORT_NOW)
+    text = _pdf_text(path)
+    for begriff in ["OPEN", "WARN", "NEEDS_REVIEW", "Nachträge", "Korrekturen"]:
+        assert begriff in text, f"Erläuterungsbegriff fehlt: {begriff}"
+
+
+def test_mitarbeiterbericht_ohne_buchungen_robust(conn, export_dir):
+    """create_employee_report darf nicht fehlschlagen wenn keine Buchungen im Zeitraum."""
+    emp_id = _insert_employee(conn, "E001")
+    # keine Buchungen im Zeitraum
+    path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
+    assert path.exists()
+    assert _is_valid_pdf(path)
+    assert "E001" in path.name
+
+
+def test_mitarbeiterbericht_name_aus_stammdaten(conn, export_dir):
+    """MA-Name kommt aus employees-Tabelle, nicht aus Buchungen."""
+    emp_id = _insert_employee(conn, "E001")
+    # keine Buchungen im Zeitraum → Name muss trotzdem korrekt sein
+    path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
+    text = _pdf_text(path)
+    assert "Anna Muster" in text
