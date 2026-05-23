@@ -52,7 +52,10 @@ Umgesetzt:
 - `infrastructure/db/connection.py` – `isolation_level=None`, `PRAGMA foreign_keys = ON`, `row_factory`
 - `infrastructure/db/migrations.py` – `executescript()` mit `BEGIN/COMMIT`, Versionsvalidierung vor f-String
 - `scripts/init_db.py`
-- `tests/test_migrations.py` – 6 Tests (grün)
+- `tests/test_migrations.py` – 11 Tests (grün; ursprünglich 6 geplant, durch Migrationen 0003–0005 aus Phase 4 auf 11 gewachsen)
+- `migrations/0003_cleanup_booking_status.sql` – Status-CHECK bereinigt (Phase 4)
+- `migrations/0004_supplement_reject_fields_and_review_note.sql` – rejected_by_user_id/rejected_at + note-Feld (Phase 4)
+- `migrations/0005_time_bookings_device_event_id.sql` – device_event_id FK (Phase 4)
 
 ---
 
