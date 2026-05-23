@@ -43,9 +43,13 @@ class RegisterSupplementUseCase:
                     f"Mitarbeiter {cmd.employee_id} ist inaktiv."
                 )
 
-            # Hinweis: cmd.related_booking_id wird nicht auf Existenz geprüft.
-            # Falls Nachträge immer auf eine echte Buchung zeigen müssen, wäre
-            # time_booking_repo.get_by_id(cmd.related_booking_id) hier zu ergänzen.
+            if cmd.related_booking_id is not None:
+                if self._uow.time_booking_repo.get_by_id(cmd.related_booking_id) is None:
+                    raise NotFoundError(
+                        f"Buchung {cmd.related_booking_id} nicht gefunden — "
+                        "related_booking_id muss auf eine existente Buchung zeigen."
+                    )
+
             supplement = self._uow.supplement_repo.add(Supplement(
                 id=0,
                 employee_id=cmd.employee_id,

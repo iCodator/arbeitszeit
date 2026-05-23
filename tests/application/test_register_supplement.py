@@ -11,8 +11,15 @@ from arbeitszeit.application.commands import CreateSupplementCommand
 from arbeitszeit.application.use_cases.register_supplement import (
     RegisterSupplementUseCase,
 )
-from arbeitszeit.domain.entities import Employee, UserAccount
-from arbeitszeit.domain.enums import ApprovalStatus, BookingType, ReviewCaseStatus, UserRole
+from arbeitszeit.domain.entities import Employee, TimeBooking, UserAccount
+from arbeitszeit.domain.enums import (
+    ApprovalStatus,
+    BookingSource,
+    BookingStatus,
+    BookingType,
+    ReviewCaseStatus,
+    UserRole,
+)
 from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
 from tests.application.fakes import FakeUnitOfWork
 
@@ -173,28 +180,30 @@ def test_audit_log_eintrag_vorhanden():
 def test_audit_log_enthaelt_fachliche_felder():
     import json
     uow = _make_uow_with_employee()
+    booking_id = _add_booking(uow)
     uc = RegisterSupplementUseCase(uow)
 
-    result = uc.execute(_cmd(related_booking_id=7))
+    result = uc.execute(_cmd(related_booking_id=booking_id))
 
     details = json.loads(uow.audit_log_repo.entries[0].details_json)
     assert details["booking_type"] == "COME"
     assert details["reason"] == "Vergessen einzustempeln"
     assert details["approval_status"] == "PENDING"
-    assert details["related_booking_id"] == 7
+    assert details["related_booking_id"] == booking_id
     assert details["review_case_id"] == result.review_case_id
     assert "recorded_at" in details
 
 
 def test_related_booking_id_wird_durchgereicht():
     uow = _make_uow_with_employee()
+    booking_id = _add_booking(uow)
     uc = RegisterSupplementUseCase(uow)
 
-    result = uc.execute(_cmd(related_booking_id=42))
+    result = uc.execute(_cmd(related_booking_id=booking_id))
 
     supplement = uow.supplement_repo.get_by_id(result.supplement_id)
     assert supplement is not None
-    assert supplement.related_booking_id == 42
+    assert supplement.related_booking_id == booking_id
 
 
 # --- Fehlerpfade hinterlassen keine Spuren ---
@@ -236,3 +245,40 @@ def test_review_case_description_enthaelt_fachliche_referenz():
     assert "Nachtrag #" in desc
     assert "COME" in desc
     assert str(_NOW.date()) in desc
+
+
+# --- related_booking_id-Existenzprüfung ---
+
+def _add_booking(uow: FakeUnitOfWork) -> int:
+    booking = uow.time_booking_repo.add(TimeBooking(
+        id=0, employee_id=1, booking_type=BookingType.COME,
+        booked_at=_NOW, source=BookingSource.TERMINAL,
+        status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
+        device_event_id=None, note=None,
+    ))
+    return booking.id
+
+
+def test_related_booking_id_existiert_nachtrag_wird_angelegt():
+    uow = _make_uow_with_employee()
+    booking_id = _add_booking(uow)
+    uc = RegisterSupplementUseCase(uow)
+
+    result = uc.execute(_cmd(related_booking_id=booking_id))
+
+    assert result.supplement_id > 0
+    supplement = uow.supplement_repo.get_by_id(result.supplement_id)
+    assert supplement is not None
+    assert supplement.related_booking_id == booking_id
+
+
+def test_related_booking_id_nicht_gefunden_loest_not_found_error():
+    uow = _make_uow_with_employee()
+    uc = RegisterSupplementUseCase(uow)
+
+    with pytest.raises(NotFoundError):
+        uc.execute(_cmd(related_booking_id=999))
+
+    assert not uow.committed
+    assert len(uow.audit_log_repo.entries) == 0
+    assert len(uow.supplement_repo.list_pending()) == 0
