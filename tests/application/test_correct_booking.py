@@ -248,3 +248,47 @@ def test_inaktiver_mitarbeiter_kein_commit_kein_audit_log():
 
     assert not uow.committed
     assert len(uow.audit_log_repo.entries) == 0
+
+
+# --- Review-Case-Selektivität nach Typ ---
+
+def test_manual_entry_review_bleibt_offen_trotz_gleicher_booking_id():
+    # MANUAL_ENTRY_REVIEW gehört zum Nachtragsprozess, nicht zur Buchungskorrektur –
+    # bleibt auch dann offen, wenn booking_id übereinstimmt.
+    uow, booking_id = _make_uow_with_booking()
+    manual_case = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
+        description="Nachtrag-Review", booking_id=booking_id,
+        created_at=_EARLIER, closed_at=None, closed_by_user_id=None,
+    ))
+    uc = CorrectBookingUseCase(uow)
+
+    result = uc.execute(_cmd(booking_id))
+
+    assert uow.review_case_repo._store[manual_case.id].status == ReviewCaseStatus.OPEN
+    assert result.review_case_id is None
+
+
+def test_mehrere_korrigierbare_faelle_werden_alle_geschlossen():
+    # Zwei Compliance-Fälle zur selben Buchung → beide werden geschlossen.
+    uow, booking_id = _make_uow_with_booking()
+    case1 = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
+        severity=ReviewSeverity.WARN, status=ReviewCaseStatus.OPEN,
+        description="Maximalstunden", booking_id=booking_id,
+        created_at=_EARLIER, closed_at=None, closed_by_user_id=None,
+    ))
+    case2 = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW,
+        severity=ReviewSeverity.WARN, status=ReviewCaseStatus.OPEN,
+        description="Fenster", booking_id=booking_id,
+        created_at=_EARLIER, closed_at=None, closed_by_user_id=None,
+    ))
+    uc = CorrectBookingUseCase(uow)
+
+    result = uc.execute(_cmd(booking_id))
+
+    assert uow.review_case_repo._store[case1.id].status == ReviewCaseStatus.RESOLVED
+    assert uow.review_case_repo._store[case2.id].status == ReviewCaseStatus.RESOLVED
+    assert result.review_case_id == case1.id  # erster geschlossener Fall

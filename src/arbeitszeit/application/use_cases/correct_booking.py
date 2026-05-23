@@ -6,9 +6,22 @@ from arbeitszeit.application.results import CorrectionResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection
-from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus
+from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus, ReviewCaseType
 from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
+
+# Nur Prüffälle, die inhaltlich durch Korrektur der Buchung erledigt sind.
+# MANUAL_ENTRY_REVIEW (Nachtragsprozess), UNKNOWN_CARD_ATTEMPT, INACTIVE_CARD_ATTEMPT
+# und TIME_ANOMALY werden nicht durch eine Buchungskorrektur geschlossen.
+_CORRECTABLE_CASE_TYPES = frozenset({
+    ReviewCaseType.OPEN_WORK_PHASE,
+    ReviewCaseType.OPEN_BREAK_PHASE,
+    ReviewCaseType.IMPLAUSIBLE_SEQUENCE,
+    ReviewCaseType.POSSIBLE_BREAK_VIOLATION,
+    ReviewCaseType.POSSIBLE_REST_VIOLATION,
+    ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
+    ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW,
+})
 
 
 class CorrectBookingUseCase:
@@ -70,15 +83,18 @@ class CorrectBookingUseCase:
             )
             review_case_id: int | None = None
             for case in open_cases:
-                if case.booking_id == booking.id:
+                if (
+                    case.booking_id == booking.id
+                    and case.case_type in _CORRECTABLE_CASE_TYPES
+                ):
                     self._uow.review_case_repo.resolve(
                         case.id,
                         status=ReviewCaseStatus.RESOLVED,
                         closed_by_user_id=cmd.corrected_by_user_id,
                         note=cmd.reason,
                     )
-                    review_case_id = case.id
-                    break
+                    if review_case_id is None:
+                        review_case_id = case.id
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
