@@ -35,9 +35,10 @@ def _evaluate_booking(
     booking_type: BookingType,
     projected: list[TimeBooking],
     prev_bookings: list[TimeBooking] | None = None,
+    extra_flags: list[ComplianceFlag] | None = None,
 ) -> tuple[BookingStatus, list[ComplianceFlag]]:
     if booking_type in (BookingType.COME, BookingType.BREAK_START):
-        return BookingStatus.OPEN, []
+        return BookingStatus.OPEN, list(extra_flags or [])
     flags = check_break_compliance(projected) + check_max_hours(projected)
 
     if prev_bookings is not None:
@@ -55,6 +56,8 @@ def _evaluate_booking(
         )
         if last_go is not None and first_come is not None:
             flags += check_rest_period(last_go, first_come)
+
+    flags += list(extra_flags or [])
 
     if not flags:
         return BookingStatus.OK, []
@@ -143,13 +146,24 @@ class ApproveSupplementUseCase:
                 device_event_id=None,
                 note=None,
             )
+            schedule_flags: list[ComplianceFlag] = []
+            schedule = self._uow.work_schedule_repo.get_effective(
+                supplement.event_at.isoweekday(), supplement.event_at.date(), employee.id
+            )
+            if schedule is not None and not (
+                schedule.start_time <= supplement.event_at.time() <= schedule.end_time
+            ):
+                schedule_flags = [ComplianceFlag(
+                    ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
+                )]
+
             prev_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 supplement.employee_id,
                 supplement.event_at.date() - timedelta(days=1),
             )
             projected = list(day_bookings) + [placeholder]
             status, flags = _evaluate_booking(
-                supplement.booking_type, projected, prev_bookings
+                supplement.booking_type, projected, prev_bookings, schedule_flags
             )
 
             booking = self._uow.time_booking_repo.add(TimeBooking(

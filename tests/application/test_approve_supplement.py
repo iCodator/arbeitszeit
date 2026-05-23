@@ -1,6 +1,6 @@
 import json
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -10,15 +10,19 @@ from arbeitszeit.domain import audit_events
 
 from arbeitszeit.application.commands import ApproveSupplementCommand
 from arbeitszeit.application.use_cases.approve_supplement import ApproveSupplementUseCase
-from arbeitszeit.domain.entities import Employee, ReviewCase, Supplement, UserAccount
+from arbeitszeit.domain.entities import (
+    Employee, ReviewCase, Supplement, UserAccount, WorkScheduleVersion,
+)
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingSource,
     BookingStatus,
     BookingType,
+    ChangeOrigin,
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    ScopeType,
     UserRole,
 )
 from arbeitszeit.domain.errors import (
@@ -345,3 +349,58 @@ def test_inaktiver_benutzer_loest_permission_denied():
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(supplement_id, approving_user_id=inactive.id))
+
+
+# --- Review-Case-Selektivität ---
+
+def test_nur_passender_review_case_wird_geschlossen():
+    # Nachtrag mit related_booking_id=7 → schließt genau den Case mit booking_id=7
+    uow, supplement_id = _make_uow_with_pending_supplement(related_booking_id=7)
+    case_matching = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
+        description="Passender Fall", booking_id=7,
+        created_at=_NOW, closed_at=None, closed_by_user_id=None,
+    ))
+    case_other_booking = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
+        description="Anderer Nachtrag", booking_id=99,
+        created_at=_NOW, closed_at=None, closed_by_user_id=None,
+    ))
+    case_other_type = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
+        severity=ReviewSeverity.WARN, status=ReviewCaseStatus.OPEN,
+        description="Anderer Typ", booking_id=7,
+        created_at=_NOW, closed_at=None, closed_by_user_id=None,
+    ))
+    uc = ApproveSupplementUseCase(uow)
+
+    uc.execute(_cmd(supplement_id))
+
+    assert uow.review_case_repo._store[case_matching.id].status == ReviewCaseStatus.RESOLVED
+    assert uow.review_case_repo._store[case_other_booking.id].status == ReviewCaseStatus.OPEN
+    assert uow.review_case_repo._store[case_other_type.id].status == ReviewCaseStatus.OPEN
+
+
+# --- Regelzeitfenster ---
+
+def test_nachtrag_ausserhalb_regelzeitfenster_erzeugt_review_case():
+    # _EVENT_AT = 2025-03-10 08:00 UTC, isoweekday=1 (Montag)
+    # Fenster 09:00–17:00 → 08:00 liegt vor Fensterbeginn → OUTSIDE_SCHEDULE_WINDOW
+    uow, supplement_id = _make_uow_with_pending_supplement()
+    uow.work_schedule_repo.add(WorkScheduleVersion(
+        id=0, scope_type=ScopeType.GLOBAL, scope_employee_id=None,
+        weekday=1, start_time=time(9, 0), end_time=time(17, 0),
+        valid_from=date(2000, 1, 1), valid_until=None,
+        change_origin=ChangeOrigin.SYSTEM_SEED, changed_by_user_id=None,
+    ))
+    uc = ApproveSupplementUseCase(uow)
+
+    result = uc.execute(_cmd(supplement_id))
+
+    # COME → Status bleibt OPEN; aber OUTSIDE_SCHEDULE_WINDOW ReviewCase angelegt
+    assert result.booking_status == BookingStatus.OPEN
+    assert len(result.follow_up_case_ids) > 0
+    cases = uow.review_case_repo.list_open_for_employee(1)
+    assert any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)
