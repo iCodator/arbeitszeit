@@ -9,7 +9,7 @@ description = "Lokales Zeiterfassungssystem für eine Zahnarztpraxis"
 requires-python = ">=3.11,<3.13"
 dependencies = [
     "evdev>=1.7",
-    "openpyxl>=3.1",
+    "reportlab>=4.0",
 ]
 
 [project.optional-dependencies]
