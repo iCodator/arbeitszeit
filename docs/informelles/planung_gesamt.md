@@ -541,6 +541,10 @@ Zielstruktur:
 
 **8c – pdf_report_service.py ✓:** Tages-/Wochen-/Monats-/Mitarbeiterberichte mit Zeitraum, Erstellungszeitpunkt, Praxis-/Mitarbeiterzuordnung, Korrekturen (alt/neu + Begründung + Person + Zeitstempel), Nachträge als nachträglich erfasster Datensatz gekennzeichnet, Statuswerte konsistent via report_queries.py. Erläuterungsblock (`_HINWEISE`) für OPEN/WARN/NEEDS_REVIEW/Nachträge/Korrekturen ergänzt (Pflichtenheft v3 §7.11). `get_employee_identity()` in `report_queries.py` zentralisiert — kein Ad-hoc-Query in pdf_report_service (Regelwerk v3 §11). 20 Tests: Dateinamen, valides PDF, Pflichtabschnitte, Erläuterungen, Robustheit ohne Buchungen, Robustheit mit Korrekturen/Nachträgen/Prüffällen ohne Buchungen (Pflichtenheft v3 §7.12). `pypdf>=4.0` als Dev-Dependency für Inhaltstests.
 
+*Aufgeschobene Feinarbeit (nicht abnahmeblockierend):*
+- String-Truncation (`reason[:40]`, `description[:50]`) durch `Paragraph(text, _STYLES["Normal"])` in Tabellenzellen ersetzen → automatischer Zeilenumbruch, kein Informationsverlust
+- `list_open_review_cases()` zeigt bewusst alle offenen Fälle zeitraumunabhängig; falls zeitgefilterte Sicht gewünscht: neue `list_open_review_cases_in_period(from_dt, to_dt)` ergänzen, bestehende Funktion unverändert lassen
+
 **8d – Pflichtauswertungen** (Pflichtenheft v3 §7.12): offene Buchungen/Pausen, Korrekturen, Nachträge, mögliche Pausen-/Ruhezeit-/Höchstarbeitszeitverstöße, Regelzeitfenster-Verstöße, Warn-/Prüfstatus-Fälle. Filterbar nach Zeitraum + Mitarbeiter; als CSV exportierbar; später in App einsehbar (Phase 5). Exportdateien in Backup-/Archivierungskonzept einbezogen (Regelwerk v3 §17/§18/§20).
 
 **8e – Tests:** `tests/integration/test_export.py` (CSV-Roundtrips, Filterlogik, Korrektur-/Nachtragskennzeichnung, OPEN/WARN-Ableitung) + `tests/integration/test_pdf.py` (PDF-Erzeugung, Seitenanzahl, Schlüsselfelder). Pflichtfall: "Auswertung offener und auffälliger Fälle" (Pflichtenheft v3 §16).
