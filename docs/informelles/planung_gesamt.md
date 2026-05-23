@@ -396,7 +396,7 @@ Testfälle:
 
 ---
 
-### Phase 4 – Infrastruktur ← aktuelle Phase
+### Phase 4 – Infrastruktur ← aktuelle Phase (Schritt 8: 8a ✓ 8b ✓ 8c ✓ | 8d + 8e + Schritt 9 offen)
 
 #### Fehlersemantik (bereits in Phase 3 vereinheitlicht)
 In allen Use Cases gilt: `employee is None` → `NotFoundError`; `not employee.is_active` → `InactiveEmployeeError`.
@@ -535,11 +535,11 @@ Zielstruktur:
 - `csv_exporter.py` — detaillierter + verdichteter CSV-Export
 - `pdf_report_service.py` — Tages-/Wochen-/Monats-/Mitarbeiterberichte (reportlab)
 
-**8a – report_queries.py:** normierte Datenstrukturen für offene Fälle, Warnsachverhalte, Prüfhinweise und statusbasierte Prüffälle (WARN, NEEDS_REVIEW, POSSIBLE_*, OPEN, CORRECTED, CLOSED_WITH_NOTE), Korrekturen (alt/neu + Begründung + Person + Zeitstempel), Nachträge (als nachträglich erfasster Datensatz gekennzeichnet, Begründung, Freigabebezug soweit vorgesehen), Regelzeitfenster-Verstöße. Gemeinsame Grundlage für CSV, PDF und UI-Pflichtauswertungen.
+**8a – report_queries.py ✓:** normierte Datenstrukturen für offene Fälle, Warnsachverhalte, Prüfhinweise und statusbasierte Prüffälle (WARN, NEEDS_REVIEW, POSSIBLE_*, OPEN, CORRECTED, CLOSED_WITH_NOTE), Korrekturen (alt/neu + Begründung + Person + Zeitstempel), Nachträge (als nachträglich erfasster Datensatz gekennzeichnet, Begründung, Freigabebezug soweit vorgesehen), Regelzeitfenster-Verstöße. Gemeinsame Grundlage für CSV, PDF und UI-Pflichtauswertungen.
 
-**8b – csv_exporter.py:** detaillierter CSV (MA-Kennung/-name, Datum, Uhrzeit, Buchungsart, Dauer, Status, Korrektur-/Nachtragskennzeichnung, Prüfflags) + verdichteter CSV (summierte Arbeitszeit, Pausenanzahl/-dauer, offene Buchungen, Warn-/Prüfstatus-Anzahl, Korrekturen/Nachträge). Nachvollziehbare Dateibenennung + Ablage in system_config: export.export_dir.
+**8b – csv_exporter.py ✓:** detaillierter CSV (MA-Kennung/-name, Datum, Uhrzeit, Buchungsart, Dauer, Status, Korrektur-/Nachtragskennzeichnung, Prüfflags) + verdichteter CSV (summierte Arbeitszeit, Pausenanzahl/-dauer, offene Buchungen, Warn-/Prüfstatus-Anzahl, Korrekturen/Nachträge). `_day_stats()` als Zustandsmaschine implementiert (Pausen korrekt aus Nettoarbeitszeit herausgerechnet). Nachvollziehbare Dateibenennung + Ablage in system_config: export.export_dir.
 
-**8c – pdf_report_service.py:** Tages-/Wochen-/Monats-/Mitarbeiterberichte mit Zeitraum, Erstellungszeitpunkt, Praxis-/Mitarbeiterzuordnung, Korrekturen (alt/neu + Begründung + Person + Zeitstempel), Nachträge als nachträglich erfasster Datensatz gekennzeichnet, Statuswerte konsistent via report_queries.py.
+**8c – pdf_report_service.py ✓:** Tages-/Wochen-/Monats-/Mitarbeiterberichte mit Zeitraum, Erstellungszeitpunkt, Praxis-/Mitarbeiterzuordnung, Korrekturen (alt/neu + Begründung + Person + Zeitstempel), Nachträge als nachträglich erfasster Datensatz gekennzeichnet, Statuswerte konsistent via report_queries.py. Erläuterungsblock (`_HINWEISE`) für OPEN/WARN/NEEDS_REVIEW/Nachträge/Korrekturen ergänzt (Pflichtenheft v3 §7.11). MA-Stammdaten-Lookup direkt aus `employees`-Tabelle (nicht aus Buchungen) — robust auch ohne Buchungen im Zeitraum. `pypdf>=4.0` als Dev-Dependency für Inhaltstests. 19 Tests (Dateinamen, valides PDF, Pflichtabschnitte, Erläuterungen, Robustheit).
 
 **8d – Pflichtauswertungen** (Pflichtenheft v3 §7.12): offene Buchungen/Pausen, Korrekturen, Nachträge, mögliche Pausen-/Ruhezeit-/Höchstarbeitszeitverstöße, Regelzeitfenster-Verstöße, Warn-/Prüfstatus-Fälle. Filterbar nach Zeitraum + Mitarbeiter; als CSV exportierbar; später in App einsehbar (Phase 5). Exportdateien in Backup-/Archivierungskonzept einbezogen (Regelwerk v3 §17/§18/§20).
 
