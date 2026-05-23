@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from arbeitszeit.application.commands import CreateCorrectionCommand
 from arbeitszeit.application.results import CorrectionResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection
 from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus
 from arbeitszeit.domain.enums import UserRole
@@ -81,7 +82,7 @@ class CorrectBookingUseCase:
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
-                event_type="BOOKING_CORRECTED",
+                event_type=audit_events.BOOKING_CORRECTED,
                 object_type="booking_corrections",
                 object_id=correction.id,
                 user_id=cmd.corrected_by_user_id,

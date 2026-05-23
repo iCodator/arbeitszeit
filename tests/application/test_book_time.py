@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
+from arbeitszeit.domain import audit_events
 
 from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.use_cases.book_time import BookUseCase
@@ -266,7 +267,7 @@ def test_audit_log_eintrag_vorhanden():
 
     assert len(uow.audit_log_repo.entries) == 1
     entry = uow.audit_log_repo.entries[0]
-    assert entry.event_type == "TIME_BOOKED"
+    assert entry.event_type == audit_events.TIME_BOOKED
     assert entry.employee_id == 1
 
 
@@ -293,7 +294,7 @@ def test_unbekannte_karte_schreibt_audit_log():
         uc.execute(_cmd(uid_hash="unbekannt"))
 
     entries = [e for e in uow.audit_log_repo.entries
-               if e.event_type == "BOOKING_REJECTED_UNKNOWN_CARD"]
+               if e.event_type == audit_events.BOOKING_REJECTED_UNKNOWN_CARD]
     assert len(entries) == 1
 
 
@@ -305,7 +306,7 @@ def test_inaktive_karte_schreibt_audit_log():
         uc.execute(_cmd())
 
     entries = [e for e in uow.audit_log_repo.entries
-               if e.event_type == "BOOKING_REJECTED_INACTIVE_CARD"]
+               if e.event_type == audit_events.BOOKING_REJECTED_INACTIVE_CARD]
     assert len(entries) == 1
 
 

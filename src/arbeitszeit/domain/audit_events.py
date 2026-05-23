@@ -1,0 +1,25 @@
+# Zentraler Katalog aller Audit-Log-Eventnamen (event_type in AuditLogEntry).
+# Alle Use Cases und Infrastrukturkomponenten importieren hier — keine freien
+# String-Literale, damit Tippfehler zur Compile-Zeit auffallen.
+
+# --- Buchungsereignisse ---
+TIME_BOOKED = "TIME_BOOKED"
+BOOKING_REJECTED_UNKNOWN_CARD = "BOOKING_REJECTED_UNKNOWN_CARD"
+BOOKING_REJECTED_INACTIVE_CARD = "BOOKING_REJECTED_INACTIVE_CARD"
+
+# --- Korrektur ---
+BOOKING_CORRECTED = "BOOKING_CORRECTED"
+
+# --- Nachtragsprozess ---
+SUPPLEMENT_CREATED = "SUPPLEMENT_CREATED"
+SUPPLEMENT_APPROVED = "SUPPLEMENT_APPROVED"
+SUPPLEMENT_REJECTED = "SUPPLEMENT_REJECTED"
+
+# --- Regelarbeitszeit ---
+WORK_SCHEDULE_CHANGED = "WORK_SCHEDULE_CHANGED"
+
+# --- Backup / Restore ---
+BACKUP_CREATED = "BACKUP_CREATED"
+BACKUP_SYNCED_TO_NAS = "BACKUP_SYNCED_TO_NAS"
+BACKUP_SYNC_FAILED = "BACKUP_SYNC_FAILED"
+RESTORE_COMPLETED = "RESTORE_COMPLETED"

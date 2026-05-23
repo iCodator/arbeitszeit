@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.results import BookResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, ReviewCase, TimeBooking
 from arbeitszeit.domain.enums import (
     BookingStatus,
@@ -80,7 +81,7 @@ class BookUseCase:
             if card is None:
                 self._uow.audit_log_repo.add(AuditLogEntry(
                     id=0,
-                    event_type="BOOKING_REJECTED_UNKNOWN_CARD",
+                    event_type=audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
                     object_type="rfid_cards",
                     object_id=0,
                     user_id=None,
@@ -97,7 +98,7 @@ class BookUseCase:
             if card.status != CardStatus.ACTIVE:
                 self._uow.audit_log_repo.add(AuditLogEntry(
                     id=0,
-                    event_type="BOOKING_REJECTED_INACTIVE_CARD",
+                    event_type=audit_events.BOOKING_REJECTED_INACTIVE_CARD,
                     object_type="rfid_cards",
                     object_id=card.id,
                     user_id=None,
@@ -201,7 +202,7 @@ class BookUseCase:
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
-                event_type="TIME_BOOKED",
+                event_type=audit_events.TIME_BOOKED,
                 object_type="time_bookings",
                 object_id=booking.id,
                 user_id=None,

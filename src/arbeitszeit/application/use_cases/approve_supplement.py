@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from arbeitszeit.application.commands import ApproveSupplementCommand
 from arbeitszeit.application.results import ApproveSupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, ReviewCase, TimeBooking
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
@@ -184,7 +185,7 @@ class ApproveSupplementUseCase:
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
-                event_type="SUPPLEMENT_APPROVED",
+                event_type=audit_events.SUPPLEMENT_APPROVED,
                 object_type="supplements",
                 object_id=supplement.id,
                 user_id=cmd.approving_user_id,

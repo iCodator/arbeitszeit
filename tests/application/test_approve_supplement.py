@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
+from arbeitszeit.domain import audit_events
 
 from arbeitszeit.application.commands import ApproveSupplementCommand
 from arbeitszeit.application.use_cases.approve_supplement import ApproveSupplementUseCase
@@ -294,7 +295,7 @@ def test_audit_log_eintrag_vorhanden():
 
     assert len(uow.audit_log_repo.entries) == 1
     entry = uow.audit_log_repo.entries[0]
-    assert entry.event_type == "SUPPLEMENT_APPROVED"
+    assert entry.event_type == audit_events.SUPPLEMENT_APPROVED
     assert entry.object_type == "supplements"
     assert entry.employee_id == 1
 

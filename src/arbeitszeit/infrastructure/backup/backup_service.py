@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteAuditLogRepository
@@ -39,7 +40,7 @@ class SQLiteBackupService:
         finally:
             src.close()
         self._log_audit(
-            "BACKUP_CREATED",
+            audit_events.BACKUP_CREATED,
             {"backup_path": str(backup_path), "size_bytes": backup_path.stat().st_size},
         )
         return backup_path
@@ -61,7 +62,7 @@ class SQLiteBackupService:
             )
         except subprocess.CalledProcessError as exc:
             self._log_audit(
-                "BACKUP_SYNC_FAILED",
+                audit_events.BACKUP_SYNC_FAILED,
                 {
                     "nas_path": str(nas_path),
                     "returncode": exc.returncode,
@@ -70,7 +71,7 @@ class SQLiteBackupService:
                 },
             )
             raise
-        self._log_audit("BACKUP_SYNCED_TO_NAS", {"nas_path": str(nas_path)})
+        self._log_audit(audit_events.BACKUP_SYNCED_TO_NAS, {"nas_path": str(nas_path)})
 
     def restore_from(self, backup_path: Path) -> None:
         """Stellt die Datenbank aus einer Backup-Datei wieder her.
@@ -98,7 +99,7 @@ class SQLiteBackupService:
         # RESTORE_COMPLETED ist ein nachgelagertes Betriebsereignis im neuen Ist-Zustand,
         # kein Teil des gesicherten Stands.
         self._log_audit(
-            "RESTORE_COMPLETED",
+            audit_events.RESTORE_COMPLETED,
             {
                 "backup_path": str(backup_path),
                 "backup_mtime": backup_path.stat().st_mtime,

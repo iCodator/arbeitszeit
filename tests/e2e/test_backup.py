@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
+from arbeitszeit.domain import audit_events
 
 from arbeitszeit.infrastructure.backup import BackupResult, SQLiteBackupService
 from arbeitszeit.infrastructure.db.connection import open_connection
@@ -212,7 +213,7 @@ def test_backup_erstellt_audit_eintrag(tmp_path):
     service.create_local_backup(now=_NOW)
 
     events = _audit_events(db)
-    assert any(e["event_type"] == "BACKUP_CREATED" for e in events)
+    assert any(e["event_type"] == audit_events.BACKUP_CREATED for e in events)
 
 
 def test_restore_erstellt_audit_eintrag(tmp_path):
@@ -223,7 +224,7 @@ def test_restore_erstellt_audit_eintrag(tmp_path):
     service.restore_from(backup_path)
 
     events = _audit_events(db)
-    assert any(e["event_type"] == "RESTORE_COMPLETED" for e in events)
+    assert any(e["event_type"] == audit_events.RESTORE_COMPLETED for e in events)
 
 
 def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path):
@@ -237,7 +238,7 @@ def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path):
     service.sync_to_nas(nas_dir)
 
     events = _audit_events(db)
-    assert any(e["event_type"] == "BACKUP_SYNCED_TO_NAS" for e in events)
+    assert any(e["event_type"] == audit_events.BACKUP_SYNCED_TO_NAS for e in events)
 
 
 def test_nas_sync_audit_eintrag_ohne_rsync(tmp_path, monkeypatch):
@@ -251,7 +252,7 @@ def test_nas_sync_audit_eintrag_ohne_rsync(tmp_path, monkeypatch):
     service.sync_to_nas(tmp_path / "nas")
 
     events = _audit_events(db)
-    assert any(e["event_type"] == "BACKUP_SYNCED_TO_NAS" for e in events)
+    assert any(e["event_type"] == audit_events.BACKUP_SYNCED_TO_NAS for e in events)
 
 
 def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
@@ -264,7 +265,7 @@ def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
         service.sync_to_nas(Path("/nonexistent/nas/path"))
 
     events = _audit_events(db)
-    failed = next(e for e in events if e["event_type"] == "BACKUP_SYNC_FAILED")
+    failed = next(e for e in events if e["event_type"] == audit_events.BACKUP_SYNC_FAILED)
     assert failed["details"]["returncode"] != 0
     assert "cmd" in failed["details"]
     assert "stderr" in failed["details"]

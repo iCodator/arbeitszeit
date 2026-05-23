@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
+from arbeitszeit.domain import audit_events
 
 from arbeitszeit.domain.entities import AuditLogEntry
 from arbeitszeit.infrastructure.db.connection import open_connection
@@ -157,7 +158,7 @@ def test_mehrfache_transaktionen_hintereinander(conn, uow):
 def test_audit_log_bleibt_nach_rollback_erhalten(conn, uow):
     entry = AuditLogEntry(
         id=0,
-        event_type="BOOKING_REJECTED_UNKNOWN_CARD",
+        event_type=audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
         object_type="rfid_cards",
         object_id=0,
         user_id=None,
@@ -186,7 +187,7 @@ def test_audit_log_schreibbar_waehrend_conn_nur_liest(conn, uow):
     # würde audit_conn blockiert – das passiert in den Ablehnungspfaden aber nicht.
     entry = AuditLogEntry(
         id=0,
-        event_type="BOOKING_REJECTED_INACTIVE_CARD",
+        event_type=audit_events.BOOKING_REJECTED_INACTIVE_CARD,
         object_type="rfid_cards",
         object_id=1,
         user_id=None,

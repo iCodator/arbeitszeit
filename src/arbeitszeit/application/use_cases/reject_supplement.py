@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from arbeitszeit.application.commands import RejectSupplementCommand
 from arbeitszeit.application.results import RejectSupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry
 from arbeitszeit.domain.enums import ApprovalStatus, ReviewCaseStatus, ReviewCaseType
 from arbeitszeit.domain.enums import UserRole
@@ -63,7 +64,7 @@ class RejectSupplementUseCase:
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
-                event_type="SUPPLEMENT_REJECTED",
+                event_type=audit_events.SUPPLEMENT_REJECTED,
                 object_type="supplements",
                 object_id=supplement.id,
                 user_id=cmd.rejected_by_user_id,

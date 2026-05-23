@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from arbeitszeit.application.commands import CreateSupplementCommand
 from arbeitszeit.application.results import SupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, ReviewCase, Supplement
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
@@ -80,7 +81,7 @@ class RegisterSupplementUseCase:
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
-                event_type="SUPPLEMENT_CREATED",
+                event_type=audit_events.SUPPLEMENT_CREATED,
                 object_type="supplements",
                 object_id=supplement.id,
                 user_id=cmd.recorded_by_user_id,

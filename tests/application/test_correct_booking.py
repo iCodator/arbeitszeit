@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
+from arbeitszeit.domain import audit_events
 
 from arbeitszeit.application.commands import CreateCorrectionCommand
 from arbeitszeit.application.use_cases.correct_booking import CorrectBookingUseCase
@@ -206,7 +207,7 @@ def test_audit_log_eintrag_vorhanden():
 
     assert len(uow.audit_log_repo.entries) == 1
     entry = uow.audit_log_repo.entries[0]
-    assert entry.event_type == "BOOKING_CORRECTED"
+    assert entry.event_type == audit_events.BOOKING_CORRECTED
     assert entry.object_type == "booking_corrections"
     assert entry.employee_id == 1
 

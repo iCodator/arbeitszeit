@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from arbeitszeit.application.commands import ChangeWorkScheduleCommand
 from arbeitszeit.application.results import WorkScheduleChangeResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, WorkScheduleVersion
 from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import ConflictError, PermissionDeniedError, ValidationError
@@ -75,7 +76,7 @@ class ManageWorkScheduleUseCase:
 
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
-                event_type="WORK_SCHEDULE_CHANGED",
+                event_type=audit_events.WORK_SCHEDULE_CHANGED,
                 object_type="work_schedule_versions",
                 object_id=saved.id,
                 user_id=cmd.changed_by_user_id,
