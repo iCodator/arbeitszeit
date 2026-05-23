@@ -203,6 +203,24 @@ def test_employee_scope_unabhaengig_von_global():
     assert result.superseded_version_id is None
 
 
+def test_spaetere_employee_version_blockiert_nicht_global_scope():
+    # EMPLOYEE-Scope für MA 42 hat valid_from=2025-06-01.
+    # Danach: GLOBAL-Scope mit valid_from=2025-01-01 darf kein ValidationError auslösen.
+    # Scope-Prüfung muss streng scope-lokal sein, keine globale Sperre über alle Scopes.
+    uow = _make_uow()
+    uc = ManageWorkScheduleUseCase(uow)
+    uc.execute(_cmd(
+        scope_type=ScopeType.EMPLOYEE, scope_employee_id=42, valid_from=date(2025, 6, 1)
+    ))
+
+    result = uc.execute(_cmd(
+        scope_type=ScopeType.GLOBAL, scope_employee_id=None, valid_from=date(2025, 1, 1)
+    ))
+
+    assert result.new_version_id > 0
+    assert result.superseded_version_id is None
+
+
 def test_employee_scopes_verschiedener_mitarbeiter_sind_unabhaengig():
     uow = _make_uow()
     uc = ManageWorkScheduleUseCase(uow)

@@ -67,7 +67,12 @@ class WorkScheduleRepository(Protocol):
         self,
         weekday: int | None = None,
         scope_employee_id: int | None = None,
-    ) -> list[WorkScheduleVersion]: ...
+    ) -> list[WorkScheduleVersion]:
+        # scope_employee_id=None  → ausschließlich GLOBAL-Versionen
+        # scope_employee_id=<id>  → ausschließlich EMPLOYEE-Versionen für diesen MA
+        # Niemals beide Scopes gemischt zurückgeben.
+        # Rückgabe aufsteigend nach valid_from sortiert.
+        ...
 
 
 class ReviewCaseRepository(Protocol):
