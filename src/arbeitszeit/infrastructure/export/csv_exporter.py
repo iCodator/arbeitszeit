@@ -80,26 +80,45 @@ def _group_by_employee_day(
 
 
 def _day_stats(day: list[BookingRow]) -> dict:
-    """Berechnet Tagesstatistiken aus einer chronologisch sortierten Buchungsliste."""
-    work_seconds = 0
-    break_seconds = 0
+    """Berechnet Tagesstatistiken als Zustandsmaschine.
+
+    Nettoarbeitszeit = Summe aller Arbeitsphasen (COME→BREAK_START + BREAK_END→GO).
+    Pausen werden nicht zur Arbeitszeit gezählt — der BREAK_START unterbricht
+    die laufende Arbeitsphase, BREAK_END setzt sie fort.
+
+    Korrekturen zählen am corrected_at-Tag, Nachträge am event_at-Tag.
+    """
+    work_seconds = 0.0
+    break_seconds = 0.0
     open_count = 0
     warn_count = 0
     needs_review_count = 0
-    last_come: datetime | None = None
-    last_break_start: datetime | None = None
+    work_phase_start: datetime | None = None   # gesetzt zwischen COME/BREAK_END und BREAK_START/GO
+    break_phase_start: datetime | None = None  # gesetzt zwischen BREAK_START und BREAK_END
 
     for b in sorted(day, key=lambda x: x.booked_at):
         if b.booking_type == BookingType.COME:
-            last_come = b.booked_at
-        elif b.booking_type == BookingType.GO and last_come is not None:
-            work_seconds += (b.booked_at - last_come).total_seconds()
-            last_come = None
+            work_phase_start = b.booked_at
+
         elif b.booking_type == BookingType.BREAK_START:
-            last_break_start = b.booked_at
-        elif b.booking_type == BookingType.BREAK_END and last_break_start is not None:
-            break_seconds += (b.booked_at - last_break_start).total_seconds()
-            last_break_start = None
+            # Arbeitsphase endet hier
+            if work_phase_start is not None:
+                work_seconds += (b.booked_at - work_phase_start).total_seconds()
+                work_phase_start = None
+            break_phase_start = b.booked_at
+
+        elif b.booking_type == BookingType.BREAK_END:
+            # Pause endet, neue Arbeitsphase beginnt
+            if break_phase_start is not None:
+                break_seconds += (b.booked_at - break_phase_start).total_seconds()
+                break_phase_start = None
+            work_phase_start = b.booked_at
+
+        elif b.booking_type == BookingType.GO:
+            # Arbeitsphase endet hier
+            if work_phase_start is not None:
+                work_seconds += (b.booked_at - work_phase_start).total_seconds()
+                work_phase_start = None
 
         if b.status == BookingStatus.OPEN:
             open_count += 1

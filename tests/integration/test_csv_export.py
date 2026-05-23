@@ -209,11 +209,15 @@ def test_verdichtet_csv_eine_zeile_pro_tag(conn, export_dir):
     assert r["mitarbeiter_nr"] == "E001"
     assert r["datum"] == "2025-06-01"
     assert r["anzahl_buchungen"] == "2"
-    # 9h Arbeitszeit = 540 Minuten
+    # 9h Nettoarbeitszeit = 540 Minuten (keine Pausen → identisch mit Bruttozeit)
     assert r["nettoarbeitszeit_minuten"] == "540"
 
 
-def test_verdichtet_csv_pausenzeit_berechnet(conn, export_dir):
+def test_verdichtet_csv_pausenzeit_und_nettoarbeitszeit_korrekt(conn, export_dir):
+    # COME 08:00 → BREAK_START 12:00 → BREAK_END 12:30 → GO 17:00
+    # Nettoarbeitszeit: (12:00-08:00) + (17:00-12:30) = 240 + 270 = 510 min
+    # Nettopausenzeit: 12:30-12:00 = 30 min
+    # Die Pause muss aus der Arbeitszeit herausgerechnet werden — nicht addiert.
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booking_type="COME", booked_at=_NOW)
     _insert_booking(
@@ -229,6 +233,7 @@ def test_verdichtet_csv_pausenzeit_berechnet(conn, export_dir):
 
     rows = _read_csv(path)
     assert rows[0]["nettopausenzeit_minuten"] == "30"
+    assert rows[0]["nettoarbeitszeit_minuten"] == "510"
 
 
 def test_verdichtet_csv_korrekturen_und_nachtraege(conn, export_dir):
