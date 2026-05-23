@@ -1,7 +1,7 @@
 # Planung Phase 4 – Infrastruktur
 
-Stand: 2026-05-22. Basiert auf Pflichtenheft v3 und Regelwerk v3.
-Schritte 1–7 vollständig abgeschlossen (211 Tests grün).
+Stand: 2026-05-23. Basiert auf Pflichtenheft v3 und Regelwerk v3.
+Schritte 1–7d vollständig abgeschlossen (266 Tests grün). Schritt 8 (Export) offen.
 
 ---
 
@@ -245,9 +245,24 @@ Neuer Testfall: Abgewiesene Buchung erzeugt Audit-Log-Eintrag.
 Deckt V3 §7.9 (ArbZG §5) und V3 §16-Testpflicht "Unterschreitung der Ruhezeit" ab.
 
 
-### Schritt 7d – Rollenprüfung nachziehen  ✓ ERLEDIGT
+### Schritt 7d – Rollenprüfung in alle schreibenden Use Cases integrieren  ✓ ERLEDIGT
 
-Siehe vollständige Beschreibung weiter unten (nach Schritt 8).
+(Pflichtenheft v3 §5 / Regelwerk v3 §16)
+
+Nachrüstung der Autorisierung in bereits implementierte Use Cases:
+
+- RegisterSupplementUseCase: user_account_repo.get_by_id(cmd.recorded_by_user_id)
+  → Rolle in {ADMIN, REVIEWER}, sonst PermissionDeniedError
+- CorrectBookingUseCase: user_account_repo.get_by_id(cmd.corrected_by_user_id)
+  → Rolle in {ADMIN, REVIEWER}, sonst PermissionDeniedError
+- ManageWorkScheduleUseCase: user_account_repo.get_by_id(cmd.changed_by_user_id)
+  → Rolle ADMIN; changed_by_user_id darf nicht None sein
+
+ApproveSupplementUseCase und RejectSupplementUseCase haben Rollenprüfung
+bereits seit Schritt 1 (s. dort).
+
+Neue Testfälle in tests/application/ für jede Prüfung:
+PermissionDeniedError bei falscher Rolle und bei None.
 
 
 ### Offener V3-Punkt – Systemzeitprotokollierung  ← OFFEN
@@ -368,28 +383,6 @@ Schutz und Archivierung (Regelwerk v3 §17/§18/§20):
 
 ---
 
-## Schritt 7d – Rollenprüfung in alle schreibenden Use Cases integrieren  ← OFFEN
-
-(Pflichtenheft v3 §5 / Regelwerk v3 §16)
-
-Nachrüstung der Autorisierung in bereits implementierte Use Cases:
-
-- RegisterSupplementUseCase: user_account_repo.get_by_id(cmd.recorded_by_user_id)
-  → Rolle in {ADMIN, REVIEWER}, sonst PermissionDeniedError
-- CorrectBookingUseCase: user_account_repo.get_by_id(cmd.corrected_by_user_id)
-  → Rolle in {ADMIN, REVIEWER}, sonst PermissionDeniedError
-- ManageWorkScheduleUseCase: user_account_repo.get_by_id(cmd.changed_by_user_id)
-  → Rolle ADMIN; changed_by_user_id darf nicht None sein
-
-ApproveSupplementUseCase und RejectSupplementUseCase haben Rollenprüfung
-bereits seit Schritt 1 (s. dort).
-
-Neue Testfälle in tests/application/ für jede Prüfung:
-PermissionDeniedError bei falscher Rolle und bei None.
-
-
----
-
 ## Schritt 9 – infrastructure/system_check.py  ← OFFEN
 
 (Pflichtenheft v3 §7.10 — spätestens Phase 4, nicht erst Phase 5)
@@ -411,6 +404,6 @@ Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslosbar).
 
 ## Verifikation (laufend)
 
-  pytest tests/                # 216 Tests grün (Stand 2026-05-22, nach Schritt 7c)
+  pytest tests/                # 266 Tests grün (Stand 2026-05-23, nach Schritt 7d + Use-Case-Review)
   pytest tests/integration/    # Integrationstests grün
   python -m ruff check .       # keine Verstösse
