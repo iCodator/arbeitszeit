@@ -7,6 +7,8 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import json
+
 import pypdf
 import pytest
 
@@ -47,6 +49,50 @@ def _insert_booking(conn, employee_id: int, booking_type: str = "COME",
         "source, current_status, created_at) "
         "VALUES (?, ?, ?, 'TERMINAL', ?, '2025-01-01T00:00:00+00:00') RETURNING id",
         (employee_id, booking_type, booked_at.isoformat(), status),
+    ).fetchone()["id"]
+
+
+def _ensure_user(conn) -> int:
+    row = conn.execute("SELECT id FROM user_accounts LIMIT 1").fetchone()
+    if row:
+        return row["id"]
+    return conn.execute(
+        "INSERT INTO user_accounts (username, password_hash, role, active, "
+        "created_at, updated_at) VALUES ('admin', 'x', 'ADMIN', 1, "
+        "'2025-01-01', '2025-01-01') RETURNING id"
+    ).fetchone()["id"]
+
+
+def _insert_correction_for(conn, booking_id: int) -> int:
+    user_id = _ensure_user(conn)
+    old = json.dumps({"booking_type": "COME", "booked_at": _NOW.isoformat()})
+    new = json.dumps({"booking_type": "GO", "booked_at": _LATER.isoformat()})
+    return conn.execute(
+        "INSERT INTO booking_corrections "
+        "(time_booking_id, old_values_json, new_values_json, reason, "
+        "corrected_by_user_id, corrected_at) "
+        "VALUES (?, ?, ?, 'Testkorrektur', ?, ?) RETURNING id",
+        (booking_id, old, new, user_id, _NOW.isoformat()),
+    ).fetchone()["id"]
+
+
+def _insert_supplement_for(conn, employee_id: int) -> int:
+    user_id = _ensure_user(conn)
+    return conn.execute(
+        "INSERT INTO supplements "
+        "(employee_id, booking_type, event_at, recorded_at, reason, "
+        "recorded_by_user_id, approval_status) "
+        "VALUES (?, 'COME', ?, ?, 'Testnachtrag', ?, 'PENDING') RETURNING id",
+        (employee_id, _NOW.isoformat(), _NOW.isoformat(), user_id),
+    ).fetchone()["id"]
+
+
+def _insert_review_case_for(conn, employee_id: int) -> int:
+    return conn.execute(
+        "INSERT INTO review_cases "
+        "(employee_id, case_type, severity, status, description, detected_at) "
+        "VALUES (?, 'OPEN_WORK_PHASE', 'WARN', 'OPEN', 'Testfall', ?) RETURNING id",
+        (employee_id, _NOW.isoformat()),
     ).fetchone()["id"]
 
 
@@ -258,3 +304,31 @@ def test_mitarbeiterbericht_name_aus_stammdaten(conn, export_dir):
     path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
     text = _pdf_text(path)
     assert "Anna Muster" in text
+
+
+def test_mitarbeiterbericht_ohne_buchungen_mit_korrekturen_nachtraegen_prueffaellen(
+    conn, export_dir
+):
+    """Pflichtauswertung: Bericht ohne Buchungen im Zeitraum, aber mit Korrekturen,
+    Nachträgen und Prüffällen muss sinnvoll erzeugt werden (Pflichtenheft v3 §7.12)."""
+    emp_id = _insert_employee(conn, "E001")
+
+    # Buchung außerhalb des Berichtszeitraums — nur für FK-Referenz der Korrektur
+    booking_id = _insert_booking(
+        conn, emp_id, status="CORRECTED",
+        booked_at=datetime(2025, 5, 1, 8, 0, tzinfo=timezone.utc),
+    )
+    _insert_correction_for(conn, booking_id)
+    _insert_supplement_for(conn, emp_id)
+    _insert_review_case_for(conn, emp_id)
+
+    # Bericht für Juni — keine Buchungen in diesem Zeitraum
+    path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
+
+    assert path.exists()
+    assert _is_valid_pdf(path)
+    assert "E001" in path.name
+    text = _pdf_text(path)
+    assert "Anna Muster" in text
+    for abschnitt in _PFLICHT_ABSCHNITTE:
+        assert abschnitt in text, f"Abschnitt fehlt: {abschnitt}"

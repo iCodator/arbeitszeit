@@ -352,3 +352,21 @@ def list_review_cases_for_booking(
     )
     rows = conn.execute(sql, (booking_id,)).fetchall()
     return [_parse_review_case_row(r) for r in rows]
+
+
+def get_employee_identity(
+    conn: sqlite3.Connection,
+    employee_id: int,
+) -> tuple[str, str]:
+    """Gibt (personnel_no, employee_name) aus employees-Stammdaten zurück.
+
+    Fallback auf str(employee_id) / 'MA {id}' wenn kein Eintrag vorhanden.
+    """
+    row = conn.execute(
+        "SELECT personnel_no, first_name || ' ' || last_name AS name "
+        "FROM employees WHERE id = ?",
+        (employee_id,),
+    ).fetchone()
+    if row:
+        return row["personnel_no"], row["name"]
+    return str(employee_id), f"MA {employee_id}"

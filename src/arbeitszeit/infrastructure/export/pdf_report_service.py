@@ -29,6 +29,7 @@ from arbeitszeit.infrastructure.export.report_queries import (
     BookingRow,
     CorrectionRow,
     SupplementRow,
+    get_employee_identity,
     list_bookings,
     list_corrections,
     list_open_review_cases,
@@ -348,24 +349,6 @@ def create_monthly_report(
     return path
 
 
-def _employee_identity(
-    conn: sqlite3.Connection,
-    employee_id: int,
-    bookings: list[BookingRow],
-) -> tuple[str, str]:
-    """Gibt (personnel_no, employee_name) zurück – bevorzugt aus der DB-Stammdaten."""
-    row = conn.execute(
-        "SELECT personnel_no, first_name || ' ' || last_name AS name "
-        "FROM employees WHERE id = ?",
-        (employee_id,),
-    ).fetchone()
-    if row:
-        return row["personnel_no"], row["name"]
-    if bookings:
-        return bookings[0].personnel_no, bookings[0].employee_name
-    return str(employee_id), f"MA {employee_id}"
-
-
 def create_employee_report(
     conn: sqlite3.Connection,
     employee_id: int,
@@ -379,7 +362,7 @@ def create_employee_report(
         now = datetime.now(timezone.utc)
 
     bookings = list_bookings(conn, from_dt, to_dt, employee_id=employee_id)
-    personnel_no, employee_name = _employee_identity(conn, employee_id, bookings)
+    personnel_no, employee_name = get_employee_identity(conn, employee_id)
 
     export_dir.mkdir(parents=True, exist_ok=True)
     filename = (
