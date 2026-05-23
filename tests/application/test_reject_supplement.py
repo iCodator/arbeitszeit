@@ -155,12 +155,13 @@ def test_supplement_erhaelt_status_rejected():
 
 # --- ReviewCase wird geschlossen ---
 
-def test_manual_entry_review_case_wird_mit_note_geschlossen():
-    uow, supplement_id = _make_uow_with_pending_supplement()
+def test_manual_entry_review_mit_passender_booking_id_wird_geschlossen():
+    # Nachtrag mit related_booking_id=7 → schließt den Case mit booking_id=7
+    uow, supplement_id = _make_uow_with_pending_supplement(related_booking_id=7)
     review_case = uow.review_case_repo.add(ReviewCase(
         id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
         severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
-        description="Nachtrag", booking_id=None,
+        description="Nachtrag", booking_id=7,
         created_at=_NOW, closed_at=None, closed_by_user_id=None,
     ))
     uc = RejectSupplementUseCase(uow)
@@ -173,20 +174,36 @@ def test_manual_entry_review_case_wird_mit_note_geschlossen():
     assert closed.note == "Zeitraum nicht plausibel"
 
 
-def test_anderer_review_case_bleibt_offen():
-    uow, supplement_id = _make_uow_with_pending_supplement()
+def test_review_case_bleibt_offen_wenn_related_booking_id_none():
+    # related_booking_id=None → kein Case wird über None==None geschlossen
+    uow, supplement_id = _make_uow_with_pending_supplement(related_booking_id=None)
+    case_with_none = uow.review_case_repo.add(ReviewCase(
+        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
+        description="Nachtrag ohne Buchungsbezug", booking_id=None,
+        created_at=_NOW, closed_at=None, closed_by_user_id=None,
+    ))
+    uc = RejectSupplementUseCase(uow)
+
+    result = uc.execute(_cmd(supplement_id))
+
+    assert uow.review_case_repo._store[case_with_none.id].status == ReviewCaseStatus.OPEN
+    assert result.review_case_id is None
+
+
+def test_anderer_review_case_typ_bleibt_offen():
+    uow, supplement_id = _make_uow_with_pending_supplement(related_booking_id=7)
     other_case = uow.review_case_repo.add(ReviewCase(
         id=0, employee_id=1, case_type=ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
         severity=ReviewSeverity.WARN, status=ReviewCaseStatus.OPEN,
-        description="Anderer Fall", booking_id=None,
+        description="Compliance-Fall", booking_id=7,
         created_at=_NOW, closed_at=None, closed_by_user_id=None,
     ))
     uc = RejectSupplementUseCase(uow)
 
     uc.execute(_cmd(supplement_id))
 
-    still_open = uow.review_case_repo._store[other_case.id]
-    assert still_open.status == ReviewCaseStatus.OPEN
+    assert uow.review_case_repo._store[other_case.id].status == ReviewCaseStatus.OPEN
 
 
 def test_kein_review_case_wenn_keiner_passt():

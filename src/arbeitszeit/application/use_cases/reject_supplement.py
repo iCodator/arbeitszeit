@@ -51,6 +51,7 @@ class RejectSupplementUseCase:
             for case in open_cases:
                 if (
                     case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW
+                    and supplement.related_booking_id is not None
                     and case.booking_id == supplement.related_booking_id
                 ):
                     self._uow.review_case_repo.resolve(
