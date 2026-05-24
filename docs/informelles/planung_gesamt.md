@@ -515,10 +515,10 @@ Ohne `audit_conn` fällt das Audit-Log auf `conn` zurück; Einträge vor Rollbac
 - Ausschließlich Parameterized Statements (`?`-Syntax)
 - `RETURNING id` nach INSERT (SQLite ≥ 3.35)
 - `WorkScheduleRepository.get_effective`: EMPLOYEE-Scope vor GLOBAL (2-Stufen-Query)
-- `WorkScheduleRepository.close_version()`: `valid_until ≥ valid_from` zusätzlich prüfen
+- `WorkScheduleRepository.close_version()`: `valid_until ≥ valid_from` zusätzlich prüfen → `ValidationError`; Test: `test_close_version_mit_ungueltigem_datum_wirft_validation_error` ✓
 - `TimeBookingRepository.set_status()`: zuerst `SELECT current_status` → kein Ergebnis → `NotFoundError` (kein stilles Nichtstun); dann UPDATE + INSERT in `booking_status_history` atomar
-- `SystemConfigRepository.set_current()`: INSERT, nie UPDATE — stets mit `AuditLogEntry` in einer Transaktion
-- `list_for_employee_on_day()`: Bereichsquery mit `>= day_start` und `< next_day` (Index-kompatibel, nicht `DATE()`)
+- `SystemConfigRepository.set_current()`: INSERT, nie UPDATE — Versionshistorie bleibt erhalten. INSERT-Semantik implizit belegt durch `test_system_config_set_current_zweimal_inkrementiert_version` (zwei Aufrufe → zwei Zeilen mit Versionen 1 und 2). AuditLog bei `set_current()` ist Use-Case-Verantwortung (nicht Repository-Verantwortung); kein Use Case ruft `set_current()` aktuell auf — operative Nutzung ist auf Phase 5 (Admin CLI) verschoben.
+- `list_for_employee_on_day()`: Bereichsquery mit `>= day_start` und `< next_day` (Index-kompatibel, nicht `DATE()`); Test: `test_time_booking_list_for_employee_on_day_filtert_nach_tag` ✓
 
 ---
 

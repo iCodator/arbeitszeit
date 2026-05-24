@@ -238,8 +238,20 @@ das Audit-Log auf `conn` zurück; Einträge vor Rollback gehen verloren.
 `WorkScheduleRepository.get_effective()`: EMPLOYEE-Scope vor GLOBAL
 (2-Stufen-Query); `list_versions()` filterbar nach Wochentag + scope_employee_id.
 
+`WorkScheduleRepository.close_version()`: prüft zusätzlich `valid_until >= valid_from`
+→ `ValidationError` bei Verletzung. Test: `test_close_version_mit_ungueltigem_datum_wirft_validation_error` ✓
+
 `list_for_employee_on_day()`: Bereichsquery mit `>= day_start` und `< next_day`
-(Index-kompatibel, nicht `DATE()`).
+(Index-kompatibel, nicht `DATE()`). Test: `test_time_booking_list_for_employee_on_day_filtert_nach_tag` ✓
+
+`SystemConfigRepository.set_current()`: immer INSERT, nie UPDATE — Versionshistorie bleibt erhalten.
+INSERT-Semantik implizit belegt durch `test_system_config_set_current_zweimal_inkrementiert_version`:
+zwei Aufrufe erzeugen zwei Zeilen mit Versionsnummern 1 und 2, was nur per INSERT möglich ist.
+
+AuditLog-Kopplung bei `set_current()`: Die Planung fordert „immer zusammen mit AuditLogEntry
+in einer Transaktion" — das ist Use-Case-Verantwortung, nicht Repository-Verantwortung. Das Repository
+selbst schreibt bewusst kein AuditLog. Kein aktueller Use Case ruft `set_current()` auf;
+die operative Nutzung (z. B. Admin-Konfigurationsänderung) ist auf Phase 5 (Admin CLI) verschoben.
 
 
 ### Schritt 5 + 6 – tests/integration/
@@ -248,7 +260,7 @@ Fixture `conn`: In-Memory-SQLite + `run_migrations()`. Testprinzip: echte
 INSERT/SELECT-Roundtrips, keine Mocks.
 
 Pflicht-Testfall WorkScheduleRepository: Zwei EMPLOYEE-Versionen für denselben
-Mitarbeiter/Wochentag → `get_effective()` wählt neuere (deterministisch).
+Mitarbeiter/Wochentag → `get_effective()` wählt neuere (deterministisch). Test ✓
 
 
 ### Schritt 7 – infrastructure/hardware/
