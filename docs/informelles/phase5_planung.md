@@ -88,6 +88,25 @@ die Funktionen aus `report_queries.py` — keine neuen Ad-hoc-Queries in der
 Präsentationsschicht.
 
 
+### Zeitraum-Hilfsfunktionen (Pflicht vor erster Intervallübergabe)
+
+`TimeBookingRepository.list_between()` und alle Exportfunktionen erwarten halb-offene
+Intervalle `[from_dt, to_dt)` mit UTC-normalisierten Datetimes. Das gesamte System definiert
+Tagesgrenzen als UTC-Tage (Systemannahme aus Phase 4).
+
+Die Admin-CLI und die Terminal-UI dürfen `from_dt`/`to_dt` nie ad hoc aus Benutzereingaben
+konstruieren. Stattdessen müssen Hilfsfunktionen bereitgestellt werden, die Standardzeiträume
+erzeugen und die UTC-Annahme kapseln:
+
+- `day_interval(day: date) → tuple[datetime, datetime]` — gibt `(day_start_utc, next_day_utc)` zurück
+- `week_interval(year: int, week: int) → tuple[datetime, datetime]` — ISO-Woche, Montag 00:00 bis Sonntag+1 00:00
+- `month_interval(year: int, month: int) → tuple[datetime, datetime]` — erster bis letzter Tag + 1 Tag
+
+Diese Funktionen sichern, dass alle Aufrufer konsistente Intervallgrenzen verwenden.
+Fehlerhafte inklusive `to_dt`-Grenzen (z. B. `23:59:59`) würden Buchungen kurz vor Mitternacht
+systematisch ausschließen.
+
+
 ---
 
 ## Zielstruktur

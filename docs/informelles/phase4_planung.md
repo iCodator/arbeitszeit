@@ -244,6 +244,18 @@ das Audit-Log auf `conn` zurück; Einträge vor Rollback gehen verloren.
 `list_for_employee_on_day()`: Bereichsquery mit `>= day_start` und `< next_day`
 (Index-kompatibel, nicht `DATE()`). Test: `test_time_booking_list_for_employee_on_day_filtert_nach_tag` ✓
 
+**UTC-Tagesgrenze (Systemannahme):** `day_start` = `datetime(day.year, day.month, day.day, tzinfo=UTC)`.
+Das gesamte System definiert „Kalendertag" als UTC-Tag. Use Cases normalisieren Zeitstempel
+konsequent auf UTC vor dem Repo-Aufruf. Der Kommentar im Repo-Code hält das explizit fest und
+darf nicht entfernt werden. Bei einer späteren Zeitzonenänderung müssten Buchungsnormalisierung
+und alle Auswertungen konsistent angepasst werden.
+
+`list_between(employee_id, from_dt, to_dt)`: halb-offenes Intervall `[from_dt, to_dt)` auf
+`booked_at`. Buchungen exakt auf `to_dt` fallen nicht hinein — das ist bewusst und konsistent,
+erfordert aber auf Aufruferseite konsequent `to_dt = exklusives Ende` (z. B. `next_day` statt
+`end_of_day_inclusive`). Phase 5 soll Hilfsfunktionen für Standardzeiträume anbieten, damit
+niemand Intervallgrenzen ad hoc baut (→ `phase5_planung.md`).
+
 `SystemConfigRepository.set_current()`: immer INSERT, nie UPDATE — Versionshistorie bleibt erhalten.
 INSERT-Semantik implizit belegt durch `test_system_config_set_current_zweimal_inkrementiert_version`:
 zwei Aufrufe erzeugen zwei Zeilen mit Versionsnummern 1 und 2, was nur per INSERT möglich ist.
