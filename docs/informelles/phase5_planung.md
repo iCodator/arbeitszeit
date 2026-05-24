@@ -88,6 +88,19 @@ die Funktionen aus `report_queries.py` — keine neuen Ad-hoc-Queries in der
 Präsentationsschicht.
 
 
+### Regelarbeitszeit-Anzeige in Admin-CLI
+
+`WorkScheduleRepository.list_versions(scope_employee_id=None)` liefert nur GLOBAL-Scope-Versionen,
+nicht alle Versionen aller Mitarbeiter. Für eine vollständige Übersicht im Admin-CLI sind zwei
+Aufrufe nötig: einmal ohne `scope_employee_id` (GLOBAL) und einmal pro Mitarbeiter mit dessen ID.
+`schedule.py` muss das in der Anzeige kombinieren.
+
+EMPLOYEE→GLOBAL-Fallback: Werden alle mitarbeiterspezifischen Versionen geschlossen ohne eine
+neue anzulegen, greift automatisch die globale Praxisregel. Die Admin-CLI soll das dem Benutzer
+klar kommunizieren (z. B. „Mitarbeiterspezifische Regelzeit entfernt — globale Praxisregel gilt
+wieder").
+
+
 ### Zeitraum-Hilfsfunktionen (Pflicht vor erster Intervallübergabe)
 
 `TimeBookingRepository.list_between()` und alle Exportfunktionen erwarten halb-offene

@@ -235,11 +235,25 @@ das Audit-Log auf `conn` zurück; Einträge vor Rollback gehen verloren.
 `TimeBookingRepository.set_status()`: SELECT → UPDATE → INSERT atomar;
 `NotFoundError` wenn Booking nicht existiert.
 
-`WorkScheduleRepository.get_effective()`: EMPLOYEE-Scope vor GLOBAL
-(2-Stufen-Query); `list_versions()` filterbar nach Wochentag + scope_employee_id.
+`WorkScheduleRepository.get_effective()`: EMPLOYEE-Scope vor GLOBAL (2-Stufen-Query).
+Ist kein EMPLOYEE-Eintrag vorhanden, fällt das System automatisch auf GLOBAL zurück
+(`test_get_effective_faellt_auf_global_zurueck` ✓). Gilt auch langfristig: Werden alle
+mitarbeiterspezifischen Versionen geschlossen ohne neue anzulegen, greift wieder die
+globale Praxisregel. Die Admin-CLI muss das kommunizieren.
+
+`WorkScheduleRepository.list_versions(weekday=None, scope_employee_id=None)`:
+`scope_employee_id=None` bedeutet **GLOBAL-Scope**, nicht „alle Scopes". Um alle Versionen
+anzuzeigen (GLOBAL + alle Mitarbeiter), sind zwei separate Aufrufe nötig. Phase 5 Admin-CLI
+muss das bei der Darstellung berücksichtigen.
 
 `WorkScheduleRepository.close_version()`: prüft zusätzlich `valid_until >= valid_from`
 → `ValidationError` bei Verletzung. Test: `test_close_version_mit_ungueltigem_datum_wirft_validation_error` ✓
+
+Überlappende Versionen: Der Repo-Code selbst hat keinen SQL-Constraint gegen gleichzeitig
+gültige Versionen für denselben Scope/Wochentag. Die Invariante wird ausschließlich durch
+`ManageWorkScheduleUseCase` (close_version vor add) sichergestellt. Das ist bewusst so — komplexe
+Geschäftsregeln gehören in die Domänenlogik, nicht in SQLite-Constraints. Direktes Schreiben
+an Use Cases vorbei (Ad-hoc-Skripte, manuelle DB-Eingriffe) würde diese Invariante verletzen.
 
 `list_for_employee_on_day()`: Bereichsquery mit `>= day_start` und `< next_day`
 (Index-kompatibel, nicht `DATE()`). Test: `test_time_booking_list_for_employee_on_day_filtert_nach_tag` ✓
