@@ -387,9 +387,6 @@ Erläuterungen, Robustheit ohne Buchungen, Robustheit mit
 Korrekturen/Nachträgen/Prüffällen ohne Buchungen).
 
 Aufgeschobene Feinarbeit (nicht abnahmeblockierend):
-- String-Truncation (`reason[:40]`, `description[:50]`) durch
-  `Paragraph(text, _STYLES["Normal"])` in Tabellenzellen ersetzen
-  → automatischer Zeilenumbruch, kein Informationsverlust
 - `list_open_review_cases()` zeigt zeitraumunabhängig alle offenen Fälle;
   falls zeitgefilterte Sicht gewünscht: neue Funktion ergänzen
 

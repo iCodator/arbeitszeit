@@ -117,7 +117,7 @@ def _correction_table(corrections: list[CorrectionRow]) -> Table:
             c.old_booked_at.strftime("%d.%m.%Y %H:%M"),
             c.new_booking_type.value,
             c.new_booked_at.strftime("%d.%m.%Y %H:%M"),
-            c.reason[:40],
+            _p(c.reason),
             c.corrected_at.strftime("%d.%m.%Y %H:%M"),
         ])
     col_w = [1.8 * cm, 3 * cm, 2 * cm, 3 * cm, 2 * cm, 3 * cm, 4 * cm, 3 * cm]
@@ -135,7 +135,7 @@ def _supplement_table(supplements: list[SupplementRow]) -> Table:
             s.employee_name,
             s.booking_type.value,
             s.event_at.strftime("%d.%m.%Y %H:%M"),
-            s.reason[:40],
+            _p(s.reason),
             s.approval_status.value,
         ])
     col_w = [1.8 * cm, 3.2 * cm, 2.5 * cm, 3.5 * cm, 5 * cm, 2.5 * cm]
@@ -225,7 +225,7 @@ def _build_pdf(
                 rc.employee_name,
                 rc.case_type.value,
                 rc.severity.value,
-                rc.description[:50],
+                _p(rc.description),
                 rc.detected_at.strftime("%d.%m.%Y"),
             ])
         col_w = [1.8 * cm, 3 * cm, 4 * cm, 2 * cm, 5.5 * cm, 2.5 * cm]
