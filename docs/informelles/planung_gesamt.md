@@ -538,7 +538,12 @@ Zielstruktur:
 - `csv_exporter.py` — detaillierter + verdichteter CSV-Export
 - `pdf_report_service.py` — Tages-/Wochen-/Monats-/Mitarbeiterberichte (reportlab)
 
-**8a – report_queries.py ✓:** normierte Datenstrukturen für offene Fälle, Warnsachverhalte, Prüfhinweise und statusbasierte Prüffälle (WARN, NEEDS_REVIEW, POSSIBLE_*, OPEN, CORRECTED, CLOSED_WITH_NOTE), Korrekturen (alt/neu + Begründung + Person + Zeitstempel), Nachträge (als nachträglich erfasster Datensatz gekennzeichnet, Begründung, Freigabebezug soweit vorgesehen), Regelzeitfenster-Verstöße. Gemeinsame Grundlage für CSV, PDF und UI-Pflichtauswertungen.
+**8a – report_queries.py ✓:** normierte Datenstrukturen (`BookingRow`, `CorrectionRow`, `SupplementRow`, `ReviewCaseRow`) + Abfragefunktionen. Zwei orthogonale Dimensionen werden bewusst getrennt abgefragt:
+- **BookingStatus-Dimension** (OPEN, WARN, NEEDS_REVIEW, CORRECTED …): `list_bookings()`, `list_open_bookings()`, `list_warn_bookings()`
+- **ReviewCaseType-Dimension** (POSSIBLE_BREAK_VIOLATION, POSSIBLE_REST_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION, OUTSIDE_SCHEDULE_WINDOW …): `list_open_review_cases()`, `list_review_cases_for_booking()`
+- Ergänzend: `list_corrections()`, `list_supplements()`, `get_employee_identity()`
+
+POSSIBLE_* sind ReviewCaseTypes, keine BookingStatus-Werte — eine frühere Planformulierung hatte diese Dimensionen fälschlich gemischt. Gemeinsame Grundlage für CSV, PDF und UI-Pflichtauswertungen (Regelwerk v3 §11).
 
 **8b – csv_exporter.py ✓:** detaillierter CSV (MA-Kennung/-name, Datum, Uhrzeit, Buchungsart, Dauer, Status, Korrektur-/Nachtragskennzeichnung, Prüfflags) + verdichteter CSV (summierte Arbeitszeit, Pausenanzahl/-dauer, offene Buchungen, Warn-/Prüfstatus-Anzahl, Korrekturen/Nachträge). `_day_stats()` als Zustandsmaschine implementiert (Pausen korrekt aus Nettoarbeitszeit herausgerechnet). Nachvollziehbare Dateibenennung + Ablage in system_config: export.export_dir.
 
