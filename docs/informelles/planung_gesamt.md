@@ -483,18 +483,21 @@ def __enter__(self):
 def commit(self):
     self._conn.execute("COMMIT")
     self._transaction_open = False
-    # kein sofortiges BEGIN — nächste Transaktion startet beim nächsten __enter__
 
 def rollback(self):
     self._conn.execute("ROLLBACK")
     self._transaction_open = False
 
 def __exit__(self, exc_type, exc_val, exc_tb):
-    if exc_type is not None and self._transaction_open:
+    if self._transaction_open:
         self.rollback()
-    # _transaction_open-Flag verhindert ROLLBACK nach bereits erfolgtem commit();
-    # Fehler nach commit() sollen in Tests klar sichtbar bleiben.
 ```
+
+**Exit-Semantik (bewusste Verschärfung gegenüber ursprünglicher Planformulierung):**
+Die Planung formulierte „`__exit__` ruft `rollback()` bei Exception". Umgesetzt wurde eine strengere Semantik: `__exit__` rollt immer zurück, solange `_transaction_open` True ist — also auch dann, wenn keine Exception auftrat, aber schlicht kein `commit()` erfolgt ist. Hintergrund (im Code kommentiert): eine vergessene Bestätigung soll nie stillschweigend persistieren. `_transaction_open = False` nach `commit()` verhindert dabei weiterhin einen ungewollten Rollback nach erfolgreichem Commit — Fehler nach `commit()` bleiben in Tests sichtbar.
+
+**`audit_conn`-Muster:**
+`SQLiteUnitOfWork.__init__` nimmt optional eine zweite Verbindung `audit_conn`. Diese muss im Autocommit-Modus (`isolation_level=None`) geöffnet sein und darf kein eigenes `BEGIN` erhalten. `SQLiteAuditLogRepository` schreibt damit rollback-resistent: Audit-Einträge überleben auch den Rollback der Haupttransaktion auf `conn`. Ohne `audit_conn` fällt das Audit-Log auf `conn` zurück (Einträge vor Rollback gehen verloren). Dieses Muster ist in Schritt 3 nicht vollständig ausbuchstabiert, aber mit der Gesamtarchitektur konsistent und technisch sinnvoll.
 
 ---
 

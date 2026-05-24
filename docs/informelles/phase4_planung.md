@@ -194,10 +194,23 @@ Migrationen 0004–0005 bringen das Schema auf den finalen Stand, den diese Phas
 ### Schritt 3 – infrastructure/db/unit_of_work.py
 
 `SQLiteUnitOfWork` mit allen 10 Repositories. Transaktionsrahmen:
-BEGIN beim `__enter__`, manuelles COMMIT/ROLLBACK. `__exit__` ruft `rollback()`
-bei Exception. `_transaction_open`-Flag verhindert ROLLBACK nach bereits erfolgtem
-`commit()`. `rowcount`-Prüfung in `approve()`, `reject()`, `resolve()` gegen
-stille No-Ops.
+BEGIN beim `__enter__`, manuelles COMMIT/ROLLBACK.
+
+`__exit__`-Semantik (gegenüber ursprünglicher Planformulierung bewusst verschärft):
+Rollt zurück, solange `_transaction_open` True ist — unabhängig davon, ob eine
+Exception auftrat. Kein `commit()` → automatischer Rollback, auch ohne Exception.
+Hintergrund: vergessene Bestätigung soll nie stillschweigend persistieren.
+`_transaction_open = False` nach `commit()` verhindert Rollback nach erfolgreichem
+Commit; Fehler nach `commit()` bleiben in Tests sichtbar. Test
+`test_vergessenes_commit_rollt_automatisch_zurueck` bestätigt diese Semantik explizit.
+
+`audit_conn`-Muster: `SQLiteAuditLogRepository` erhält optional eine zweite Verbindung
+im Autocommit-Modus, damit Audit-Einträge den Rollback der Haupttransaktion überleben.
+`SQLiteUnitOfWork` operiert ausschließlich auf `conn`; `audit_conn` liegt außerhalb
+des Transaktionsrahmens. Dieses Muster ist in der ursprünglichen Schritt-3-Planung
+nicht vollständig ausformuliert, aber mit der Gesamtarchitektur konsistent.
+
+`rowcount`-Prüfung in `approve()`, `reject()`, `resolve()` gegen stille No-Ops.
 
 
 ### Schritt 4 – infrastructure/db/repositories/
