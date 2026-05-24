@@ -389,7 +389,9 @@ def get_employee_identity(
 ) -> tuple[str, str]:
     """Gibt (personnel_no, employee_name) aus employees-Stammdaten zurück.
 
-    Fallback auf str(employee_id) / 'MA {id}' wenn kein Eintrag vorhanden.
+    Fallback auf str(employee_id) / 'MA {id}' wenn kein Eintrag vorhanden —
+    schützt Exportfunktionen gegen verwaiste Buchungsreferenzen bei
+    verletzter referenzieller Integrität. Im Normalbetrieb nie ausgelöst.
     """
     row = conn.execute(
         "SELECT personnel_no, first_name || ' ' || last_name AS name "
