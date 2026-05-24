@@ -399,7 +399,7 @@ Testfälle:
 
 ---
 
-### Phase 4 – Infrastruktur ← aktuelle Phase (Schritt 8: 8a ✓ 8b ✓ 8c ✓ | 8d + 8e + Schritt 9 offen)
+### Phase 4 – Infrastruktur (Schritte 1–8e abgeschlossen | Schritt 9 offen | 319 Tests grün)
 
 #### Fehlersemantik (bereits in Phase 3 vereinheitlicht)
 In allen Use Cases gilt: `employee is None` → `NotFoundError`; `not employee.is_active` → `InactiveEmployeeError`.
@@ -548,9 +548,9 @@ Zielstruktur:
 - String-Truncation (`reason[:40]`, `description[:50]`) durch `Paragraph(text, _STYLES["Normal"])` in Tabellenzellen ersetzen → automatischer Zeilenumbruch, kein Informationsverlust
 - `list_open_review_cases()` zeigt bewusst alle offenen Fälle zeitraumunabhängig; falls zeitgefilterte Sicht gewünscht: neue `list_open_review_cases_in_period(from_dt, to_dt)` ergänzen, bestehende Funktion unverändert lassen
 
-**8d – Pflichtauswertungen** (Pflichtenheft v3 §7.12): offene Buchungen/Pausen, Korrekturen, Nachträge, mögliche Pausen-/Ruhezeit-/Höchstarbeitszeitverstöße, Regelzeitfenster-Verstöße, Warn-/Prüfstatus-Fälle. Filterbar nach Zeitraum + Mitarbeiter; als CSV exportierbar; später in App einsehbar (Phase 5). Exportdateien in Backup-/Archivierungskonzept einbezogen (Regelwerk v3 §17/§18/§20).
+**8d – Pflichtauswertungen ✓** (Pflichtenheft v3 §7.12): Alle acht Kategorien über `report_queries.py` + `csv_exporter.py` abgedeckt: offene Buchungen/Pausen (`list_open_bookings()`), Korrekturen (`list_corrections()`), Nachträge (`list_supplements()`), Pausen-/Ruhezeit-/Höchstarbeitszeitverstöße + Regelzeitfenster-Verstöße (`list_open_review_cases()`), Warn-/Prüfstatus-Fälle (`list_warn_bookings()`). Filterbar nach Zeitraum + Mitarbeiter; als CSV exportierbar. In-App-Ansicht: Phase 5. Exportdateien in Backup-/Archivierungskonzept einbezogen (Regelwerk v3 §17/§18/§20).
 
-**8e – Tests:** `tests/integration/test_export.py` (CSV-Roundtrips, Filterlogik, Korrektur-/Nachtragskennzeichnung, OPEN/WARN-Ableitung) + `tests/integration/test_pdf.py` (PDF-Erzeugung, Seitenanzahl, Schlüsselfelder). Pflichtfall: "Auswertung offener und auffälliger Fälle" (Pflichtenheft v3 §16).
+**8e – Tests ✓:** `tests/integration/test_export.py` (18 Tests: report_queries-Roundtrips, Filterlogik, Korrektur-/Nachtragskennzeichnung, OPEN/WARN-Ableitung, Pflichtfall V3 §16) + `tests/integration/test_csv_export.py` (15 Tests: Detail-CSV, Verdichtung, Zeitberechnungen) + `tests/integration/test_pdf.py` (20 Tests: Dateinamen, valide PDFs, Pflichtabschnitte, Erläuterungen, Robustheit).
 
 ---
 
@@ -590,8 +590,8 @@ Pflichtauswertungen aus Phase 4/8d müssen in der Anwendung einsehbar sein — n
 | --- | --- |
 | `tests/domain/` | Domänenregeln, Invarianten (Phase 2) ✓ |
 | `tests/application/` | Use-Case-Tests mit Fake-Repos (Phase 3) ✓ |
-| `tests/integration/` | Repository-Implementierungen gegen echte SQLite-DB (Phase 4) |
-| `tests/e2e/` | Vollständige Abläufe: Kommen/Gehen, vergessene Pause, Nachtrag, Restore (Phase 5) |
+| `tests/integration/` | Repository-Implementierungen gegen echte SQLite-DB (Phase 4) ✓ |
+| `tests/e2e/` | Vollständige Abläufe: Kommen/Gehen, vergessene Pause, Nachtrag, Restore (Phase 4/5) ✓ (test_backup.py) |
 | `tests/test_migrations.py` | Migrationsrunner (Phase 1) ✓ |
 
 > Kein `shared/` oder `common/`-Paket vorab — erst wenn echter Querschnittscode entsteht.
@@ -604,8 +604,8 @@ Pflichtauswertungen aus Phase 4/8d müssen in der Anwendung einsehbar sein — n
 | mehr als 9h ohne ausreichende Gesamtpause | `tests/domain/test_compliance_checks.py` | ✓ |
 | Arbeitszeit über 8h | `tests/domain/test_compliance_checks.py` + `tests/application/test_book_time.py` | ✓ |
 | Arbeitszeit über 10h | `tests/domain/test_compliance_checks.py` + `tests/application/test_book_time.py` | ✓ |
-| Unterschreitung Ruhezeit (<11h) | `tests/application/test_book_time.py` — nach Phase 4/Schritt 1b | offen |
+| Unterschreitung Ruhezeit (<11h) | `tests/application/test_book_time.py` | ✓ |
 | Systemzeitabweichung | nach Systemzeitprotokollierung (Phase 5) | offen |
 | Notfallnachtrag | `tests/application/test_register_supplement.py` | ✓ |
 | Restore-Test mit echtem Backup | `tests/e2e/test_backup.py` | ✓ |
-| Auswertung offener und auffälliger Fälle | `tests/integration/test_export.py` (Phase 4/8e) | offen |
+| Auswertung offener und auffälliger Fälle | `tests/integration/test_export.py` | ✓ |
