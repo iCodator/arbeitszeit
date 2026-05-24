@@ -196,21 +196,32 @@ Migrationen 0004–0005 bringen das Schema auf den finalen Stand, den diese Phas
 `SQLiteUnitOfWork` mit allen 10 Repositories. Transaktionsrahmen:
 BEGIN beim `__enter__`, manuelles COMMIT/ROLLBACK.
 
-`__exit__`-Semantik (gegenüber ursprünglicher Planformulierung bewusst verschärft):
-Rollt zurück, solange `_transaction_open` True ist — unabhängig davon, ob eine
-Exception auftrat. Kein `commit()` → automatischer Rollback, auch ohne Exception.
-Hintergrund: vergessene Bestätigung soll nie stillschweigend persistieren.
-`_transaction_open = False` nach `commit()` verhindert Rollback nach erfolgreichem
-Commit; Fehler nach `commit()` bleiben in Tests sichtbar. Test
-`test_vergessenes_commit_rollt_automatisch_zurueck` bestätigt diese Semantik explizit.
+**commit-or-rollback** (bewusste Sicherheitsentscheidung, gegenüber Planformulierung verschärft):
+`__exit__` führt Rollback aus, sobald `_transaction_open` noch True ist — unabhängig
+davon, ob eine Exception vorliegt. Kein `commit()` → automatischer Rollback, auch ohne
+Exception. `_transaction_open`-Flag verhindert ausschließlich Rollback nach erfolgreich
+ausgeführtem `commit()`; Fehler nach `commit()` bleiben in Tests sichtbar. Stillschweigende
+Persistenz bei vergessenem Commit ist damit strukturell ausgeschlossen.
 
-`audit_conn`-Muster: `SQLiteAuditLogRepository` erhält optional eine zweite Verbindung
-im Autocommit-Modus, damit Audit-Einträge den Rollback der Haupttransaktion überleben.
-`SQLiteUnitOfWork` operiert ausschließlich auf `conn`; `audit_conn` liegt außerhalb
-des Transaktionsrahmens. Dieses Muster ist in der ursprünglichen Schritt-3-Planung
-nicht vollständig ausformuliert, aber mit der Gesamtarchitektur konsistent.
+`audit_conn`-Muster: `SQLiteUnitOfWork` kapselt nur die Haupttransaktion auf `conn`;
+`audit_conn` wird nicht vom UoW gesteuert und bleibt dauerhaft in Autocommit. Audit-Einträge
+überleben damit den Rollback der Haupttransaktion. `open_connection()` ist die einzige erlaubte
+Stelle zur Erzeugung von `audit_conn` (PRAGMAs, WAL, busy_timeout). Ohne `audit_conn` fällt
+das Audit-Log auf `conn` zurück; Einträge vor Rollback gehen verloren.
 
 `rowcount`-Prüfung in `approve()`, `reject()`, `resolve()` gegen stille No-Ops.
+
+10 Tests in `tests/integration/test_unit_of_work.py`:
+- `test_commit_macht_daten_sichtbar` — Commit persistiert
+- `test_rollback_verwirft_daten` — expliziter Rollback verwirft
+- `test_exception_im_with_block_loest_rollback_aus` — Exception → Rollback
+- `test_vergessenes_commit_rollt_automatisch_zurueck` — kein Commit → Rollback
+- `test_kein_spurious_rollback_nach_commit` — kein zweiter Rollback nach Commit
+- `test_transaction_open_flag_nach_commit_false` — Flag nach Commit False
+- `test_transaction_open_flag_nach_rollback_false` — Flag nach Rollback False
+- `test_mehrfache_transaktionen_hintereinander` — sequentielle Transaktionen unabhängig
+- `test_audit_log_bleibt_nach_rollback_erhalten` — Audit-Eintrag überlebt Rollback auf conn
+- `test_audit_log_schreibbar_waehrend_conn_nur_liest` — audit_conn unabhängig von conn-Zustand
 
 
 ### Schritt 4 – infrastructure/db/repositories/

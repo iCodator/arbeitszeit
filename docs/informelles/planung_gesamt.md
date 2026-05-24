@@ -493,11 +493,19 @@ def __exit__(self, exc_type, exc_val, exc_tb):
         self.rollback()
 ```
 
-**Exit-Semantik (bewusste Verschärfung gegenüber ursprünglicher Planformulierung):**
-Die Planung formulierte „`__exit__` ruft `rollback()` bei Exception". Umgesetzt wurde eine strengere Semantik: `__exit__` rollt immer zurück, solange `_transaction_open` True ist — also auch dann, wenn keine Exception auftrat, aber schlicht kein `commit()` erfolgt ist. Hintergrund (im Code kommentiert): eine vergessene Bestätigung soll nie stillschweigend persistieren. `_transaction_open = False` nach `commit()` verhindert dabei weiterhin einen ungewollten Rollback nach erfolgreichem Commit — Fehler nach `commit()` bleiben in Tests sichtbar.
+**Exit-Semantik — bewusste Sicherheitsentscheidung (commit-or-rollback):**
+Architekturprinzip: Jede Transaktion, die nicht explizit per `commit()` bestätigt wurde, wird beim Verlassen des `with`-Blocks automatisch zurückgerollt — auch bei fehlerfreiem Ablauf. Stillschweigende Persistenz ist ausgeschlossen.
+- `__exit__` führt Rollback aus, sobald `_transaction_open` noch True ist — unabhängig davon, ob eine Exception vorliegt.
+- `_transaction_open`-Flag verhindert ausschließlich Rollback nach erfolgreich ausgeführtem `commit()`. Fehler nach `commit()` bleiben in Tests sichtbar, weil kein zweiter Rollback ausgelöst wird.
+
+Formale Abweichung vom ursprünglichen Plantext: Ursprüngliche Formulierung lautete „Rollback bei Exception". Tatsächliche Semantik ist strenger: Rollback bei jeder noch offenen Transaktion, nicht nur bei Exception. Die Tests bestätigen das explizit (`test_vergessenes_commit_rollt_automatisch_zurueck`).
 
 **`audit_conn`-Muster:**
-`SQLiteUnitOfWork.__init__` nimmt optional eine zweite Verbindung `audit_conn`. Diese muss im Autocommit-Modus (`isolation_level=None`) geöffnet sein und darf kein eigenes `BEGIN` erhalten. `SQLiteAuditLogRepository` schreibt damit rollback-resistent: Audit-Einträge überleben auch den Rollback der Haupttransaktion auf `conn`. Ohne `audit_conn` fällt das Audit-Log auf `conn` zurück (Einträge vor Rollback gehen verloren). Dieses Muster ist in Schritt 3 nicht vollständig ausbuchstabiert, aber mit der Gesamtarchitektur konsistent und technisch sinnvoll.
+`SQLiteUnitOfWork` kapselt ausschließlich die Haupttransaktion auf `conn`; `audit_conn` wird vom UoW nicht gesteuert und bleibt dauerhaft im Autocommit-Modus. `SQLiteAuditLogRepository` schreibt damit rollback-resistent: Audit-Einträge überleben den Rollback der Haupttransaktion.
+
+`open_connection()` ist die einzige erlaubte Stelle zur Erzeugung von `audit_conn` (PRAGMAs, WAL-Modus, busy_timeout). Eine manuell mit abweichenden PRAGMAs geöffnete Verbindung gefährdet Autocommit-Garantie und Locking-Robustheit.
+
+Ohne `audit_conn` fällt das Audit-Log auf `conn` zurück; Einträge vor Rollback gehen dann verloren.
 
 ---
 
