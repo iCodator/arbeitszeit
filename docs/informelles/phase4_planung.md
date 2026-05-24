@@ -179,7 +179,12 @@ CorrectBookingUseCase, RegisterSupplementUseCase, ApproveSupplementUseCase.
 - Migration `0004_supplement_reject_fields_and_review_note.sql` – `rejected_by_user_id`/`rejected_at`
   in `supplements` + `note` in `review_cases` ergänzt (FK auf `user_accounts.id`).
 - Migration `0005_time_bookings_device_event_id.sql` – `device_event_id INTEGER` FK
-  in `time_bookings` per Table-Rebuild ergänzt.
+  in `time_bookings` per Table-Rebuild ergänzt. Kein Index auf `device_event_id` angelegt —
+  war nicht gefordert, bewusst nicht weiter ausgebaut (keine Lücke, nur offen gelassene Optimierung).
+
+Abgrenzung Schritt 2: Stellt ausschließlich die **Schemafähigkeit** her. Die vollständige operative
+Nutzung (Hardware-Schicht erzeugt `device_events`, ID wird via `BookCommand.device_event_id`
+durchgereicht) ist Teil der größeren Infrastrukturkette — nicht allein Aufgabe dieses Schritts.
 
 Hinweis: Migration `0001` enthielt noch ältere CHECK-Constraints und ein früheres Supplement-Modell
 (ohne `rejected_by_user_id`). Migration `0003` (Phase 3 Vorbereitung) bereinigt BookingStatus-CHECK;

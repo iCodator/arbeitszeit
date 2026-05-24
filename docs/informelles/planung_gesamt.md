@@ -460,6 +460,8 @@ Neue Testfälle in `tests/application/` für jede Prüfung: `PermissionDeniedErr
 **Schritt 2 – Migration `0005`**
 `device_event_id INTEGER` als nullable Spalte in `time_bookings` ergänzen (FK auf `device_events.id`), per Table-Rebuild (SQLite-Einschränkung).
 
+Abgrenzung: Schritt 2 stellt ausschließlich die **Schemafähigkeit** her — das Feld ist fachlich vorbereitet, aber noch nicht operativ genutzt. Die vollständige Verkettung (Hardware-Schicht erzeugt `device_events`, ID wird via `BookCommand.device_event_id` durchgereicht) ist Teil der größeren Infrastrukturkette und nicht allein Aufgabe dieses Schritts. Wer Schritt 2 als „vollständige Device-Event-Verkettung Ende-zu-Ende" liest, erwartet mehr als die Planung fordert. Kein Index auf `device_event_id` angelegt — war nicht gefordert und ist bewusst nicht weiter ausgebaut (kein Mangel, nur eine offen gelassene Optimierung).
+
 Hinweis zur Migration-Entwicklung: Migration `0001` enthielt noch ältere CHECK-Constraints für `BookingStatus` (inkl. nicht mehr verwendeter Werte) und ein früheres Supplement-Modell ohne `rejected_by_user_id`/`rejected_at`. Diese Abweichungen wurden durch spätere Migrationen auf den finalen Stand gebracht:
 - `0003_cleanup_booking_status.sql` — bereinigt CHECK-Constraints in `time_bookings` + `booking_status_history`
 - `0004_supplement_reject_fields_and_review_note.sql` — ergänzt `rejected_by_user_id`/`rejected_at` in `supplements` + `note` in `review_cases`
