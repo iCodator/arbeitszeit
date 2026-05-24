@@ -158,13 +158,13 @@ Kein eigener `BookingStatusHistoryRepository`-Port in der Application-Schicht.
 
 Phase 3 hat keine Rollenprüfung implementiert (Fakes, kein UserAccountRepository-Aufruf in Use Cases). Phase 4/Schritt 1c zieht explizite Rollenprüfung in alle schreibenden Use Cases nach. `PermissionDeniedError` ist bereits in `errors.py` vorhanden.
 
-Muster: `user = user_account_repo.get_by_id(acting_user_id)` → `if user is None or user.role not in ALLOWED_ROLES: raise PermissionDeniedError(...)`
+Muster: `user = user_account_repo.get_by_id(acting_user_id)` → `PermissionDeniedError` wenn: Benutzer nicht gefunden (`None`), Benutzer inaktiv (`not user.is_active`), oder Rolle nicht in `ALLOWED_ROLES`. Alle drei Fälle werden einheitlich mit `PermissionDeniedError` abgewiesen.
 
 | Use Case | Erlaubte Rollen | Prüf-ID |
 | --- | --- | --- |
 | `RegisterSupplementUseCase` | ADMIN, REVIEWER | `recorded_by_user_id` |
-| `ApproveSupplementUseCase` | REVIEWER, ADMIN | `approving_user_id` (neu: `ApproveSupplementCommand`) |
-| `RejectSupplementUseCase` | REVIEWER, ADMIN | `rejecting_user_id` (neu: `RejectSupplementCommand`) |
+| `ApproveSupplementUseCase` | REVIEWER, ADMIN | `approving_user_id` (`ApproveSupplementCommand`) |
+| `RejectSupplementUseCase` | REVIEWER, ADMIN | `rejected_by_user_id` (`RejectSupplementCommand`) |
 | `CorrectBookingUseCase` | ADMIN, REVIEWER | `corrected_by_user_id` |
 | `ManageWorkScheduleUseCase` | ADMIN | `changed_by_user_id` (muss non-null sein) |
 | Backup/Restore | TECH, ADMIN | Betriebsebene (Phase 5) |
@@ -179,7 +179,7 @@ Muster: `user = user_account_repo.get_by_id(acting_user_id)` → `if user is Non
 `RejectSupplementCommand` — `@dataclass(frozen=True, slots=True)`:
 
 - `supplement_id: int`
-- `rejecting_user_id: int`
+- `rejected_by_user_id: int`
 - `reason: str`
 
 ---
@@ -424,9 +424,9 @@ Gilt für `BookUseCase`, `CorrectBookingUseCase`, `RegisterSupplementUseCase` un
 
 `RejectSupplementUseCase`:
 
-1. `user_account_repo.get_by_id(cmd.rejecting_user_id)` → `None` oder Rolle nicht in {REVIEWER, ADMIN}: `PermissionDeniedError`
+1. `user_account_repo.get_by_id(cmd.rejected_by_user_id)` → Benutzer nicht gefunden (`None`), inaktiv oder Rolle nicht in {REVIEWER, ADMIN}: `PermissionDeniedError`
 2. `get_by_id()` → `NotFoundError`; `PENDING`-Check → `ValidationError`
-3. `supplement_repo.reject()`; `MANUAL_ENTRY_REVIEW`-Fall schließen (Status `CLOSED_WITH_NOTE`)
+3. `supplement_repo.reject()`; wenn `supplement.related_booking_id is not None`: den passenden `MANUAL_ENTRY_REVIEW`-Fall (`case.booking_id == supplement.related_booking_id`) mit Status `CLOSED_WITH_NOTE` schließen. Ist `related_booking_id` None, bleibt kein Fall zu schließen — `review_case_id = None`.
 4. `AuditLogEntry` (`event_type="SUPPLEMENT_REJECTED"`, `reason` im JSON); `uow.commit()`
 
 Beide Use Cases: Tests gegen Fakes; kein Commit bei Fehler.
@@ -459,7 +459,13 @@ Neue Testfälle in `tests/application/` für jede Prüfung: `PermissionDeniedErr
 
 **Schritt 2 – Migration `0005`**
 `device_event_id INTEGER` als nullable Spalte in `time_bookings` ergänzen (FK auf `device_events.id`), per Table-Rebuild (SQLite-Einschränkung).
-(Migration `0004` wurde bereits für `rejected_by_user_id`/`rejected_at` + `review_cases.note` verwendet.)
+
+Hinweis zur Migration-Entwicklung: Migration `0001` enthielt noch ältere CHECK-Constraints für `BookingStatus` (inkl. nicht mehr verwendeter Werte) und ein früheres Supplement-Modell ohne `rejected_by_user_id`/`rejected_at`. Diese Abweichungen wurden durch spätere Migrationen auf den finalen Stand gebracht:
+- `0003_cleanup_booking_status.sql` — bereinigt CHECK-Constraints in `time_bookings` + `booking_status_history`
+- `0004_supplement_reject_fields_and_review_note.sql` — ergänzt `rejected_by_user_id`/`rejected_at` in `supplements` + `note` in `review_cases`
+- `0005_time_bookings_device_event_id.sql` — ergänzt `device_event_id` in `time_bookings`
+
+Der in diesem Plan beschriebene Use-Case-API (insb. `RejectSupplementCommand.rejected_by_user_id`) entspricht dem finalen Schema-Stand nach allen fünf Migrationen.
 
 ---
 

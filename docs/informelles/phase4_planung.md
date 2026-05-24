@@ -176,8 +176,14 @@ CorrectBookingUseCase, RegisterSupplementUseCase, ApproveSupplementUseCase.
 
 - `approve_supplement.py` / `reject_supplement.py` – in Phase 3 vorimplementiert.
   Rollenprüfung (REVIEWER, ADMIN) direkt enthalten.
+- Migration `0004_supplement_reject_fields_and_review_note.sql` – `rejected_by_user_id`/`rejected_at`
+  in `supplements` + `note` in `review_cases` ergänzt (FK auf `user_accounts.id`).
 - Migration `0005_time_bookings_device_event_id.sql` – `device_event_id INTEGER` FK
   in `time_bookings` per Table-Rebuild ergänzt.
+
+Hinweis: Migration `0001` enthielt noch ältere CHECK-Constraints und ein früheres Supplement-Modell
+(ohne `rejected_by_user_id`). Migration `0003` (Phase 3 Vorbereitung) bereinigt BookingStatus-CHECK;
+Migrationen 0004–0005 bringen das Schema auf den finalen Stand, den diese Phase beschreibt.
 
 
 ### Schritt 3 – infrastructure/db/unit_of_work.py
@@ -278,7 +284,9 @@ Deckt V3 §16-Testpflicht „Unterschreitung der Ruhezeit" ab.
 - `ManageWorkScheduleUseCase`: Rolle ADMIN; `changed_by_user_id` darf nicht None sein
 - `ApproveSupplementUseCase` / `RejectSupplementUseCase`: Rolle in {REVIEWER, ADMIN}
 
-Testfälle: `PermissionDeniedError` bei falscher Rolle und bei None.
+Testfälle: `PermissionDeniedError` bei falscher Rolle, bei unbekanntem Benutzer (`get_by_id()` → `None`)
+und bei inaktivem Benutzer (`user.is_active == False`). Alle drei Fälle werden einheitlich mit
+`PermissionDeniedError` abgewiesen — keine Unterscheidung nach Fehlerursache nach außen.
 
 
 ### Offener V3-Punkt – Systemzeitprotokollierung  ← auf Phase 5 verschoben

@@ -256,10 +256,12 @@ Rollenprüfung in Phase 3 bereits implementiert.
 
 `RejectSupplementUseCase(uow).execute(cmd) → RejectSupplementResult`
 
-1. Rollenprüfung: Rolle in {REVIEWER, ADMIN}
+1. Rollenprüfung: Benutzer nicht gefunden (`None`), inaktiv oder Rolle nicht in {REVIEWER, ADMIN} → `PermissionDeniedError`
 2. `get_by_id()` → `NotFoundError`; nicht PENDING → `ValidationError`
 3. `supplement_repo.reject()`
-4. MANUAL_ENTRY_REVIEW-Fall mit passender `booking_id` schließen (CLOSED_WITH_NOTE)
+4. Wenn `supplement.related_booking_id is not None`: den passenden `MANUAL_ENTRY_REVIEW`-Fall
+   (`case.booking_id == supplement.related_booking_id`) mit `CLOSED_WITH_NOTE` schließen.
+   Ist `related_booking_id` None, bleibt kein Fall zu schließen.
 5. `AuditLogEntry` (audit_events.SUPPLEMENT_REJECTED mit reason)
 6. `uow.commit()`
 
