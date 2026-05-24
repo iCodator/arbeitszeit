@@ -309,14 +309,24 @@ außerhalb dieser Schicht sind architektonisch verboten.
 Öffentliche Datenstrukturen: `BookingRow`, `CorrectionRow`, `SupplementRow`,
 `ReviewCaseRow` (frozen dataclasses).
 
-Öffentliche Abfragefunktionen:
+Zwei orthogonale Dimensionen werden bewusst getrennt abgefragt:
+
+**BookingStatus-Dimension** (OPEN, WARN, NEEDS_REVIEW, CORRECTED, CLOSED_WITH_NOTE):
 - `list_bookings(conn, from_dt, to_dt, employee_id=None) → list[BookingRow]`
 - `list_open_bookings(conn, employee_id=None) → list[BookingRow]`
 - `list_warn_bookings(conn, from_dt, to_dt, employee_id=None) → list[BookingRow]`
-- `list_corrections(conn, from_dt, to_dt, employee_id=None) → list[CorrectionRow]`
-- `list_supplements(conn, from_dt, to_dt, employee_id=None) → list[SupplementRow]`
+
+**ReviewCaseType-Dimension** (POSSIBLE_BREAK_VIOLATION, POSSIBLE_REST_VIOLATION,
+POSSIBLE_MAX_HOURS_VIOLATION, OUTSIDE_SCHEDULE_WINDOW, OPEN_WORK_PHASE …):
 - `list_open_review_cases(conn, employee_id=None) → list[ReviewCaseRow]`
 - `list_review_cases_for_booking(conn, booking_id) → list[ReviewCaseRow]`
+
+POSSIBLE_* sind ReviewCaseTypes, keine BookingStatus-Werte.
+Diese Dimensionen sind orthogonal (Regelwerk v3 §11).
+
+**Weitere Funktionen:**
+- `list_corrections(conn, from_dt, to_dt, employee_id=None) → list[CorrectionRow]`
+- `list_supplements(conn, from_dt, to_dt, employee_id=None) → list[SupplementRow]`
 - `get_employee_identity(conn, employee_id) → tuple[str, str]`
   (personnel_no, full_name) — einzige erlaubte Identitätsabfrage außerhalb Repos
 
