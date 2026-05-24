@@ -339,13 +339,19 @@ Diese Dimensionen sind orthogonal (Regelwerk v3 §11).
 `export_detail(conn, from_dt, to_dt, export_dir, employee_id=None, now=None) → Path`
 `export_condensed(conn, from_dt, to_dt, export_dir, employee_id=None, now=None) → Path`
 
-Detaillierter CSV: MA-Kennung/-name, Datum, Uhrzeit, Buchungsart, ableitbare Dauer,
-Status, Korrektur-/Nachtragskennzeichnung, Prüfflags.
-Verdichteter CSV: summierte Netto-Arbeitszeit, Pausenanzahl/-dauer, offene
-Buchungen, Warn-/Prüfstatus-Anzahl, Korrekturen/Nachträge.
+Detaillierter CSV-Spalten: `buchungs_id`, `mitarbeiter_nr`, `mitarbeiter_name`,
+`datum`, `uhrzeit`, `buchungsart`, `status`, `quelle`, `ist_nachtrag`,
+`ist_korrigiert`, `dauer_minuten`.
 
-`_day_stats()` als Zustandsmaschine (Pausen korrekt aus Nettoarbeitszeit
-herausgerechnet).
+Verdichteter CSV-Spalten: `mitarbeiter_nr`, `mitarbeiter_name`, `datum`,
+`nettoarbeitszeit_minuten`, `nettopausenzeit_minuten`, `pausenanzahl`,
+`anzahl_buchungen`, `offene_buchungen`, `warn_buchungen`,
+`pruefpflicht_buchungen`, `korrekturen`, `nachtraege`.
+
+`_day_stats()` als Zustandsmaschine: Pausen korrekt aus Nettoarbeitszeit
+herausgerechnet; `pausenanzahl` zählt BREAK_START-Ereignisse (also auch
+noch offene Pausen); `nettopausenzeit_minuten` zählt nur abgeschlossene
+Pausen (BREAK_START/BREAK_END-Paare).
 
 Dateinamen:
 ```

@@ -234,6 +234,7 @@ def test_verdichtet_csv_pausenzeit_und_nettoarbeitszeit_korrekt(conn, export_dir
     rows = _read_csv(path)
     assert rows[0]["nettopausenzeit_minuten"] == "30"
     assert rows[0]["nettoarbeitszeit_minuten"] == "510"
+    assert rows[0]["pausenanzahl"] == "1"
 
 
 def test_verdichtet_csv_korrekturen_und_nachtraege(conn, export_dir):

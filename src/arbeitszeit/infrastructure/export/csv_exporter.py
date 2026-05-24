@@ -90,6 +90,7 @@ def _day_stats(day: list[BookingRow]) -> dict:
     """
     work_seconds = 0.0
     break_seconds = 0.0
+    pause_count = 0
     open_count = 0
     warn_count = 0
     needs_review_count = 0
@@ -106,6 +107,7 @@ def _day_stats(day: list[BookingRow]) -> dict:
                 work_seconds += (b.booked_at - work_phase_start).total_seconds()
                 work_phase_start = None
             break_phase_start = b.booked_at
+            pause_count += 1
 
         elif b.booking_type == BookingType.BREAK_END:
             # Pause endet, neue Arbeitsphase beginnt
@@ -130,6 +132,7 @@ def _day_stats(day: list[BookingRow]) -> dict:
     return {
         "nettoarbeitszeit_minuten": int(work_seconds // 60),
         "nettopausenzeit_minuten": int(break_seconds // 60),
+        "pausenanzahl": pause_count,
         "anzahl_buchungen": len(day),
         "offene_buchungen": open_count,
         "warn_buchungen": warn_count,
@@ -215,6 +218,7 @@ _CONDENSED_FIELDS = [
     "datum",
     "nettoarbeitszeit_minuten",
     "nettopausenzeit_minuten",
+    "pausenanzahl",
     "anzahl_buchungen",
     "offene_buchungen",
     "warn_buchungen",
