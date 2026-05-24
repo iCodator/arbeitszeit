@@ -248,10 +248,17 @@ das Audit-Log auf `conn` zurück; Einträge vor Rollback gehen verloren.
 INSERT-Semantik implizit belegt durch `test_system_config_set_current_zweimal_inkrementiert_version`:
 zwei Aufrufe erzeugen zwei Zeilen mit Versionsnummern 1 und 2, was nur per INSERT möglich ist.
 
-AuditLog-Kopplung bei `set_current()`: Die Planung fordert „immer zusammen mit AuditLogEntry
-in einer Transaktion" — das ist Use-Case-Verantwortung, nicht Repository-Verantwortung. Das Repository
-selbst schreibt bewusst kein AuditLog. Kein aktueller Use Case ruft `set_current()` auf;
-die operative Nutzung (z. B. Admin-Konfigurationsänderung) ist auf Phase 5 (Admin CLI) verschoben.
+AuditLog-Kopplung bei `set_current()`: Die Planformulierung „immer zusammen mit AuditLogEntry
+in einer Transaktion" ist eine **Verwendungsregel für Aufrufer** (Use Cases), nicht eine
+Repository-interne Pflicht. Das Repository selbst schreibt bewusst kein AuditLog — das wäre
+eine Kompetenzüberschreitung (Repositories kennen keine Use-Case-Semantik). Korrekte Lesart:
+„Jeder Use Case, der `set_current()` aufruft, muss in derselben Transaktion auch einen
+AuditLogEntry schreiben."
+
+Kein aktueller Use Case ruft `set_current()` auf. „Repository fertig" bedeutet hier nicht
+„Fachfunktion vollständig operativ verfügbar" — die operative Nutzung (Admin-Konfigurationsänderung
+mit Audit) ist auf Phase 5 (Admin CLI) verschoben. Das ist kein Mangel in Schritt 4, sondern
+die plangemäße Reihenfolge.
 
 
 ### Schritt 5 + 6 – tests/integration/
