@@ -336,6 +336,35 @@ def list_open_review_cases(
     return [_parse_review_case_row(r) for r in rows]
 
 
+def list_open_review_cases_in_period(
+    conn: sqlite3.Connection,
+    from_dt: datetime,
+    to_dt: datetime,
+    employee_id: int | None = None,
+) -> list[ReviewCaseRow]:
+    """Offene und aktive Prüffälle mit detected_at im Zeitraum.
+
+    Pflichtenheft v3 §7.12: Pflichtauswertungen müssen nach Zeitraum
+    filterbar sein. Ergänzt list_open_review_cases() um Zeitraumbeschränkung.
+    """
+    sql = (
+        "SELECT rc.id AS case_id, rc.employee_id, e.personnel_no, "
+        "e.first_name, e.last_name, rc.case_type, rc.severity, rc.status, "
+        "rc.time_booking_id, rc.description, rc.detected_at, rc.note "
+        "FROM review_cases rc "
+        "JOIN employees e ON e.id = rc.employee_id "
+        "WHERE rc.status IN ('OPEN', 'IN_REVIEW') "
+        "AND rc.detected_at >= ? AND rc.detected_at <= ?"
+    )
+    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    if employee_id is not None:
+        sql += " AND rc.employee_id = ?"
+        params.append(employee_id)
+    sql += " ORDER BY rc.detected_at"
+    rows = conn.execute(sql, params).fetchall()
+    return [_parse_review_case_row(r) for r in rows]
+
+
 def list_review_cases_for_booking(
     conn: sqlite3.Connection,
     booking_id: int,

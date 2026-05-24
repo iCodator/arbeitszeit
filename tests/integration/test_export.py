@@ -24,6 +24,7 @@ from arbeitszeit.infrastructure.export.report_queries import (
     list_corrections,
     list_open_bookings,
     list_open_review_cases,
+    list_open_review_cases_in_period,
     list_review_cases_for_booking,
     list_supplements,
     list_warn_bookings,
@@ -106,6 +107,7 @@ def _insert_review_case(
     case_type: str = "POSSIBLE_MAX_HOURS_VIOLATION",
     status: str = "OPEN",
     severity: str = "WARN",
+    detected_at: datetime = _NOW,
 ) -> int:
     closed_at = _NOW.isoformat() if status in ("RESOLVED", "CLOSED_WITH_NOTE") else None
     closed_by = 1 if status in ("RESOLVED", "CLOSED_WITH_NOTE") else None
@@ -117,7 +119,7 @@ def _insert_review_case(
         "description, detected_at, closed_at, closed_by_user_id) "
         "VALUES (?, ?, ?, ?, ?, 'Test', ?, ?, ?) RETURNING id",
         (employee_id, booking_id, case_type, status, severity,
-         _NOW.isoformat(), closed_at, closed_by),
+         detected_at.isoformat(), closed_at, closed_by),
     ).fetchone()
     return row["id"]
 
@@ -351,6 +353,42 @@ def test_list_open_review_cases_filtert_nach_employee_id(conn):
     _insert_review_case(conn, emp2, b2)
 
     result = list_open_review_cases(conn, employee_id=emp1)
+
+    assert len(result) == 1
+    assert result[0].employee_id == emp1
+
+
+# ---------------------------------------------------------------------------
+# list_open_review_cases_in_period
+# ---------------------------------------------------------------------------
+
+def test_list_open_review_cases_in_period_liefert_faelle_im_zeitraum(conn):
+    emp_id = _insert_employee(conn)
+    _insert_review_case(conn, emp_id, detected_at=_NOW)
+
+    result = list_open_review_cases_in_period(conn, _FROM, _TO)
+
+    assert len(result) == 1
+    assert result[0].employee_id == emp_id
+
+
+def test_list_open_review_cases_in_period_exkludiert_faelle_ausserhalb(conn):
+    emp_id = _insert_employee(conn)
+    outside = datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc)
+    _insert_review_case(conn, emp_id, detected_at=outside)
+
+    result = list_open_review_cases_in_period(conn, _FROM, _TO)
+
+    assert result == []
+
+
+def test_list_open_review_cases_in_period_filtert_nach_employee_id(conn):
+    emp1 = _insert_employee(conn, "E001")
+    emp2 = _insert_employee(conn, "E002")
+    _insert_review_case(conn, emp1, detected_at=_NOW)
+    _insert_review_case(conn, emp2, detected_at=_NOW)
+
+    result = list_open_review_cases_in_period(conn, _FROM, _TO, employee_id=emp1)
 
     assert len(result) == 1
     assert result[0].employee_id == emp1

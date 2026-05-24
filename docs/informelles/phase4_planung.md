@@ -386,9 +386,11 @@ bericht_mitarbeiter_NNNN_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.pdf
 Erläuterungen, Robustheit ohne Buchungen, Robustheit mit
 Korrekturen/Nachträgen/Prüffällen ohne Buchungen).
 
-Aufgeschobene Feinarbeit (nicht abnahmeblockierend):
-- `list_open_review_cases()` zeigt zeitraumunabhängig alle offenen Fälle;
-  falls zeitgefilterte Sicht gewünscht: neue Funktion ergänzen
+Beide Varianten vorhanden:
+- `list_open_review_cases()` — alle offenen Fälle ohne Zeitgrenze
+  (sinnvoll für globale Prüfübersicht)
+- `list_open_review_cases_in_period(from_dt, to_dt, employee_id=None)` —
+  zeitraumgefiltert nach detected_at (Pflichtenheft v3 §7.12)
 
 
 ### Schritt 8d – Pflichtauswertungen
