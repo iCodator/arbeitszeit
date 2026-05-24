@@ -525,16 +525,25 @@ Ohne `audit_conn` fällt das Audit-Log auf `conn` zurück; Einträge vor Rollbac
 
 ---
 
-**Schritt 5 – `tests/integration/`**
+**Schritt 5 – `tests/integration/` (Repository/UoW-Integrationsbasis)**
 
-Fixture: In-Memory-SQLite + `run_migrations()` in `conftest.py`.
+Scope: `test_repositories.py` (15), `test_repositories_roundtrip.py` (23), `test_unit_of_work.py` (10).
+Export- und Hardware-Integrationstests gehören zu späteren Schritten 6–8.
+
+DB-Fixture: Die ursprüngliche Formulierung „In-Memory-SQLite" ist ungenau — tatsächlich
+**ephemere dateibasierte SQLite-Testdatenbank** (`tmp_path / "test.db"`) via `open_connection()`
++ `run_migrations()`. Dateibasiert ist sachgerechter, weil `audit_conn`-Tests zwei Verbindungen
+auf dieselbe Datei benötigen.
+
+Fixture-Struktur: `conftest.py` definiert `conn`, `employee_id`, `user_id`. `test_unit_of_work.py`
+hat zusätzlich eigene `conn(db_path)` + `audit_conn(db_path)` — technisch notwendig für
+Zwei-Verbindungen-Semantik. `test_repositories.py` dupliziert `conn` lokal — technisch redundant,
+aber funktional korrekt.
+
 Testprinzip: echte INSERT/SELECT-Roundtrips, keine Mocks.
 
-Zusätzlicher Pflicht-Testfall für `WorkScheduleRepository`:
-- Zwei gültige EMPLOYEE-Versionen für denselben Mitarbeiter/Wochentag →
-  `get_effective` wählt die neuere; dokumentiert, dass Mehrfachgültigkeit
-  zwar durch Use Case + Datenkonsistenz verhindert wird, die Infrastruktur
-  aber dennoch deterministisch selektiert.
+Pflicht-Testfall WorkScheduleRepository: `test_workschedule_geteffective_zwei_employee_versionen_waehlt_neuere` —
+zwei gültige EMPLOYEE-Versionen → neuere wird deterministisch gewählt. ✓
 
 ---
 

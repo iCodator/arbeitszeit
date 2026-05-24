@@ -289,11 +289,30 @@ die plangemäße Reihenfolge.
 
 ### Schritt 5 + 6 – tests/integration/
 
-Fixture `conn`: In-Memory-SQLite + `run_migrations()`. Testprinzip: echte
-INSERT/SELECT-Roundtrips, keine Mocks.
+**Scope:** Schritt 5 umfasst ausschließlich die Repository/UoW-Integrationsbasis
+(`test_repositories.py`, `test_repositories_roundtrip.py`, `test_unit_of_work.py`).
+Export- und Hardware-Integrationstests gehören zu späteren Schritten 6–8.
+
+**DB-Fixture:** Die Planung nennt „In-Memory-SQLite" — tatsächlich verwendet die
+Testbasis eine dateibasierte temporäre Test-DB (`tmp_path / "test.db"`) via `open_connection()`
++ `run_migrations()`. Das ist technisch sinnvoller als `:memory:`, weil der `audit_conn`-Test
+zwei Verbindungen auf dieselbe Datei benötigt. Korrekte Beschreibung: **„ephemere dateibasierte
+SQLite-Testdatenbank mit Migrationen"**, nicht „In-Memory-SQLite".
+
+Testprinzip: echte INSERT/SELECT-Roundtrips, keine Mocks.
+
+**Fixture-Struktur:** `conftest.py` definiert `conn(tmp_path)`, `employee_id(conn)`,
+`user_id(conn)` als gemeinsame Basis. Davon abweichend:
+
+- `test_unit_of_work.py` definiert `conn(db_path)` + `audit_conn(db_path)` lokal —
+  **technisch notwendig**, weil beide Verbindungen auf dieselbe Datei zeigen müssen
+  (Autocommit-Verhalten von `audit_conn` setzt getrennte Verbindung voraus).
+- `test_repositories.py` definiert eine eigene `conn`-Fixture — **technisch redundant**
+  (identisch zu conftest), aber funktional korrekt.
 
 Pflicht-Testfall WorkScheduleRepository: Zwei EMPLOYEE-Versionen für denselben
 Mitarbeiter/Wochentag → `get_effective()` wählt neuere (deterministisch). Test ✓
+(`test_workschedule_geteffective_zwei_employee_versionen_waehlt_neuere`)
 
 
 ### Schritt 7 – infrastructure/hardware/
