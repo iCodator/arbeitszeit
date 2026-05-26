@@ -548,7 +548,7 @@ zwei gültige EMPLOYEE-Versionen → neuere wird deterministisch gewählt. ✓
 ---
 
 **Schritt 6 – `infrastructure/hardware/`**
-evdev-Integration (RFID + Numpad), zunächst gegen Simulator.
+evdev-Integration (RFID + Numpad), zunächst gegen Simulator. `RawBookingRequest` als Datentransferobjekt (Vorstufe — Schritt 6 persistiert noch keine `device_events`). `hash_uid()` in `uid_hash.py`; `map_rfid_key()` in `evdev_reader.py` (nicht in uid_hash.py). 7 hardware-nahe Logiktests (`test_hardware_evdev.py`, ohne physische Geräte, mapping- und fehlerlogikfokussiert) + 14 Simulator-Tests (`test_hardware_simulator.py`).
 
 **Schritt 7 – `infrastructure/backup/`**
 SQLite-Backup + NAS-Sync. Trigger: zeitgesteuerter Job (systemd-Timer/cron) + optional manuell auslösbar. **Kein Backup nach jedem `commit()`** — koppelt Schreibpfad und Sicherung zu eng; das Pflichtenheft verlangt regelmäßige Sicherung, nicht Commit-synchrone. Restore-Tests in `tests/e2e/`.

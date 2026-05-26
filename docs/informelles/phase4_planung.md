@@ -132,7 +132,7 @@ src/arbeitszeit/infrastructure/
 │   ├── ports.py                  HardwareReader (Protocol), RawBookingRequest
 │   ├── evdev_reader.py           EvdevHardwareReader
 │   ├── simulator.py              SimulatedHardwareReader
-│   └── uid_hash.py               hash_uid(), map_rfid_key()
+│   └── uid_hash.py               hash_uid()  (map_rfid_key() liegt in evdev_reader.py)
 ├── backup/
 │   └── backup_service.py         SQLiteBackupService, BackupResult
 └── export/
@@ -142,7 +142,7 @@ src/arbeitszeit/infrastructure/
     └── pdf_report_service.py      create_daily/weekly/monthly/employee_report()
 
 tests/integration/
-├── conftest.py                   In-Memory-SQLite + Migrations-Fixture,
+├── conftest.py                   ephemere dateibasierte SQLite + Migrations-Fixture,
 │                                 employee_id- und user_id-Fixtures
 ├── test_repositories.py          15 Tests
 ├── test_repositories_roundtrip.py  23 Tests
@@ -287,7 +287,7 @@ mit Audit) ist auf Phase 5 (Admin CLI) verschoben. Das ist kein Mangel in Schrit
 die plangemäße Reihenfolge.
 
 
-### Schritt 5 + 6 – tests/integration/
+### Schritt 5 – tests/integration/
 
 **Scope:** Schritt 5 umfasst ausschließlich die Repository/UoW-Integrationsbasis
 (`test_repositories.py`, `test_repositories_roundtrip.py`, `test_unit_of_work.py`).
@@ -315,19 +315,22 @@ Mitarbeiter/Wochentag → `get_effective()` wählt neuere (deterministisch). Tes
 (`test_workschedule_geteffective_zwei_employee_versionen_waehlt_neuere`)
 
 
-### Schritt 7 – infrastructure/hardware/
+### Schritt 6 – infrastructure/hardware/
 
-`HardwareReader` als `@runtime_checkable Protocol`. `RawBookingRequest` als Datentransferobjekt.
+`HardwareReader` als `@runtime_checkable Protocol`. `RawBookingRequest` als Datentransferobjekt
+(Vorstufe für spätere Betriebsverkettung — Schritt 6 persistiert noch keine `device_events`).
 `EvdevHardwareReader`: Echte EVDEV-Geräte, `EmptyUidError` für leere UID.
 `SimulatedHardwareReader`: vollständige Simulation für Tests.
-`hash_uid()`: SHA-256-Hash der UID; `map_rfid_key()`: Numpad-Key → BookingType.
+`hash_uid()` in `uid_hash.py`: SHA-256-Hash der UID.
+`map_rfid_key()` in `evdev_reader.py`: Numpad-Key → BookingType (nicht in uid_hash.py).
 Buchungsart kommt ausschließlich vom externen USB-Numpad (kein Systeminput,
 Pflichtenheft v3 §6 / Regelwerk v3 §3).
 
-7 Integrationstests (evdev, Simulator-unabhängig) + 14 Simulator-Tests.
+7 hardware-nahe Logiktests (ohne physische Geräte, mapping- und fehlerlogikfokussiert)
+in `test_hardware_evdev.py` + 14 Simulator-Tests in `test_hardware_simulator.py`.
 
 
-### Schritt 7b – infrastructure/backup/
+### Schritt 7 – infrastructure/backup/
 
 `SQLiteBackupService`: `create_local_backup()`, `sync_to_nas()`, `restore_from()`, `run()`.
 `BackupResult` als Ergebnisobjekt.
@@ -347,7 +350,7 @@ Deckt V3 §14/§20 und Regelwerk v3 §20 ab. V3 §16-Testpflicht „Restore-Test
 mit echtem Backup" erfüllt.
 
 
-### Schritt 7c – BookUseCase vervollständigen
+### Schritt 1b – BookUseCase vervollständigen
 
 (V3 §7.9 Pflichtanforderung / ArbZG §5)
 
@@ -368,7 +371,7 @@ ReviewCase mit WARN-Flag.
 Deckt V3 §16-Testpflicht „Unterschreitung der Ruhezeit" ab.
 
 
-### Schritt 7d – Rollenprüfung in alle schreibenden Use Cases
+### Schritt 1c – Rollenprüfung in alle schreibenden Use Cases
 
 (Pflichtenheft v3 §5 / Regelwerk v3 §16)
 
