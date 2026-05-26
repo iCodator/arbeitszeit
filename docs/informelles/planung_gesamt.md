@@ -611,7 +611,7 @@ laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
 
 ---
 
-### Phase 5 – Präsentation (Schritt 1 ✓ | 353 Tests grün)
+### Phase 5 – Präsentation (Schritt 1 freigegeben | 353 Tests grün)
 
 **Schritt 1 – `presentation/terminal_ui/` ✓**
 `booking_loop.py`: `process_booking(reader, db_path, terminal_id) -> BookResult` kapselt

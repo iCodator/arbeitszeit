@@ -1,7 +1,7 @@
 # Planung Phase 5 – Präsentation
 
 Stand: 2026-05-26. Basiert auf Pflichtenheft v3 und Regelwerk v3.
-Schritt 1 abgeschlossen.
+Schritt 1 freigegeben (Review-Befunde 5/1-04 und 5/1-06 korrigiert).
 
 ---
 
@@ -296,7 +296,9 @@ tests/e2e/test_supplement_flow.py — Nachtrag von Erfassung bis Genehmigung
 ```
 
 tests/e2e/ verwendet Simulator (SimulatedHardwareReader) und
-echte SQLite-In-Memory-DB (run_migrations()).
+ephemere dateibasierte SQLite-Test-DB (tmp_path / "arbeitszeit.db" + run_migrations()).
+Dateibasiert ist für Zwei-Verbindungen-Semantik (conn + audit_conn) sachgerechter als
+In-Memory.
 Keine Unit-Tests für Präsentationsschicht — die Logik liegt vollständig
 in Application- und Infrastructure-Schicht.
 
