@@ -354,19 +354,47 @@ fehlerlogikfokussiert) in `test_hardware_evdev.py` + 14 Simulator-Tests in
 `SQLiteBackupService`: `create_local_backup()`, `sync_to_nas()`, `restore_from()`, `run()`.
 `BackupResult` als Ergebnisobjekt.
 
-Audit-Logging: BACKUP_CREATED, BACKUP_SYNCED_TO_NAS, BACKUP_SYNC_FAILED
-(mit cmd + stderr), RESTORE_COMPLETED via SQLiteAuditLogRepository.
+Audit-Logging über `_log_audit()` via `open_connection()` (eigene Verbindung, kein
+Fremdkontext): BACKUP_CREATED, BACKUP_SYNCED_TO_NAS, BACKUP_SYNC_FAILED (mit
+`returncode`, `cmd`, `stderr`), RESTORE_COMPLETED.
 
 PRAGMA integrity_check nach Restore. `FileNotFoundError` bei fehlendem Backup.
 
-Sicherungsumfang (Regelwerk v3 §17/§18/§20): SQLite-Datei + Exportdateien
-(CSV + PDF aus `system_config: export.export_dir`). Exportdateien sind
-auditpflichtige Ausgabedokumente; Backup-Skript sichert `export_dir` zusammen
-mit der DB-Datei auf denselben NAS-Pfad.
+`sync_to_nas()` nutzt `rsync --archive --delete`: striktes Spiegeln des lokalen
+Backup-Verzeichnisses auf den NAS-Pfad. `--delete` entfernt am NAS-Ziel alles,
+was lokal nicht mehr existiert. Das ist konsistent für einen Mirrors-Einsatz, aber
+**archivierungskritisch**: Falls der NAS als längerfristige Ablage (nicht nur als
+Spiegel) gedacht ist, müsste Archiv- und Mirror-Pfad getrennt oder `--delete`
+bewusst deaktiviert werden. Diese Grenzziehung muss in der Betriebsdokumentation
+explizit festgelegt sein (Regelwerk v3 §17/§18).
+
+RESTORE_COMPLETED wird nach der Wiederherstellung in die **neu aktive (wiederhergestellte)**
+Datenbank geschrieben, nicht in den Sicherungsstand. Das ist technisch sauber und
+inhaltlich korrekt: Der Eintrag beschreibt den Ist-Zustand nach dem Restore. Die
+Betriebsdokumentation muss festhalten, dass dieses Event nicht Teil des gesicherten
+Altstands ist.
+
+**Trigger/Betriebsebene:** Die Planung nennt „systemd-Timer/cron + optional manuell".
+`scripts/backup.py` deckt die manuelle Auslösbarkeit ab. Der zeitgesteuerte Trigger
+(systemd-Timer/cron-Konfiguration) ist kein Python-Artefakt und gehört zur
+Betriebsintegration — Schritt 7 liefert Service + Script, nicht die
+Deployment-Konfiguration.
+
+**Offene fachliche Lücke – Exportdateien fehlen im Backup:**
+Plan und Pflichtenheft v3 §12/§14 verlangen ausdrücklich die Einbeziehung der
+Exportdateien (CSV + PDF aus `export.export_dir`) in die Sicherung. Im implementierten
+`SQLiteBackupService` kennt die Klasse nur `db_path` und `backup_dir`; ein `export_dir`
+oder eine Kopier-/Sync-Logik für Exportdateien ist nicht vorhanden. Das ist eine
+reale Lücke zwischen Plan und Code — keine Formulierungsfrage. Schritt 7 gilt erst
+dann als vollständig umgesetzt, wenn Exportdateien ebenfalls gesichert werden:
+
+- `SQLiteBackupService` um `export_dir`-Parameter erweitern
+- Exportverzeichnis beim `create_local_backup()` oder `sync_to_nas()` mitnehmen
+- E2E-Tests um Sicherung/Wiederauffinden von Exportdateien ergänzen
 
 16 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS).
 Deckt V3 §14/§20 und Regelwerk v3 §20 ab. V3 §16-Testpflicht „Restore-Test
-mit echtem Backup" erfüllt.
+mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
 
 
 ### Schritt 1b – BookUseCase vervollständigen
