@@ -548,7 +548,9 @@ zwei gültige EMPLOYEE-Versionen → neuere wird deterministisch gewählt. ✓
 ---
 
 **Schritt 6 – `infrastructure/hardware/`**
-evdev-Integration (RFID + Numpad), zunächst gegen Simulator. `RawBookingRequest` als Datentransferobjekt (Vorstufe — Schritt 6 persistiert noch keine `device_events`). `hash_uid()` in `uid_hash.py`; `map_rfid_key()` in `evdev_reader.py` (nicht in uid_hash.py). 7 hardware-nahe Logiktests (`test_hardware_evdev.py`, ohne physische Geräte, mapping- und fehlerlogikfokussiert) + 14 Simulator-Tests (`test_hardware_simulator.py`).
+evdev-Integration (RFID + Numpad), zunächst gegen Simulator. Schritt 6 liefert die Leseschicht (Adapter + Simulation), persistiert noch keine `device_events` — vollständige betriebliche Orchestrierung folgt in Phase 5.
+
+Funktionsgrenzen (Ergebnis Code-Review): `map_rfid_key()` in `evdev_reader.py` bildet HID-Keycodes auf **Hex-Zeichen** ab (RFID-UID-Aufbau), **nicht** Numpad-Key → BookingType. Das Numpad-Mapping ist die Konstante `_NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType]` (ebenfalls in `evdev_reader.py`). `hash_uid()` in `uid_hash.py`. `read_booking_type()`/`read_uid()` blockieren unbegrenzt; Timeout/Reconnect/Geräteausfall sind bewusst in die aufrufende Betriebsschicht (Phase 5/terminal_ui/) verlagert. 7 Adapter-Schnittstellen- und Logiktests (`test_hardware_evdev.py`, ohne physische EVDEV-Geräte) + 14 Simulator-Tests (`test_hardware_simulator.py`). Reale Gerätebesonderheiten bis Phase 5 durch Smoke-Tests auf Zielhardware zu verifizieren.
 
 **Schritt 7 – `infrastructure/backup/`**
 SQLite-Backup + NAS-Sync. Trigger: zeitgesteuerter Job (systemd-Timer/cron) + optional manuell auslösbar. **Kein Backup nach jedem `commit()`** — koppelt Schreibpfad und Sicherung zu eng; das Pflichtenheft verlangt regelmäßige Sicherung, nicht Commit-synchrone. Restore-Tests in `tests/e2e/`.

@@ -317,17 +317,36 @@ Mitarbeiter/Wochentag → `get_effective()` wählt neuere (deterministisch). Tes
 
 ### Schritt 6 – infrastructure/hardware/
 
-`HardwareReader` als `@runtime_checkable Protocol`. `RawBookingRequest` als Datentransferobjekt
-(Vorstufe für spätere Betriebsverkettung — Schritt 6 persistiert noch keine `device_events`).
+`HardwareReader` als `@runtime_checkable Protocol`. `RawBookingRequest` als Datentransferobjekt.
+
+Schritt 6 liefert die **Leseschicht** (Adapter + Simulation), persistiert aber noch keine
+`device_events` — das vollständige betriebliche Orchestrierungsmodell (device_event erzeugen,
+ID durchreichen) ist Teil der späteren Betriebsverkettung. Wer 4/6 isoliert liest, sollte
+keine vollständige Ende-zu-Ende-Gerätekette erwarten.
+
 `EvdevHardwareReader`: Echte EVDEV-Geräte, `EmptyUidError` für leere UID.
 `SimulatedHardwareReader`: vollständige Simulation für Tests.
 `hash_uid()` in `uid_hash.py`: SHA-256-Hash der UID.
-`map_rfid_key()` in `evdev_reader.py`: Numpad-Key → BookingType (nicht in uid_hash.py).
-Buchungsart kommt ausschließlich vom externen USB-Numpad (kein Systeminput,
-Pflichtenheft v3 §6 / Regelwerk v3 §3).
 
-7 hardware-nahe Logiktests (ohne physische Geräte, mapping- und fehlerlogikfokussiert)
-in `test_hardware_evdev.py` + 14 Simulator-Tests in `test_hardware_simulator.py`.
+**Wichtige Funktionsgrenzen (Ergebnis Code-Review):**
+
+- `map_rfid_key()` in `evdev_reader.py` bildet HID-Keycodes auf **Hex-Zeichen** ab
+  (für den RFID-UID-Aufbau Zeichen für Zeichen) — **nicht** „Numpad-Key → BookingType".
+- Das Numpad-Mapping ist die Konstante `_NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType]`
+  (ebenfalls in `evdev_reader.py`); sie wird in `_read_booking_type()` ausgewertet.
+  Diese Trennung war im Plantext missverständlich formuliert.
+- Buchungsart kommt ausschließlich vom externen USB-Numpad (Pflichtenheft v3 §6 /
+  Regelwerk v3 §3). Der verbindliche Ablauf „erst Buchungsart wählen, dann RFID lesen"
+  ist im Code korrekt abgebildet.
+
+`read_booking_type()` und `read_uid()` blockieren unbegrenzt; Timeout für Idle-Zustand,
+Reconnect-Logik und Geräteausfallbehandlung sind bewusst in die aufrufende Betriebsschicht
+(Phase 5/terminal_ui/) verlagert. Phase 5 muss diese Fälle explizit spezifizieren.
+
+7 Adapter-Schnittstellen- und Logiktests (ohne physische EVDEV-Geräte, mapping- und
+fehlerlogikfokussiert) in `test_hardware_evdev.py` + 14 Simulator-Tests in
+`test_hardware_simulator.py`. Reale Gerätebesonderheiten bleiben bis zur Betriebsschicht
+(Phase 5) durch manuelle Smoke-Tests auf Zielhardware zu verifizieren.
 
 
 ### Schritt 7 – infrastructure/backup/
