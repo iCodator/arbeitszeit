@@ -200,6 +200,12 @@ class BookUseCase:
                 ))
                 follow_up_case_ids.append(case.id)
 
+            # Erst commit, dann Audit-Log schreiben: nach commit hält conn keinen
+            # RESERVED-Lock mehr, sodass audit_conn (autocommit) schreiben kann
+            # ohne zu blockieren. Ablehnungspfade sind nicht betroffen, weil conn
+            # dort nur SELECTs ausführt.
+            self._uow.commit()
+
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type=audit_events.TIME_BOOKED,
@@ -222,7 +228,6 @@ class BookUseCase:
                 ),
             ))
 
-            self._uow.commit()
             return BookResult(
                 booking_id=booking.id,
                 status=status,

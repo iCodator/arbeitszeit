@@ -1,10 +1,7 @@
 # Planung Phase 5 – Präsentation
 
-Stand: 2026-05-24. Basiert auf Pflichtenheft v3 und Regelwerk v3.
-Phase 5 noch nicht begonnen.
-
-Voraussetzung: Phase 4/Schritt 9 (system_check.py) ist abgeschlossen ✓.
-Keine offenen Voraussetzungen aus Phase 4 vor Phase-5-Start.
+Stand: 2026-05-26. Basiert auf Pflichtenheft v3 und Regelwerk v3.
+Schritt 1 abgeschlossen.
 
 ---
 
@@ -25,8 +22,6 @@ src/arbeitszeit/
 
 Offen aus Phase 4:
 
-- `infrastructure/system_check.py` (Pflichtenheft v3 §7.10) — muss vor
-  Phase-5-Schritt 4 fertiggestellt sein
 - Systemzeitprotokollierung (Pflichtenheft v3 §9.3 / Regelwerk v3 §21)
 
 Betriebsdokumentation (Phase 5, kein Code):
@@ -34,7 +29,7 @@ Betriebsdokumentation (Phase 5, kein Code):
 - Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
   (Regelwerk v3 §17/§18, Befund 4/8-07)
 
-342 Tests grün (alle Ebenen).
+352 Tests grün (alle Ebenen).
 
 
 ---
@@ -157,30 +152,18 @@ tests/e2e/
 ## Implementierungsreihenfolge
 
 
-### Schritt 0 – Voraussetzung: Phase 4/Schritt 9 nachholen
+### Schritt 0 – Voraussetzung: Phase 4/Schritt 9 nachholen  ✓
 
-`infrastructure/system_check.py` implementieren (Pflichtenheft v3 §7.10):
-
-- Konfigurationsprüfung: alle `system_config`-Keys vorhanden
-- Geräteverfügbarkeit: evdev-Gerät erreichbar
-- NAS-Erreichbarkeit: Backup-Zielpfad mountbar/schreibbar
-- Datenbankzugriff: Datei öffenbar, Migrationsstand aktuell
-- Grundkonsistenz: keine verwaisten Fremdschlüssel
-
-Ergebnis in `system_events` (`event_type='SYSTEM_CHECK'`) protokolliert.
-Aufrufbar manuell und als Startprüfung beim Systemstart.
-
-Vor Schritt 4 dieser Phase muss das Modul vorhanden sein.
+`infrastructure/system_check.py` implementiert (Phase 4/Schritt 9 abgeschlossen).
 
 
-### Schritt 1 – presentation/terminal_ui/
+### Schritt 1 – presentation/terminal_ui/  ✓
 
 `booking_loop.py` — zentraler Buchungsablauf:
 
-1. Auf Numpad-Keypress warten (HardwareReader, BookingType aus Tastenzuordnung)
-2. RFID-Scan abwarten (mit Timeout; Abbruch wenn kein Scan)
-3. `BookCommand` aufbauen, `BookUseCase(uow).execute(cmd)` aufrufen
-4. Feedback-Ausgabe (OK / WARN / NEEDS_REVIEW / Fehler)
+1. `reader.read_next()` — blockiert bis Numpad-Keypress + RFID-Scan
+2. `BookCommand` aufbauen, `BookUseCase(uow).execute(cmd)` aufrufen
+3. Feedback-Ausgabe (OK / WARN / NEEDS_REVIEW / Fehler)
 
 `main.py` — Endlosschleife mit:
 - Startprüfung via `system_check.py`
@@ -188,7 +171,15 @@ Vor Schritt 4 dieser Phase muss das Modul vorhanden sein.
   unerwartete Exception → in `system_events` protokollieren + weiterarbeiten
 - Graceful-Shutdown auf SIGTERM/SIGINT
 
-Testfälle in `tests/e2e/test_booking_flow.py`:
+**Architekturkorrektur in BookUseCase (Nebeneffekt aus e2e-Tests):**
+In `BookUseCase.execute()` wurde ein Deadlock-Problem behoben: `uow.commit()`
+wird jetzt VOR dem TIME_BOOKED-Audit-Log-Eintrag aufgerufen. Nach commit hält
+`conn` keinen RESERVED-Lock mehr, sodass `audit_conn` (autocommit) ohne Blockierung
+schreiben kann. Ablehnungspfade sind nicht betroffen (dort hat `conn` nur SELECTs
+ausgeführt). Diese Deadlock-Situation war bisher nicht testbar, weil es keinen
+e2e-Test mit echter SQLite-DB und zwei Verbindungen gab.
+
+10 Tests in `tests/e2e/test_booking_flow.py`:
 - Vollständiger Buchungsablauf COME → GO (Simulator + echte SQLite-DB)
 - COME → BREAK_START → BREAK_END → GO
 - Unbekannte RFID-Karte → Abweisung mit Audit-Log

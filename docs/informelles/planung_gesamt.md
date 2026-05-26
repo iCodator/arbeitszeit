@@ -611,10 +611,22 @@ laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
 
 ---
 
-### Phase 5 – Präsentation
+### Phase 5 – Präsentation (Schritt 1 ✓ | 352 Tests grün)
 
-**Schritt 1 – `presentation/terminal_ui/`**
-Operativer Buchungsbetrieb (Numpad + RFID-Feedback). Buchungsart kommt ausschließlich vom USB-Numpad (Pflichtenheft v3 §6/Regelwerk v3 §3 — kein System-Input, keine Tastatur).
+**Schritt 1 – `presentation/terminal_ui/` ✓**
+`booking_loop.py`: `process_booking(reader, db_path, terminal_id) -> BookResult` kapselt
+`reader.read_next()` → `BookCommand` → `BookUseCase(uow).execute()`. `format_feedback()`
+gibt Statustext zurück.
+`main.py`: Endlosschleife mit Systemcheck beim Start, DomainError-Behandlung, unerwartete
+Exceptions in `system_events`, Graceful-Shutdown auf SIGTERM/SIGINT.
+10 Tests in `tests/e2e/test_booking_flow.py`: COME→GO, COME→PAUSE→GO, Abweisung mit Audit-Log.
+
+**Architekturkorrektur BookUseCase (entdeckt durch e2e-Tests):**
+`uow.commit()` wird vor dem TIME_BOOKED-Audit-Log aufgerufen. Grund: nach commit hält
+`conn` keinen RESERVED-Lock mehr, `audit_conn` kann schreiben ohne zu blockieren.
+Mit dem alten Code (commit nach audit write) gab es einen Deadlock — Python ist
+single-threaded, `audit_conn` wartete auf `conn`-Commit, aber Commit kam erst nach
+`audit_conn`-Write. `busy_timeout` hilft hier nicht. Ablehnungspfade unverändert.
 
 **Schritt 2 – `presentation/admin_cli/`**
 Administrative Pflege (Mitarbeiter, Karten, Korrekturen). Rollenprüfung gem. Pflichtenheft v3 §5/Regelwerk v3 §16 (Mitarbeiter/Admin/Prüfer/Tech strikt getrennt).
