@@ -398,14 +398,20 @@ keine Formulierungsfrage. Muss vor Phase-5-Start abgeschlossen sein.
 
 Umfang:
 
-- `SQLiteBackupService.__init__()` um optionalen `export_dir: Path | None`-Parameter
-  erweitern
-- `create_local_backup()`: Exportverzeichnis in das lokale Backup-Verzeichnis kopieren
-  (z. B. `shutil.copytree` in ein Unterverzeichnis `exports/`)
-- `sync_to_nas()` deckt das bereits ab, sobald `export_dir`-Inhalt im `backup_dir` liegt
-- `scripts/backup.py`: `--export-dir`-Argument ergänzen
-- `tests/e2e/test_backup.py`: Tests um Sicherung und Wiederauffinden von Exportdateien
-  erweitern
+- ✓ `SQLiteBackupService.__init__()` um optionalen `export_dir: Path | None`-Parameter
+- ✓ `create_local_backup()`: `shutil.copytree` → `backup_dir/exports/`
+- ✓ `sync_to_nas()` nimmt `exports/` automatisch mit
+- ✓ `scripts/backup.py`: `--export-dir`-Argument ergänzt
+- ✓ 3 neue E2E-Tests (Dateien vorhanden, kein Export-Dir, nicht-existentes Dir)
+
+**Designentscheidung – Export-Restore nicht automatisch:**
+`restore_from()` stellt nur die SQLite-DB wieder her. Die gesicherten Exportdateien unter
+`backup_dir/exports/` werden nicht automatisch in ein produktives `export_dir` zurückkopiert.
+CSV/PDF-Exporte können jederzeit aus der DB neu erzeugt werden; die Exportdateien im Backup
+dienen primär der Nachweissicherung (Regelwerk v3 §18). Falls unmittelbare Wiederverfügbarkeit
+vorheriger Exporte gewünscht ist, müssen sie nach Restore manuell zurückkopiert werden.
+Eine spätere Erweiterung von `restore_from()` um einen optionalen Export-Restore ist möglich,
+ist aber kein Pflichtinhalt von Schritt 7.
 
 
 ### Schritt 1b – BookUseCase vervollständigen
