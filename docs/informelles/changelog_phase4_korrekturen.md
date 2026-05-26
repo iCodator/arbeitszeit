@@ -65,10 +65,12 @@ Dieses Changelog dokumentiert die in Planung und Implementierungsplanung nachgez
 - Der Deployment-Trigger (systemd-Timer/cron) wurde als **Betriebsintegration** abgegrenzt;
   `scripts/backup.py` deckt die manuelle Auslösbarkeit ab, die Timer-Konfiguration ist
   kein Python-Artefakt von Schritt 7.
-- **Offene fachliche Lücke dokumentiert:** `SQLiteBackupService` sichert aktuell nur die
-  SQLite-Datenbankdatei; die im Plan und in Pflichtenheft v3 §12/§14 geforderte Einbeziehung
-  der Exportdateien (CSV/PDF aus `export.export_dir`) ist im implementierten Code nicht
-  vorhanden. Schritt 7 gilt erst vollständig abgeschlossen, wenn diese Lücke geschlossen ist.
+- **Exportdatei-Lücke implementiert (Schritt 7 Nachtrag):** `SQLiteBackupService` um
+  `export_dir: Path | None`-Parameter erweitert; `create_local_backup()` kopiert
+  Exportdateien via `shutil.copytree` in `backup_dir/exports/` (fehlende Export-Dir
+  wird ignoriert); `scripts/backup.py` erhält `--export-dir`; 3 neue E2E-Tests
+  (19 gesamt, 325 Tests grün). Pflichtenheft v3 §12/§14 + Regelwerk v3 §17/§18/§20
+  damit erfüllt.
 
 ## Bewertung
 

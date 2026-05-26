@@ -1,4 +1,5 @@
 import json
+import shutil
 import sqlite3
 import subprocess
 from dataclasses import dataclass
@@ -19,12 +20,23 @@ class BackupResult:
 
 
 class SQLiteBackupService:
-    def __init__(self, db_path: Path, backup_dir: Path) -> None:
+    def __init__(
+        self,
+        db_path: Path,
+        backup_dir: Path,
+        *,
+        export_dir: Path | None = None,
+    ) -> None:
         self._db_path = db_path
         self._backup_dir = backup_dir
+        self._export_dir = export_dir
 
     def create_local_backup(self, *, now: datetime | None = None) -> Path:
-        """Online-Backup via SQLite-Backup-API. DB bleibt während des Backups lesbar/schreibbar."""
+        """Online-Backup via SQLite-Backup-API. DB bleibt während des Backups lesbar/schreibbar.
+
+        Falls export_dir gesetzt ist und existiert, werden die Exportdateien (CSV/PDF)
+        in backup_dir/exports/ kopiert und vom nachfolgenden NAS-Sync mitgenommen.
+        """
         self._backup_dir.mkdir(parents=True, exist_ok=True)
         if now is None:
             now = datetime.now(timezone.utc)
@@ -39,10 +51,19 @@ class SQLiteBackupService:
                 dst.close()
         finally:
             src.close()
-        self._log_audit(
-            audit_events.BACKUP_CREATED,
-            {"backup_path": str(backup_path), "size_bytes": backup_path.stat().st_size},
-        )
+        if self._export_dir is not None and self._export_dir.exists():
+            shutil.copytree(
+                self._export_dir,
+                self._backup_dir / "exports",
+                dirs_exist_ok=True,
+            )
+        details: dict = {
+            "backup_path": str(backup_path),
+            "size_bytes": backup_path.stat().st_size,
+        }
+        if self._export_dir is not None:
+            details["export_dir"] = str(self._export_dir)
+        self._log_audit(audit_events.BACKUP_CREATED, details)
         return backup_path
 
     def sync_to_nas(self, nas_path: Path) -> None:

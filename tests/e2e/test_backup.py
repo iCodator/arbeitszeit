@@ -269,3 +269,44 @@ def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
     assert failed["details"]["returncode"] != 0
     assert "cmd" in failed["details"]
     assert "stderr" in failed["details"]
+
+
+# --- Exportdateien-Sicherung ---
+
+
+def test_backup_mit_export_dir_kopiert_dateien(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    export_dir = tmp_path / "exports"
+    export_dir.mkdir()
+    (export_dir / "bericht.csv").write_text("datum,buchungen\n")
+    (export_dir / "bericht.pdf").write_bytes(b"%PDF-1.4 fake")
+
+    service = SQLiteBackupService(db, tmp_path / "backups", export_dir=export_dir)
+    service.create_local_backup(now=_NOW)
+
+    exports_in_backup = tmp_path / "backups" / "exports"
+    assert exports_in_backup.exists()
+    assert (exports_in_backup / "bericht.csv").exists()
+    assert (exports_in_backup / "bericht.pdf").exists()
+
+
+def test_backup_ohne_export_dir_legt_kein_exports_verzeichnis_an(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    backup_dir = tmp_path / "backups"
+    service = SQLiteBackupService(db, backup_dir)
+    service.create_local_backup(now=_NOW)
+
+    assert not (backup_dir / "exports").exists()
+
+
+def test_backup_mit_nicht_existierendem_export_dir_wird_ignoriert(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(
+        db, tmp_path / "backups", export_dir=tmp_path / "noch_nicht_da"
+    )
+    backup_path = service.create_local_backup(now=_NOW)
+    assert backup_path.exists()
+    assert not (tmp_path / "backups" / "exports").exists()

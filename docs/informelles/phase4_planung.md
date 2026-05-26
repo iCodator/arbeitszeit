@@ -1,10 +1,9 @@
 # Planung Phase 4 – Infrastruktur (teilweise offen)
 
-Stand: 2026-05-26. 319 Tests grün.
+Stand: 2026-05-26. 325 Tests grün.
 
 Offen:
 
-- Schritt 7: Exportdateien (CSV/PDF) fehlen im Backup (Pflichtenheft v3 §12/§14)
 - Schritt 9: system_check noch nicht implementiert
 
 ---
@@ -158,7 +157,7 @@ tests/integration/
 └── test_pdf.py                   20 Tests
 
 tests/e2e/
-└── test_backup.py                16 Tests
+└── test_backup.py                19 Tests
 ```
 
 
@@ -384,11 +383,11 @@ Altstands ist.
 Betriebsintegration — Schritt 7 liefert Service + Script, nicht die
 Deployment-Konfiguration.
 
-16 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS).
-Deckt V3 §14/§20 und Regelwerk v3 §20 ab. V3 §16-Testpflicht „Restore-Test
-mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
+19 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS,
+Exportdateien-Sicherung). Deckt V3 §14/§20 und Regelwerk v3 §20 ab.
+V3 §16-Testpflicht „Restore-Test mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
 
-### Schritt 7 Nachtrag – Exportdateien in Backup einbeziehen  ← OFFEN
+### Schritt 7 Nachtrag – Exportdateien in Backup einbeziehen  ✓
 
 (Pflichtenheft v3 §12/§14, Regelwerk v3 §17/§18/§20)
 
@@ -619,9 +618,9 @@ Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslösbar).
 pytest tests/test_migrations.py   –  11 Tests  (Phase 1)
 pytest tests/domain/              –  63 Tests  (Phase 2)
 pytest tests/application/         – 107 Tests  (Phase 3)
-pytest tests/integration/         – 122 Tests  (Phase 4)
-pytest tests/e2e/                 –  16 Tests  (Phase 4)
-pytest tests/                     – 319 Tests grün gesamt
+pytest tests/integration/         – 125 Tests  (Phase 4)
+pytest tests/e2e/                 –  19 Tests  (Phase 4)
+pytest tests/                     – 325 Tests grün gesamt
 ```
 
 

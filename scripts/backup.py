@@ -33,6 +33,12 @@ def main() -> None:
         default=Path("backups"),
         help="Zielverzeichnis für Backups (Standard: backups/)",
     )
+    parser.add_argument(
+        "--export-dir",
+        type=Path,
+        default=None,
+        help="Exportverzeichnis (CSV/PDF); wird in backup-dir/exports/ kopiert",
+    )
     args = parser.parse_args()
 
     db_path: Path = args.db
@@ -50,7 +56,7 @@ def main() -> None:
     nas_path = Path(_nas_path_raw) if _nas_path_raw else None
     conn.close()
 
-    service = SQLiteBackupService(db_path, backup_dir)
+    service = SQLiteBackupService(db_path, backup_dir, export_dir=args.export_dir)
     result = service.run(nas_path=nas_path if nas_enabled and nas_path else None)
 
     print(f"Backup: {result.backup_path}  ({result.size_bytes:,} Bytes)")
