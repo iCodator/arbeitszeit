@@ -1,7 +1,11 @@
-# Planung Phase 4 – Infrastruktur (abgeschlossen)
+# Planung Phase 4 – Infrastruktur (teilweise offen)
 
-Stand: 2026-05-24. Schritte 1–8e vollständig abgeschlossen (319 Tests grün).
-Schritt 9 (system_check) offen.
+Stand: 2026-05-26. 319 Tests grün.
+
+Offen:
+
+- Schritt 7: Exportdateien (CSV/PDF) fehlen im Backup (Pflichtenheft v3 §12/§14)
+- Schritt 9: system_check noch nicht implementiert
 
 ---
 
