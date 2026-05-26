@@ -384,21 +384,29 @@ Altstands ist.
 Betriebsintegration — Schritt 7 liefert Service + Script, nicht die
 Deployment-Konfiguration.
 
-**Offene fachliche Lücke – Exportdateien fehlen im Backup:**
-Plan und Pflichtenheft v3 §12/§14 verlangen ausdrücklich die Einbeziehung der
-Exportdateien (CSV + PDF aus `export.export_dir`) in die Sicherung. Im implementierten
-`SQLiteBackupService` kennt die Klasse nur `db_path` und `backup_dir`; ein `export_dir`
-oder eine Kopier-/Sync-Logik für Exportdateien ist nicht vorhanden. Das ist eine
-reale Lücke zwischen Plan und Code — keine Formulierungsfrage. Schritt 7 gilt erst
-dann als vollständig umgesetzt, wenn Exportdateien ebenfalls gesichert werden:
-
-- `SQLiteBackupService` um `export_dir`-Parameter erweitern
-- Exportverzeichnis beim `create_local_backup()` oder `sync_to_nas()` mitnehmen
-- E2E-Tests um Sicherung/Wiederauffinden von Exportdateien ergänzen
-
 16 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS).
 Deckt V3 §14/§20 und Regelwerk v3 §20 ab. V3 §16-Testpflicht „Restore-Test
 mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
+
+### Schritt 7 Nachtrag – Exportdateien in Backup einbeziehen  ← OFFEN
+
+(Pflichtenheft v3 §12/§14, Regelwerk v3 §17/§18/§20)
+
+`SQLiteBackupService` kennt aktuell nur `db_path` und `backup_dir`; Exportdateien
+(CSV + PDF aus `export.export_dir`) werden nicht gesichert. Plan und Pflichtenheft
+verlangen ihre Einbeziehung ausdrücklich — das ist eine reale Implementierungslücke,
+keine Formulierungsfrage. Muss vor Phase-5-Start abgeschlossen sein.
+
+Umfang:
+
+- `SQLiteBackupService.__init__()` um optionalen `export_dir: Path | None`-Parameter
+  erweitern
+- `create_local_backup()`: Exportverzeichnis in das lokale Backup-Verzeichnis kopieren
+  (z. B. `shutil.copytree` in ein Unterverzeichnis `exports/`)
+- `sync_to_nas()` deckt das bereits ab, sobald `export_dir`-Inhalt im `backup_dir` liegt
+- `scripts/backup.py`: `--export-dir`-Argument ergänzen
+- `tests/e2e/test_backup.py`: Tests um Sicherung und Wiederauffinden von Exportdateien
+  erweitern
 
 
 ### Schritt 1b – BookUseCase vervollständigen

@@ -3,8 +3,12 @@
 Stand: 2026-05-24. Basiert auf Pflichtenheft v3 und Regelwerk v3.
 Phase 5 noch nicht begonnen.
 
-Voraussetzung: Phase 4/Schritt 9 (system_check.py) muss vor Schritt 4
-dieser Phase abgeschlossen sein.
+Voraussetzungen (müssen vor Phase-5-Start abgeschlossen sein):
+
+- Phase 4/Schritt 7 Nachtrag: Exportdateien (CSV/PDF) in `SQLiteBackupService`
+  einbeziehen (Pflichtenheft v3 §12/§14)
+- Phase 4/Schritt 9 (system_check.py) — muss zusätzlich vor Phase-5-Schritt 4
+  fertiggestellt sein
 
 ---
 
@@ -19,12 +23,14 @@ src/arbeitszeit/
 └── infrastructure/
     ├── db/            Phase 4 ✓  (10 Repos, UoW, Migrationen)
     ├── hardware/      Phase 4 ✓  (EvdevHardwareReader, Simulator)
-    ├── backup/        Phase 4 ✓  (SQLiteBackupService, 16 e2e-Tests)
+    ├── backup/        Phase 4 ⚠  (SQLiteBackupService, 16 e2e-Tests; Nachtrag offen)
     └── export/        Phase 4 ✓  (report_queries, CSV, PDF)
 ```
 
 Offen aus Phase 4:
 
+- `infrastructure/backup/`: Exportdateien (CSV/PDF) noch nicht gesichert —
+  Schritt 7 Nachtrag muss vor Phase-5-Start abgeschlossen sein
 - `infrastructure/system_check.py` (Pflichtenheft v3 §7.10) — muss vor
   Phase-5-Schritt 4 fertiggestellt sein
 - Systemzeitprotokollierung (Pflichtenheft v3 §9.3 / Regelwerk v3 §21)
