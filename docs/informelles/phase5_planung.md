@@ -29,6 +29,11 @@ Offen aus Phase 4:
   Phase-5-Schritt 4 fertiggestellt sein
 - Systemzeitprotokollierung (Pflichtenheft v3 §9.3 / Regelwerk v3 §21)
 
+Betriebsdokumentation (Phase 5, kein Code):
+
+- Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
+  (Regelwerk v3 §17/§18, Befund 4/8-07)
+
 325 Tests grün (alle Ebenen).
 
 
