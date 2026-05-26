@@ -53,7 +53,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn):
     executed = run_migrations(conn)
 
-    assert executed == ["0001", "0002", "0003", "0004", "0005"]
+    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
@@ -103,7 +103,7 @@ def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
         row[0]
         for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
     }
-    assert versions == {"0001", "0002", "0003", "0004", "0005"}
+    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006"}
 
 
 def test_migration_0004_fuegt_neue_spalten_ein(conn):
@@ -231,6 +231,20 @@ def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag
         for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
     }
     assert "0002" not in versions
+
+
+def test_migration_0006_application_error_event_type_verfuegbar(conn):
+    run_migrations(conn)
+
+    conn.execute(
+        "INSERT INTO system_events "
+        "(event_type, source, severity, event_at) "
+        "VALUES ('APPLICATION_ERROR', 'test', 'ERROR', '2026-01-01T00:00:00+00:00')"
+    )
+    row = conn.execute(
+        "SELECT event_type FROM system_events WHERE source = 'test'"
+    ).fetchone()
+    assert row["event_type"] == "APPLICATION_ERROR"
 
 
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):

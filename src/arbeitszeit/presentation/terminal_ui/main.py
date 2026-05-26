@@ -57,7 +57,11 @@ def run(
     terminal_id: int,
 ) -> None:
     """Endlosschleife mit Systemcheck, Buchungsverarbeitung und Graceful Shutdown."""
-    result = run_system_check(db_path)
+    result = run_system_check(
+        db_path,
+        numpad_path=Path(numpad_device),
+        rfid_path=Path(rfid_device),
+    )
     if not result.overall_ok:
         print("WARNUNG: Systemcheck hat Probleme festgestellt:", file=sys.stderr)
         for check in result.checks:
@@ -86,7 +90,7 @@ def run(
                 print("Interner Fehler — Betrieb wird fortgesetzt.", file=sys.stderr)
                 _log_system_event(
                     db_path,
-                    "APPLICATION_STOP",
+                    "APPLICATION_ERROR",
                     {"error": str(exc), "type": type(exc).__name__},
                 )
     finally:

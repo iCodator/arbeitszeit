@@ -29,7 +29,7 @@ Betriebsdokumentation (Phase 5, kein Code):
 - Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
   (Regelwerk v3 §17/§18, Befund 4/8-07)
 
-352 Tests grün (alle Ebenen).
+353 Tests grün (alle Ebenen).
 
 
 ---
@@ -178,6 +178,17 @@ wird jetzt VOR dem TIME_BOOKED-Audit-Log-Eintrag aufgerufen. Nach commit hält
 schreiben kann. Ablehnungspfade sind nicht betroffen (dort hat `conn` nur SELECTs
 ausgeführt). Diese Deadlock-Situation war bisher nicht testbar, weil es keinen
 e2e-Test mit echter SQLite-DB und zwei Verbindungen gab.
+
+**Korrekturen aus förmlichem Review (Befund 5/1-04, 5/1-06):**
+
+- Befund 5/1-04: `run_system_check()` erhält jetzt `numpad_path` und `rfid_path`
+  aus den Gerätepfaden von `run()`, damit die Geräteverfügbarkeitsprüfung beim
+  Systemstart nicht übersprungen wird.
+
+- Befund 5/1-06: Unerwartete Laufzeitfehler werden jetzt als `APPLICATION_ERROR`
+  (nicht `APPLICATION_STOP`) in `system_events` protokolliert. Dazu wurde
+  `0006_system_events_application_error.sql` ergänzt, das `system_events` per
+  Table-Rebuild um `APPLICATION_ERROR` erweitert.
 
 10 Tests in `tests/e2e/test_booking_flow.py`:
 - Vollständiger Buchungsablauf COME → GO (Simulator + echte SQLite-DB)
