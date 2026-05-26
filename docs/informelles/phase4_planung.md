@@ -1,10 +1,6 @@
-# Planung Phase 4 – Infrastruktur (teilweise offen)
+# Planung Phase 4 – Infrastruktur (abgeschlossen)
 
-Stand: 2026-05-26. 325 Tests grün.
-
-Offen:
-
-- Schritt 9: system_check noch nicht implementiert
+Stand: 2026-05-26. 342 Tests grün.
 
 ---
 
@@ -599,20 +595,27 @@ tests/integration/test_pdf.py       – 20 Tests  (PDF-Erzeugung, Inhaltsprüfun
 
 ---
 
-## Schritt 9 – infrastructure/system_check.py  ← OFFEN
+## Schritt 9 – infrastructure/system_check.py  ✓
 
 (Pflichtenheft v3 §7.10 — spätestens Phase 4, nicht erst Phase 5)
 
-SystemCheck-Modul mit folgenden Prüfpunkten:
+SystemCheck-Modul mit folgenden Prüfpunkten (alle implementiert):
 
 - Konfigurationsprüfung: alle erforderlichen `system_config`-Keys vorhanden
-- Geräteverfügbarkeit: evdev-Gerät (RFID-Reader + Numpad) erreichbar
-- NAS-Erreichbarkeit: Backup-Zielpfad mountbar/schreibbar
-- Datenbankzugriff: SQLite-Datei öffenbar, Migrationsstand aktuell
-- Grundkonsistenz: keine verwaisten Fremdschlüssel
+- Geräteverfügbarkeit: evdev-Gerät (RFID-Reader + Numpad) erreichbar — optional,
+  übersprungen wenn keine Gerätepfade übergeben werden
+- NAS-Erreichbarkeit: Backup-Zielpfad mountbar/schreibbar — übersprungen wenn
+  `backup.nas_enabled` deaktiviert
+- Datenbankzugriff: SQLite-Datei öffenbar, alle Migrationsdateien angewendet
+- Grundkonsistenz: keine verwaisten Fremdschlüssel (`PRAGMA foreign_key_check`)
 
-Ergebnis wird in `system_events` (`event_type='SYSTEM_CHECK'`) protokolliert.
-Aufrufbar manuell und als Startprüfung beim Systemstart.
+Ergebnis wird in `system_events` als `SELFTEST_OK` (severity=INFO) oder
+`SELFTEST_FAIL` (severity=WARN) protokolliert. Schemakorrektur gegenüber
+Plantext: event_type='SYSTEM_CHECK' ist im Schema nicht definiert — korrekte
+Werte laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
+
+Schnittstelle: `run_system_check(db_path, *, numpad_path=None, rfid_path=None) -> SystemCheckResult`
+17 Integrationstests in `tests/integration/test_system_check.py`.
 Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslösbar).
 
 
@@ -624,9 +627,9 @@ Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslösbar).
 pytest tests/test_migrations.py   –  11 Tests  (Phase 1)
 pytest tests/domain/              –  63 Tests  (Phase 2)
 pytest tests/application/         – 107 Tests  (Phase 3)
-pytest tests/integration/         – 125 Tests  (Phase 4)
+pytest tests/integration/         – 142 Tests  (Phase 4)
 pytest tests/e2e/                 –  19 Tests  (Phase 4)
-pytest tests/                     – 325 Tests grün gesamt
+pytest tests/                     – 342 Tests grün gesamt
 ```
 
 

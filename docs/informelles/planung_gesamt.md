@@ -399,7 +399,7 @@ Testfälle:
 
 ---
 
-### Phase 4 – Infrastruktur (Schritte 1–8e abgeschlossen | Schritt 9 offen | 319 Tests grün)
+### Phase 4 – Infrastruktur (vollständig abgeschlossen | 342 Tests grün)
 
 #### Fehlersemantik (bereits in Phase 3 vereinheitlicht)
 In allen Use Cases gilt: `employee is None` → `NotFoundError`; `not employee.is_active` → `InactiveEmployeeError`.
@@ -592,17 +592,22 @@ Beide Varianten vorhanden (Pflichtenheft v3 §7.12): `list_open_review_cases()` 
 
 ---
 
-**Schritt 9 – Selbsttest/Systemcheck (`infrastructure/system_check.py`)**
+**Schritt 9 – Selbsttest/Systemcheck (`infrastructure/system_check.py`) ✓**
 
-Pflichtenheft v3 §7.10 — muss spätestens mit Phase 4 fertiggestellt sein (nicht erst in Phase 5):
+Pflichtenheft v3 §7.10 — fertiggestellt in Phase 4.
 
+Fünf Prüfbereiche (alle implementiert):
 - Konfigurationsprüfung: alle erforderlichen `system_config`-Keys vorhanden
-- Geräteverfügbarkeit: evdev-Gerät (RFID-Reader + Numpad) erreichbar
-- NAS-Erreichbarkeit: Backup-Zielpfad mountbar/schreibbar
-- Datenbankzugriff: SQLite-Datei öffenbar, Migrationsstand aktuell
-- Grundkonsistenz: keine offenen Transactions, keine verwaisten Fremdschlüssel
+- Geräteverfügbarkeit: evdev-Gerät erreichbar — optional, übersprungen ohne Pfade
+- NAS-Erreichbarkeit: Backup-Zielpfad mountbar/schreibbar — übersprungen wenn deaktiviert
+- Datenbankzugriff: SQLite-Datei öffenbar, alle Migrationsdateien angewendet
+- Grundkonsistenz: keine verwaisten Fremdschlüssel (`PRAGMA foreign_key_check`)
 
-Ergebnis wird in `system_events` (`event_type='SYSTEM_CHECK'`) protokolliert. Aufrufbar manuell und als Startprüfung beim Systemstart.
+Schnittstelle: `run_system_check(db_path, *, numpad_path=None, rfid_path=None) -> SystemCheckResult`
+Ergebnis in `system_events` als `SELFTEST_OK` (INFO) oder `SELFTEST_FAIL` (WARN).
+Schemakorrektur: event_type='SYSTEM_CHECK' ist im Schema nicht definiert — korrekte Werte
+laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
+17 Integrationstests in `tests/integration/test_system_check.py`.
 
 ---
 

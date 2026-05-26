@@ -3,8 +3,8 @@
 Stand: 2026-05-24. Basiert auf Pflichtenheft v3 und Regelwerk v3.
 Phase 5 noch nicht begonnen.
 
-Voraussetzung: Phase 4/Schritt 9 (system_check.py) muss vor Schritt 4
-dieser Phase abgeschlossen sein.
+Voraussetzung: Phase 4/Schritt 9 (system_check.py) ist abgeschlossen ✓.
+Keine offenen Voraussetzungen aus Phase 4 vor Phase-5-Start.
 
 ---
 
@@ -34,7 +34,7 @@ Betriebsdokumentation (Phase 5, kein Code):
 - Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
   (Regelwerk v3 §17/§18, Befund 4/8-07)
 
-325 Tests grün (alle Ebenen).
+342 Tests grün (alle Ebenen).
 
 
 ---
