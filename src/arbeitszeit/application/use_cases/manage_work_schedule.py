@@ -74,6 +74,9 @@ class ManageWorkScheduleUseCase:
             )
             saved = repo.add(new_version)
 
+            # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
+            self._uow.commit()
+
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type=audit_events.WORK_SCHEDULE_CHANGED,
@@ -111,7 +114,6 @@ class ManageWorkScheduleUseCase:
                 ),
             ))
 
-            self._uow.commit()
             return WorkScheduleChangeResult(
                 new_version_id=saved.id,
                 superseded_version_id=superseded_id,

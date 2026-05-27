@@ -1,0 +1,126 @@
+"""Admin-CLI: Regelarbeitszeit verwalten (ADMIN-Rolle für Schreiben)."""
+import argparse
+import sqlite3
+import sys
+from datetime import date, time
+
+from arbeitszeit.application.commands import ChangeWorkScheduleCommand
+from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
+from arbeitszeit.domain.errors import DomainError
+from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+
+_WEEKDAY_NAMES = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"}
+
+
+def _parse_time(value: str) -> time:
+    try:
+        h, m = value.split(":")
+        return time(int(h), int(m))
+    except (ValueError, AttributeError):
+        print(f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr)
+        sys.exit(1)
+
+
+def cmd_schedule_set(
+    conn: sqlite3.Connection,
+    audit_conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+) -> None:
+    try:
+        valid_from = date.fromisoformat(args.from_date)
+    except ValueError:
+        print(f"Fehler: Ungültiges Datum {args.from_date!r} (erwartet YYYY-MM-DD)", file=sys.stderr)
+        sys.exit(1)
+
+    cmd = ChangeWorkScheduleCommand(
+        scope_type=ScopeType.GLOBAL,
+        scope_employee_id=None,
+        weekday=args.weekday,
+        start_time=_parse_time(args.start),
+        end_time=_parse_time(args.end),
+        valid_from=valid_from,
+        change_origin=ChangeOrigin.ADMIN_UI,
+        changed_by_user_id=user_id,
+        reason=None,
+    )
+    try:
+        result = ManageWorkScheduleUseCase(SQLiteUnitOfWork(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
+    day_name = _WEEKDAY_NAMES.get(args.weekday, str(args.weekday))
+    print(
+        f"Regelarbeitszeit gesetzt (Version {result.new_version_id}): "
+        f"{day_name} {args.start}–{args.end} ab {valid_from.isoformat()}."
+    )
+    if result.superseded_version_id is not None:
+        print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
+
+
+def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
+    _require_admin_or_reviewer(conn, user_id)
+    rows = conn.execute(
+        "SELECT id, scope_type, scope_employee_id, weekday, start_time, end_time, "
+        "valid_from, valid_until "
+        "FROM work_schedule_versions "
+        "WHERE valid_until IS NULL "
+        "ORDER BY scope_type, scope_employee_id, weekday"
+    ).fetchall()
+    if not rows:
+        print("Keine aktiven Regelarbeitszeitversionene vorhanden.")
+        return
+
+    global_rows = [r for r in rows if r["scope_type"] == "GLOBAL"]
+    employee_rows = [r for r in rows if r["scope_type"] == "EMPLOYEE"]
+
+    if global_rows:
+        print("Globale Regelarbeitszeit (gültige Versionen):")
+        print(f"  {'ID':>4}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
+        for r in global_rows:
+            day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
+            print(f"  {r['id']:>4}  {day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}")
+
+    if employee_rows:
+        print("\nMitarbeiterspezifische Regelarbeitszeit:")
+        print(f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
+        for r in employee_rows:
+            day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
+            print(
+                f"  {r['id']:>4}  {r['scope_employee_id']:>7}  "
+                f"{day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+            )
+
+    if not global_rows and employee_rows:
+        print("\nHinweis: Keine globale Regelarbeitszeit aktiv.")
+    elif global_rows and not employee_rows:
+        print("\nHinweis: Keine mitarbeiterspezifischen Ausnahmen definiert.")
+
+
+def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
+    row = conn.execute(
+        "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
+    ).fetchone()
+    if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
+        print(
+            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
+def register_subcommands(
+    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+) -> None:
+    sched = sub.add_parser("schedule", help="Regelarbeitszeit verwalten")
+    ssub = sched.add_subparsers(dest="schedule_cmd", required=True)
+
+    set_cmd = ssub.add_parser("set", help="Regelarbeitszeit setzen")
+    set_cmd.add_argument("--weekday", required=True, type=int, choices=range(1, 8),
+                         metavar="1-7 (1=Mo)")
+    set_cmd.add_argument("--start", required=True, metavar="HH:MM")
+    set_cmd.add_argument("--end", required=True, metavar="HH:MM")
+    set_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
+
+    ssub.add_parser("show", help="Aktive Regelarbeitszeiten anzeigen")

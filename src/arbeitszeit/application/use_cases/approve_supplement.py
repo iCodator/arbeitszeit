@@ -197,6 +197,9 @@ class ApproveSupplementUseCase:
                 ))
                 follow_up_case_ids.append(case.id)
 
+            # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
+            self._uow.commit()
+
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type=audit_events.SUPPLEMENT_APPROVED,
@@ -218,8 +221,6 @@ class ApproveSupplementUseCase:
                     sort_keys=True,
                 ),
             ))
-
-            self._uow.commit()
             return ApproveSupplementResult(
                 supplement_id=supplement.id,
                 booking_id=booking.id,

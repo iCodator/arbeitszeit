@@ -1,7 +1,8 @@
 # Planung Phase 5 – Präsentation
 
-Stand: 2026-05-26. Basiert auf Pflichtenheft v3 und Regelwerk v3.
+Stand: 2026-05-27. Basiert auf Pflichtenheft v3 und Regelwerk v3.
 Schritt 1 freigegeben (Review-Befunde 5/1-04 und 5/1-06 korrigiert).
+Schritt 2 implementiert.
 
 ---
 
@@ -29,7 +30,7 @@ Betriebsdokumentation (Phase 5, kein Code):
 - Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
   (Regelwerk v3 §17/§18, Befund 4/8-07)
 
-353 Tests grün (alle Ebenen).
+353 Tests grün (alle Ebenen, Stand Phase 5/Schritt 1).
 
 
 ---
@@ -197,7 +198,41 @@ e2e-Test mit echter SQLite-DB und zwei Verbindungen gab.
 - Inaktive Karte → Abweisung mit Audit-Log
 
 
-### Schritt 2 – presentation/admin_cli/
+### Schritt 2 – presentation/admin_cli/  ✓
+
+Vollständig implementiert. Argparse-basiertes CLI mit Subcommands:
+
+```
+src/arbeitszeit/presentation/admin_cli/
+├── __init__.py
+├── _intervals.py    day_interval / week_interval / month_interval
+├── main.py          Einstiegspunkt (argparse, --user-id / ADMIN_USER_ID)
+├── employees.py     Mitarbeiter + Karten (direktes SQL, ADMIN-Rolle)
+├── bookings.py      Korrekturen + Nachträge (Use Cases, ADMIN/REVIEWER)
+├── schedule.py      Regelarbeitszeit (ManageWorkScheduleUseCase, ADMIN)
+├── reports.py       PDF/CSV-Export + Pflichtauswertungen (ADMIN/REVIEWER)
+└── system.py        Systemcheck + Backup (ADMIN/TECH)
+```
+
+**Deadlock-Korrektur in allen Use Cases (Nebeneffekt):**
+Das commit()-vor-audit-Muster aus Schritt 1 (BookUseCase) wurde auf alle
+weiteren schreibenden Use Cases übertragen, die denselben Deadlock hatten:
+`RegisterSupplementUseCase`, `ApproveSupplementUseCase`,
+`RejectSupplementUseCase`, `CorrectBookingUseCase`, `ManageWorkScheduleUseCase`.
+In jedem Fall: `uow.commit()` VOR `audit_log_repo.add()`, damit `conn`
+keinen RESERVED-Lock mehr hält, wenn `audit_conn` schreiben will.
+
+8 Tests in `tests/e2e/test_supplement_flow.py`:
+- Nachtrag erfassen (REVIEWER) → PENDING
+- Nachtrag erfassen (EMPLOYEE) → PermissionDeniedError
+- Nachtrag erfassen (unbekannter Mitarbeiter) → NotFoundError
+- Nachtrag genehmigen (ADMIN) → TimeBooking angelegt, Status MANUAL
+- Nachtrag ablehnen (REVIEWER) → REJECTED
+- Nachtrag genehmigen nach Ablehnung → ValidationError
+- Nachtrag genehmigen (inaktiver Mitarbeiter) → InactiveEmployeeError
+- Nachtrag genehmigen (unbekannter Benutzer) → PermissionDeniedError
+
+361 Tests grün (alle Ebenen, Stand Phase 5/Schritt 2).
 
 Strukturiertes CLI (argparse oder click), untergeordnete Befehle:
 

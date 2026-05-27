@@ -83,6 +83,9 @@ class RegisterSupplementUseCase:
                 closed_by_user_id=None,
             ))
 
+            # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
+            self._uow.commit()
+
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type=audit_events.SUPPLEMENT_CREATED,
@@ -106,7 +109,6 @@ class RegisterSupplementUseCase:
                 ),
             ))
 
-            self._uow.commit()
             return SupplementResult(
                 supplement_id=supplement.id,
                 review_case_id=review_case.id,

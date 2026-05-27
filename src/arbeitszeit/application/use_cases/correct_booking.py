@@ -96,6 +96,9 @@ class CorrectBookingUseCase:
                     if review_case_id is None:
                         review_case_id = case.id
 
+            # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
+            self._uow.commit()
+
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type=audit_events.BOOKING_CORRECTED,
@@ -120,7 +123,6 @@ class CorrectBookingUseCase:
                 ),
             ))
 
-            self._uow.commit()
             return CorrectionResult(
                 correction_id=correction.id,
                 updated_booking_id=booking.id,

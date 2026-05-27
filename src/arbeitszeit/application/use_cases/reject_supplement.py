@@ -63,6 +63,9 @@ class RejectSupplementUseCase:
                     review_case_id = case.id
                     break
 
+            # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
+            self._uow.commit()
+
             self._uow.audit_log_repo.add(AuditLogEntry(
                 id=0,
                 event_type=audit_events.SUPPLEMENT_REJECTED,
@@ -81,8 +84,6 @@ class RejectSupplementUseCase:
                     sort_keys=True,
                 ),
             ))
-
-            self._uow.commit()
             return RejectSupplementResult(
                 supplement_id=supplement.id,
                 review_case_id=review_case_id,

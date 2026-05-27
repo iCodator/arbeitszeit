@@ -611,7 +611,7 @@ laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
 
 ---
 
-### Phase 5 – Präsentation (Schritt 1 freigegeben | 353 Tests grün)
+### Phase 5 – Präsentation (Schritt 1+2 abgeschlossen | 361 Tests grün)
 
 **Schritt 1 – `presentation/terminal_ui/` ✓**
 `booking_loop.py`: `process_booking(reader, db_path, terminal_id) -> BookResult` kapselt
@@ -621,21 +621,44 @@ gibt Statustext zurück.
 Exceptions in `system_events`, Graceful-Shutdown auf SIGTERM/SIGINT.
 10 Tests in `tests/e2e/test_booking_flow.py`: COME→GO, COME→PAUSE→GO, Abweisung mit Audit-Log.
 
-**Architekturkorrektur BookUseCase (entdeckt durch e2e-Tests):**
-`uow.commit()` wird vor dem TIME_BOOKED-Audit-Log aufgerufen. Grund: nach commit hält
-`conn` keinen RESERVED-Lock mehr, `audit_conn` kann schreiben ohne zu blockieren.
-Mit dem alten Code (commit nach audit write) gab es einen Deadlock — Python ist
-single-threaded, `audit_conn` wartete auf `conn`-Commit, aber Commit kam erst nach
-`audit_conn`-Write. `busy_timeout` hilft hier nicht. Ablehnungspfade unverändert.
+**Architekturkorrektur commit()-vor-audit (entdeckt durch e2e-Tests, auf alle Use Cases ausgeweitet):**
+`uow.commit()` muss VOR `audit_log_repo.add()` aufgerufen werden. Grund: nach commit hält
+`conn` keinen RESERVED-Lock mehr, `audit_conn` kann schreiben ohne zu blockieren. Deadlock tritt
+auf, weil Python single-threaded ist: `audit_conn` wartet auf `conn`-Commit, der aber erst nach
+`audit_conn`-Write käme. `busy_timeout` hilft hier nicht.
 
-**Schritt 2 – `presentation/admin_cli/`**
-Administrative Pflege (Mitarbeiter, Karten, Korrekturen). Rollenprüfung gem. Pflichtenheft v3 §5/Regelwerk v3 §16 (Mitarbeiter/Admin/Prüfer/Tech strikt getrennt).
+Gilt für alle schreibenden Use Cases:
+- `BookUseCase` — Schritt 1 korrigiert
+- `RegisterSupplementUseCase`, `ApproveSupplementUseCase`, `RejectSupplementUseCase`,
+  `CorrectBookingUseCase`, `ManageWorkScheduleUseCase` — Schritt 2 nachkorrigiert
 
-**Schritt 3 – Pflichtauswertungen in App einsehbar (Pflichtenheft v3 §7.12)**
-Pflichtauswertungen aus Phase 4/8d müssen in der Anwendung einsehbar sein — nicht nur als exportierbare CSV. Alle acht Pflichtauswertungskategorien (offene Buchungen/Pausen, Korrekturen, Nachträge, Pausen-/Ruhezeit-/Höchstarbeitszeit-Verstöße, Regelzeitfenster-Verstöße, Warn-/Prüfstatus-Fälle) per UI darstellbar, filterbar nach Zeitraum und Mitarbeiter.
+Ablehnungspfade sind nicht betroffen (conn hält dort nur SELECTs, keinen RESERVED-Lock).
 
-**Schritt 4 – Selbsttest im UI integrieren (Pflichtenheft v3 §7.10)**
-`infrastructure/system_check.py` ist in Phase 4/Schritt 9 fertiggestellt. Phase 5 ergänzt lediglich den UI-Aufrufpunkt: Systemcheck manuell aus Admin-CLI auslösbar; Ergebnis in der UI sichtbar (nicht nur in system_events).
+**Schritt 2 – `presentation/admin_cli/` ✓**
+Argparse-basiertes CLI. Subcommands: `employees`, `cards`, `bookings`, `schedule`, `reports`, `system`.
+Benutzer-ID per `--user-id` oder `ADMIN_USER_ID`-Umgebungsvariable. Rollenprüfung
+(ADMIN/REVIEWER/TECH) ist erster Schritt in jedem Befehl vor jeder Datenoperation.
+
+Struktur:
+- `_intervals.py` — `day_interval`, `week_interval`, `month_interval` (UTC, halboffene Intervalle)
+- `employees.py` — direktes SQL für Mitarbeiter/Karten-Schreiboperationen (kein Use Case vorhandnen)
+- `bookings.py` — Korrekturen/Nachträge via vorhandene Use Cases
+- `schedule.py` — `ManageWorkScheduleUseCase`
+- `reports.py` — Export + alle 5 Pflichtauswertungskategorien via `report_queries.py`
+- `system.py` — `run_system_check()` + `SQLiteBackupService`
+
+8 Tests in `tests/e2e/test_supplement_flow.py`: PENDING→APPROVED, PENDING→REJECTED,
+Rollenprüfung (EMPLOYEE/unbekannter User), Doppelgenehmigung, inaktiver Mitarbeiter,
+unbekannter Mitarbeiter.
+
+**Schritt 3 – Pflichtauswertungen in App einsehbar (Pflichtenheft v3 §7.12) ✓**
+Bereits in Schritt 2 integriert: `admin reports open-bookings`, `warn-cases`, `corrections`,
+`supplements`, `open-review-cases` — alle über `report_queries.py`, tabellarische Ausgabe,
+filterbar nach Zeitraum und Mitarbeiter.
+
+**Schritt 4 – Selbsttest im UI integrieren (Pflichtenheft v3 §7.10) ✓**
+Bereits in Schritt 2 integriert: `admin system check` ruft `run_system_check()` auf und
+zeigt Ergebnis tabellarisch. Terminal-UI ruft Systemcheck beim Start bereits in Schritt 1 auf.
 
 ---
 
