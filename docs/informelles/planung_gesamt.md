@@ -103,8 +103,10 @@ V3 §7.9 / ArbZG §3/4/5 — alle fünf Prüfhilfen sind Pflichtanforderung:
 - `check_rest_period`: <11h Ruhezeit zwischen zwei Arbeitstagen (ArbZG §5) — in Phase 3 bewusst auf Phase 4 verschoben, weil Vortages-Kontext fehlt; **V3 §7.9 Pflichtanforderung, kein optionaler Punkt**
 
 V3-Design-Entscheidung (Regelwerk v3 §11): Die Statuswerte POSSIBLE_BREAK_VIOLATION, POSSIBLE_REST_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION und MANUAL_ENTRY werden im System nicht als BookingStatus-Werte realisiert, sondern über eigene Typen:
-- POSSIBLE_* Compliance-Fälle → ReviewCase mit ReviewCaseType (z. B. BREAK_COMPLIANCE_ISSUE, REST_PERIOD_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION) und ReviewSeverity — abfragbar über ReviewCaseRepository
+
+- POSSIBLE_* Compliance-Fälle → ReviewCase mit ReviewCaseType (POSSIBLE_BREAK_VIOLATION, POSSIBLE_REST_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION) und ReviewSeverity — abfragbar über ReviewCaseRepository
 - MANUAL_ENTRY (manuelle Herkunft) → BookingSource.MANUAL auf der TimeBooking — kombinierbar mit jedem Status (WARN, OK, NEEDS_REVIEW)
+
 Diese Trennung ist fachlich ausdrucksstärker (Status und Herkunft orthogonal) und V3-konform, weil report_queries.py alle Fakten daraus korrekt ableitet (Regelwerk v3 §11: konsistente Ableitung für Berichte und Pflichtauswertungen).
 
 **Harte Bedingung für V3-Konformität:** Diese Ableitungsstrategie ist nur dann regelwerkskonform, wenn `report_queries.py` die einzige und zentrale Wahrheitsquelle für alle Ausgabekanäle ist — UI-Pflichtauswertungen, CSV-Export, PDF-Berichte und Filterlogik müssen alle auf denselben normierten Projektionen beruhen. Direkte Ad-hoc-Queries außerhalb von `report_queries.py` sind architektonisch verboten. Konsistenz wird durch Integrationstests gegen alle Ausgabekanäle verifiziert (Phase 4/8e, Phase 5).
@@ -121,10 +123,11 @@ Diese Trennung ist fachlich ausdrucksstärker (Status und Herkunft orthogonal) u
 - `AuditLogRepository`: `add`
 - `SystemConfigRepository`: `get_current`
 
-**Tests** (44 gesamt, alle grün):
+**Tests** (63 gesamt, alle grün; historischer Planstand war 44):
 - `tests/domain/test_booking_rules.py` – 10 Tests
 - `tests/domain/test_compliance_checks.py` – 9 Tests
-- `tests/domain/test_entities.py` – 19 Invariantentests
+- `tests/domain/test_entities.py` – 42 Invariantentests (Plan: 19; tiefere Abdeckung)
+- `tests/domain/test_audit_events.py` – 2 Tests (neu, nicht im Plan)
 
 ---
 

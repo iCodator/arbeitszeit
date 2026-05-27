@@ -107,6 +107,8 @@ Mindestens folgende Statuswerte gelten:
 
 Statuswerte sind die verbindliche fachliche Grundlage für Pflichtauswertungen, Berichte und normierte Hinweistexte. Ihre Darstellung muss in Auswertungen und Berichten konsistent aus den gespeicherten fachlichen Zuständen abgeleitet werden.
 
+**Technischer Umsetzungshinweis:** `POSSIBLE_BREAK_VIOLATION`, `POSSIBLE_REST_VIOLATION` und `POSSIBLE_MAX_HOURS_VIOLATION` bezeichnen fachliche Hinweislagen, werden aber nicht als Werte der `BookingStatus`-Enum implementiert. Sie werden stattdessen als `ReviewCaseType`-Werte auf `ReviewCase`-Datensätzen abgebildet (orthogonale Dimension zu `BookingStatus`). `MANUAL_ENTRY` kennzeichnet die Herkunft einer Buchung und wird als `BookingSource.MANUAL` auf der `TimeBooking` abgebildet — kombinierbar mit jedem Buchungsstatus. Die Ableitung dieser fachlichen Zustände für Berichte und Pflichtauswertungen erfolgt ausschließlich über `report_queries.py`.
+
 ## 12. Korrekturen
 
 Korrekturen sind zulässig, aber immer begründungspflichtig. Sie müssen alten Zustand, neuen Zustand, Begründung, korrigierende Person und Zeitstempel dokumentieren.

@@ -47,13 +47,17 @@ Alle Enums erben von StrEnum (Python 3.11+).
 - `ApprovalStatus`    PENDING, APPROVED, REJECTED
 - `ScopeType`         GLOBAL, EMPLOYEE
 
-Abweichungen gegenüber Ursprungsplan:
+Finaler Phase-2-Stand (Abweichungen gegenüber Ursprungsplan):
 
+- `BookingStatus` enthält ausschließlich: OPEN, OK, WARN, NEEDS_REVIEW,
+  CORRECTED, CLOSED_WITH_NOTE. Fachliche Hinweislagen (POSSIBLE_BREAK_VIOLATION,
+  POSSIBLE_REST_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION) und Herkunftskennzeichnung
+  (MANUAL_ENTRY) sind KEINE BookingStatus-Werte. Ihre Realisierung erfolgt orthogonal:
+  POSSIBLE_* → ReviewCaseType; MANUAL_ENTRY → BookingSource.MANUAL. (→ AP 1)
 - `ReviewCaseType`: Plan nannte nur 4 Werte (MANUAL_ENTRY_REVIEW,
   POSSIBLE_MAX_HOURS_VIOLATION, BREAK_COMPLIANCE_ISSUE, REST_PERIOD_VIOLATION);
-  tatsächlich 11 Werte implementiert. `BREAK_COMPLIANCE_ISSUE` und
-  `REST_PERIOD_VIOLATION` existieren nicht — korrekte Namen sind
-  `POSSIBLE_BREAK_VIOLATION` und `POSSIBLE_REST_VIOLATION`.
+  tatsächlich 11 Werte implementiert. Finale Bezeichner: `POSSIBLE_BREAK_VIOLATION`
+  und `POSSIBLE_REST_VIOLATION` (nicht BREAK_COMPLIANCE_ISSUE/REST_PERIOD_VIOLATION).
 - `CardStatus`: REPLACED ergänzt (Plan hatte nur ACTIVE, INACTIVE, LOST).
 - `BookingSource`: IMPORT statt SYSTEM.
 
@@ -204,15 +208,18 @@ Pflichtanforderung Pflichtenheft v3 §7.9 (ArbZG §3/4/5).
   - >8h Nettoarbeitszeit → POSSIBLE_MAX_HOURS_VIOLATION, WARN
 
 `check_rest_period(last_go: datetime, next_come: datetime) → list[ComplianceFlag]`
-  Nimmt zwei datetime-Objekte entgegen (nicht zwei Buchungslisten wie ursprünglich geplant).
+  Finale Domänenschnittstelle: nimmt zwei datetime-Objekte entgegen (letzter GO-Zeitpunkt,
+  nächster COME-Zeitpunkt) — nicht zwei Buchungslisten wie ursprünglich geplant.
   <11h zwischen letztem GO und nächstem COME → POSSIBLE_REST_VIOLATION, CRITICAL (ArbZG §5).
   V3 §7.9 Pflichtanforderung. Integration in BookUseCase + ApproveSupplementUseCase
   nach Phase 4/Schritt 1b.
 
-V3-Design-Entscheidung (Regelwerk v3 §11):
+Verbindliche Architekturentscheidung (Regelwerk v3 §11):
   POSSIBLE_* werden als ReviewCase (ReviewCaseType + ReviewSeverity) abgebildet,
-  nicht als BookingStatus. MANUAL_ENTRY → BookingSource.MANUAL. Beide Dimensionen
-  orthogonal. report_queries.py ist einzige Ableitungsquelle für alle Ausgabekanäle.
+  nicht als BookingStatus-Werte. MANUAL_ENTRY → BookingSource.MANUAL. Beide Dimensionen
+  sind orthogonal zu BookingStatus. report_queries.py ist die einzige Ableitungsquelle
+  für alle Ausgabekanäle (CSV, PDF, UI-Pflichtauswertungen). Direkte Ad-hoc-Queries
+  außerhalb von report_queries.py sind architektonisch verboten.
 
 
 ports/repositories.py – 10 Protocol-Interfaces
@@ -285,3 +292,23 @@ Gesamt tests/domain/                   – 63 Tests  (Plan: 38/44)
 test_entities.py hat 42 statt 19 Tests — tiefere Invarianten-Abdeckung,
 insbesondere Supplement-Freigabe-/Ablehnungsdaten mit Zeitlichkeitsprüfung
 und zusätzliche Edge Cases für ReviewCase und WorkScheduleVersion.
+
+
+Abgrenzung Phase-2-Leistungsumfang vs. Gesamtsystem
+-----------------------------------------------------
+
+Phase 2 schließt den Domänenkern fachlich ab: Enums, Entitäten, Businessregeln,
+Compliance-Checks und Repository-Protokolle liegen vollständig vor.
+
+Was Phase 2 allein nicht leistet:
+
+- Die vollständige Berichtskonsistenz (normierte Projektion aller Status, Korrekturen
+  und Nachträge für Pflichtauswertungen) ist erst im Zusammenspiel mit
+  report_queries.py (Phase 4/Schritt 8a) abschließend nachgewiesen.
+- Die Ruhezeitprüfung check_rest_period() ist in Phase 2 als Domänenfunktion
+  vollständig; ihre Integration in den Buchungsfluss erfolgt erst in Phase 4/Schritt 1b,
+  weil der Vortages-Kontext erst durch den TimeBookingRepository-Port verfügbar wird.
+- Rollenprüfung in Use Cases gehört zur Application-Schicht (Phase 3/4), nicht Phase 2.
+
+Ein Reviewer darf „Phase 2 vollständig" lesen als: Domänenkern abgeschlossen,
+Invarianten getestet, Protokolle definiert — nicht als: Gesamtsystem auslieferbar.
