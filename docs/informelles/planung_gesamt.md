@@ -611,7 +611,7 @@ laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
 
 ---
 
-### Phase 5 – Präsentation (Schritt 1+2 abgeschlossen | 361 Tests grün)
+### Phase 5 – Präsentation (vollständig abgeschlossen | 369 Tests grün)
 
 **Schritt 1 – `presentation/terminal_ui/` ✓**
 `booking_loop.py`: `process_booking(reader, db_path, terminal_id) -> BookResult` kapselt
@@ -660,6 +660,20 @@ filterbar nach Zeitraum und Mitarbeiter.
 Bereits in Schritt 2 integriert: `admin system check` ruft `run_system_check()` auf und
 zeigt Ergebnis tabellarisch. Terminal-UI ruft Systemcheck beim Start bereits in Schritt 1 auf.
 
+**Schritt 5 – Systemzeitprotokollierung (Pflichtenheft v3 §9.3 / Regelwerk v3 §21) ✓**
+`infrastructure/time_monitor.py`: `SystemTimeMonitor` vergleicht Wall-Clock-Delta mit
+Monotonic-Clock-Delta; Abweichung > Threshold → `TIME_JUMP_DETECTED` (Vorwärtssprung)
+oder `MANUAL_TIME_CHANGE_DETECTED` (Rückwärtssprung) in `system_events`.
+`load_threshold_from_config()` liest optionalen system_config-Schlüssel
+`time_monitor.jump_threshold_seconds`, Fallback 60 s. Clock-Funktionen injizierbar
+für Tests. Integration in `terminal_ui/main.py`: `monitor.check()` als erster Schritt
+jedes Loop-Durchlaufs — erkennt Sprünge, die während blockierendem `read_next()` auftraten.
+8 Tests in `tests/integration/test_time_monitor.py`. Deckt V3 §16 „Systemzeitabweichung" ab.
+
+**Bugfix admin_cli (Schritt 5):** `reports.py` und `system.py` lasen falschen Spaltenname
+`config_value` statt `config_value_json` aus system_config + fehlten `json.loads()`.
+Korrigiert; NAS-path `null`-Wert wird jetzt korrekt als `None` ausgewertet.
+
 ---
 
 ### Testaufteilung
@@ -683,7 +697,7 @@ zeigt Ergebnis tabellarisch. Terminal-UI ruft Systemcheck beim Start bereits in 
 | Arbeitszeit über 8h | `tests/domain/test_compliance_checks.py` + `tests/application/test_book_time.py` | ✓ |
 | Arbeitszeit über 10h | `tests/domain/test_compliance_checks.py` + `tests/application/test_book_time.py` | ✓ |
 | Unterschreitung Ruhezeit (<11h) | `tests/application/test_book_time.py` | ✓ |
-| Systemzeitabweichung | nach Systemzeitprotokollierung (Phase 5) | offen |
+| Systemzeitabweichung | `tests/integration/test_time_monitor.py` | ✓ |
 | Notfallnachtrag | `tests/application/test_register_supplement.py` | ✓ |
 | Restore-Test mit echtem Backup | `tests/e2e/test_backup.py` | ✓ |
 | Auswertung offener und auffälliger Fälle | `tests/integration/test_export.py` | ✓ |

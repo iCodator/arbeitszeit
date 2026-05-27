@@ -1,5 +1,6 @@
 """Admin-CLI: PDF/CSV-Export und Pflichtauswertungen (ADMIN/REVIEWER-Rolle)."""
 import argparse
+import json
 import sqlite3
 import sys
 from datetime import date, datetime
@@ -33,7 +34,7 @@ def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
 
 def _get_export_dir(conn: sqlite3.Connection) -> str:
     row = conn.execute(
-        "SELECT config_value FROM system_config "
+        "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
     ).fetchone()
     if row is None:
@@ -42,7 +43,7 @@ def _get_export_dir(conn: sqlite3.Connection) -> str:
             file=sys.stderr,
         )
         sys.exit(1)
-    return row["config_value"]
+    return json.loads(row["config_value_json"])
 
 
 def _parse_date(value: str) -> date:

@@ -1,8 +1,8 @@
 # Planung Phase 5 – Präsentation
 
 Stand: 2026-05-27. Basiert auf Pflichtenheft v3 und Regelwerk v3.
-Schritt 1 freigegeben (Review-Befunde 5/1-04 und 5/1-06 korrigiert).
-Schritt 2 implementiert.
+Phase 5 vollständig abgeschlossen (Schritte 0–5).
+369 Tests grün (alle Ebenen).
 
 ---
 
@@ -30,7 +30,7 @@ Betriebsdokumentation (Phase 5, kein Code):
 - Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
   (Regelwerk v3 §17/§18, Befund 4/8-07)
 
-353 Tests grün (alle Ebenen, Stand Phase 5/Schritt 1).
+353 Tests grün (alle Ebenen, Stand Phase 5/Schritt 1; jetzt 369).
 
 
 ---
@@ -299,19 +299,42 @@ Terminal-UI ruft Systemcheck beim Start automatisch auf.
 Bei kritischem Befund: Warnung ausgeben, aber weiterlaufen (kein Hard-Stop).
 
 
-### Schritt 5 – Systemzeitprotokollierung
+### Schritt 5 – Systemzeitprotokollierung  ✓
 
 (Pflichtenheft v3 §9.3 / Regelwerk v3 §21)
 
-Erkennung von Zeitsprüngen und manuellen Uhrzeitänderungen:
-- Periodisch Systemzeit mit letztem bekannten Wert vergleichen
-- Sprung > Schwellenwert (konfigurierbar via `system_config`) →
-  INSERT in `system_events` (event_type `TIME_JUMP_DETECTED` oder
-  `MANUAL_TIME_CHANGE_DETECTED`, details_json mit Differenz)
-- Schwellenwert-Default: 60 Sekunden (nur echte Sprünge, nicht NTP-Drift)
+`infrastructure/time_monitor.py`:
 
-Optional: AuditLogEntry für prüfpflichtige Fälle.
+- `SystemTimeMonitor(db_path, threshold_seconds=60.0)` — Sprungdetektion via
+  Monotonic-Clock vs. Wall-Clock-Vergleich.
+- `check()` — nimmt Zeitsample; schreibt `system_events`-Eintrag bei Sprung.
+- `load_threshold_from_config(db_path, default=60.0)` — liest optionalen
+  Schwellenwert aus `system_config`-Schlüssel `time_monitor.jump_threshold_seconds`.
+
+Erkennungslogik:
+- Vorwärtssprung (`diff > threshold`): `TIME_JUMP_DETECTED` (WARN)
+- Rückwärtssprung (`diff < -threshold`): `MANUAL_TIME_CHANGE_DETECTED` (WARN)
+- NTP-Drift (< Schwellenwert) wird herausgefiltert; Default 60 Sekunden.
+
+Integration in `terminal_ui/main.py`:
+- `monitor.check()` als erster Schritt in jedem Loop-Durchlauf, vor
+  blockierendem `read_next()`. Dadurch werden Sprünge zwischen zwei
+  Buchungen zuverlässig erkannt (Monotonic-Clock läuft auch während Blockierung).
+
+Kein eigener AuditLogEntry — `system_events` ist die korrekte Ablage für
+Betriebsereignisse ohne fachlichen Buchungsbezug.
+
 NTP-Synchronisation ist Betriebsvoraussetzung, nicht Aufgabe dieser Schicht.
+
+8 Tests in `tests/integration/test_time_monitor.py`:
+- Erster Aufruf → kein Ereignis (Basiswert setzen)
+- Normaler Ablauf → kein Ereignis
+- Vorwärtssprung > Threshold → TIME_JUMP_DETECTED
+- Rückwärtssprung > Threshold → MANUAL_TIME_CHANGE_DETECTED
+- Sprung < Threshold → kein Ereignis
+- details_json enthält diff_seconds
+- load_threshold_from_config mit Fallback
+- load_threshold_from_config liest system_config-Wert
 
 Deckt V3 §16-Testpflicht „Systemzeitabweichung" ab.
 
@@ -348,7 +371,7 @@ in Application- und Infrastructure-Schicht.
 >8h Arbeitszeit             → test_compliance_checks.py + test_book_time.py  (grün)
 >10h Arbeitszeit            → test_compliance_checks.py + test_book_time.py  (grün)
 Ruhezeitverletzung <11h     → test_book_time.py  (grün)
-Systemzeitabweichung        → test_e2e? / system_events-Prüfung  (Phase 5/Schritt 5)
+Systemzeitabweichung        → test_time_monitor.py  (grün)
 Notfallnachtrag             → test_register_supplement.py  (grün)
 Restore-Test                → tests/e2e/test_backup.py  (grün)
 Auswertung offener Fälle    → test_export.py  (grün)

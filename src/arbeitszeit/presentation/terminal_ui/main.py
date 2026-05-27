@@ -17,6 +17,7 @@ from arbeitszeit.domain.errors import (
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader
 from arbeitszeit.infrastructure.system_check import run_system_check
+from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor, load_threshold_from_config
 from .booking_loop import format_feedback, process_booking
 
 _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
@@ -77,10 +78,15 @@ def run(
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
 
+    threshold = load_threshold_from_config(db_path)
+    monitor = SystemTimeMonitor(db_path, threshold_seconds=threshold)
+    monitor.check()  # Basiszeitpunkt setzen
+
     reader = EvdevHardwareReader(numpad_path=numpad_device, rfid_path=rfid_device)
     try:
         while running:
             try:
+                monitor.check()  # Zeitsprung vor blockierendem read_next() prüfen
                 booking_result = process_booking(reader, db_path, terminal_id)
                 print(format_feedback(booking_result))
             except DomainError as exc:

@@ -1,5 +1,6 @@
 """Admin-CLI: Systemcheck und Backup (ADMIN/TECH-Rolle)."""
 import argparse
+import json
 import sqlite3
 import sys
 from pathlib import Path
@@ -45,7 +46,7 @@ def cmd_system_backup(
 ) -> None:
     _require_admin_or_tech(conn, user_id)
     backup_dir_row = conn.execute(
-        "SELECT config_value FROM system_config "
+        "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'backup.backup_dir' ORDER BY version DESC LIMIT 1"
     ).fetchone()
     if backup_dir_row is None:
@@ -54,15 +55,17 @@ def cmd_system_backup(
             file=sys.stderr,
         )
         sys.exit(1)
-    backup_dir = Path(backup_dir_row["config_value"])
+    backup_dir = Path(json.loads(backup_dir_row["config_value_json"]))
 
     export_dir: Path | None = None
     export_dir_row = conn.execute(
-        "SELECT config_value FROM system_config "
+        "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
     ).fetchone()
     if export_dir_row is not None:
-        export_dir = Path(export_dir_row["config_value"])
+        export_dir_val = json.loads(export_dir_row["config_value_json"])
+        if export_dir_val is not None:
+            export_dir = Path(export_dir_val)
 
     service = SQLiteBackupService(db_path, backup_dir, export_dir=export_dir)
     try:
@@ -73,22 +76,26 @@ def cmd_system_backup(
     print(f"Backup erstellt: {backup_path}")
 
     nas_enabled_row = conn.execute(
-        "SELECT config_value FROM system_config "
+        "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'backup.nas_enabled' ORDER BY version DESC LIMIT 1"
     ).fetchone()
-    nas_enabled = nas_enabled_row is not None and nas_enabled_row["config_value"].lower() == "true"
+    nas_enabled = nas_enabled_row is not None and bool(
+        json.loads(nas_enabled_row["config_value_json"])
+    )
 
     if nas_enabled:
         nas_path_row = conn.execute(
-            "SELECT config_value FROM system_config "
+            "SELECT config_value_json FROM system_config "
             "WHERE config_key = 'backup.nas_path' ORDER BY version DESC LIMIT 1"
         ).fetchone()
         if nas_path_row is not None:
-            try:
-                service.sync_to_nas(Path(nas_path_row["config_value"]))
-                print("NAS-Synchronisation erfolgreich.")
-            except Exception as exc:
-                print(f"Warnung: NAS-Synchronisation fehlgeschlagen: {exc}", file=sys.stderr)
+            nas_path_val = json.loads(nas_path_row["config_value_json"])
+            if nas_path_val is not None:
+                try:
+                    service.sync_to_nas(Path(nas_path_val))
+                    print("NAS-Synchronisation erfolgreich.")
+                except Exception as exc:
+                    print(f"Warnung: NAS-Synchronisation fehlgeschlagen: {exc}", file=sys.stderr)
 
 
 def register_subcommands(
