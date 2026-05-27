@@ -45,17 +45,24 @@ Die Dokumente unter `docs/informelles/` dokumentieren eine vollständige Design-
 
 ### Phase 1 – Grundgerüst ✓ abgeschlossen
 
-Umgesetzt:
+Originärer Phase-1-Lieferumfang (Migrationen 0001/0002, 6 Tests):
 - `pyproject.toml`, `src/`-Layout, `tests/`, `.gitignore`, `.python-version`
 - `migrations/0001_schema.sql` – finale DDL, enthält `schema_migrations`
 - `migrations/0002_seed_defaults.sql` – Regelzeiten + System-Config-Defaults
 - `infrastructure/db/connection.py` – `isolation_level=None`, `PRAGMA foreign_keys = ON`, `row_factory`
 - `infrastructure/db/migrations.py` – `executescript()` mit `BEGIN/COMMIT`, Versionsvalidierung vor f-String
 - `scripts/init_db.py`
-- `tests/test_migrations.py` – 11 Tests (grün; ursprünglich 6 geplant, durch Migrationen 0003–0005 aus Phase 4 auf 11 gewachsen)
+- `tests/test_migrations.py` – ursprünglich 6 Testfälle für 0001/0002
+
+Spätere Nachträge auf demselben Fundament (nicht Teil des Phase-1-Abschlusses):
+
 - `migrations/0003_cleanup_booking_status.sql` – Status-CHECK bereinigt (Phase 4)
 - `migrations/0004_supplement_reject_fields_and_review_note.sql` – rejected_by_user_id/rejected_at + note-Feld (Phase 4)
 - `migrations/0005_time_bookings_device_event_id.sql` – device_event_id FK (Phase 4)
+- `migrations/0006_system_events_application_error.sql` – APPLICATION_ERROR event_type (Phase 5)
+- `tests/test_migrations.py` – 5 weitere Tests für 0003–0005 in Phase 4, 1 Test für 0006 in Phase 5
+
+Heutiger Gesamtstand des Testmoduls: 12 Tests (verifiziert Migrationskette 0001–0006).
 
 ---
 

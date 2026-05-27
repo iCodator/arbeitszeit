@@ -1,6 +1,25 @@
 Phase 1 – Grundgerüst (abgeschlossen)
 ======================================
 
+Historischer Lieferumfang Phase 1 (originaler Abschlussstand)
+--------------------------------------------------------------
+
+Originär zu Phase 1 gehörten ausschließlich:
+
+- migrations/0001_schema.sql — vollständiges Datenbankschema (16 Tabellen)
+- migrations/0002_seed_defaults.sql — Regelarbeitszeiten und System-Config-Defaults
+- infrastructure/db/connection.py — SQLite-Verbindungsfunktion mit PRAGMAs
+- infrastructure/db/migrations.py — Migrationsrunner (executescript, Idempotenz)
+- scripts/init_db.py — Initialisierungsskript
+- tests/test_migrations.py — ursprünglich 6 Testfälle (Tests 1–5 + 10, s. u.)
+
+Migrationen 0003–0006 und die zugehörigen Testfälle 6–9, 11, 12 wurden in
+Phase 4 (Schritte 4/2, 4/5) und Phase 5 (Schritt 1) nachgereicht. Sie bauen
+auf demselben Fundament auf und laufen heute im selben Testmodul mit.
+
+Heutiger Endstand der Migrationskette: Migrationen 0001–0006, 12 Tests.
+
+
 Ziel
 ----
 Lauffähiges Projektgerüst mit Migrationssystem und erster Datenbankkonsistenzprüfung.
@@ -183,7 +202,11 @@ migrations/0002_seed_defaults.sql
     Je ein SEEDED-Eintrag für jede system_config-Zeile (4)
     → insgesamt 9 Audit-Einträge nach 0002
 
-migrations/0003–0005 (Phase 4, in test_migrations.py mitgetestet)
+Spätere Nachträge auf Basis desselben Fundaments
+  (nicht originär Phase 1; laufen heute in test_migrations.py mit)
+
+  migrations/0003–0005 (Phase 4):
+
   0003_cleanup_booking_status.sql
     Bereinigt CHECK-Constraint in time_bookings.current_status und
     booking_status_history.new_status: entfernt die transient genutzten
@@ -197,6 +220,13 @@ migrations/0003–0005 (Phase 4, in test_migrations.py mitgetestet)
   0005_time_bookings_device_event_id.sql
     time_bookings: device_event_id INTEGER FK auf device_events(id) ergänzt
     (Table-Rebuild wegen SQLite-Einschränkung bei ALTER TABLE ... ADD CONSTRAINT)
+
+  migration/0006 (Phase 5, Schritt 1/Befund 5/1-06):
+
+  0006_system_events_application_error.sql
+    system_events: CHECK-Constraint um APPLICATION_ERROR erweitert
+    (Table-Rebuild; APPLICATION_ERROR wird von terminal_ui/main.py für
+    unerwartete Laufzeitfehler genutzt)
 
 
 infrastructure/db/connection.py
@@ -225,36 +255,45 @@ scripts/init_db.py
   - Gibt Rückmeldung an stdout
 
 
-tests/test_migrations.py  (11 Tests, alle grün)
-  Testfälle:
-  1. test_leere_db_wird_vollstaendig_migriert
-     Alle Migrationen 0001–0005 laufen durch, keine Exception
-  2. test_erneutes_ausfuehren_ist_idempotent
-     Wiederholter run_migrations()-Aufruf ist fehlerfrei
-  3. test_seed_daten_vorhanden_nach_migration
-     work_schedule_versions enthält 5 Einträge, system_config enthält 4
-  4. test_audit_log_enthaelt_seed_eintraege
-     audit_log enthält genau 9 Einträge (5 + 4 aus 0002)
-  5. test_schema_migrations_enthaelt_genau_die_erwarteten_versionen
-     Einträge für 0001–0005 vorhanden, keine unbekannten Versionen
-  6. test_migration_0004_fuegt_neue_spalten_ein
-     rejected_by_user_id, rejected_at in supplements; note in review_cases
-  7. test_migration_0005_fuegt_device_event_id_ein
-     device_event_id-Spalte in time_bookings vorhanden
-  8. test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes
-     FK-Constraints und Indizes nach Table-Rebuild intakt
-  9. test_migration_0005_datensatz_bleibt_erhalten
-     Vorhandene Zeilen überleben den Table-Rebuild
-  10. test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag
+tests/test_migrations.py  (12 Tests, alle grün; Gesamtmigrations-Test)
+
+  Originäre Phase-1-Testfälle (6 Tests):
+    test_leere_db_wird_vollstaendig_migriert
+      Alle Migrationen 0001–0006 laufen durch, keine Exception
+      (ursprünglich 0001–0002; mit jeder neuen Migration fortgeschrieben)
+    test_erneutes_ausfuehren_ist_idempotent
+      Wiederholter run_migrations()-Aufruf ist fehlerfrei
+    test_seed_daten_vorhanden_nach_migration
+      work_schedule_versions enthält 5 Einträge, system_config enthält 4
+    test_audit_log_enthaelt_seed_eintraege
+      audit_log enthält genau 9 Einträge (5 + 4 aus 0002)
+    test_schema_migrations_enthaelt_genau_die_erwarteten_versionen
+      Einträge für 0001–0006 vorhanden, keine unbekannten Versionen
+      (ursprünglich 0001–0002; mit jeder neuen Migration fortgeschrieben)
+    test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag
       Rollback-Verhalten bei fehlerhafter SQL-Datei
-  11. test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten
+
+  Später hinzugekommen — Phase 4 (Migrationen 0004/0005, 5 Tests):
+    test_migration_0004_fuegt_neue_spalten_ein
+      rejected_by_user_id, rejected_at in supplements; note in review_cases
+    test_migration_0005_fuegt_device_event_id_ein
+      device_event_id-Spalte in time_bookings vorhanden
+    test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes
+      FK-Constraints und Indizes nach Table-Rebuild intakt
+    test_migration_0005_datensatz_bleibt_erhalten
+      Vorhandene Zeilen überleben den Table-Rebuild
+    test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten
       Idempotenz der Seed-Daten (kein doppeltes INSERT)
+
+  Später hinzugekommen — Phase 5 (Migration 0006, 1 Test):
+    test_migration_0006_application_error_event_type_verfuegbar
+      APPLICATION_ERROR ist als event_type in system_events eintragbar
 
 
 Testverteilung Phase 1
 ----------------------
-tests/test_migrations.py  – 11 Tests (ursprünglich 6 geplant; durch Migrationen 0003–0005
-                             aus Phase 4 auf 11 angewachsen)
+tests/test_migrations.py  – 12 Tests gesamt (ursprünglich 6; Phase 4 fügte 5 hinzu,
+                             Phase 5 fügte 1 hinzu für Migration 0006)
 
 
 V3-Bezüge

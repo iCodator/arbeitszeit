@@ -1,3 +1,12 @@
+"""Gesamtmigrations-Test: verifiziert die vollständige Migrationskette 0001–0006.
+
+Historischer Ursprung: Phase 1 (Grundgerüst). Ursprünglich 6 Testfälle für
+Migrationen 0001 und 0002. Mit jeder späteren Migration (0003–0006, Phase 4/5)
+wurden passende Testfälle ergänzt; der Prüfumfang wuchs auf 12 Tests.
+
+Jeder Testlauf verifiziert den aktuellen Gesamtstand der Migrationskette,
+nicht nur den historischen Phase-1-Lieferumfang.
+"""
 import shutil
 import sqlite3
 import sys
