@@ -8,7 +8,6 @@ Dateinamen:
   bericht_monat_YYYY-MM_YYYYMMDDTHHMMSSZ.pdf
   bericht_mitarbeiter_NNNN_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.pdf
 """
-import calendar
 import sqlite3
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -256,8 +255,8 @@ def create_daily_report(
     """Tagesbericht für alle Mitarbeiter an einem Datum."""
     if now is None:
         now = datetime.now(timezone.utc)
-    from_dt = datetime(day.year, day.month, day.day, 0, 0, tzinfo=timezone.utc)
-    to_dt = datetime(day.year, day.month, day.day, 23, 59, 59, tzinfo=timezone.utc)
+    from_dt = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
+    to_dt = from_dt + timedelta(days=1)
 
     export_dir.mkdir(parents=True, exist_ok=True)
     filename = f"bericht_tag_{day.isoformat()}_{now.strftime('%Y%m%dT%H%M%SZ')}.pdf"
@@ -289,9 +288,8 @@ def create_weekly_report(
     if now is None:
         now = datetime.now(timezone.utc)
     monday = date.fromisocalendar(year, week, 1)
-    sunday = monday + timedelta(days=6)
-    from_dt = datetime(monday.year, monday.month, monday.day, 0, 0, tzinfo=timezone.utc)
-    to_dt = datetime(sunday.year, sunday.month, sunday.day, 23, 59, 59, tzinfo=timezone.utc)
+    from_dt = datetime(monday.year, monday.month, monday.day, tzinfo=timezone.utc)
+    to_dt = from_dt + timedelta(weeks=1)
 
     export_dir.mkdir(parents=True, exist_ok=True)
     week_str = f"{year}-W{week:02d}"
@@ -301,7 +299,7 @@ def create_weekly_report(
     meta = [
         ("Berichtstyp", "Wochenbericht"),
         ("Woche", week_str),
-        ("Zeitraum", f"{monday.isoformat()} – {sunday.isoformat()}"),
+        ("Zeitraum", f"{monday.isoformat()} – {(to_dt - timedelta(days=1)).date().isoformat()}"),
         ("Erstellt am", now.strftime("%d.%m.%Y %H:%M UTC")),
     ]
     _build_pdf(
@@ -324,9 +322,9 @@ def create_monthly_report(
     """Monatsbericht für alle Mitarbeiter."""
     if now is None:
         now = datetime.now(timezone.utc)
-    last_day = calendar.monthrange(year, month)[1]
-    from_dt = datetime(year, month, 1, 0, 0, tzinfo=timezone.utc)
-    to_dt = datetime(year, month, last_day, 23, 59, 59, tzinfo=timezone.utc)
+    from_dt = datetime(year, month, 1, tzinfo=timezone.utc)
+    next_month_year, next_month = (year + 1, 1) if month == 12 else (year, month + 1)
+    to_dt = datetime(next_month_year, next_month, 1, tzinfo=timezone.utc)
 
     export_dir.mkdir(parents=True, exist_ok=True)
     month_str = f"{year}-{month:02d}"
@@ -336,7 +334,7 @@ def create_monthly_report(
     meta = [
         ("Berichtstyp", "Monatsbericht"),
         ("Monat", month_str),
-        ("Zeitraum", f"{from_dt.date().isoformat()} – {to_dt.date().isoformat()}"),
+        ("Zeitraum", f"{from_dt.date().isoformat()} – {(to_dt - timedelta(days=1)).date().isoformat()}"),
         ("Erstellt am", now.strftime("%d.%m.%Y %H:%M UTC")),
     ]
     _build_pdf(

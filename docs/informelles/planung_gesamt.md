@@ -674,6 +674,23 @@ jedes Loop-Durchlaufs — erkennt Sprünge, die während blockierendem `read_nex
 `config_value` statt `config_value_json` aus system_config + fehlten `json.loads()`.
 Korrigiert; NAS-path `null`-Wert wird jetzt korrekt als `None` ausgewertet.
 
+**Code-Review-Korrekturen (2026-05-27):**
+
+- `list_open_bookings_in_period()` in `report_queries.py` ergänzt — normierte Query für zeitraumgefilterte offene Buchungen (Pflichtenheft v3 §7.12).
+- `admin reports open-bookings` und `admin reports open-review-cases` erhalten optionale `--from`/`--to`-Parameter; mit Zeitraumfilter werden `list_open_bookings_in_period()` bzw. `list_open_review_cases_in_period()` genutzt, ohne Filter weiterhin die uneingeschränkten Funktionen.
+- Alle `<= to_dt`-Vergleiche in `report_queries.py` auf `< to_dt` korrigiert (halboffenes Intervall `[from_dt, to_dt)`). Betrifft: `list_bookings`, `list_warn_bookings`, `list_corrections`, `list_supplements`, `list_open_review_cases_in_period`.
+- `pdf_report_service.py`: Alle drei Berichtsfunktionen (`create_daily_report`, `create_weekly_report`, `create_monthly_report`) verwenden jetzt halboffene UTC-Intervalle statt `23:59:59`-Grenzen. `calendar`-Import entfernt.
+- `reports.py`: Doppelte `from_dt`-Konstruktion in `cmd_reports_export_csv` bereinigt; alle `datetime.fromisoformat(... + "T00:00:00+00:00")`-Konstruktionen einheitlich durch `day_interval()` ersetzt. `datetime`-Import entfernt (nicht mehr benötigt).
+- `schedule.py`: Tippfehler „versionene" korrigiert; Fallback-Texte geschärft: „Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen)" statt vager Formulierung.
+
+**Offener Architekturpunkt – device_event_id-Verkettung:**
+`time_bookings.device_event_id` ist als nullable Spalte im Schema vorhanden (Migration 0005).
+Die vollständige betriebliche Verkettung (Hardware-Schicht erzeugt `device_events`, ID wird via
+`BookCommand.device_event_id` durchgereicht) ist bisher nicht operativ aktiviert — Infrastruktur
+ist vorbereitet, aber kein Produktionspfad schreibt derzeit `device_events` in die DB.
+Wer diesen Pfad schließen will: `EvdevHardwareReader` muss vor `process_booking()` einen
+`device_events`-Eintrag anlegen und die ID an `BookCommand` übergeben.
+
 ---
 
 ### Testaufteilung

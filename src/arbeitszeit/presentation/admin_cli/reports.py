@@ -3,13 +3,15 @@ import argparse
 import json
 import sqlite3
 import sys
-from datetime import date, datetime
+from datetime import date
 
 from arbeitszeit.infrastructure.export import csv_exporter, pdf_report_service
 from arbeitszeit.infrastructure.export.report_queries import (
     list_corrections,
     list_open_bookings,
+    list_open_bookings_in_period,
     list_open_review_cases,
+    list_open_review_cases_in_period,
     list_supplements,
     list_warn_bookings,
 )
@@ -115,12 +117,8 @@ def cmd_reports_export_csv(
     _require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
     export_dir = Path(_get_export_dir(conn))
-    from_dt, to_dt = day_interval(_parse_date(args.from_date)), None
-    # Build actual datetime range from --from/--to dates (inclusive)
-    from_dt = datetime.fromisoformat(args.from_date + "T00:00:00+00:00")
-    to_dt_date = _parse_date(args.to_date)
-    from arbeitszeit.presentation.admin_cli._intervals import day_interval as _di
-    _, to_dt = _di(to_dt_date)
+    from_dt, _ = day_interval(_parse_date(args.from_date))
+    _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
     detail_path = csv_exporter.export_detail(conn, from_dt, to_dt, export_dir, employee_id)
     condensed_path = csv_exporter.export_condensed(conn, from_dt, to_dt, export_dir, employee_id)
@@ -165,7 +163,7 @@ def cmd_reports_export_pdf_employee(
     _require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
     export_dir = Path(_get_export_dir(conn))
-    from_dt = datetime.fromisoformat(args.from_date + "T00:00:00+00:00")
+    from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     path = pdf_report_service.create_employee_report(
         conn, args.employee_id, from_dt, to_dt, export_dir
@@ -180,8 +178,16 @@ def cmd_reports_open_bookings(
 ) -> None:
     _require_admin_or_reviewer(conn, user_id)
     employee_id = getattr(args, "employee_id", None)
-    rows = list_open_bookings(conn, employee_id=employee_id)
-    print("Offene Buchungen (Status OPEN):")
+    from_date = getattr(args, "from_date", None)
+    to_date = getattr(args, "to_date", None)
+    if from_date is not None and to_date is not None:
+        from_dt, _ = day_interval(_parse_date(from_date))
+        _, to_dt = day_interval(_parse_date(to_date))
+        rows = list_open_bookings_in_period(conn, from_dt, to_dt, employee_id=employee_id)
+        print(f"Offene Buchungen (Status OPEN) von {from_date} bis {to_date}:")
+    else:
+        rows = list_open_bookings(conn, employee_id=employee_id)
+        print("Offene Buchungen (Status OPEN) — alle:")
     _print_bookings_table(rows)
 
 
@@ -189,7 +195,7 @@ def cmd_reports_warn_cases(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
     _require_admin_or_reviewer(conn, user_id)
-    from_dt = datetime.fromisoformat(args.from_date + "T00:00:00+00:00")
+    from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
     rows = list_warn_bookings(conn, from_dt, to_dt, employee_id=employee_id)
@@ -201,7 +207,7 @@ def cmd_reports_corrections(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
     _require_admin_or_reviewer(conn, user_id)
-    from_dt = datetime.fromisoformat(args.from_date + "T00:00:00+00:00")
+    from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
     rows = list_corrections(conn, from_dt, to_dt, employee_id=employee_id)
@@ -213,7 +219,7 @@ def cmd_reports_supplements(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
     _require_admin_or_reviewer(conn, user_id)
-    from_dt = datetime.fromisoformat(args.from_date + "T00:00:00+00:00")
+    from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
     rows = list_supplements(conn, from_dt, to_dt, employee_id=employee_id)
@@ -226,8 +232,16 @@ def cmd_reports_open_review_cases(
 ) -> None:
     _require_admin_or_reviewer(conn, user_id)
     employee_id = getattr(args, "employee_id", None)
-    rows = list_open_review_cases(conn, employee_id=employee_id)
-    print("Offene Prüffälle:")
+    from_date = getattr(args, "from_date", None)
+    to_date = getattr(args, "to_date", None)
+    if from_date is not None and to_date is not None:
+        from_dt, _ = day_interval(_parse_date(from_date))
+        _, to_dt = day_interval(_parse_date(to_date))
+        rows = list_open_review_cases_in_period(conn, from_dt, to_dt, employee_id=employee_id)
+        print(f"Offene Prüffälle von {from_date} bis {to_date}:")
+    else:
+        rows = list_open_review_cases(conn, employee_id=employee_id)
+        print("Offene Prüffälle — alle:")
     _print_review_cases_table(rows)
 
 
@@ -261,6 +275,8 @@ def register_subcommands(
 
     # --- Pflichtauswertungen ---
     ob = rsub.add_parser("open-bookings", help="Offene Buchungen anzeigen")
+    ob.add_argument("--from", dest="from_date", metavar="YYYY-MM-DD", default=None)
+    ob.add_argument("--to", dest="to_date", metavar="YYYY-MM-DD", default=None)
     ob.add_argument("--employee-id", type=int, default=None)
 
     wc = rsub.add_parser("warn-cases", help="WARN/NEEDS_REVIEW-Buchungen anzeigen")
@@ -279,4 +295,6 @@ def register_subcommands(
     suppl.add_argument("--employee-id", type=int, default=None)
 
     orc = rsub.add_parser("open-review-cases", help="Offene Prüffälle anzeigen")
+    orc.add_argument("--from", dest="from_date", metavar="YYYY-MM-DD", default=None)
+    orc.add_argument("--to", dest="to_date", metavar="YYYY-MM-DD", default=None)
     orc.add_argument("--employee-id", type=int, default=None)

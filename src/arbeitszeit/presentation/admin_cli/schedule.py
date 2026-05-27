@@ -69,7 +69,7 @@ def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_i
         "ORDER BY scope_type, scope_employee_id, weekday"
     ).fetchall()
     if not rows:
-        print("Keine aktiven Regelarbeitszeitversionene vorhanden.")
+        print("Keine aktiven Regelarbeitszeitversionen vorhanden.")
         return
 
     global_rows = [r for r in rows if r["scope_type"] == "GLOBAL"]
@@ -93,9 +93,9 @@ def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_i
             )
 
     if not global_rows and employee_rows:
-        print("\nHinweis: Keine globale Regelarbeitszeit aktiv.")
+        print("\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt.")
     elif global_rows and not employee_rows:
-        print("\nHinweis: Keine mitarbeiterspezifischen Ausnahmen definiert.")
+        print("\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).")
 
 
 def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:

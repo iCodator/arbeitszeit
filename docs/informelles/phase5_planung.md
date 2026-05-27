@@ -2,6 +2,15 @@
 
 Stand: 2026-05-27. Basiert auf Pflichtenheft v3 und Regelwerk v3.
 Phase 5 vollständig abgeschlossen (Schritte 0–5).
+Nachgeführte Code-Review-Korrekturen (2026-05-27):
+
+- P1: open-bookings + open-review-cases mit --from/--to Zeitraumfilter
+- P1: list_open_bookings_in_period() in report_queries.py ergänzt
+- P2: PDF-Intervalle von 23:59:59 auf halb-offene UTC-Intervalle umgestellt
+- P2: CSV-Intervallbildung in reports.py vereinheitlicht (alle via day_interval())
+- P2: Alle <= to_dt in report_queries.py auf < to_dt korrigiert
+- P3: Tippfehler und Fallback-Text in schedule show bereinigt
+
 369 Tests grün (alle Ebenen).
 
 ---
