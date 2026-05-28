@@ -120,7 +120,8 @@ Invarianten in `__post_init__`, werfen `ValueError`.
   id, employee_id, case_type: ReviewCaseType, severity: ReviewSeverity,
   status: ReviewCaseStatus, description: str,
   booking_id: int | None, note: str | None,
-  detected_at: datetime, closed_at: datetime | None,
+  created_at: datetime,  ← Python-Entity-Feld (DB-Spalte heißt detected_at; SQLiteReviewCaseRepository mappt detected_at → created_at)
+  closed_at: datetime | None,
   closed_by_user_id: int | None
   Invarianten:
   - OPEN / IN_REVIEW → closed_at und closed_by_user_id müssen None sein
@@ -158,10 +159,15 @@ Invarianten in `__post_init__`, werfen `ValueError`.
 audit_events.py
 ---------------
 Zentraler Katalog aller Audit-Event-Typ-Konstanten (nicht im Ursprungsplan, sinnvolle Ergänzung).
-Konstanten: TIME_BOOKED, BOOKING_REJECTED_UNKNOWN_CARD, BOOKING_REJECTED_INACTIVE_CARD,
-BOOKING_CORRECTED, SUPPLEMENT_CREATED, SUPPLEMENT_APPROVED, SUPPLEMENT_REJECTED,
-WORK_SCHEDULE_CHANGED, BACKUP_CREATED, BACKUP_SYNCED_TO_NAS,
-BACKUP_SYNC_FAILED, RESTORE_COMPLETED.
+
+Domänen-Kern-Events (originär Phase 2):
+  TIME_BOOKED, BOOKING_REJECTED_UNKNOWN_CARD, BOOKING_REJECTED_INACTIVE_CARD,
+  BOOKING_CORRECTED, SUPPLEMENT_CREATED, SUPPLEMENT_APPROVED, SUPPLEMENT_REJECTED,
+  WORK_SCHEDULE_CHANGED.
+
+Infrastruktur-Events (später ergänzt, Phase 4/Schritt 9b):
+  BACKUP_CREATED, BACKUP_SYNCED_TO_NAS, BACKUP_SYNC_FAILED, RESTORE_COMPLETED.
+
 Verhindert freie String-Literale im Code (Regelwerk v3 §11-konform).
 
 

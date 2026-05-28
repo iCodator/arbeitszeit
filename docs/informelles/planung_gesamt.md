@@ -381,8 +381,9 @@ Testfälle: Buchung nicht gefunden → `NotFoundError`; Status = CORRECTED; `Boo
      `flags = check_break_compliance(projected) + check_max_hours(projected)`
      Ruhezeitprüfung (`check_rest_period`) erfordert Vortages-Kontext → auf Phase 4 verschoben.
      **V3 §7.9 Pflichtanforderung (ArbZG §5), keine optionale Lücke:**
-     Phase 4 integriert: `prev = time_booking_repo.list_for_employee_on_day(employee.id, date - 1)`
-     `flags += check_rest_period(projected, prev)` — Testfall V3 §16 "Ruhezeitverletzung" erforderlich.
+     Phase 4 integriert: `prev_day = time_booking_repo.list_for_employee_on_day(employee.id, date - 1)`
+     letzter GO-Zeitpunkt aus `prev_day`, erster COME-Zeitpunkt aus `projected` extrahieren:
+     `flags += check_rest_period(last_go, first_come)` — Testfall V3 §16 "Ruhezeitverletzung" erforderlich.
      Regelzeitfenster-Check (alle Buchungsarten): `schedule = work_schedule_repo.get_effective(weekday, on_date, employee_id)` — liegt `cmd.booked_at.time()` außerhalb `[schedule.start_time, schedule.end_time]`, wird ein WARN-Flag (`OUTSIDE_SCHEDULED_WINDOW`) erzeugt; kein eigener `ReviewCaseType` erforderlich, Auswertung über `report_queries.py`.
      kein Flag → `OK`; WARN-Flag → `WARN`; CRITICAL-Flag → `NEEDS_REVIEW`
 6. `TimeBooking` mit ermitteltem Status + `device_event_id` anlegen, `time_booking_repo.add()`
@@ -448,7 +449,7 @@ Beide Use Cases: Tests gegen Fakes; kein Commit bei Fehler.
 
 Ergänzung in `use_cases/book_time.py` nach Migration 0005 und SQLite-Repo-Integration:
 - Bei GO/BREAK_END: `prev_day = time_booking_repo.list_for_employee_on_day(employee.id, cmd.booked_at.date() - timedelta(days=1))`
-- `flags += check_rest_period(projected, prev_day)`
+- `last_go` = letzter GO-Zeitpunkt aus `prev_day`, `first_come` = erster COME-Zeitpunkt aus `projected`; `flags += check_rest_period(last_go, first_come)`
 - FakeTimeBookingRepository unterstützt bereits `list_for_employee_on_day` → Fake-Test ohne DB möglich
 - Neuer Testfall in `tests/application/test_book_time.py`: GO nach <11h Ruhezeit → `POSSIBLE_REST_VIOLATION` ReviewCase + Status WARN oder NEEDS_REVIEW
 - Deckt V3 §16 Testpflicht "Unterschreitung der Ruhezeit" ab
