@@ -43,8 +43,15 @@ Offen aus Phase 4:
 
 Betriebsdokumentation (Phase 5, kein Code):
 
-- Exportverzeichnis: Zugriffsrechte, Aufbewahrungsfristen, Löschkonzept
-  (Regelwerk v3 §17/§18, Befund 4/8-07)
+Exportverzeichnis (Regelwerk v3 §17/§18, Befund 4/8-07) — festgelegte Betriebsregeln:
+
+- **Zugriffsrechte:** Schreibzugriff ausschließlich durch den laufenden arbeitszeit-Dienst-Account.
+  Lesezugriff für Betriebssystem-Benutzer mit ADMIN-Rolle. Kein Zugriff für EMPLOYEE/REVIEWER.
+- **Aufbewahrungsfrist:** 5 Jahre ab Erstellungsdatum der Exportdatei. Deckt ArbZG §16 Abs. 2
+  (2 Jahre) sowie konservative steuerrechtliche Fristen ab.
+- **Löschkonzept:** Manuell durch einen ADMIN-Benutzer nach Ablauf der Aufbewahrungsfrist.
+  Kein automatischer Löschmechanismus im Repo. ADMIN prüft das Exportverzeichnis periodisch
+  und löscht Dateien, deren Erstellungsdatum mehr als 5 Jahre zurückliegt.
 
 353 Tests grün (alle Ebenen, Stand Phase 5/Schritt 1; jetzt 369).
 
