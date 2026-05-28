@@ -34,9 +34,24 @@ in einer SQLite-Datenbank gespeichert, Backups optional auf einen NAS gespiegelt
 - Linux (evdev für Hardware-Zugriff)
 - USB-Numpad und RFID-Leser (für Terminal-Betrieb; Simulator für Tests vorhanden)
 
+---
+
+## Installation
+
 ```bash
+git clone https://github.com/iCodator/arbeitszeit.git
+cd arbeitszeit
+
+python3 -m venv .venv
+source .venv/bin/activate
+
 pip install -e ".[dev]"
 ```
+
+Hinweise:
+- Entwickelt für Python 3.11.
+- Für den produktiven Terminal-Betrieb wird Linux mit `evdev` sowie passende USB-Hardware benötigt.
+- Für lokale Tests kann der Hardware-Simulator verwendet werden.
 
 ---
 
@@ -54,6 +69,17 @@ python scripts/setup.py --db arbeitszeit.db \
     --backup-dir /var/backups/arbeitszeit \
     --export-dir /var/exports/arbeitszeit
 ```
+
+---
+
+## Rechtlicher Rahmen / Referenzdokumente
+
+Die fachlichen, organisatorischen und rechtlichen Anforderungen des Projekts sind in
+`docs/pflichtenheft_arbeitszeit_v3.md` und `docs/regelwerk_arbeitszeit_v3.md` festgelegt.
+
+Diese Dokumente bilden die verbindliche Referenz für Arbeitszeiterfassung, Prüfhilfen,
+Rollen- und Rechtekonzept, Aufbewahrung, Korrekturen, Nachträge sowie Backup- und
+Restore-Prozesse.
 
 ---
 
@@ -104,7 +130,7 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 1 <Befehl>
 
 Alle Befehle akzeptieren `--from` / `--to` für Zeitraumfilter (ISO-8601-Datum).
 
-### Backup (automatisch per systemd-Timer oder manuell)
+### Backup
 
 ```bash
 python scripts/backup.py \
@@ -113,14 +139,14 @@ python scripts/backup.py \
 ```
 
 NAS-Sync wird über `backup.nas_enabled` und `backup.nas_path` in `system_config` gesteuert
-(via `admin system backup` oder direkt per SQL). Der NAS-Pfad wird als striktes Spiegelziel
-geführt (`rsync --delete`), nicht als eigenständiges Langzeitarchiv.
+(via Admin-CLI oder direkt per SQL). Der NAS-Pfad wird als striktes Spiegelziel geführt
+(`rsync --delete`), nicht als eigenständiges Langzeitarchiv.
 
 ---
 
 ## Architektur
 
-```
+```text
 src/arbeitszeit/
 ├── domain/          Enums, Entities, Businessregeln, Compliance-Checks, Repository-Ports
 ├── application/     Use Cases, Commands, Results, Unit-of-Work-Protocol
@@ -132,12 +158,11 @@ src/arbeitszeit/
 
 **Wichtige Architekturentscheidungen:**
 
-- Buchungen werden nie physisch gelöscht; Klärung ausschließlich über Status
-  (`CORRECTED`, `CLOSED_WITH_NOTE`) oder Korrekturobjekte (ArbZG §16 Abs. 2).
-- Audit-Log schreibt **nach** `uow.commit()` über eine separate `audit_conn`-Verbindung
-  (SQLite WAL: verhindert RESERVED-Lock-Konflikt bei gleichzeitigem Schreiben).
+- Buchungen werden nie physisch gelöscht; Klärung erfolgt ausschließlich über Status
+  (`CORRECTED`, `CLOSED_WITH_NOTE`) oder Korrekturobjekte.
+- Audit-Log schreibt nach `uow.commit()` über eine separate `audit_conn`-Verbindung.
 - `report_queries.py` ist die einzige Wahrheitsquelle für alle Berichte und Exporte.
-- Compliance-Prüfungen (ArbZG §3 / §4 / §5) laufen in der Domain-Schicht, nicht in SQLite.
+- Compliance-Prüfungen laufen in der Domain-Schicht, nicht in SQLite.
 
 ---
 
@@ -180,7 +205,7 @@ python -m pytest --cov=arbeitszeit --cov-report=term-missing
 
 ## Projektstruktur
 
-```
+```text
 arbeitszeit/
 ├── migrations/          SQL-Migrationen (0001–0006)
 ├── scripts/

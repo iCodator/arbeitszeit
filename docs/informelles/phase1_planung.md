@@ -6,7 +6,7 @@ Historischer Lieferumfang Phase 1 (originaler Abschlussstand)
 
 Originär zu Phase 1 gehörten ausschließlich:
 
-- migrations/0001_schema.sql — vollständiges Datenbankschema (16 Tabellen)
+- migrations/0001_schema.sql — vollständiges Datenbankschema (15 fachliche Tabellen + schema_migrations = 16)
 - migrations/0002_seed_defaults.sql — Regelarbeitszeiten und System-Config-Defaults
 - infrastructure/db/connection.py — SQLite-Verbindungsfunktion mit PRAGMAs
 - infrastructure/db/migrations.py — Migrationsrunner (executescript, Idempotenz)
