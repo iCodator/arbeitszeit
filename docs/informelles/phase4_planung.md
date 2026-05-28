@@ -361,17 +361,20 @@ PRAGMA integrity_check nach Restore. `FileNotFoundError` bei fehlendem Backup.
 
 `sync_to_nas()` nutzt `rsync --archive --delete`: striktes Spiegeln des lokalen
 Backup-Verzeichnisses auf den NAS-Pfad. `--delete` entfernt am NAS-Ziel alles,
-was lokal nicht mehr existiert. Das ist konsistent für einen Mirrors-Einsatz, aber
-**archivierungskritisch**: Falls der NAS als längerfristige Ablage (nicht nur als
-Spiegel) gedacht ist, müsste Archiv- und Mirror-Pfad getrennt oder `--delete`
-bewusst deaktiviert werden. Diese Grenzziehung muss in der Betriebsdokumentation
-explizit festgelegt sein (Regelwerk v3 §17/§18).
+was lokal nicht mehr existiert.
+
+**Betriebsentscheidung (Regelwerk v3 §17/§18):** Der NAS-Pfad ist ausschließlich als
+Spiegelziel (Hot-Backup) vorgesehen, nicht als eigenständiges Langzeitarchiv.
+`--delete` ist damit absichtlich gesetzt. Wer eine separate Langzeitarchivierung
+benötigt, muss dafür einen zweiten NAS-Pfad ohne `--delete` einrichten oder
+Backup-Verzeichnisse lokal rotieren, bevor sie in den Spiegel übernommen werden.
 
 RESTORE_COMPLETED wird nach der Wiederherstellung in die **neu aktive (wiederhergestellte)**
 Datenbank geschrieben, nicht in den Sicherungsstand. Das ist technisch sauber und
-inhaltlich korrekt: Der Eintrag beschreibt den Ist-Zustand nach dem Restore. Die
-Betriebsdokumentation muss festhalten, dass dieses Event nicht Teil des gesicherten
-Altstands ist.
+inhaltlich korrekt: Der Eintrag beschreibt den Ist-Zustand nach dem Restore.
+**Festgelegte Betriebsregel:** RESTORE_COMPLETED ist kein Bestandteil des wiederhergestellten
+Altstands und erscheint daher nicht in Auswertungen, die sich auf den gesicherten Zeitraum
+beziehen. Das ist gewollt und korrekt.
 
 **Trigger/Betriebsebene:** Die Planung nennt „systemd-Timer/cron + optional manuell".
 `scripts/backup.py` deckt die manuelle Auslösbarkeit ab. Der zeitgesteuerte Trigger
@@ -410,7 +413,7 @@ Eine spätere Erweiterung von `restore_from()` um einen optionalen Export-Restor
 ist aber kein Pflichtinhalt von Schritt 7.
 
 
-### Schritt 1b – BookUseCase vervollständigen
+### Schritt 1b – BookUseCase vervollständigen _(bereits in Phase 3 implementiert)_
 
 (V3 §7.9 Pflichtanforderung / ArbZG §5)
 
@@ -431,7 +434,7 @@ ReviewCase mit WARN-Flag.
 Deckt V3 §16-Testpflicht „Unterschreitung der Ruhezeit" ab.
 
 
-### Schritt 1c – Rollenprüfung in alle schreibenden Use Cases
+### Schritt 1c – Rollenprüfung in alle schreibenden Use Cases _(bereits in Phase 3 implementiert)_
 
 (Pflichtenheft v3 §5 / Regelwerk v3 §16)
 
