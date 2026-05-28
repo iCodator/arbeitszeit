@@ -25,7 +25,8 @@ Die Dokumente unter `docs/informelles/` dokumentieren eine vollständige Design-
 | Nachweis | `audit_log`, `system_events`, `system_config` |
 
 ### 03–09 – SQLite DDL
-- **15 Tabellen** mit FK-Constraints, CHECK-Constraints, Indizes
+
+- **15 fachliche Tabellen** mit FK-Constraints, CHECK-Constraints, Indizes (+ `schema_migrations` = 16 Tabellen in `0001_schema.sql`)
 - `work_schedule_versions` + `system_config`: Herkunftsfeld `change_origin` (`SYSTEM_SEED` / `ADMIN_UI` / `MIGRATION`) – KEIN künstlicher Bootstrap-User
 - Komplexe Prüfregeln absichtlich **nicht in SQLite** – gehören in Python-Domänenlogik
 - `system_events`-Tabelle: für Betriebsereignisse inkl. Systemzeitprotokollierung (§9.3/Regelwerk v3 §21)
