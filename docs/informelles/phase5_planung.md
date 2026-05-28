@@ -2,6 +2,13 @@
 
 Stand: 2026-05-27. Basiert auf Pflichtenheft v3 und Regelwerk v3.
 Phase 5 vollständig abgeschlossen (Schritte 0–5).
+Scope-Abgrenzung: Die operative Aktivierung der device_event_id-Verkettung
+(Hardware-Schicht schreibt device_events, ID wird via BookCommand.device_event_id
+durchgereicht) liegt bewusst außerhalb des Phase-5-Abnahmesolls. Schema und
+Infrastruktur sind vorbereitet (Migration 0005, nullable Spalte); kein Produktionspfad
+schreibt derzeit device_events in die DB. Das ist ein dokumentierter offener
+Architekturpunkt, kein Planverstoß. (Vgl. planung_gesamt.md „Offener Architekturpunkt
+– device_event_id-Verkettung".)
 Nachgeführte Code-Review-Korrekturen (2026-05-27):
 
 - P1: open-bookings + open-review-cases mit --from/--to Zeitraumfilter
