@@ -167,7 +167,7 @@ Kein eigener `BookingStatusHistoryRepository`-Port in der Application-Schicht.
 
 **Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases (Pflichtenheft v3 §5 / Regelwerk v3 §16)
 
-Phase 3 hat keine Rollenprüfung implementiert (Fakes, kein UserAccountRepository-Aufruf in Use Cases). Phase 4/Schritt 1c zieht explizite Rollenprüfung in alle schreibenden Use Cases nach. `PermissionDeniedError` ist bereits in `errors.py` vorhanden.
+Rollenprüfung ist bereits in Phase 3 vollständig implementiert (ursprünglich für Phase 4/Schritt 1c geplant). Alle schreibenden Use Cases prüfen die Rolle des handelnden Benutzers und werfen `PermissionDeniedError` bei fehlendem Recht.
 
 Muster: `user = user_account_repo.get_by_id(acting_user_id)` → `PermissionDeniedError` wenn: Benutzer nicht gefunden (`None`), Benutzer inaktiv (`not user.is_active`), oder Rolle nicht in `ALLOWED_ROLES`. Alle drei Fälle werden einheitlich mit `PermissionDeniedError` abgewiesen.
 
@@ -343,10 +343,10 @@ Testfälle:
 1. `employee_repo.get_by_id()` → `NotFoundError` bei unbekanntem Mitarbeiter
 2. `Supplement` mit `ApprovalStatus.PENDING` anlegen, `supplement_repo.add()`
 3. `ReviewCase(MANUAL_ENTRY_REVIEW)` anlegen — standardmäßig, nicht optional
-4. `AuditLogEntry` anlegen — in derselben Transaktion
-5. `uow.commit()`, `SupplementResult` zurückgeben
+4. `uow.commit()`, `SupplementResult` zurückgeben
+5. `AuditLogEntry` anlegen — nach commit, via auditconn
 
-Freigabe/Ablehnung: `supplement_repo.approve()` / `reject()` stets zusammen mit `AuditLogEntry` in einer Transaktion.
+Freigabe/Ablehnung: `supplement_repo.approve()` / `reject()` stets mit `uow.commit()` abschließen; `AuditLogEntry` danach via auditconn schreiben.
 
 **Architekturhinweis Freigabe:** Wenn ein genehmigter Nachtrag eine echte `TimeBooking` erzeugt (`ApproveSupplementUseCase`), muss diese Buchung dieselbe Statuslogik durchlaufen wie eine Terminalbuchung (OPEN/OK/WARN/NEEDS_REVIEW, projizierter Tagesverlauf). Nachträge dürfen fachlich nicht schwächer geprüft werden als Echtzeitbuchungen. `source = BookingSource.MANUAL`, eigener `AuditLogEntry`. **`ApproveSupplementUseCase` ist ein Pflichtbestandteil (Phase 4/Schritt 1) — niemals als reines `supplement_repo.approve()` ohne Buchungslogik umsetzen.**
 
@@ -388,8 +388,8 @@ Testfälle: Buchung nicht gefunden → `NotFoundError`; Status = CORRECTED; `Boo
      kein Flag → `OK`; WARN-Flag → `WARN`; CRITICAL-Flag → `NEEDS_REVIEW`
 6. `TimeBooking` mit ermitteltem Status + `device_event_id` anlegen, `time_booking_repo.add()`
 7. Pro ComplianceFlag einen `ReviewCase` anlegen, `review_case_repo.add()`
-8. `AuditLogEntry` anlegen
-9. `uow.commit()`, `BookResult(booking_id, status, follow_up_case_ids)` zurückgeben
+8. `uow.commit()`, `BookResult(booking_id, status, follow_up_case_ids)` zurückgeben
+9. `AuditLogEntry` anlegen — nach commit, via auditconn
 
 Testfälle:
 - COME-Buchung → `status = OPEN`, `follow_up_case_ids` leer
@@ -430,7 +430,7 @@ Gilt für `BookUseCase`, `CorrectBookingUseCase`, `RegisterSupplementUseCase` un
 5. `supplement_repo.approve()`; offenen `MANUAL_ENTRY_REVIEW`-Fall schließen
 6. Tagesbuchungen laden; Vortagesbuchungen laden; `_evaluate_booking()` auf projizierten Verlauf inkl. `check_rest_period` (V3 §7.9); `TimeBooking` mit `source=MANUAL` anlegen
 7. Pro `ComplianceFlag` einen `ReviewCase` anlegen
-8. `AuditLogEntry` (`event_type="SUPPLEMENT_APPROVED"`); `uow.commit()`
+8. `uow.commit()`; `AuditLogEntry` (`event_type="SUPPLEMENT_APPROVED"`) nach commit, via auditconn
 
 **Pflicht:** Bloße `supplement_repo.approve()` ohne Buchungserzeugung ist fachlich unvollständig — immer vollständige Statuslogik (OPEN/OK/WARN/NEEDS_REVIEW) und eigenen AuditLogEntry erzeugen.
 
@@ -439,7 +439,7 @@ Gilt für `BookUseCase`, `CorrectBookingUseCase`, `RegisterSupplementUseCase` un
 1. `user_account_repo.get_by_id(cmd.rejected_by_user_id)` → Benutzer nicht gefunden (`None`), inaktiv oder Rolle nicht in {REVIEWER, ADMIN}: `PermissionDeniedError`
 2. `get_by_id()` → `NotFoundError`; `PENDING`-Check → `ValidationError`
 3. `supplement_repo.reject()`; wenn `supplement.related_booking_id is not None`: den passenden `MANUAL_ENTRY_REVIEW`-Fall (`case.booking_id == supplement.related_booking_id`) mit Status `CLOSED_WITH_NOTE` schließen. Ist `related_booking_id` None, bleibt kein Fall zu schließen — `review_case_id = None`.
-4. `AuditLogEntry` (`event_type="SUPPLEMENT_REJECTED"`, `reason` im JSON); `uow.commit()`
+4. `uow.commit()`; `AuditLogEntry` (`event_type="SUPPLEMENT_REJECTED"`, `reason` im JSON) nach commit, via auditconn
 
 Beide Use Cases: Tests gegen Fakes; kein Commit bei Fehler.
 

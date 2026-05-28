@@ -51,8 +51,15 @@ widerspiegeln.
 
 ### Transaktionsregel
 
-Alle schreibenden Use-Case-Vorgänge enden mit genau einem `uow.commit()`,
-der alle Fachobjekte + `AuditLogEntry` zusammenfasst.
+Alle schreibenden Use-Case-Vorgänge folgen dem Muster:
+Fachobjekte schreiben → `uow.commit()` → `audit_log_repo.add()` via auditconn.
+
+Grund: `auditconn` ist eine separate SQLite-Verbindung im Autocommit-Modus.
+Solange die Haupttransaktion noch einen RESERVED-Lock hält, kann `auditconn`
+trotz WAL nicht schreiben. Der `AuditLogEntry` wird daher stets __nach__
+`uow.commit()` geschrieben, nicht davor.
+(Historischer Plantext lautete „alle Fachobjekte + AuditLogEntry in einem commit" —
+durch E2E-/Integrationstests als SQLite-Locking-Problem erkannt und korrigiert.)
 
 
 ---
@@ -174,8 +181,8 @@ Typkompatibilitätsprüfung am Dateiende.
    (Rückwärts-Insertion)
 5. `close_version(current.id, cmd.valid_from - timedelta(days=1))`
 6. Neue `WorkScheduleVersion` anlegen, `work_schedule_repo.add()`
-7. `AuditLogEntry` (audit_events.WORK_SCHEDULE_CHANGED)
-8. `uow.commit()`
+7. `uow.commit()`
+8. `AuditLogEntry` (audit_events.WORK_SCHEDULE_CHANGED)  ← nach commit, via auditconn
 
 Rollenprüfung in Phase 3 bereits implementiert (Plan sah Phase 4/Schritt 1c vor).
 
@@ -189,8 +196,8 @@ Rollenprüfung in Phase 3 bereits implementiert (Plan sah Phase 4/Schritt 1c vor
 3. `related_booking_id`: wenn gesetzt, Buchung muss existieren → `NotFoundError`
 4. `Supplement(..., approval_status=PENDING)` anlegen
 5. `ReviewCase(MANUAL_ENTRY_REVIEW)` immer anlegen
-6. `AuditLogEntry` (audit_events.SUPPLEMENT_CREATED)
-7. `uow.commit()`
+6. `uow.commit()`
+7. `AuditLogEntry` (audit_events.SUPPLEMENT_CREATED)  ← nach commit, via auditconn
 
 Rollenprüfung in Phase 3 bereits implementiert.
 
@@ -208,8 +215,8 @@ Rollenprüfung in Phase 3 bereits implementiert.
    (OPEN_WORK_PHASE, OPEN_BREAK_PHASE, IMPLAUSIBLE_SEQUENCE, POSSIBLE_BREAK_VIOLATION,
    POSSIBLE_REST_VIOLATION, POSSIBLE_MAX_HOURS_VIOLATION, OUTSIDE_SCHEDULE_WINDOW).
    MANUAL_ENTRY_REVIEW bleibt offen (gehört zum Nachtragsprozess).
-7. `AuditLogEntry` (audit_events.BOOKING_CORRECTED)
-8. `uow.commit()`
+7. `uow.commit()`
+8. `AuditLogEntry` (audit_events.BOOKING_CORRECTED)  ← nach commit, via auditconn
 
 Rollenprüfung in Phase 3 bereits implementiert.
 
@@ -232,8 +239,8 @@ Rollenprüfung in Phase 3 bereits implementiert.
    - kein Flag → OK; WARN-Flag → WARN; CRITICAL-Flag → NEEDS_REVIEW
 6. `TimeBooking` mit Status + `device_event_id` anlegen
 7. Pro `ComplianceFlag` einen `ReviewCase` anlegen
-8. `AuditLogEntry` (audit_events.TIME_BOOKED)
-9. `uow.commit()`
+8. `uow.commit()`
+9. `AuditLogEntry` (audit_events.TIME_BOOKED)  ← nach commit, via auditconn
 
 
 ### approve_supplement.py (Phase 4, in Phase 3 vorimplementiert)
@@ -248,8 +255,8 @@ Rollenprüfung in Phase 3 bereits implementiert.
 6. Tagesbuchungen + Vortagesbuchungen laden; vollständige Statuslogik wie in BookUseCase
    (source=BookingSource.MANUAL); TimeBooking anlegen
 7. Pro ComplianceFlag ReviewCase anlegen
-8. `AuditLogEntry` (audit_events.SUPPLEMENT_APPROVED)
-9. `uow.commit()`
+8. `uow.commit()`
+9. `AuditLogEntry` (audit_events.SUPPLEMENT_APPROVED)  ← nach commit, via auditconn
 
 
 ### reject_supplement.py (Phase 4, in Phase 3 vorimplementiert)
@@ -262,8 +269,8 @@ Rollenprüfung in Phase 3 bereits implementiert.
 4. Wenn `supplement.related_booking_id is not None`: den passenden `MANUAL_ENTRY_REVIEW`-Fall
    (`case.booking_id == supplement.related_booking_id`) mit `CLOSED_WITH_NOTE` schließen.
    Ist `related_booking_id` None, bleibt kein Fall zu schließen.
-5. `AuditLogEntry` (audit_events.SUPPLEMENT_REJECTED mit reason)
-6. `uow.commit()`
+5. `uow.commit()`
+6. `AuditLogEntry` (audit_events.SUPPLEMENT_REJECTED mit reason)  ← nach commit, via auditconn
 
 
 ---
