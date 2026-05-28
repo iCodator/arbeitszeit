@@ -86,9 +86,11 @@ class EvdevHardwareReader(HardwareReader):
         rfid_path: str,
         *,
         grab: bool = True,
+        rfid_timeout: float = _RFID_READ_TIMEOUT,
     ) -> None:
         self._numpad = InputDevice(numpad_path)
         self._rfid = InputDevice(rfid_path)
+        self._rfid_timeout = rfid_timeout
         if grab:
             self._numpad.grab()
             self._rfid.grab()
@@ -98,7 +100,7 @@ class EvdevHardwareReader(HardwareReader):
         # occurred_at erst nach vollständiger UID-Lesung:
         # Setzt den Zeitstempel auf den Abschluss der Buchungsanforderung,
         # nicht auf den Zwischenstand nach Tastenauswahl.
-        raw_uid = self._read_rfid_uid(timeout=_RFID_READ_TIMEOUT).strip()
+        raw_uid = self._read_rfid_uid(timeout=self._rfid_timeout).strip()
         occurred_at = datetime.now(timezone.utc)
         if not raw_uid:
             raise EmptyUidError(

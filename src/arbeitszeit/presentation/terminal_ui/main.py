@@ -15,6 +15,7 @@ from arbeitszeit.domain.errors import (
     UnknownCardError,
 )
 from arbeitszeit.infrastructure.db.connection import open_connection
+from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
 from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader
 from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor, load_threshold_from_config
@@ -82,7 +83,20 @@ def run(
     monitor = SystemTimeMonitor(db_path, threshold_seconds=threshold)
     monitor.check()  # Basiszeitpunkt setzen
 
-    reader = EvdevHardwareReader(numpad_path=numpad_device, rfid_path=rfid_device)
+    grace_conn = open_connection(db_path)
+    try:
+        grace_json = SQLiteSystemConfigRepository(grace_conn).get_current(
+            "booking.grace_seconds_after_numpad_select"
+        )
+    finally:
+        grace_conn.close()
+    rfid_timeout = float(json.loads(grace_json)) if grace_json is not None else 5.0
+
+    reader = EvdevHardwareReader(
+        numpad_path=numpad_device,
+        rfid_path=rfid_device,
+        rfid_timeout=rfid_timeout,
+    )
     try:
         while running:
             try:

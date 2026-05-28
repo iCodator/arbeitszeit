@@ -19,6 +19,8 @@ _REQUIRED_CONFIG_KEYS = (
     "booking.grace_seconds_after_numpad_select",
     "backup.nas_enabled",
     "backup.nas_path",
+    "backup.backup_dir",
+    "export.export_dir",
 )
 
 _MIGRATIONS_DIR = Path(__file__).resolve().parents[3] / "migrations"

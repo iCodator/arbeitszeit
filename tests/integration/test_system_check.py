@@ -16,6 +16,17 @@ def _make_db(tmp_path: Path) -> Path:
     db = tmp_path / "arbeitszeit.db"
     conn = open_connection(db)
     run_migrations(conn)
+    # Deployment-spezifische Keys, die setup.py im echten Betrieb setzt:
+    for key, value in (
+        ("backup.backup_dir", str(tmp_path / "backups")),
+        ("export.export_dir", str(tmp_path / "exports")),
+    ):
+        conn.execute(
+            "INSERT INTO system_config "
+            "(config_key, config_value_json, version, change_origin, changed_at) "
+            "VALUES (?, ?, 1, 'MIGRATION', datetime('now'))",
+            (key, json.dumps(value)),
+        )
     conn.close()
     return db
 
