@@ -73,3 +73,24 @@ def test_break_start_nach_go():
             BookingType.BREAK_START,
             [BookingType.COME, BookingType.GO],
         )
+
+
+# --- Erfolgspfade ---
+
+
+def test_come_erste_buchung_wird_akzeptiert():
+    validate_booking_sequence(BookingType.COME, [])
+
+
+def test_go_nach_come_wird_akzeptiert():
+    validate_booking_sequence(BookingType.GO, [BookingType.COME])
+
+
+def test_break_start_nach_come_wird_akzeptiert():
+    validate_booking_sequence(BookingType.BREAK_START, [BookingType.COME])
+
+
+def test_break_end_nach_break_start_wird_akzeptiert():
+    validate_booking_sequence(
+        BookingType.BREAK_END, [BookingType.COME, BookingType.BREAK_START]
+    )

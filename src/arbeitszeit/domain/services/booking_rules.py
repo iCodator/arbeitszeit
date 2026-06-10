@@ -1,25 +1,16 @@
-from dataclasses import dataclass
 from typing import Sequence
 
-from arbeitszeit.domain.enums import BookingStatus, BookingType, ReviewCaseType
+from arbeitszeit.domain.enums import BookingType
 from arbeitszeit.domain.errors import (
     InvalidBookingSequenceError,
     OpenPhaseConflictError,
 )
 
 
-@dataclass(frozen=True)
-class ValidationResult:
-    accepted: bool
-    initial_status: BookingStatus
-    reason_code: str | None
-    follow_up_case_types: tuple[ReviewCaseType, ...]
-
-
 def validate_booking_sequence(
     booking_type: BookingType,
     day_bookings: Sequence[BookingType],
-) -> ValidationResult:
+) -> None:
     # day_bookings must be in chronological order
     if not day_bookings:
         if booking_type in (
@@ -28,12 +19,7 @@ def validate_booking_sequence(
             raise InvalidBookingSequenceError(
                 f"Erste Tagesbuchung darf nicht {booking_type} sein."
             )
-        return ValidationResult(
-            accepted=True,
-            initial_status=BookingStatus.OPEN,
-            reason_code=None,
-            follow_up_case_types=(),
-        )
+        return
 
     open_work = _has_open_work(day_bookings)
     open_break = _has_open_break(day_bookings)
@@ -67,13 +53,6 @@ def validate_booking_sequence(
             raise InvalidBookingSequenceError(
                 "BREAK_END ohne offene Pause nicht zulässig."
             )
-
-    return ValidationResult(
-        accepted=True,
-        initial_status=BookingStatus.OPEN,
-        reason_code=None,
-        follow_up_case_types=(),
-    )
 
 
 def _has_open_work(day_bookings: Sequence[BookingType]) -> bool:
