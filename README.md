@@ -32,7 +32,7 @@ in einer SQLite-Datenbank gespeichert, Backups optional auf einen NAS gespiegelt
 
 ## Voraussetzungen
 
-- Python 3.12
+- Python 3.14
 - Linux (evdev für Hardware-Zugriff)
 - USB-Numpad und RFID-Leser (für Terminal-Betrieb; Simulator für Tests vorhanden)
 
@@ -52,7 +52,7 @@ pip install -e ".[dev]"
 
 Hinweise:
 
-- Entwickelt für Python 3.12.
+- Entwickelt für Python 3.14.
 - Für den produktiven Terminal-Betrieb wird Linux mit `evdev` sowie passende USB-Hardware benötigt.
 - Für lokale Tests kann der Hardware-Simulator verwendet werden.
 

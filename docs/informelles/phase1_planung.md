@@ -39,7 +39,7 @@ pyproject.toml
   - pytest: testpaths = ["tests"]
 
 .python-version
-  - Pinnt auf 3.12 für lokale Entwicklung
+  - Pinnt auf 3.14 für lokale Entwicklung
 
 .gitignore
   - Schließt .venv/, __pycache__/, *.db, *.db-shm, *.db-wal aus
