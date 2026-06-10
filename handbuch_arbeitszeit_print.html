@@ -124,8 +124,8 @@
 <body>
   <a class="skip-link" href="#inhalt">Zum Inhalt springen</a>
   <div class="shell">
-    <aside class="toc-pane" aria-label="Inhaltsverzeichnis">
-      <h2>Inhaltsverzeichnis</h2>
+    <aside class="toc-pane" aria-labelledby="toc-heading">
+      <h2 id="toc-heading">Inhaltsverzeichnis</h2>
       <ol>
         <li><a href="#kapitel-1">Einführung</a></li>
         <li><a href="#kapitel-2">Rollen und Grundprinzip</a></li>
@@ -154,7 +154,7 @@
           </div>
           <div class="meta-card">
             <strong>Stand</strong>
-            <p>Mai 2026, basierend auf <code>README.md</code>, <code>planung_gesamt.md</code>, <code>docs/pflichtenheft_arbeitszeit_v3.md</code> und <code>docs/regelwerk_arbeitszeit_v3.md</code>.</p>
+            <p>Juni 2026, basierend auf <code>README.md</code>, <code>planung_gesamt.md</code>, <code>docs/pflichtenheft_arbeitszeit_v4.md</code>, <code>docs/regelwerk_arbeitszeit_v4.md</code> und <code>docs/addendum_datenschutz_it_sicherheit_arbeitszeit_v1.md</code>.</p>
           </div>
         </div>
       </section>
@@ -279,7 +279,7 @@ python scripts/setup.py --db arbeitszeit.db</code></pre>
           <li>optional Beschäftigungsende</li>
         </ul>
         <h3>Schritt 2: Mitarbeiterliste prüfen</h3>
-<pre><code>python -m arbeitszeit.presentation.admin_cli.main --user-id 1 employees list</code></pre>
+<pre><code>python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 employees list</code></pre>
         <h3>Schritt 3: Mitarbeiter anlegen</h3>
         <ol>
           <li>Mit einem Admin-Konto anmelden.</li>
@@ -287,18 +287,18 @@ python scripts/setup.py --db arbeitszeit.db</code></pre>
           <li>Mitarbeiter mit Personalnummer, Vorname und Nachname anlegen.</li>
           <li>Kontrollieren, dass der Mitarbeiter als aktiv geführt wird.</li>
         </ol>
-<pre><code>python -m arbeitszeit.presentation.admin_cli.main --user-id 1 employees add --help</code></pre>
+<pre><code>python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 employees add --help</code></pre>
         <h3>Schritt 4: RFID-Karte zuweisen</h3>
         <ol>
           <li>Neue RFID-Karte bereitlegen.</li>
-          <li>Mitarbeiter-ID oder Personalnummer notieren.</li>
+          <li>Mitarbeiter-ID notieren.</li>
           <li>Kartenzuweisung mit Admin-Rechten durchführen.</li>
           <li>Eine Testbuchung am Terminal machen.</li>
           <li>Prüfen, ob die Buchung regulär gespeichert wird.</li>
         </ol>
-<pre><code>python -m arbeitszeit.presentation.admin_cli.main --user-id 1 employees assign-card --help</code></pre>
+<pre><code>python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 cards assign --help</code></pre>
         <h3>Schritt 5: Statusänderungen sauber pflegen</h3>
-        <p>Wenn ein Mitarbeiter ausscheidet oder vorübergehend nicht mehr buchen soll, wird der Status geändert und nicht einfach unsichtbar gelöscht. Dafür sind <code>deactivate</code> und <code>reactivate</code> vorgesehen.</p>
+        <p>Wenn ein Mitarbeiter ausscheidet oder vorübergehend nicht mehr buchen soll, wird der Status mit <code>employees deactivate</code> geändert und nicht einfach unsichtbar gelöscht. Soll die Karte gesperrt werden, gibt es <code>cards deactivate</code>.</p>
       </section>
 
       <section class="page" id="kapitel-6">
@@ -312,21 +312,23 @@ python scripts/setup.py --db arbeitszeit.db</code></pre>
           <li>welche Aufgaben die Person konkret übernehmen darf</li>
         </ul>
         <h3>Schritt 2: Benutzerkonto anlegen</h3>
+        <p>Benutzerkonten werden per direkter Datenbankoperation eingetragen. Das ist eine einmalige Einrichtungsaufgabe der technischen Betreuung. Benötigt werden:</p>
         <ul>
           <li>Benutzername, zum Beispiel <code>admin1</code></li>
-          <li>Passwort-Hash in der Datenbank</li>
+          <li>Passwort-Hash (wird von der technischen Betreuung erzeugt)</li>
           <li>Rolle <code>ADMIN</code></li>
           <li>aktiv = ja</li>
           <li>optional Verknüpfung zu einer Mitarbeiterperson</li>
         </ul>
+        <p>Nach der Einrichtung erhält die Person eine numerische Benutzer-ID, mit der sie die Admin-CLI aufruft.</p>
         <h3>Schritt 3: Admin-ID dokumentieren</h3>
         <ol>
-          <li>Benutzerkonto anlegen.</li>
-          <li>Benutzer-ID notieren.</li>
+          <li>Benutzerkonto anlegen lassen (technische Betreuung).</li>
+          <li>Zugeteilte Benutzer-ID notieren.</li>
           <li>Diese ID in der internen Dokumentation festhalten.</li>
           <li>CLI künftig mit genau dieser ID starten.</li>
         </ol>
-<pre><code>python -m arbeitszeit.presentation.admin_cli.main --user-id 1 system check</code></pre>
+<pre><code>python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 system check</code></pre>
         <h3>Schritt 4: Admin-Funktionen prüfen</h3>
         <ul>
           <li><code>employees list</code></li>
@@ -350,9 +352,10 @@ python scripts/setup.py --db arbeitszeit.db</code></pre>
           <li>wo Prüfergebnisse dokumentiert werden</li>
         </ul>
         <h3>Schritt 2: Benutzerkonto mit Prüfer-Rolle einrichten</h3>
+        <p>Wie beim Admin richtet die technische Betreuung das Konto per direkter Datenbankoperation ein:</p>
         <ul>
           <li>Benutzername, zum Beispiel <code>pruefer1</code></li>
-          <li>Passwort-Hash in der Datenbank</li>
+          <li>Passwort-Hash (wird von der technischen Betreuung erzeugt)</li>
           <li>Rolle <code>REVIEWER</code></li>
           <li>aktiv = ja</li>
           <li>optional Verknüpfung zu einer Mitarbeiterperson</li>
@@ -360,11 +363,12 @@ python scripts/setup.py --db arbeitszeit.db</code></pre>
         <h3>Schritt 3: Prüfer-ID dokumentieren</h3>
         <p>Wie beim Admin braucht auch der Prüfer eine Benutzer-ID für die Admin-CLI. Diese ID sollte intern dokumentiert und nur für Prüftätigkeiten verwendet werden.</p>
         <h3>Schritt 4: Prüffunktionen testen</h3>
-<pre><code>python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports open-bookings
-python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports warn-cases
-python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports corrections
-python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports supplements
-python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports open-review-cases</code></pre>
+        <p>Hinweis: Auswertungen mit Zeitraumfilter erfordern zwingend <code>--from</code> und <code>--to</code> (Datum im Format <code>JJJJ-MM-TT</code>).</p>
+<pre><code>python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 2 reports open-bookings
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 2 reports warn-cases --from 2026-06-01 --to 2026-06-30
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 2 reports corrections --from 2026-06-01 --to 2026-06-30
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 2 reports supplements --from 2026-06-01 --to 2026-06-30
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 2 reports open-review-cases</code></pre>
         <h3>Schritt 5: Prüfintervalle verbindlich festlegen</h3>
         <p>Mindestens empfohlen sind tägliche Prüfungen offener Fälle, wöchentliche Prüfungen möglicher Verstöße sowie regelmäßige Prüfungen von Korrekturen und Nachträgen.</p>
       </section>
@@ -375,9 +379,10 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports open-revie
         <h3>Schritt 1: Zuständigkeit schriftlich festlegen</h3>
         <p>Festzuhalten sind mindestens Backup, Restore, Systemcheck, Geräteprüfung und Fehlerbehandlung.</p>
         <h3>Schritt 2: Benutzerkonto mit Technik-Rolle einrichten</h3>
+        <p>Das Konto wird per direkter Datenbankoperation angelegt (einmalige Einrichtungsaufgabe):</p>
         <ul>
           <li>Benutzername, zum Beispiel <code>tech1</code></li>
-          <li>Passwort-Hash in der Datenbank</li>
+          <li>Passwort-Hash (von der technischen Betreuung selbst erzeugt)</li>
           <li>Rolle <code>TECH</code></li>
           <li>aktiv = ja</li>
           <li>optional ohne direkte Mitarbeiterzuordnung</li>
@@ -391,7 +396,7 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports open-revie
     --db arbeitszeit.db \
     --backup-dir /var/backups/arbeitszeit</code></pre>
         <h3>Schritt 5: Systemcheck regelmäßig ausführen</h3>
-<pre><code>python -m arbeitszeit.presentation.admin_cli.main --user-id 3 system check</code></pre>
+<pre><code>python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 3 system check</code></pre>
         <h3>Schritt 6: Restore-Prozess dokumentieren und üben</h3>
         <p>Eine gute Minimaldokumentation enthält Speicherort der Backups, Berechtigung für Restore, Reihenfolge der Wiederherstellung, Prüfschritte und Datum des letzten Restore-Tests.</p>
       </section>
@@ -477,9 +482,11 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports open-revie
         <h3>Wichtige Projektdateien</h3>
         <ul>
           <li><code>README.md</code> – technischer Überblick und Startanleitung.</li>
-          <li><code>docs/pflichtenheft_arbeitszeit_v3.md</code> – verbindliche Anforderungen an das System.</li>
-          <li><code>docs/regelwerk_arbeitszeit_v3.md</code> – fachliche Betriebs- und Entscheidungsregeln.</li>
-          <li><code>planung_gesamt.md</code> – Umsetzungs- und Architekturplan.</li>
+          <li><code>docs/pflichtenheft_arbeitszeit_v4.md</code> – verbindliche Anforderungen an das System.</li>
+          <li><code>docs/regelwerk_arbeitszeit_v4.md</code> – fachliche Betriebs- und Entscheidungsregeln.</li>
+          <li><code>docs/addendum_datenschutz_it_sicherheit_arbeitszeit_v1.md</code> – Datenschutz und IT-Sicherheit für die Zahnarztpraxis (DSGVO, BDSG, IT-Sicherheitsrichtlinie §75b SGB V).</li>
+          <li><code>docs/anlage_einhaltung_pflichtenheft_v2.md</code> – Nachweis der fachlichen Anforderungserfüllung.</li>
+          <li><code>planung_gesamt.md</code> – Umsetzungs- und Architekturplan (für technische Betreuung).</li>
           <li><code>scripts/init_db.py</code> – richtet die Datenbank ein.</li>
           <li><code>scripts/setup.py</code> – fragt wichtige Verzeichnisse für den Betrieb ab.</li>
           <li><code>scripts/backup.py</code> – erstellt Backups.</li>
@@ -488,9 +495,12 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 2 reports open-revie
         <p>Eine Mitarbeiterin kommt morgens, bucht <code>Kommen</code>, geht mittags in Pause, bucht <code>Pause Start</code>, kommt zurück und bucht <code>Pause Ende</code>, und bucht am Abend <code>Gehen</code>.</p>
         <p>Vergisst sie am Abend <code>Gehen</code>, bleibt der Fall offen. Das System ergänzt den Feierabend nicht automatisch, sondern zeigt den Fall später als offen oder prüfbedürftig an.</p>
         <h3>Hinweise zur Nutzung dieses Handbuchs</h3>
-        <p>Dieses Handbuch ist bewusst laienverständlich geschrieben. Für technische Details, genaue CLI-Parameter und Entwicklungsfragen sind vor allem <code>README.md</code>, <code>planung_gesamt.md</code>, <code>docs/pflichtenheft_arbeitszeit_v3.md</code> und <code>docs/regelwerk_arbeitszeit_v3.md</code> maßgeblich.</p>
+        <p>Dieses Handbuch ist bewusst laienverständlich geschrieben. Für technische Details, genaue CLI-Parameter und Entwicklungsfragen sind vor allem <code>README.md</code>, <code>planung_gesamt.md</code>, <code>docs/pflichtenheft_arbeitszeit_v4.md</code> und <code>docs/regelwerk_arbeitszeit_v4.md</code> maßgeblich.</p>
       </section>
     </main>
   </div>
+  <footer style="text-align:center;padding:var(--space-6) var(--space-4);color:var(--color-text-muted);font-size:var(--text-xs);border-top:1px solid var(--color-divider);margin-top:var(--space-4);">
+    arbeitszeit · Handbuch · Stand Juni 2026 · Pflichtenheft v4 / Regelwerk v4
+  </footer>
 </body>
 </html>
