@@ -104,7 +104,7 @@ Das Terminal läuft als Endlosschleife und beendet sich sauber bei `SIGTERM` / `
 
 ```bash
 # Benutzer-ID via Flag oder Umgebungsvariable ADMIN_USER_ID
-python -m arbeitszeit.presentation.admin_cli.main --user-id 1 <Befehl>
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 <Befehl>
 ```
 
 **Übersicht der Befehle:**
@@ -113,25 +113,30 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 1 <Befehl>
 | --- | --- | --- |
 | `employees` | `list` | Alle Mitarbeiter anzeigen |
 | | `add` | Mitarbeiter anlegen |
-| | `deactivate` / `reactivate` | Status ändern |
-| | `assign-card` / `replace-card` | RFID-Karte zuweisen |
-| `bookings` | `supplement add` | Nachtrag anlegen |
-| | `supplement approve` / `reject` | Nachtrag genehmigen / ablehnen |
+| | `deactivate` | Mitarbeiter deaktivieren |
+| `cards` | `assign` | RFID-Karte einem Mitarbeiter zuweisen |
+| | `replace` | RFID-Karte ersetzen |
+| | `deactivate` | RFID-Karte deaktivieren |
+| `bookings` | `supplement` | Nachtrag anlegen |
+| | `approve-supplement` | Nachtrag genehmigen |
+| | `reject-supplement` | Nachtrag ablehnen |
 | | `correct` | Buchung korrigieren |
-| `schedule` | `show` | Aktuelle Regelarbeitszeiten |
+| `schedule` | `show` | Aktuelle Regelarbeitszeiten anzeigen |
 | | `set` | Neue Regelarbeitszeit setzen |
-| `reports` | `open-bookings` | Offene Buchungen |
-| | `warn-cases` | Buchungen mit Prüfstatus |
-| | `corrections` | Korrekturen |
-| | `supplements` | Nachträge |
-| | `open-review-cases` | Offene Prüffälle |
-| | `export-csv` | Detail- und Verdichtet-Export als CSV |
+| `reports` | `open-bookings` | Offene Buchungen anzeigen |
+| | `warn-cases` | Buchungen mit Prüfstatus (`--from` / `--to` erforderlich) |
+| | `corrections` | Korrekturen (`--from` / `--to` erforderlich) |
+| | `supplements` | Nachträge (`--from` / `--to` erforderlich) |
+| | `open-review-cases` | Offene Prüffälle anzeigen |
+| | `export-csv` | Detail- und Verdichtet-Export als CSV (`--from` / `--to` erforderlich) |
 | | `export-pdf-day` / `export-pdf-week` / `export-pdf-month` | PDF-Berichte |
 | | `export-pdf-employee` | Mitarbeiterbericht als PDF |
 | `system` | `check` | Systemcheck ausführen |
 | | `backup` | Manuelles Backup erstellen |
 
-Alle Befehle akzeptieren `--from` / `--to` für Zeitraumfilter (ISO-8601-Datum).
+Zeitraumfilter `--from` / `--to` (ISO-8601-Datum, z. B. `2026-01-01`) sind bei
+Auswertungsbefehlen wie `warn-cases`, `corrections`, `supplements` und `export-csv`
+**erforderlich**. Bei `open-bookings` und `open-review-cases` sind sie optional.
 
 ### Backup
 
@@ -195,7 +200,7 @@ python -m pytest
 python -m pytest --cov=arbeitszeit --cov-report=term-missing
 ```
 
-369 Tests in vier Ebenen:
+385 Tests in vier Ebenen:
 
 | Verzeichnis | Inhalt |
 | --- | --- |
