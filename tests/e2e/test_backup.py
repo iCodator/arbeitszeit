@@ -310,3 +310,47 @@ def test_backup_mit_nicht_existierendem_export_dir_wird_ignoriert(tmp_path):
     backup_path = service.create_local_backup(now=_NOW)
     assert backup_path.exists()
     assert not (tmp_path / "backups" / "exports").exists()
+
+
+# --- restore_from mit restore_exports ---
+
+
+def test_restore_with_exports_kopiert_exportdateien_zurueck(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    export_dir = tmp_path / "exports"
+    export_dir.mkdir()
+    (export_dir / "bericht.csv").write_text("inhalt")
+
+    service = SQLiteBackupService(db, tmp_path / "backups", export_dir=export_dir)
+    _make_db(db)
+    backup_path = service.create_local_backup(now=_NOW)
+
+    (export_dir / "bericht.csv").unlink()
+    assert not (export_dir / "bericht.csv").exists()
+
+    service.restore_from(backup_path, restore_exports=True)
+    assert (export_dir / "bericht.csv").exists()
+    assert (export_dir / "bericht.csv").read_text() == "inhalt"
+
+
+def test_restore_ohne_flag_stellt_keine_exporte_wieder_her(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    export_dir = tmp_path / "exports"
+    export_dir.mkdir()
+    (export_dir / "bericht.csv").write_text("inhalt")
+
+    service = SQLiteBackupService(db, tmp_path / "backups", export_dir=export_dir)
+    _make_db(db)
+    backup_path = service.create_local_backup(now=_NOW)
+
+    (export_dir / "bericht.csv").unlink()
+    service.restore_from(backup_path)  # restore_exports=False (Default)
+    assert not (export_dir / "bericht.csv").exists()
+
+
+def test_restore_with_exports_ohne_export_dir_kein_fehler(tmp_path):
+    db = tmp_path / "arbeitszeit.db"
+    _make_db(db)
+    service = SQLiteBackupService(db, tmp_path / "backups")
+    backup_path = service.create_local_backup(now=_NOW)
+    service.restore_from(backup_path, restore_exports=True)  # kein Fehler

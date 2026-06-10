@@ -94,11 +94,17 @@ class SQLiteBackupService:
             raise
         self._log_audit(audit_events.BACKUP_SYNCED_TO_NAS, {"nas_path": str(nas_path)})
 
-    def restore_from(self, backup_path: Path) -> None:
+    def restore_from(self, backup_path: Path, *, restore_exports: bool = False) -> None:
         """Stellt die Datenbank aus einer Backup-Datei wieder her.
 
         Vorbedingung: Keine offenen Verbindungen zur Ziel-DB beim Aufruf.
         Führt nach dem Restore PRAGMA integrity_check aus.
+
+        restore_exports: Falls True und self._export_dir gesetzt, werden
+        Exportdateien aus <backup_dir>/exports/ zurück in self._export_dir
+        kopiert (vorhandene Dateien werden überschrieben, neue hinzugefügt).
+        Hat keinen Effekt, wenn self._export_dir nicht gesetzt oder
+        <backup_dir>/exports/ nicht existiert.
         """
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup-Datei nicht gefunden: {backup_path}")
@@ -116,6 +122,16 @@ class SQLiteBackupService:
                 dst.close()
         finally:
             src.close()
+
+        if restore_exports and self._export_dir is not None:
+            exports_in_backup = backup_path.parent / "exports"
+            if exports_in_backup.exists():
+                shutil.copytree(
+                    exports_in_backup,
+                    self._export_dir,
+                    dirs_exist_ok=True,
+                )
+
         # Eintrag landet in der gerade wiederhergestellten DB — das ist gewollt:
         # RESTORE_COMPLETED ist ein nachgelagertes Betriebsereignis im neuen Ist-Zustand,
         # kein Teil des gesicherten Stands.
