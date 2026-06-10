@@ -17,6 +17,7 @@ from arbeitszeit.domain.errors import (
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
 from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader
+from arbeitszeit.infrastructure.hardware.ports import HardwareReader
 from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor, load_threshold_from_config
 from .booking_loop import format_feedback, process_booking
@@ -50,6 +51,29 @@ def _log_system_event(db_path: Path, event_type: str, details: dict) -> None:
             conn.close()
     except Exception:
         pass
+
+
+def _run_one_cycle(
+    reader: HardwareReader,
+    db_path: Path,
+    terminal_id: int,
+    monitor: SystemTimeMonitor,
+) -> None:
+    """Ein Buchungszyklus: Zeitcheck → Buchung → Feedback oder Fehlerbehandlung."""
+    monitor.check()
+    try:
+        booking_result = process_booking(reader, db_path, terminal_id)
+        print(format_feedback(booking_result))
+    except DomainError as exc:
+        msg = _DOMAIN_MESSAGES.get(type(exc), f"Fehler: {exc.message}")
+        print(msg)
+    except Exception as exc:
+        print("Interner Fehler — Betrieb wird fortgesetzt.", file=sys.stderr)
+        _log_system_event(
+            db_path,
+            "APPLICATION_ERROR",
+            {"error": str(exc), "type": type(exc).__name__},
+        )
 
 
 def run(
@@ -99,20 +123,7 @@ def run(
     )
     try:
         while running:
-            try:
-                monitor.check()  # Zeitsprung vor blockierendem read_next() prüfen
-                booking_result = process_booking(reader, db_path, terminal_id)
-                print(format_feedback(booking_result))
-            except DomainError as exc:
-                msg = _DOMAIN_MESSAGES.get(type(exc), f"Fehler: {exc.message}")
-                print(msg)
-            except Exception as exc:
-                print("Interner Fehler — Betrieb wird fortgesetzt.", file=sys.stderr)
-                _log_system_event(
-                    db_path,
-                    "APPLICATION_ERROR",
-                    {"error": str(exc), "type": type(exc).__name__},
-                )
+            _run_one_cycle(reader, db_path, terminal_id, monitor)
     finally:
         reader.close()
 

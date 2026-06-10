@@ -209,3 +209,60 @@ def test_inaktive_karte_speichert_keine_buchung(db, terminal_id, inactive_card_i
         pass
 
     assert len(_bookings(db)) == 0
+
+
+# --- APPLICATION_ERROR-Logging ---
+
+
+from arbeitszeit.domain.errors import UnknownCardError
+from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor
+from arbeitszeit.presentation.terminal_ui.main import _run_one_cycle
+
+
+def _make_monitor(db: Path) -> SystemTimeMonitor:
+    monitor = SystemTimeMonitor(db, threshold_seconds=60.0)
+    monitor.check()  # Basiszeitpunkt setzen
+    return monitor
+
+
+def test_unerwartete_exception_schreibt_application_error_in_system_events(
+    db, terminal_id
+):
+    class BrokenReader:
+        def read_next(self):
+            raise RuntimeError("Gerätepanne simuliert")
+
+        def close(self):
+            pass
+
+    _run_one_cycle(BrokenReader(), db, terminal_id, _make_monitor(db))
+
+    conn = open_connection(db)
+    events = conn.execute(
+        "SELECT event_type, details_json FROM system_events "
+        "WHERE event_type = 'APPLICATION_ERROR'"
+    ).fetchall()
+    conn.close()
+
+    assert len(events) == 1
+    details = json.loads(events[0]["details_json"])
+    assert details["type"] == "RuntimeError"
+    assert "Gerätepanne" in details["error"]
+
+
+def test_domain_error_schreibt_kein_application_error(db, terminal_id):
+    class DomainErrorReader:
+        def read_next(self):
+            raise UnknownCardError("Test-DomainError")
+
+        def close(self):
+            pass
+
+    _run_one_cycle(DomainErrorReader(), db, terminal_id, _make_monitor(db))
+
+    conn = open_connection(db)
+    count = conn.execute(
+        "SELECT COUNT(*) FROM system_events WHERE event_type = 'APPLICATION_ERROR'"
+    ).fetchone()[0]
+    conn.close()
+    assert count == 0
