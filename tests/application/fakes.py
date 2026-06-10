@@ -395,7 +395,7 @@ class FakeUnitOfWork:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        if exc_type is not None:
+        if not self.committed:
             self.rollback()
 
 
