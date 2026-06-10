@@ -1,6 +1,6 @@
 # Planung Phase 5 – Präsentation
 
-Stand: 2026-05-27. Basiert auf Pflichtenheft v3 und Regelwerk v3.
+Stand: 2026-05-27. Basiert auf Pflichtenheft v4 und Regelwerk v4.
 Phase 5 vollständig abgeschlossen (Schritte 0–5).
 Scope-Abgrenzung: Die operative Aktivierung der device_event_id-Verkettung
 (Hardware-Schicht schreibt device_events, ID wird via BookCommand.device_event_id
@@ -39,11 +39,11 @@ src/arbeitszeit/
 
 Offen aus Phase 4:
 
-- Systemzeitprotokollierung (Pflichtenheft v3 §9.3 / Regelwerk v3 §21)
+- Systemzeitprotokollierung (Pflichtenheft v4 §9.3 / Regelwerk v4 §21)
 
 Betriebsdokumentation (Phase 5, kein Code):
 
-Exportverzeichnis (Regelwerk v3 §17/§18, Befund 4/8-07) — festgelegte Betriebsregeln:
+Exportverzeichnis (Regelwerk v4 §17/§18, Befund 4/8-07) — festgelegte Betriebsregeln:
 
 - **Zugriffsrechte:** Schreibzugriff ausschließlich durch den laufenden arbeitszeit-Dienst-Account.
   Lesezugriff für Betriebssystem-Benutzer mit ADMIN-Rolle. Kein Zugriff für EMPLOYEE/REVIEWER.
@@ -53,7 +53,7 @@ Exportverzeichnis (Regelwerk v3 §17/§18, Befund 4/8-07) — festgelegte Betrie
   Kein automatischer Löschmechanismus im Repo. ADMIN prüft das Exportverzeichnis periodisch
   und löscht Dateien, deren Erstellungsdatum mehr als 5 Jahre zurückliegt.
 
-353 Tests grün (alle Ebenen, Stand Phase 5/Schritt 1; jetzt 369).
+369 Tests grün (alle Ebenen).
 
 
 ---
@@ -76,7 +76,7 @@ entsteht, gemeinsamen Code in ein Modul extrahieren.
 
 ### Buchungsart kommt ausschließlich vom USB-Numpad
 
-(Pflichtenheft v3 §6 / Regelwerk v3 §3)
+(Pflichtenheft v4 §6 / Regelwerk v4 §3)
 
 Die Buchungsart (COME, GO, BREAK_START, BREAK_END) wird durch Tastendruck
 am USB-Numpad ausgewählt, bevor die RFID-Karte gelesen wird.
@@ -89,7 +89,7 @@ auslösen. Beides über `HardwareReader`-Protocol aus infrastructure/hardware/.
 ### Admin-CLI: Rollenprüfung über UserAccount
 
 Alle schreibenden Admin-Operationen prüfen die Rolle des ausführenden Users
-(Pflichtenheft v3 §5 / Regelwerk v3 §16). Kein Bypass über CLI-Flags.
+(Pflichtenheft v4 §5 / Regelwerk v4 §16). Kein Bypass über CLI-Flags.
 
 Rollentrennung:
 
@@ -107,7 +107,7 @@ Rollentrennung:
 
 ### Pflichtauswertungen: Anzeige über report_queries.py
 
-Alle Pflichtauswertungen (Pflichtenheft v3 §7.12) nutzen ausschließlich
+Alle Pflichtauswertungen (Pflichtenheft v4 §7.12) nutzen ausschließlich
 die Funktionen aus `report_queries.py` — keine neuen Ad-hoc-Queries in der
 Präsentationsschicht.
 
@@ -292,7 +292,7 @@ Keine interaktive Passworteingabe im initialen Scope — Benutzer-ID per
 
 ### Schritt 3 – Pflichtauswertungen in App einsehbar
 
-(Pflichtenheft v3 §7.12)
+(Pflichtenheft v4 §7.12)
 
 ```
 admin reports open-bookings [--employee-id <id>]
@@ -310,7 +310,7 @@ gibt dasselbe Datenset aus).
 
 ### Schritt 4 – Selbsttest im UI integrieren
 
-(Pflichtenheft v3 §7.10)
+(Pflichtenheft v4 §7.10)
 
 Voraussetzung: `infrastructure/system_check.py` (Schritt 0) fertig.
 
@@ -324,7 +324,7 @@ Bei kritischem Befund: Warnung ausgeben, aber weiterlaufen (kein Hard-Stop).
 
 ### Schritt 5 – Systemzeitprotokollierung  ✓
 
-(Pflichtenheft v3 §9.3 / Regelwerk v3 §21)
+(Pflichtenheft v4 §9.3 / Regelwerk v4 §21)
 
 `infrastructure/time_monitor.py`:
 
@@ -359,7 +359,7 @@ NTP-Synchronisation ist Betriebsvoraussetzung, nicht Aufgabe dieser Schicht.
 - load_threshold_from_config mit Fallback
 - load_threshold_from_config liest system_config-Wert
 
-Deckt V3 §16-Testpflicht „Systemzeitabweichung" ab.
+Deckt V4 §16-Testpflicht „Systemzeitabweichung" ab.
 
 
 ---
@@ -386,7 +386,7 @@ in Application- und Infrastructure-Schicht.
 
 ---
 
-## V3 §16 Testpflicht-Abdeckung nach Phase 5
+## V4 §16 Testpflicht-Abdeckung nach Phase 5
 
 ```
 >6h ohne Pause              → test_compliance_checks.py  (grün)
@@ -399,3 +399,16 @@ Notfallnachtrag             → test_register_supplement.py  (grün)
 Restore-Test                → tests/e2e/test_backup.py  (grün)
 Auswertung offener Fälle    → test_export.py  (grün)
 ```
+
+
+---
+
+## V4-Bezüge und organisatorische Auflagen
+
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
+`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+
+Was diese Phase technisch leistet und was als externe organisatorische Auflagen
+(ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
+Testmatrix) außerhalb des Codes verbleibt, ist in `planung_gesamt.md` Abschnitt
+„Offene Praxis- und Nachweispflichten" beschrieben.

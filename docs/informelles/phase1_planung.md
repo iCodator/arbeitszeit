@@ -296,21 +296,34 @@ tests/test_migrations.py  – 12 Tests gesamt (ursprünglich 6; Phase 4 fügte 5
                              Phase 5 fügte 1 hinzu für Migration 0006)
 
 
-V3-Bezüge
+V4-Bezüge
 ---------
 
-Aufbewahrungsprinzip (Pflichtenheft v3 §12 / Regelwerk v3 §18):
+Aufbewahrungsprinzip (Pflichtenheft v4 §12 / Regelwerk v4 §18):
   Keine physische Löschung fachlicher Buchungen. Klärung über Status
   (CORRECTED, CLOSED_WITH_NOTE), Korrekturen oder Archivierung.
   Aufbewahrungsfrist mindestens 2 Jahre (ArbZG §16 Abs. 2).
 
-system_events-Tabelle (Pflichtenheft v3 §9.3 / Regelwerk v3 §21):
+system_events-Tabelle (Pflichtenheft v4 §9.3 / Regelwerk v4 §21):
   Vorhanden im Schema. Dient der Protokollierung von Betriebsereignissen –
   u. a. Systemzeitsprünge (TIME_JUMP_DETECTED, MANUAL_TIME_CHANGE_DETECTED)
   und Selbsttests (SELFTEST_OK, SELFTEST_FAIL). Befüllung durch
   Infrastruktur-/Betriebsschicht (Phase 4/Schritt 9).
 
-Rollentrennung (Pflichtenheft v3 §5 / Regelwerk v3 §16):
+Rollentrennung (Pflichtenheft v4 §5 / Regelwerk v4 §16):
   UserRole: EMPLOYEE / ADMIN / REVIEWER / TECH – strikt getrennte Rechte.
   Kein Bootstrap-User; change_origin (SYSTEM_SEED / ADMIN_UI / MIGRATION)
   ersetzt administrativen Dummy-Account für Seeds/Migrationen.
+
+
+---
+
+## V4-Bezüge und organisatorische Auflagen
+
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
+`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+
+Was diese Phase technisch leistet und was als externe organisatorische Auflagen
+(ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
+Testmatrix) außerhalb des Codes verbleibt, ist in `planung_gesamt.md` Abschnitt
+„Offene Praxis- und Nachweispflichten" beschrieben.

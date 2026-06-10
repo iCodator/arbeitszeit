@@ -168,7 +168,7 @@ Domänen-Kern-Events (originär Phase 2):
 Infrastruktur-Events (später ergänzt, Phase 4/Schritt 9b):
   BACKUP_CREATED, BACKUP_SYNCED_TO_NAS, BACKUP_SYNC_FAILED, RESTORE_COMPLETED.
 
-Verhindert freie String-Literale im Code (Regelwerk v3 §11-konform).
+Verhindert freie String-Literale im Code (Regelwerk v4 §11-konform).
 
 
 services/booking_rules.py
@@ -195,7 +195,7 @@ Hilfsfunktionen: `_has_open_work(day_bookings)`, `_has_open_break(day_bookings)`
 
 services/compliance_checks.py
 ------------------------------
-Pflichtanforderung Pflichtenheft v3 §7.9 (ArbZG §3/4/5).
+Pflichtanforderung Pflichtenheft v4 §7.9 (ArbZG §3/4/5).
 
 `ComplianceFlag`: @dataclass(frozen=True)
   case_type: ReviewCaseType, severity: ReviewSeverity
@@ -217,10 +217,10 @@ Pflichtanforderung Pflichtenheft v3 §7.9 (ArbZG §3/4/5).
   Finale Domänenschnittstelle: nimmt zwei datetime-Objekte entgegen (letzter GO-Zeitpunkt,
   nächster COME-Zeitpunkt) — nicht zwei Buchungslisten wie ursprünglich geplant.
   <11h zwischen letztem GO und nächstem COME → POSSIBLE_REST_VIOLATION, CRITICAL (ArbZG §5).
-  V3 §7.9 Pflichtanforderung. Integration in BookUseCase + ApproveSupplementUseCase
+  V4 §7.9 Pflichtanforderung. Integration in BookUseCase + ApproveSupplementUseCase
   nach Phase 4/Schritt 1b.
 
-Verbindliche Architekturentscheidung (Regelwerk v3 §11):
+Verbindliche Architekturentscheidung (Regelwerk v4 §11):
   POSSIBLE_* werden als ReviewCase (ReviewCaseType + ReviewSeverity) abgebildet,
   nicht als BookingStatus-Werte. MANUAL_ENTRY → BookingSource.MANUAL. Beide Dimensionen
   sind orthogonal zu BookingStatus. report_queries.py ist die einzige Ableitungsquelle
@@ -318,3 +318,16 @@ Was Phase 2 allein nicht leistet:
 
 Ein Reviewer darf „Phase 2 vollständig" lesen als: Domänenkern abgeschlossen,
 Invarianten getestet, Protokolle definiert — nicht als: Gesamtsystem auslieferbar.
+
+
+---
+
+## V4-Bezüge und organisatorische Auflagen
+
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
+`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+
+Was diese Phase technisch leistet und was als externe organisatorische Auflagen
+(ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
+Testmatrix) außerhalb des Codes verbleibt, ist in `planung_gesamt.md` Abschnitt
+„Offene Praxis- und Nachweispflichten" beschrieben.

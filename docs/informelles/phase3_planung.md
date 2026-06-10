@@ -275,7 +275,7 @@ Rollenprüfung in Phase 3 bereits implementiert.
 
 ---
 
-## Rollenprüfung (Pflichtenheft v3 §5 / Regelwerk v3 §16)
+## Rollenprüfung (Pflichtenheft v4 §5 / Regelwerk v4 §16)
 
 Plan sah Nachrüstung in Phase 4/Schritt 1c vor — tatsächlich bereits in Phase 3 umgesetzt.
 
@@ -317,7 +317,7 @@ pytest tests/              # alle Tests grün inkl. Migrationen
 
 ---
 
-## V3 §16 Testpflicht-Abdeckung nach Phase 3
+## Pflichtenheft v4 §16 Testpflicht-Abdeckung nach Phase 3
 
 ```
 >6h ohne Pause              → test_compliance_checks.py  (grün)
@@ -325,8 +325,21 @@ pytest tests/              # alle Tests grün inkl. Migrationen
 >8h Arbeitszeit             → test_compliance_checks.py + test_book_time.py  (grün)
 >10h Arbeitszeit            → test_compliance_checks.py + test_book_time.py  (grün)
 Ruhezeitverletzung <11h     → test_book_time.py  (grün — in Phase 3 vorimpl.)
-Systemzeitabweichung        → OFFEN (Phase 5, Regelwerk v3 §21)
+Systemzeitabweichung        → Phase 5 (Regelwerk v4 §21) ✓
 Notfallnachtrag             → test_register_supplement.py  (grün)
 Restore-Test                → tests/e2e/test_backup.py  (Phase 4/7)
 Auswertung offener Fälle    → test_export.py / test_pdf.py  (Phase 4/8)
 ```
+
+
+---
+
+## V4-Bezüge und organisatorische Auflagen
+
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
+`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+
+Was diese Phase technisch leistet und was als externe organisatorische Auflagen
+(ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
+Testmatrix) außerhalb des Codes verbleibt, ist in `planung_gesamt.md` Abschnitt
+„Offene Praxis- und Nachweispflichten" beschrieben.
