@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """CLI-Einstieg für Datenbankinitialisierung. Delegiert alles an migrations.py."""
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -11,7 +12,15 @@ from arbeitszeit.infrastructure.db.migrations import run_migrations
 
 
 def main() -> None:
-    db_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("arbeitszeit.db")
+    parser = argparse.ArgumentParser(description="Datenbankinitialisierung und Migrationen.")
+    parser.add_argument(
+        "--db",
+        type=Path,
+        default=Path("arbeitszeit.db"),
+        help="Pfad zur Datenbankdatei (Standard: arbeitszeit.db)",
+    )
+    args = parser.parse_args()
+    db_path: Path = args.db
     conn = open_connection(db_path)
     try:
         executed = run_migrations(conn)

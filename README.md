@@ -11,13 +11,15 @@ in einer SQLite-Datenbank gespeichert, Backups optional auf einen NAS gespiegelt
 
 ## Funktionsumfang
 
-**Terminal (Kiosk-Betrieb)**
+### Terminal (Kiosk-Betrieb)
+
 - Buchungserfassung: KOMMEN / GEHEN / PAUSE_ANFANG / PAUSE_ENDE via Numpad + RFID-Karte
 - Automatische Compliance-Prüfung (ArbZG §3 Höchstarbeitszeit, §5 Ruhezeit, §4 Pausenregel)
 - Protokollierung unbekannter und inaktiver Karten
 - Systemzeitüberwachung (erkennt Zeitsprünge während Betrieb)
 
-**Admin-CLI**
+### Admin-CLI
+
 - Mitarbeiter- und RFID-Kartenverwaltung
 - Nachtragserfassung und Genehmigung / Ablehnung
 - Buchungskorrekturen (Altstand bleibt erhalten, kein stilles Überschreiben)
@@ -49,6 +51,7 @@ pip install -e ".[dev]"
 ```
 
 Hinweise:
+
 - Entwickelt für Python 3.11.
 - Für den produktiven Terminal-Betrieb wird Linux mit `evdev` sowie passende USB-Hardware benötigt.
 - Für lokale Tests kann der Hardware-Simulator verwendet werden.
@@ -97,7 +100,7 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 
 Das Terminal läuft als Endlosschleife und beendet sich sauber bei `SIGTERM` / `SIGINT`.
 
-### Admin-CLI
+### Admin-CLI starten
 
 ```bash
 # Benutzer-ID via Flag oder Umgebungsvariable ADMIN_USER_ID
@@ -107,7 +110,7 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 1 <Befehl>
 **Übersicht der Befehle:**
 
 | Gruppe | Befehl | Beschreibung |
-|---|---|---|
+| --- | --- | --- |
 | `employees` | `list` | Alle Mitarbeiter anzeigen |
 | | `add` | Mitarbeiter anlegen |
 | | `deactivate` / `reactivate` | Status ändern |
@@ -122,9 +125,9 @@ python -m arbeitszeit.presentation.admin_cli.main --user-id 1 <Befehl>
 | | `corrections` | Korrekturen |
 | | `supplements` | Nachträge |
 | | `open-review-cases` | Offene Prüffälle |
-| | `export-csv` | Detailexport als CSV |
-| | `export-pdf-daily` / `weekly` / `monthly` | PDF-Berichte |
-| | `export-employee` | Mitarbeiterbericht (CSV) |
+| | `export-csv` | Detail- und Verdichtet-Export als CSV |
+| | `export-pdf-day` / `export-pdf-week` / `export-pdf-month` | PDF-Berichte |
+| | `export-pdf-employee` | Mitarbeiterbericht als PDF |
 | `system` | `check` | Systemcheck ausführen |
 | | `backup` | Manuelles Backup erstellen |
 
@@ -171,7 +174,7 @@ src/arbeitszeit/
 16 Tabellen in `migrations/0001_schema.sql` (15 fachliche + `schema_migrations`):
 
 | Ebene | Tabellen |
-|---|---|
+| --- | --- |
 | Person | `employees`, `user_accounts`, `rfid_cards` |
 | Erfassung | `terminals`, `time_bookings`, `device_events` |
 | Prüfung | `review_cases`, `review_case_actions`, `booking_status_history` |
@@ -195,7 +198,7 @@ python -m pytest --cov=arbeitszeit --cov-report=term-missing
 369 Tests in vier Ebenen:
 
 | Verzeichnis | Inhalt |
-|---|---|
+| --- | --- |
 | `tests/domain/` | Domänenregeln, Entity-Invarianten |
 | `tests/application/` | Use Cases mit Fake-Repos |
 | `tests/integration/` | Repositories und UoW gegen echte SQLite-DB |
