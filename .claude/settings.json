@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m ' *)",
+      "Bash(python -m pytest tests/integration/test_init_db.py -v)"
+    ]
+  }
+}
