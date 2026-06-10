@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m arbeitszeit.presentation.admin_cli.main --db /tmp/az_run.db --user-id 1 reports export-csv --from 2026-06-01 --to 2026-06-10)",
+      "Bash(python scripts/backup.py --db /tmp/az_run.db --backup-dir /tmp/az_run_backups)",
+      "Bash(python -m arbeitszeit.presentation.admin_cli.main --db /tmp/az_run.db --user-id 1 reports --help)",
+      "Bash(git commit -m ' *)",
+      "Bash(python scripts/init_db.py --db /tmp/verify312.db)",
+      "Bash(python3.14 --version)",
+      "Bash(apt-cache show *)",
+      "Read(//usr/bin/**)",
+      "Bash(python3.14 --version 2>/dev/null || echo \"Python 3.14 nicht gefunden\" && ls /usr/bin/python3* ~/.pyenv/versions/3.14*/bin/python 2>/dev/null)",
+      "Read(//home/heimwerker/.pyenv/**)",
+      "Bash(python3.14 -m pip --version)",
+      "Bash(find /usr /opt ~/.pyenv ~/.local -name \"python3.14\" -not -path \"*/arbeitszeit/.venv/*\" 2>/dev/null | head -5)",
+      "Read(//usr/**)",
+      "Bash(python3.14 -m pytest tests/ -q --tb=short)",
+      "Bash(python3.14 -m pip install -e \".[dev]\" -q)"
+    ]
+  }
+}
