@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "arbeitszeit"
 version = "0.1.0"
 description = "Lokales Zeiterfassungssystem für eine Zahnarztpraxis"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "evdev>=1.7",
     "reportlab>=4.0",
