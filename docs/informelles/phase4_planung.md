@@ -183,7 +183,8 @@ CorrectBookingUseCase, RegisterSupplementUseCase, ApproveSupplementUseCase.
 
 Abgrenzung Schritt 2: Stellt ausschließlich die **Schemafähigkeit** her. Die vollständige operative
 Nutzung (Hardware-Schicht erzeugt `device_events`, ID wird via `BookCommand.device_event_id`
-durchgereicht) ist Teil der größeren Infrastrukturkette — nicht allein Aufgabe dieses Schritts.
+durchgereicht) wurde nachträglich im Produktionspfad aktiviert — Commit `0f20931` (2026-06-11).
+Architekturentscheidung: `docs/informelles/device_event_architekturentscheidung_v1.md`.
 
 Hinweis: Migration `0001` enthielt noch ältere CHECK-Constraints und ein früheres Supplement-Modell
 (ohne `rejected_by_user_id`). Migration `0003` (Phase 3 Vorbereitung) bereinigt BookingStatus-CHECK;

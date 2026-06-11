@@ -2,13 +2,10 @@
 
 Stand: 2026-05-27 (aktualisiert 2026-06-11). Basiert auf Pflichtenheft v5 und Regelwerk v5.
 Phase 5 vollständig abgeschlossen (Schritte 0–5).
-Scope-Abgrenzung: Die operative Aktivierung der device_event_id-Verkettung
-(Hardware-Schicht schreibt device_events, ID wird via BookCommand.device_event_id
-durchgereicht) liegt bewusst außerhalb des Phase-5-Abnahmesolls. Schema und
-Infrastruktur sind vorbereitet (Migration 0005, nullable Spalte); kein Produktionspfad
-schreibt derzeit device_events in die DB. Das ist ein dokumentierter offener
-Architekturpunkt, kein Planverstoß. (Vgl. planung_gesamt.md „Offener Architekturpunkt
-– device_event_id-Verkettung".)
+Architekturpunkt device_event_id-Verkettung: Abgeschlossen (Commit `0f20931`, 2026-06-11).
+`booking_loop.py` erzeugt `RFID_SCAN`-Records in `device_events` und reicht die ID als
+`BookCommand.device_event_id` durch. `time_bookings.device_event_id` wird produktiv gesetzt.
+Architekturentscheidung: `docs/informelles/device_event_architekturentscheidung_v1.md`.
 Nachgeführte Code-Review-Korrekturen (2026-05-27):
 
 - P1: open-bookings + open-review-cases mit --from/--to Zeitraumfilter

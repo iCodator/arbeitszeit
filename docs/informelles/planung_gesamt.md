@@ -58,7 +58,7 @@ Vollständig implementiert (`admin_cli users`-Modul, alle 6 Befehle):
 ### 01 – Fachlicher Kern
 - Zentrum ist die **unveränderliche Buchung** (`Zeitbuchung`), nicht die „Tagesarbeitszeit“.
 - Offene Fälle werden **nicht automatisch geschlossen** – immer explizite Klärung.
-- Trennung: TerminalEreignis → Zeitbuchung (erst nach Prüfung). Der vollständige produktive Verkettungspfad über `device_events` ist architektonisch vorgesehen, aber noch nicht operativ aktiviert.
+- Trennung: TerminalEreignis → Zeitbuchung (erst nach Prüfung). Der vollständige produktive Verkettungspfad über `device_events` ist implementiert (Commit `0f20931`, 2026-06-11).
 
 ### 02 – ER-Modell (5 Ebenen)
 
@@ -89,7 +89,7 @@ Die Tabellenstruktur deckt die im Pflichtenheft geforderten fachlichen Kernstruk
 | `korrektur_anlegen()` | `booking_corrections`, `time_bookings`, `booking_status_history`, `review_cases`, `audit_log` |
 | `regelarbeitszeit_ändern()` | `work_schedule_versions` (alt schließen + neu), `audit_log` |
 
-Hinweis: Die Transaktionskette für `device_events` ist im Zielschnitt beschrieben, aber laut aktuellem Umsetzungsstand noch nicht vollständig im Produktionspfad aktiv. Dieser Punkt bleibt als offene Architektur- und Nachweisfrage bestehen.
+Die Transaktionskette für `device_events` ist vollständig operativ: `booking_loop.py` erzeugt per `RFID_SCAN`-Record in `device_events` und reicht die ID via `BookCommand.device_event_id` in `time_bookings.device_event_id` durch. Architekturentscheidung dokumentiert in `docs/informelles/device_event_architekturentscheidung_v1.md`.
 
 ---
 
@@ -164,10 +164,11 @@ V4- und Regelwerk-konforme Statusmodellierung:
 
 **`booking_status_history`** — Infrastruktur-Seiteneffekt über `time_booking_repo.set_status()`; kein eigenes History-Repository in der Application-Schicht.
 
-**`device_event_id`** — Verantwortungsteilung:
-- Hardware-/Infrastruktur-Schicht erzeugt `device_events` vor Use-Case-Aufruf.
-- `BookCommand.device_event_id: int | None` wird an `TimeBooking.device_event_id` durchgereicht.
-- Die betriebliche End-to-End-Verkettung ist vorbereitet, aber laut aktuellem Stand noch nicht produktiv geschlossen. Dieser Punkt bleibt als offener Architekturpunkt markiert und entspricht der Bewertung in Anlage v2.
+**`device_event_id`** — Verantwortungsteilung (vollständig implementiert):
+- `booking_loop.py` erzeugt vor `BookUseCase`-Aufruf einen `RFID_SCAN`-Record in `device_events` (Autocommit).
+- Die neue `device_events.id` wird als `BookCommand.device_event_id` übergeben.
+- `BookUseCase` persistiert die ID in `time_bookings.device_event_id`.
+- Architekturentscheidung (Pfad A1): `docs/informelles/device_event_architekturentscheidung_v1.md`.
 
 **Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases gemäß Pflichtenheft v5 §5 und Regelwerk v5 §16.
 
