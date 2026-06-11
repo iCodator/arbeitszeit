@@ -94,21 +94,11 @@ Hinweis: Die Transaktionskette für `device_events` ist im Zielschnitt beschrieb
 
 ## Implementierungsreihenfolge
 
-### Phase 1 – Grundgerüst (offen — Scope-Nachschärfung ausstehend)
+### Phase 1 – Grundgerüst ✓ abgeschlossen
 
-Der originäre Phase-1-Kern (Migrationen 0001/0002, Connection, Runner, 6 Tests)
-ist vollständig implementiert. Nachträglich wurden jedoch zwei Artefakte ergänzt,
-die den Phase-1-Scope überschreiten:
-
-- `scripts/setup.py` wurde später hinzugefügt und importiert `ChangeOrigin`
-  (Phase 2: Domäne) sowie `SQLiteSystemConfigRepository` (Phase 4: Infrastruktur).
-  Es ist kein originäres Phase-1-Artefakt.
-- `setup_vollstaendig()` in `scripts/init_db.py` nutzt ebenfalls
-  `SQLiteSystemConfigRepository` (Phase 4) und liegt damit außerhalb des
-  Phase-1-Scopes „Keine Domänenlogik, keine Anwendungsfälle – nur das Fundament."
-
-Diese Erweiterungen müssen entweder Phase 4 zugeordnet oder als bewusste,
-dokumentierte Scope-Erweiterung von Phase 1 festgelegt werden.
+Originärer Phase-1-Kern vollständig implementiert. Nachträgliche Ergänzungen
+(`scripts/setup.py`, `setup_vollstaendig()` in `init_db.py`) wurden Phase 4
+zugeordnet, da sie `SQLiteSystemConfigRepository` (Phase 4) importieren.
 
 Originärer Phase-1-Lieferumfang (Migrationen 0001/0002, 6 Tests):
 - `pyproject.toml`, `src/`-Layout, `tests/`, `.gitignore`, `.python-version`.

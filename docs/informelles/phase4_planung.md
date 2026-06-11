@@ -382,6 +382,11 @@ beziehen. Das ist gewollt und korrekt.
 Betriebsintegration — Schritt 7 liefert Service + Script, nicht die
 Deployment-Konfiguration.
 
+`scripts/setup.py` — Deployment-Script zur Ersteinrichtung deployment-spezifischer
+`system_config`-Keys (`backup.backup_dir`, `export.export_dir`). Abhängig von
+`SQLiteSystemConfigRepository` (Phase 4). Analog zu `scripts/backup.py`; Phase 4
+zugeordnet, da es Phase-4-Infrastruktur nutzt.
+
 22 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS,
 Exportdateien-Sicherung, 3 neue restore_exports-Tests aus phase4_coding_aufgabe).
 Deckt V5 §14/§20 und Regelwerk v5 §20 ab.
