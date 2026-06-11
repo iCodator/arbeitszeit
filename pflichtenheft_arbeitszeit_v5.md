@@ -1,4 +1,4 @@
-# Pflichtenheft Projekt arbeitszeit – Version 4.0
+# Pflichtenheft Projekt arbeitszeit – Version 5.0
 
 ## 1. Dokumentzweck
 

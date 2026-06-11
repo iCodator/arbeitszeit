@@ -1,4 +1,4 @@
-# Regelwerk Projekt arbeitszeit – Version 4.0
+# Regelwerk Projekt arbeitszeit – Version 5.0
 
 ## 1. Zweck
 
