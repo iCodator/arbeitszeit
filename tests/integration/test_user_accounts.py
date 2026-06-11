@@ -213,3 +213,118 @@ def test_users_deactivate_erstellt_audit_log_eintrag(tmp_path):
     ).fetchone()
     conn.close()
     assert row is not None
+
+
+# --- users reactivate ---
+
+
+def test_users_reactivate_setzt_active_auf_1(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run([
+        "--db", str(db), "--user-id", str(admin_id),
+        "users", "add", "--username", "reaktiv_test", "--role", "REVIEWER", "--password", "pw",
+    ])
+    user = _get_user(db, "reaktiv_test")
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "deactivate", "--user-id", str(user["id"])])
+    assert _get_user(db, "reaktiv_test")["active"] == 0
+
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "reactivate", "--user-id", str(user["id"])])
+    assert _get_user(db, "reaktiv_test")["active"] == 1
+
+
+def test_users_reactivate_bereits_aktiv_kein_fehler(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run([
+        "--db", str(db), "--user-id", str(admin_id),
+        "users", "add", "--username", "schon_aktiv", "--role", "TECH", "--password", "pw",
+    ])
+    user = _get_user(db, "schon_aktiv")
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "reactivate", "--user-id", str(user["id"])])  # bereits aktiv → kein Fehler
+    assert _get_user(db, "schon_aktiv")["active"] == 1
+
+
+def test_users_reactivate_erstellt_audit_log_eintrag(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "add", "--username", "audit_react", "--role", "REVIEWER", "--password", "pw"])
+    user = _get_user(db, "audit_react")
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "deactivate", "--user-id", str(user["id"])])
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "reactivate", "--user-id", str(user["id"])])
+    conn = open_connection(db)
+    row = conn.execute(
+        "SELECT event_type FROM audit_log WHERE event_type = 'USER_ACCOUNT_REACTIVATED'"
+    ).fetchone()
+    conn.close()
+    assert row is not None
+
+
+# --- users change-role ---
+
+
+def test_users_change_role_aendert_rolle(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "add", "--username", "rolle_test", "--role", "REVIEWER", "--password", "pw"])
+    user = _get_user(db, "rolle_test")
+    assert user["role"] == "REVIEWER"
+
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "change-role", "--user-id", str(user["id"]), "--role", "TECH"])
+    assert _get_user(db, "rolle_test")["role"] == "TECH"
+
+
+def test_users_change_role_ungueltige_rolle_schlaegt_fehl(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    with pytest.raises(SystemExit):
+        cli_run(["--db", str(db), "--user-id", str(admin_id),
+                 "users", "change-role", "--user-id", str(admin_id), "--role", "EMPLOYEE"])
+
+
+def test_users_change_role_erstellt_audit_log_eintrag(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "add", "--username", "audit_role", "--role", "REVIEWER", "--password", "pw"])
+    user = _get_user(db, "audit_role")
+    cli_run(["--db", str(db), "--user-id", str(admin_id),
+             "users", "change-role", "--user-id", str(user["id"]), "--role", "TECH"])
+    conn = open_connection(db)
+    row = conn.execute(
+        "SELECT event_type, details_json FROM audit_log WHERE event_type = 'USER_ACCOUNT_ROLE_CHANGED'"
+    ).fetchone()
+    conn.close()
+    assert row is not None
+    details = json.loads(row["details_json"])
+    assert details["old_role"] == "REVIEWER"
+    assert details["new_role"] == "TECH"
+
+
+# --- users bootstrap ---
+
+
+def test_users_bootstrap_legt_ersten_admin_an(tmp_path):
+    db = _make_db(tmp_path)
+    cli_run(["--db", str(db),
+             "users", "bootstrap", "--username", "erster_admin", "--password", "geheim"])
+    user = _get_user(db, "erster_admin")
+    assert user is not None
+    assert user["role"] == "ADMIN"
+    assert user["active"] == 1
+
+
+def test_users_bootstrap_schlaegt_fehl_wenn_admin_existiert(tmp_path):
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    with pytest.raises(SystemExit):
+        cli_run(["--db", str(db),
+                 "users", "bootstrap", "--username", "zweiter_admin", "--password", "pw"])

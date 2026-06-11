@@ -1,7 +1,7 @@
 # Planung Phase 5 – Präsentation
 
 Stand: 2026-05-27 (aktualisiert 2026-06-11). Basiert auf Pflichtenheft v5 und Regelwerk v5.
-Phase 5 teilweise abgeschlossen (Schritte 0–4 vollständig; Schritt 5 users-Modul: reactivate, change-role, Bootstrap-Prozess offen).
+Phase 5 vollständig abgeschlossen (Schritte 0–5).
 Scope-Abgrenzung: Die operative Aktivierung der device_event_id-Verkettung
 (Hardware-Schicht schreibt device_events, ID wird via BookCommand.device_event_id
 durchgereicht) liegt bewusst außerhalb des Phase-5-Abnahmesolls. Schema und

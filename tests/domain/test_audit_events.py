@@ -20,6 +20,8 @@ _EXPECTED = {
     audit_events.RESTORE_COMPLETED,
     audit_events.USER_ACCOUNT_CREATED,
     audit_events.USER_ACCOUNT_DEACTIVATED,
+    audit_events.USER_ACCOUNT_REACTIVATED,
+    audit_events.USER_ACCOUNT_ROLE_CHANGED,
 }
 
 

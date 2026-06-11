@@ -44,11 +44,12 @@ Implementiert (`admin_cli users`-Modul, Phase 5+):
 - Passwort-Hashing via `hashlib.pbkdf2_hmac` (stdlib, salt:hash-Format)
 - Audit-Events `USER_ACCOUNT_CREATED`, `USER_ACCOUNT_DEACTIVATED`
 
-Noch nicht implementiert — offene Punkte gemäß Pflichtenheft v5 §7.9 und §16 Testanforderungen:
+Vollständig implementiert (`admin_cli users`-Modul, alle 6 Befehle):
 
-- `users reactivate --user-id <id>` (Reaktivierung deaktivierter Konten)
-- `users change-role --user-id <id> --role <NEUE_ROLLE>` (Rollenwechsel)
-- Bootstrap-Prozess: Ersteinrichtung des ersten Administratorkontos über die CLI, solange noch kein aktives Administratorkonto vorhanden ist. (Pflichtenheft v5 §7.9: „dieser Bootstrap-Prozess darf nur nutzbar sein, solange noch kein aktives Administratorkonto vorhanden ist")
+- `users add`, `users list`, `users deactivate` ✓
+- `users reactivate --user-id <id>` ✓ (Audit-Event `USER_ACCOUNT_REACTIVATED`)
+- `users change-role --user-id <id> --role <NEUE_ROLLE>` ✓ (Audit-Event `USER_ACCOUNT_ROLE_CHANGED`)
+- `users bootstrap --username <u> [--password <pw>]` ✓ (nur wenn kein aktiver Admin existiert)
 
 ---
 
@@ -216,7 +217,7 @@ Wesentliche Punkte:
 
 ---
 
-### Phase 5 – Präsentation (offen — users reactivate, change-role, Bootstrap fehlen)
+### Phase 5 – Präsentation ✓ vollständig abgeschlossen
 
 Die Präsentationsschicht umfasst `presentation/terminal_ui/` und `presentation/admin_cli/`. Damit sind Betriebsfunktionen, Buchungsfluss, Berichte, Pflichtauswertungen und Systemcheck in benutzbarer Form zugänglich.
 
@@ -255,9 +256,7 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 - Datenschutz- und Backup-Unterlagen der Praxis für AV-Vertrag, Schlüsselverwaltung, Speicherorte, TOM, Rotationskonzept und Restore-Freigabe.
 - Formale Einbindung des Systems in das Praxis-IT-Sicherheitskonzept nach § 75b SGB V.
 - Optionale Cloud-Backup-Nutzung nur mit vorgelagerter clientseitiger Verschlüsselung und sauber dokumentierter datenschutzrechtlicher Grundlage; eine operative Cloud-Backup-Implementierung ist in diesem Plan nicht beschrieben.
-- `users reactivate`: Reaktivierung deaktivierter Benutzerkonten (Pflichtenheft v5 §7.9, Regelwerk v5 §16). Noch nicht implementiert.
-- `users change-role`: Rollenwechsel eines bestehenden Benutzerkontos (Pflichtenheft v5 §7.9, Regelwerk v5 §16). Audit-Event `USER_ACCOUNT_ROLE_CHANGED` erforderlich. Noch nicht implementiert.
-- Bootstrap-Prozess: Ersteinrichtung des ersten Administratorkontos über die CLI, solange noch kein aktives Administratorkonto vorhanden ist (Pflichtenheft v5 §7.9). Aktuell nur per direktem SQL möglich; kein betriebsprozess-tauglicher Weg vorhanden. Noch nicht implementiert.
+- ~~`users reactivate`, `users change-role`, Bootstrap-Prozess~~ — implementiert (Phase 5 abgeschlossen).
 
 ## Pflichtenheft v5 §16 Testpflicht-Abdeckung
 
@@ -272,16 +271,16 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 | Notfallnachtrag | `tests/application/test_register_supplement.py` | ✓ |
 | Restore-Test mit echtem Backup | `tests/e2e/test_backup.py` | ✓ |
 | Auswertung offener und auffälliger Fälle | `tests/integration/test_export.py` | ✓ |
-| Bootstrap-Prozess: erster Admin über CLI, solange kein aktives Admin-Konto existiert | — | ✗ offen |
+| Bootstrap-Prozess: erster Admin über CLI, solange kein aktives Admin-Konto existiert | `tests/integration/test_user_accounts.py` | ✓ |
 | Anlegen Benutzerkonto mit Rolle `REVIEWER` | `tests/integration/test_user_accounts.py` | ✓ |
 | Anlegen Benutzerkonto mit Rolle `TECH` | `tests/integration/test_user_accounts.py` | ✓ |
 | Zurückweisung ungültiger Rollenwerte | `tests/integration/test_user_accounts.py` | ✓ |
 | Zurückweisung doppelter Benutzernamen | `tests/integration/test_user_accounts.py` | ✓ |
 | Deaktivierung eines Benutzerkontos | `tests/integration/test_user_accounts.py` | ✓ |
-| Reaktivierung eines Benutzerkontos | — | ✗ offen |
-| Rollenwechsel eines bestehenden Benutzerkontos | — | ✗ offen |
+| Reaktivierung eines Benutzerkontos | `tests/integration/test_user_accounts.py` | ✓ |
+| Rollenwechsel eines bestehenden Benutzerkontos | `tests/integration/test_user_accounts.py` | ✓ |
 | Zugriffsschutz: Nicht-Admin darf keine Benutzer-/Rollenänderung ausführen | `tests/integration/test_user_accounts.py` | ✓ |
 | Audit-Log-Nachweis für Anlage und Deaktivierung | `tests/integration/test_user_accounts.py` | ✓ |
-| Audit-Log-Nachweis für Reaktivierung und Rollenwechsel | — | ✗ offen |
+| Audit-Log-Nachweis für Reaktivierung und Rollenwechsel | `tests/integration/test_user_accounts.py` | ✓ |
 
 Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. Sie ersetzt nicht die zusätzlich geforderte formale Testmatrix für Abnahme- und Revisionszwecke.

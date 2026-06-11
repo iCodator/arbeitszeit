@@ -52,6 +52,17 @@ def run(argv: list[str] | None = None) -> None:
     user_accounts.register_subcommands(sub)
 
     args = parser.parse_args(argv)
+
+    # Bootstrap benötigt keine user-id — es gibt noch keinen Admin
+    if getattr(args, "domain", None) == "users" and getattr(args, "users_cmd", None) == "bootstrap":
+        conn = open_connection(args.db)
+        try:
+            run_migrations(conn)
+            user_accounts.cmd_users_bootstrap(conn, args)
+        finally:
+            conn.close()
+        return
+
     user_id = _resolve_user_id(args)
 
     conn = open_connection(args.db)
@@ -149,6 +160,12 @@ def _dispatch(
             user_accounts.cmd_users_list(conn, args)
         elif cmd == "deactivate":
             user_accounts.cmd_users_deactivate(conn, args, user_id)
+        elif cmd == "reactivate":
+            user_accounts.cmd_users_reactivate(conn, args, user_id)
+        elif cmd == "change-role":
+            user_accounts.cmd_users_change_role(conn, args, user_id)
+        elif cmd == "bootstrap":
+            user_accounts.cmd_users_bootstrap(conn, args)
 
 
 if __name__ == "__main__":
