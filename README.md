@@ -11,15 +11,13 @@ in einer SQLite-Datenbank gespeichert, Backups optional auf einen NAS gespiegelt
 
 ## Funktionsumfang
 
-### Terminal (Kiosk-Betrieb)
-
+**Terminal (Kiosk-Betrieb)**
 - Buchungserfassung: KOMMEN / GEHEN / PAUSE_ANFANG / PAUSE_ENDE via Numpad + RFID-Karte
 - Automatische Compliance-Prüfung (ArbZG §3 Höchstarbeitszeit, §5 Ruhezeit, §4 Pausenregel)
 - Protokollierung unbekannter und inaktiver Karten
 - Systemzeitüberwachung (erkennt Zeitsprünge während Betrieb)
 
-### Admin-CLI
-
+**Admin-CLI**
 - Mitarbeiter- und RFID-Kartenverwaltung
 - Nachtragserfassung und Genehmigung / Ablehnung
 - Buchungskorrekturen (Altstand bleibt erhalten, kein stilles Überschreiben)
@@ -32,29 +30,13 @@ in einer SQLite-Datenbank gespeichert, Backups optional auf einen NAS gespiegelt
 
 ## Voraussetzungen
 
-- Python 3.14
+- Python 3.11 oder 3.12
 - Linux (evdev für Hardware-Zugriff)
 - USB-Numpad und RFID-Leser (für Terminal-Betrieb; Simulator für Tests vorhanden)
 
----
-
-## Installation
-
 ```bash
-git clone https://github.com/iCodator/arbeitszeit.git
-cd arbeitszeit
-
-python3 -m venv .venv
-source .venv/bin/activate
-
 pip install -e ".[dev]"
 ```
-
-Hinweise:
-
-- Entwickelt für Python 3.14.
-- Für den produktiven Terminal-Betrieb wird Linux mit `evdev` sowie passende USB-Hardware benötigt.
-- Für lokale Tests kann der Hardware-Simulator verwendet werden.
 
 ---
 
@@ -75,17 +57,6 @@ python scripts/setup.py --db arbeitszeit.db \
 
 ---
 
-## Rechtlicher Rahmen / Referenzdokumente
-
-Die fachlichen, organisatorischen und rechtlichen Anforderungen des Projekts sind in
-`docs/pflichtenheft_arbeitszeit_v3.md` und `docs/regelwerk_arbeitszeit_v3.md` festgelegt.
-
-Diese Dokumente bilden die verbindliche Referenz für Arbeitszeiterfassung, Prüfhilfen,
-Rollen- und Rechtekonzept, Aufbewahrung, Korrekturen, Nachträge sowie Backup- und
-Restore-Prozesse.
-
----
-
 ## Betrieb
 
 ### Terminal-UI starten
@@ -100,45 +71,43 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 
 Das Terminal läuft als Endlosschleife und beendet sich sauber bei `SIGTERM` / `SIGINT`.
 
-### Admin-CLI starten
+### Admin-CLI
 
 ```bash
-# Benutzer-ID via Flag oder Umgebungsvariable ADMIN_USER_ID
-python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 <Befehl>
+# Datenbank und Benutzer-ID via Flags
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    <Befehl>
 ```
 
 **Übersicht der Befehle:**
 
 | Gruppe | Befehl | Beschreibung |
-| --- | --- | --- |
+|---|---|---|
 | `employees` | `list` | Alle Mitarbeiter anzeigen |
 | | `add` | Mitarbeiter anlegen |
-| | `deactivate` | Mitarbeiter deaktivieren |
-| `cards` | `assign` | RFID-Karte einem Mitarbeiter zuweisen |
-| | `replace` | RFID-Karte ersetzen |
-| | `deactivate` | RFID-Karte deaktivieren |
-| `bookings` | `supplement` | Nachtrag anlegen |
-| | `approve-supplement` | Nachtrag genehmigen |
-| | `reject-supplement` | Nachtrag ablehnen |
+| | `deactivate` / `reactivate` | Status ändern |
+| | `assign-card` / `replace-card` | RFID-Karte zuweisen |
+| `bookings` | `supplement add` | Nachtrag anlegen |
+| | `supplement approve` / `reject` | Nachtrag genehmigen / ablehnen |
 | | `correct` | Buchung korrigieren |
-| `schedule` | `show` | Aktuelle Regelarbeitszeiten anzeigen |
+| `schedule` | `show` | Aktuelle Regelarbeitszeiten |
 | | `set` | Neue Regelarbeitszeit setzen |
-| `reports` | `open-bookings` | Offene Buchungen anzeigen |
-| | `warn-cases` | Buchungen mit Prüfstatus (`--from` / `--to` erforderlich) |
-| | `corrections` | Korrekturen (`--from` / `--to` erforderlich) |
-| | `supplements` | Nachträge (`--from` / `--to` erforderlich) |
-| | `open-review-cases` | Offene Prüffälle anzeigen |
-| | `export-csv` | Detail- und Verdichtet-Export als CSV (`--from` / `--to` erforderlich) |
-| | `export-pdf-day` / `export-pdf-week` / `export-pdf-month` | PDF-Berichte |
-| | `export-pdf-employee` | Mitarbeiterbericht als PDF |
+| `reports` | `open-bookings` | Offene Buchungen |
+| | `warn-cases` | Buchungen mit Prüfstatus |
+| | `corrections` | Korrekturen |
+| | `supplements` | Nachträge |
+| | `open-review-cases` | Offene Prüffälle |
+| | `export-csv` | Detailexport als CSV |
+| | `export-pdf-daily` / `weekly` / `monthly` | PDF-Berichte |
+| | `export-employee` | Mitarbeiterbericht (CSV) |
 | `system` | `check` | Systemcheck ausführen |
 | | `backup` | Manuelles Backup erstellen |
 
-Zeitraumfilter `--from` / `--to` (ISO-8601-Datum, z. B. `2026-01-01`) sind bei
-Auswertungsbefehlen wie `warn-cases`, `corrections`, `supplements` und `export-csv`
-**erforderlich**. Bei `open-bookings` und `open-review-cases` sind sie optional.
+Alle Befehle akzeptieren `--from` / `--to` für Zeitraumfilter (ISO-8601-Datum).
 
-### Backup
+### Backup (automatisch per systemd-Timer oder manuell)
 
 ```bash
 python scripts/backup.py \
@@ -147,8 +116,8 @@ python scripts/backup.py \
 ```
 
 NAS-Sync wird über `backup.nas_enabled` und `backup.nas_path` in `system_config` gesteuert
-(via Admin-CLI oder direkt per SQL). Der NAS-Pfad wird als striktes Spiegelziel geführt
-(`rsync --delete`), nicht als eigenständiges Langzeitarchiv.
+(via `admin system backup` oder direkt per SQL). Der NAS-Pfad wird als striktes Spiegelziel
+geführt (`rsync --delete`), nicht als eigenständiges Langzeitarchiv.
 
 ---
 
@@ -166,11 +135,12 @@ src/arbeitszeit/
 
 **Wichtige Architekturentscheidungen:**
 
-- Buchungen werden nie physisch gelöscht; Klärung erfolgt ausschließlich über Status
-  (`CORRECTED`, `CLOSED_WITH_NOTE`) oder Korrekturobjekte.
-- Audit-Log schreibt nach `uow.commit()` über eine separate `audit_conn`-Verbindung.
+- Buchungen werden nie physisch gelöscht; Klärung ausschließlich über Status
+  (`CORRECTED`, `CLOSED_WITH_NOTE`) oder Korrekturobjekte (ArbZG §16 Abs. 2).
+- Audit-Log schreibt **nach** `uow.commit()` über eine separate `audit_conn`-Verbindung
+  (SQLite WAL: verhindert RESERVED-Lock-Konflikt bei gleichzeitigem Schreiben).
 - `report_queries.py` ist die einzige Wahrheitsquelle für alle Berichte und Exporte.
-- Compliance-Prüfungen laufen in der Domain-Schicht, nicht in SQLite.
+- Compliance-Prüfungen (ArbZG §3 / §4 / §5) laufen in der Domain-Schicht, nicht in SQLite.
 
 ---
 
@@ -179,7 +149,7 @@ src/arbeitszeit/
 16 Tabellen in `migrations/0001_schema.sql` (15 fachliche + `schema_migrations`):
 
 | Ebene | Tabellen |
-| --- | --- |
+|---|---|
 | Person | `employees`, `user_accounts`, `rfid_cards` |
 | Erfassung | `terminals`, `time_bookings`, `device_events` |
 | Prüfung | `review_cases`, `review_case_actions`, `booking_status_history` |
@@ -200,10 +170,10 @@ python -m pytest
 python -m pytest --cov=arbeitszeit --cov-report=term-missing
 ```
 
-385 Tests in vier Ebenen:
+369 Tests in vier Ebenen:
 
 | Verzeichnis | Inhalt |
-| --- | --- |
+|---|---|
 | `tests/domain/` | Domänenregeln, Entity-Invarianten |
 | `tests/application/` | Use Cases mit Fake-Repos |
 | `tests/integration/` | Repositories und UoW gegen echte SQLite-DB |
