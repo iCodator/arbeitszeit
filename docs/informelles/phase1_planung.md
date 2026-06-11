@@ -330,8 +330,9 @@ Rollentrennung (Pflichtenheft v5 §5 / Regelwerk v5 §16):
 
 ## V5-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
-`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `pflichtenheft_arbeitszeit_v5.md`,
+`regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+(Pflichtenheft v5 und Regelwerk v5 liegen im Projektwurzel, nicht in `docs/`.)
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
