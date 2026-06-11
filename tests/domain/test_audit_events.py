@@ -18,6 +18,8 @@ _EXPECTED = {
     audit_events.BACKUP_SYNCED_TO_NAS,
     audit_events.BACKUP_SYNC_FAILED,
     audit_events.RESTORE_COMPLETED,
+    audit_events.USER_ACCOUNT_CREATED,
+    audit_events.USER_ACCOUNT_DEACTIVATED,
 }
 
 

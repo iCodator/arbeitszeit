@@ -7,7 +7,7 @@ from pathlib import Path
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 
-from . import bookings, employees, reports, schedule, system
+from . import bookings, employees, reports, schedule, system, user_accounts
 
 
 def _resolve_user_id(args: argparse.Namespace) -> int:
@@ -49,6 +49,7 @@ def run(argv: list[str] | None = None) -> None:
     schedule.register_subcommands(sub)
     reports.register_subcommands(sub)
     system.register_subcommands(sub)
+    user_accounts.register_subcommands(sub)
 
     args = parser.parse_args(argv)
     user_id = _resolve_user_id(args)
@@ -139,6 +140,15 @@ def _dispatch(
             system.cmd_system_check(db_path, conn, args, user_id)
         elif cmd == "backup":
             system.cmd_system_backup(db_path, conn, args, user_id)
+
+    elif domain == "users":
+        cmd = args.users_cmd
+        if cmd == "add":
+            user_accounts.cmd_users_add(conn, args, user_id)
+        elif cmd == "list":
+            user_accounts.cmd_users_list(conn, args)
+        elif cmd == "deactivate":
+            user_accounts.cmd_users_deactivate(conn, args, user_id)
 
 
 if __name__ == "__main__":

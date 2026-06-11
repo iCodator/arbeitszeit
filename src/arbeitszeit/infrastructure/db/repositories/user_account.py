@@ -16,6 +16,22 @@ class SQLiteUserAccountRepository:
         ).fetchone()
         return _row_to_user_account(row) if row else None
 
+    def add(
+        self,
+        username: str,
+        password_hash: str,
+        role: UserRole,
+        employee_id: int | None,
+        now: str,
+    ) -> int:
+        row = self._conn.execute(
+            "INSERT INTO user_accounts "
+            "(username, password_hash, role, employee_id, active, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, 1, ?, ?) RETURNING id",
+            (username, password_hash, role.value, employee_id, now, now),
+        ).fetchone()
+        return row["id"]
+
     def get_by_username(self, username: str) -> UserAccount | None:
         row = self._conn.execute(
             "SELECT id, employee_id, username, role, active "
