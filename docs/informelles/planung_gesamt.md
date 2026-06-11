@@ -226,7 +226,7 @@ Wesentliche Punkte:
 
 ---
 
-### Phase 5 – Präsentation ✓ vollständig abgeschlossen
+### Phase 5 – Präsentation (offen — users reactivate, change-role, Bootstrap fehlen)
 
 Die Präsentationsschicht umfasst `presentation/terminal_ui/` und `presentation/admin_cli/`. Damit sind Betriebsfunktionen, Buchungsfluss, Berichte, Pflichtauswertungen und Systemcheck in benutzbarer Form zugänglich.
 

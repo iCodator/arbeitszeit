@@ -1,4 +1,4 @@
-# Planung Phase 3 – Application (offen)
+# Planung Phase 3 – Application (abgeschlossen)
 
 Stand: 2026-05-21. Alle Entscheidungen aus der Design-Session phase3_01.md / phase3_02.md
 sowie den Klärungsgesprächen sind hier eingearbeitet.

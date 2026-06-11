@@ -636,7 +636,7 @@ pytest tests/test_migrations.py   –  12 Tests  (Phase 1)
 pytest tests/domain/              –  67 Tests  (Phase 2, nach phase2_coding_aufgabe)
 pytest tests/application/         – 109 Tests  (Phase 3, nach phase3_coding_aufgabe)
 pytest tests/integration/         – 165 Tests  (Phase 4)
-pytest tests/e2e/                 –  22 Tests  (Phase 4, nach phase4_coding_aufgabe)
+pytest tests/e2e/                 –  42 Tests  (22 Phase 4 backup + 20 Phase 5 e2e)
 pytest tests/                     – 395 Tests grün gesamt
 ```
 
