@@ -252,15 +252,26 @@ infrastructure/db/migrations.py
 
 
 scripts/init_db.py
+  Originärer Phase-1-Umfang:
   - Öffnet Verbindung via open_connection()
   - Ruft run_migrations() auf
   - Akzeptiert --db-Argument (argparse)
   - Gibt Rückmeldung an stdout
+
+  Nachträgliche Erweiterung (Phase 4+ abhängig — außerhalb originärem Phase-1-Scope):
   - Prüft nach Migrationen, ob Deployment-Keys (backup.backup_dir,
     export.export_dir) gesetzt sind (setup_vollstaendig()):
       Fall A: neue Migrationen + Setup fehlt → Warnung + Hinweis auf setup.py
       Fall B: keine neuen Migrationen + Setup vollständig → „System betriebsbereit."
       Fall C: keine neuen Migrationen + Setup fehlt → Warnung + Hinweis auf setup.py
+  Diese Erweiterung nutzt SQLiteSystemConfigRepository (Phase 4).
+
+scripts/setup.py
+  Nicht originär Phase 1. Dieses Deployment-Script wurde nachträglich hinzugefügt
+  und importiert ChangeOrigin (Phase 2: Domäne) sowie SQLiteSystemConfigRepository
+  (Phase 4: Infrastruktur). Es gehört nicht zum Phase-1-Fundament
+  „Keine Domänenlogik, keine Anwendungsfälle – nur das Fundament."
+  Zuzuordnen: Phase 4+ (Betriebsinitialisierung).
 
 
 tests/test_migrations.py  (12 Tests, alle grün; Gesamtmigrations-Test)
