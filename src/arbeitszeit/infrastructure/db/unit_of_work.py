@@ -4,6 +4,7 @@ from types import TracebackType
 from arbeitszeit.infrastructure.db.repositories import (
     SQLiteAuditLogRepository,
     SQLiteBookingCorrectionRepository,
+    SQLiteDeviceEventRepository,
     SQLiteEmployeeRepository,
     SQLiteReviewCaseRepository,
     SQLiteRfidCardRepository,
@@ -33,6 +34,7 @@ class SQLiteUnitOfWork:
         # Ohne audit_conn fällt das AuditLog auf conn zurück; Einträge vor Rollback gehen verloren.
         self._conn = conn
         self._transaction_open = False
+        self.device_event_repo = SQLiteDeviceEventRepository(conn)
         self.employee_repo = SQLiteEmployeeRepository(conn)
         self.user_account_repo = SQLiteUserAccountRepository(conn)
         self.rfid_card_repo = SQLiteRfidCardRepository(conn)

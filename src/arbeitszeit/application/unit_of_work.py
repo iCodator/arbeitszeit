@@ -4,6 +4,7 @@ from typing import Protocol
 from arbeitszeit.domain.ports.repositories import (
     AuditLogRepository,
     BookingCorrectionRepository,
+    DeviceEventRepository,
     EmployeeRepository,
     ReviewCaseRepository,
     RfidCardRepository,
@@ -26,6 +27,7 @@ class UnitOfWork(Protocol):
     booking_correction_repo: BookingCorrectionRepository
     audit_log_repo: AuditLogRepository
     system_config_repo: SystemConfigRepository
+    device_event_repo: DeviceEventRepository
 
     def commit(self) -> None: ...
     def rollback(self) -> None: ...

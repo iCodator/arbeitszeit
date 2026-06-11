@@ -29,6 +29,7 @@ from arbeitszeit.domain.enums import (
 from arbeitszeit.domain.ports.repositories import (
     AuditLogRepository,
     BookingCorrectionRepository,
+    DeviceEventRepository,
     EmployeeRepository,
     ReviewCaseRepository,
     RfidCardRepository,
@@ -38,6 +39,32 @@ from arbeitszeit.domain.ports.repositories import (
     UserAccountRepository,
     WorkScheduleRepository,
 )
+
+
+class FakeDeviceEventRepository:
+    def __init__(self) -> None:
+        self._records: list[dict] = []
+        self._next_id = 1
+
+    def add(
+        self,
+        event_type: str,
+        terminal_id: int | None,
+        rfid_uid_hash: str | None,
+        payload_json: str,
+        occurred_at: datetime,
+    ) -> int:
+        new_id = self._next_id
+        self._records.append({
+            "id": new_id,
+            "event_type": event_type,
+            "terminal_id": terminal_id,
+            "rfid_uid_hash": rfid_uid_hash,
+            "payload_json": payload_json,
+            "occurred_at": occurred_at,
+        })
+        self._next_id += 1
+        return new_id
 
 
 class FakeEmployeeRepository:
@@ -367,6 +394,7 @@ class FakeSystemConfigRepository:
 
 class FakeUnitOfWork:
     def __init__(self) -> None:
+        self.device_event_repo = FakeDeviceEventRepository()
         self.employee_repo = FakeEmployeeRepository()
         self.user_account_repo = FakeUserAccountRepository()
         self.rfid_card_repo = FakeRfidCardRepository()
@@ -401,6 +429,7 @@ class FakeUnitOfWork:
 
 # Typ-Kompatibilitätsprüfung: Fakes müssen die Repository-Protokolle erfüllen
 def _check_protocol_compliance() -> None:
+    _: DeviceEventRepository = FakeDeviceEventRepository()  # type: ignore[no-redef]
     _: EmployeeRepository = FakeEmployeeRepository()
     _: UserAccountRepository = FakeUserAccountRepository()  # type: ignore[no-redef]
     _: RfidCardRepository = FakeRfidCardRepository()  # type: ignore[no-redef]

@@ -114,6 +114,19 @@ class AuditLogRepository(Protocol):
         ...
 
 
+class DeviceEventRepository(Protocol):
+    def add(
+        self,
+        event_type: str,
+        terminal_id: int | None,
+        rfid_uid_hash: str | None,
+        payload_json: str,
+        occurred_at: datetime,
+    ) -> int:
+        # Gibt die neue device_events.id zurück.
+        ...
+
+
 class SystemConfigRepository(Protocol):
     def get_current(self, config_key: str) -> str | None: ...
     def set_current(

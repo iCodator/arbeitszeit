@@ -1,5 +1,6 @@
 from .audit_log import SQLiteAuditLogRepository
 from .booking_correction import SQLiteBookingCorrectionRepository
+from .device_event import SQLiteDeviceEventRepository
 from .employee import SQLiteEmployeeRepository
 from .review_case import SQLiteReviewCaseRepository
 from .rfid_card import SQLiteRfidCardRepository
@@ -12,6 +13,7 @@ from .work_schedule import SQLiteWorkScheduleRepository
 __all__ = [
     "SQLiteAuditLogRepository",
     "SQLiteBookingCorrectionRepository",
+    "SQLiteDeviceEventRepository",
     "SQLiteEmployeeRepository",
     "SQLiteReviewCaseRepository",
     "SQLiteRfidCardRepository",

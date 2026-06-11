@@ -1,4 +1,5 @@
 """Buchungsablauf: Numpad-Eingabe → RFID-Scan → BookUseCase → Feedback."""
+import json
 from pathlib import Path
 
 from arbeitszeit.application.commands import BookCommand
@@ -28,18 +29,37 @@ def process_booking(
     fachlichen Fehlern (unbekannte Karte, inaktive Karte, ungültige Sequenz).
     """
     request = reader.read_next()
-    cmd = BookCommand(
-        uid_hash=request.uid_hash,
-        terminal_id=terminal_id,
-        booking_type=request.booking_type,
-        booked_at=request.occurred_at,
-        device_event_id=None,
-        source=BookingSource.TERMINAL,
-    )
     conn = open_connection(db_path)
     audit_conn = open_connection(db_path)
     try:
         uow = SQLiteUnitOfWork(conn, audit_conn)
+
+        # device_events-Record VOR dem BookUseCase-Aufruf schreiben.
+        # Läuft auf derselben Verbindung im Autocommit-Modus (isolation_level=None,
+        # kein BEGIN aktiv), wird also sofort committed und bleibt auch dann erhalten,
+        # wenn die Buchung fachlich scheitert (z. B. UnknownCard). Das ist gewollt:
+        # Das Geräteereignis ist real eingetreten, unabhängig vom Buchungsergebnis.
+        # Schlägt dieser INSERT fehl, wird keine Buchung versucht (Exception weiterreichen).
+        payload_json = json.dumps(
+            {"booking_type": request.booking_type.value},
+            ensure_ascii=False,
+        )
+        device_event_id = uow.device_event_repo.add(
+            event_type="RFID_SCAN",
+            terminal_id=terminal_id,
+            rfid_uid_hash=request.uid_hash,
+            payload_json=payload_json,
+            occurred_at=request.occurred_at,
+        )
+
+        cmd = BookCommand(
+            uid_hash=request.uid_hash,
+            terminal_id=terminal_id,
+            booking_type=request.booking_type,
+            booked_at=request.occurred_at,
+            device_event_id=device_event_id,
+            source=BookingSource.TERMINAL,
+        )
         return BookUseCase(uow).execute(cmd)
     finally:
         conn.close()
