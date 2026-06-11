@@ -31,7 +31,7 @@ Dateien und Entscheidungen
 
 pyproject.toml
 
-  - requires-python = ">=3.11,<3.13"
+  - requires-python = ">=3.11,<3.13"  ← historischer Stand; heute: ">=3.14,<3.15"
   - src-Layout: Paket liegt unter src/arbeitszeit/
   - Runtime-Abhängigkeiten: evdev>=1.7, reportlab>=4.0
   - Dev-Dependencies: pytest>=8.0, pytest-cov>=5.0, pypdf>=4.0, ruff>=0.6
@@ -158,7 +158,7 @@ migrations/0001_schema.sql
                        changed_at, reason)
                        UNIQUE (config_key, version) — Versionierung statt UPDATE
 
-  Indizes (11):
+  Indizes (17):
     idx_user_accounts_employee_id
     idx_rfid_cards_employee_status
     idx_time_bookings_employee_booked_at
@@ -170,9 +170,12 @@ migrations/0001_schema.sql
     idx_review_cases_status_detected_at
     idx_review_cases_employee_detected_at
     idx_review_case_actions_case_created_at
+    idx_work_schedule_versions_scope_weekday_valid_from
     idx_system_config_key_version
     idx_device_events_occurred_at
     idx_system_events_event_at
+    idx_audit_log_object_event_at
+    idx_audit_log_employee_event_at
 
   Entscheidungen:
   - Komplexe Geschäftsregeln NICHT in SQLite (keine Trigger, keine komplexen
@@ -251,8 +254,13 @@ infrastructure/db/migrations.py
 scripts/init_db.py
   - Öffnet Verbindung via open_connection()
   - Ruft run_migrations() auf
-  - Akzeptiert optionales db_path-Argument
+  - Akzeptiert --db-Argument (argparse)
   - Gibt Rückmeldung an stdout
+  - Prüft nach Migrationen, ob Deployment-Keys (backup.backup_dir,
+    export.export_dir) gesetzt sind (setup_vollstaendig()):
+      Fall A: neue Migrationen + Setup fehlt → Warnung + Hinweis auf setup.py
+      Fall B: keine neuen Migrationen + Setup vollständig → „System betriebsbereit."
+      Fall C: keine neuen Migrationen + Setup fehlt → Warnung + Hinweis auf setup.py
 
 
 tests/test_migrations.py  (12 Tests, alle grün; Gesamtmigrations-Test)
@@ -296,32 +304,34 @@ tests/test_migrations.py  – 12 Tests gesamt (ursprünglich 6; Phase 4 fügte 5
                              Phase 5 fügte 1 hinzu für Migration 0006)
 
 
-V4-Bezüge
+V5-Bezüge
 ---------
 
-Aufbewahrungsprinzip (Pflichtenheft v4 §12 / Regelwerk v4 §18):
+Aufbewahrungsprinzip (Pflichtenheft v5 §12 / Regelwerk v5 §18):
   Keine physische Löschung fachlicher Buchungen. Klärung über Status
   (CORRECTED, CLOSED_WITH_NOTE), Korrekturen oder Archivierung.
   Aufbewahrungsfrist mindestens 2 Jahre (ArbZG §16 Abs. 2).
 
-system_events-Tabelle (Pflichtenheft v4 §9.3 / Regelwerk v4 §21):
+system_events-Tabelle (Pflichtenheft v5 §9.3 / Regelwerk v5 §21):
   Vorhanden im Schema. Dient der Protokollierung von Betriebsereignissen –
   u. a. Systemzeitsprünge (TIME_JUMP_DETECTED, MANUAL_TIME_CHANGE_DETECTED)
   und Selbsttests (SELFTEST_OK, SELFTEST_FAIL). Befüllung durch
   Infrastruktur-/Betriebsschicht (Phase 4/Schritt 9).
 
-Rollentrennung (Pflichtenheft v4 §5 / Regelwerk v4 §16):
+Rollentrennung (Pflichtenheft v5 §5 / Regelwerk v5 §16):
   UserRole: EMPLOYEE / ADMIN / REVIEWER / TECH – strikt getrennte Rechte.
   Kein Bootstrap-User; change_origin (SYSTEM_SEED / ADMIN_UI / MIGRATION)
   ersetzt administrativen Dummy-Account für Seeds/Migrationen.
+  Benutzerkontenverwaltung (ADMIN/REVIEWER/TECH) über Admin-CLI gemäß
+  Pflichtenheft v5 §7.9 und Regelwerk v5 §16a.
 
 
 ---
 
-## V4-Bezüge und organisatorische Auflagen
+## V5-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
-`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
+`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
