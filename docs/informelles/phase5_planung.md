@@ -1,6 +1,6 @@
 # Planung Phase 5 – Präsentation
 
-Stand: 2026-05-27. Basiert auf Pflichtenheft v4 und Regelwerk v4.
+Stand: 2026-05-27 (aktualisiert 2026-06-11). Basiert auf Pflichtenheft v5 und Regelwerk v5.
 Phase 5 vollständig abgeschlossen (Schritte 0–5).
 Scope-Abgrenzung: Die operative Aktivierung der device_event_id-Verkettung
 (Hardware-Schicht schreibt device_events, ID wird via BookCommand.device_event_id
@@ -18,7 +18,7 @@ Nachgeführte Code-Review-Korrekturen (2026-05-27):
 - P2: Alle <= to_dt in report_queries.py auf < to_dt korrigiert
 - P3: Tippfehler und Fallback-Text in schedule show bereinigt
 
-369 Tests grün (alle Ebenen).
+395 Tests grün (alle Ebenen).
 
 ---
 
@@ -29,7 +29,7 @@ Vollständig implementiert:
 ```
 src/arbeitszeit/
 ├── domain/            Phase 2 ✓
-├── application/       Phase 3 ✓  (6 Use Cases, 107 Tests)
+├── application/       Phase 3 ✓  (6 Use Cases, 109 Tests)
 └── infrastructure/
     ├── db/            Phase 4 ✓  (10 Repos, UoW, Migrationen)
     ├── hardware/      Phase 4 ✓  (EvdevHardwareReader, Simulator)
@@ -39,11 +39,11 @@ src/arbeitszeit/
 
 Offen aus Phase 4:
 
-- Systemzeitprotokollierung (Pflichtenheft v4 §9.3 / Regelwerk v4 §21)
+- Systemzeitprotokollierung (Pflichtenheft v5 §9.3 / Regelwerk v5 §21)
 
 Betriebsdokumentation (Phase 5, kein Code):
 
-Exportverzeichnis (Regelwerk v4 §17/§18, Befund 4/8-07) — festgelegte Betriebsregeln:
+Exportverzeichnis (Regelwerk v5 §17/§18, Befund 4/8-07) — festgelegte Betriebsregeln:
 
 - **Zugriffsrechte:** Schreibzugriff ausschließlich durch den laufenden arbeitszeit-Dienst-Account.
   Lesezugriff für Betriebssystem-Benutzer mit ADMIN-Rolle. Kein Zugriff für EMPLOYEE/REVIEWER.
@@ -53,7 +53,7 @@ Exportverzeichnis (Regelwerk v4 §17/§18, Befund 4/8-07) — festgelegte Betrie
   Kein automatischer Löschmechanismus im Repo. ADMIN prüft das Exportverzeichnis periodisch
   und löscht Dateien, deren Erstellungsdatum mehr als 5 Jahre zurückliegt.
 
-369 Tests grün (alle Ebenen).
+395 Tests grün (alle Ebenen).
 
 
 ---
@@ -76,7 +76,7 @@ entsteht, gemeinsamen Code in ein Modul extrahieren.
 
 ### Buchungsart kommt ausschließlich vom USB-Numpad
 
-(Pflichtenheft v4 §6 / Regelwerk v4 §3)
+(Pflichtenheft v5 §6 / Regelwerk v5 §3)
 
 Die Buchungsart (COME, GO, BREAK_START, BREAK_END) wird durch Tastendruck
 am USB-Numpad ausgewählt, bevor die RFID-Karte gelesen wird.
@@ -89,7 +89,7 @@ auslösen. Beides über `HardwareReader`-Protocol aus infrastructure/hardware/.
 ### Admin-CLI: Rollenprüfung über UserAccount
 
 Alle schreibenden Admin-Operationen prüfen die Rolle des ausführenden Users
-(Pflichtenheft v4 §5 / Regelwerk v4 §16). Kein Bypass über CLI-Flags.
+(Pflichtenheft v5 §5 / Regelwerk v5 §16). Kein Bypass über CLI-Flags.
 
 Rollentrennung:
 
@@ -107,7 +107,7 @@ Rollentrennung:
 
 ### Pflichtauswertungen: Anzeige über report_queries.py
 
-Alle Pflichtauswertungen (Pflichtenheft v4 §7.12) nutzen ausschließlich
+Alle Pflichtauswertungen (Pflichtenheft v5 §7.13) nutzen ausschließlich
 die Funktionen aus `report_queries.py` — keine neuen Ad-hoc-Queries in der
 Präsentationsschicht.
 
@@ -194,6 +194,8 @@ tests/e2e/
 - Fehlerbehandlung: `DomainError`-Subklassen → spezifische Fehlermeldung;
   unerwartete Exception → in `system_events` protokollieren + weiterarbeiten
 - Graceful-Shutdown auf SIGTERM/SIGINT
+- Loop-Body in `_run_one_cycle(reader, db_path, terminal_id, monitor)` extrahiert
+  (phase5_coding_aufgabe) — ermöglicht direktes Testen ohne Threading
 
 **Architekturkorrektur in BookUseCase (Nebeneffekt aus e2e-Tests):**
 In `BookUseCase.execute()` wurde ein Deadlock-Problem behoben: `uow.commit()`
@@ -214,7 +216,7 @@ e2e-Test mit echter SQLite-DB und zwei Verbindungen gab.
   `0006_system_events_application_error.sql` ergänzt, das `system_events` per
   Table-Rebuild um `APPLICATION_ERROR` erweitert.
 
-10 Tests in `tests/e2e/test_booking_flow.py`:
+12 Tests in `tests/e2e/test_booking_flow.py` (+2 APPLICATION_ERROR-Tests aus phase5_coding_aufgabe):
 - Vollständiger Buchungsablauf COME → GO (Simulator + echte SQLite-DB)
 - COME → BREAK_START → BREAK_END → GO
 - Unbekannte RFID-Karte → Abweisung mit Audit-Log
@@ -255,7 +257,7 @@ keinen RESERVED-Lock mehr hält, wenn `audit_conn` schreiben will.
 - Nachtrag genehmigen (inaktiver Mitarbeiter) → InactiveEmployeeError
 - Nachtrag genehmigen (unbekannter Benutzer) → PermissionDeniedError
 
-361 Tests grün (alle Ebenen, Stand Phase 5/Schritt 2).
+361 Tests grün (alle Ebenen, Stand Phase 5/Schritt 2; heute 395).
 
 Strukturiertes CLI (argparse oder click), untergeordnete Befehle:
 
@@ -292,7 +294,7 @@ Keine interaktive Passworteingabe im initialen Scope — Benutzer-ID per
 
 ### Schritt 3 – Pflichtauswertungen in App einsehbar
 
-(Pflichtenheft v4 §7.12)
+(Pflichtenheft v5 §7.13)
 
 ```
 admin reports open-bookings [--employee-id <id>]
@@ -310,7 +312,7 @@ gibt dasselbe Datenset aus).
 
 ### Schritt 4 – Selbsttest im UI integrieren
 
-(Pflichtenheft v4 §7.10)
+(Pflichtenheft v5 §7.11)
 
 Voraussetzung: `infrastructure/system_check.py` (Schritt 0) fertig.
 
@@ -324,7 +326,7 @@ Bei kritischem Befund: Warnung ausgeben, aber weiterlaufen (kein Hard-Stop).
 
 ### Schritt 5 – Systemzeitprotokollierung  ✓
 
-(Pflichtenheft v4 §9.3 / Regelwerk v4 §21)
+(Pflichtenheft v5 §9.3 / Regelwerk v5 §21)
 
 `infrastructure/time_monitor.py`:
 
@@ -359,7 +361,7 @@ NTP-Synchronisation ist Betriebsvoraussetzung, nicht Aufgabe dieser Schicht.
 - load_threshold_from_config mit Fallback
 - load_threshold_from_config liest system_config-Wert
 
-Deckt V4 §16-Testpflicht „Systemzeitabweichung" ab.
+Deckt V5 §16-Testpflicht „Systemzeitabweichung" ab.
 
 
 ---
@@ -370,7 +372,7 @@ Deckt V4 §16-Testpflicht „Systemzeitabweichung" ab.
 tests/e2e/test_booking_flow.py    — vollständiger Buchungsablauf
                                      COME/GO, COME/BREAK/BREAK_END/GO,
                                      Abweisung unbekannte/inaktive Karte
-                                     (Schätzung: ~10 Tests)
+                                     (12 Tests, inkl. 2 APPLICATION_ERROR-Tests)
 tests/e2e/test_supplement_flow.py — Nachtrag von Erfassung bis Genehmigung
                                      inkl. Ablehnung, Rollenprüfung
                                      (Schätzung: ~8 Tests)
@@ -386,7 +388,7 @@ in Application- und Infrastructure-Schicht.
 
 ---
 
-## V4 §16 Testpflicht-Abdeckung nach Phase 5
+## V5 §16 Testpflicht-Abdeckung nach Phase 5
 
 ```
 >6h ohne Pause              → test_compliance_checks.py  (grün)
@@ -403,10 +405,10 @@ Auswertung offener Fälle    → test_export.py  (grün)
 
 ---
 
-## V4-Bezüge und organisatorische Auflagen
+## V5-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
-`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
+`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
