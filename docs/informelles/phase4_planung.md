@@ -1,6 +1,6 @@
 # Planung Phase 4 – Infrastruktur (abgeschlossen)
 
-Stand: 2026-05-26 (aktualisiert 2026-06-10). 369 Tests grün.
+Stand: 2026-05-26 (aktualisiert 2026-06-11). 395 Tests grün.
 
 ---
 
@@ -153,7 +153,7 @@ tests/integration/
 └── test_pdf.py                   20 Tests
 
 tests/e2e/
-└── test_backup.py                19 Tests
+└── test_backup.py                22 Tests  (+3 restore_exports aus phase4_coding_aufgabe)
 ```
 
 
@@ -334,8 +334,8 @@ keine vollständige Ende-zu-Ende-Gerätekette erwarten.
 - Das Numpad-Mapping ist die Konstante `_NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType]`
   (ebenfalls in `evdev_reader.py`); sie wird in `_read_booking_type()` ausgewertet.
   Diese Trennung war im Plantext missverständlich formuliert.
-- Buchungsart kommt ausschließlich vom externen USB-Numpad (Pflichtenheft v4 §6 /
-  Regelwerk v4 §3). Der verbindliche Ablauf „erst Buchungsart wählen, dann RFID lesen"
+- Buchungsart kommt ausschließlich vom externen USB-Numpad (Pflichtenheft v5 §6 /
+  Regelwerk v5 §3). Der verbindliche Ablauf „erst Buchungsart wählen, dann RFID lesen"
   ist im Code korrekt abgebildet.
 
 `read_booking_type()` und `read_uid()` blockieren unbegrenzt; Timeout für Idle-Zustand,
@@ -363,7 +363,7 @@ PRAGMA integrity_check nach Restore. `FileNotFoundError` bei fehlendem Backup.
 Backup-Verzeichnisses auf den NAS-Pfad. `--delete` entfernt am NAS-Ziel alles,
 was lokal nicht mehr existiert.
 
-**Betriebsentscheidung (Regelwerk v4 §17/§18):** Der NAS-Pfad ist ausschließlich als
+**Betriebsentscheidung (Regelwerk v5 §17/§18):** Der NAS-Pfad ist ausschließlich als
 Spiegelziel (Hot-Backup) vorgesehen, nicht als eigenständiges Langzeitarchiv.
 `--delete` ist damit absichtlich gesetzt. Wer eine separate Langzeitarchivierung
 benötigt, muss dafür einen zweiten NAS-Pfad ohne `--delete` einrichten oder
@@ -382,13 +382,18 @@ beziehen. Das ist gewollt und korrekt.
 Betriebsintegration — Schritt 7 liefert Service + Script, nicht die
 Deployment-Konfiguration.
 
-19 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS,
-Exportdateien-Sicherung). Deckt V4 §14/§20 und Regelwerk v4 §20 ab.
-V4 §16-Testpflicht „Restore-Test mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
+22 e2e-Tests in `tests/e2e/test_backup.py` (inkl. Audit-Verifikation, Mock-NAS,
+Exportdateien-Sicherung, 3 neue restore_exports-Tests aus phase4_coding_aufgabe).
+Deckt V5 §14/§20 und Regelwerk v5 §20 ab.
+V5 §16-Testpflicht „Restore-Test mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
+
+`restore_from()` unterstützt seit phase4_coding_aufgabe optionalen Parameter
+`restore_exports: bool = False` — kopiert `backup_dir/exports/` zurück in `export_dir`
+sofern vorhanden und aktiviert.
 
 ### Schritt 7 Nachtrag – Exportdateien in Backup einbeziehen  ✓
 
-(Pflichtenheft v4 §12/§14, Regelwerk v4 §17/§18/§20)
+(Pflichtenheft v5 §12/§14, Regelwerk v5 §17/§18/§20)
 
 `SQLiteBackupService` kennt aktuell nur `db_path` und `backup_dir`; Exportdateien
 (CSV + PDF aus `export.export_dir`) werden nicht gesichert. Plan und Pflichtenheft
@@ -407,7 +412,7 @@ Umfang:
 `restore_from()` stellt nur die SQLite-DB wieder her. Die gesicherten Exportdateien unter
 `backup_dir/exports/` werden nicht automatisch in ein produktives `export_dir` zurückkopiert.
 CSV/PDF-Exporte können jederzeit aus der DB neu erzeugt werden; die Exportdateien im Backup
-dienen primär der Nachweissicherung (Regelwerk v4 §18). Falls unmittelbare Wiederverfügbarkeit
+dienen primär der Nachweissicherung (Regelwerk v5 §18). Falls unmittelbare Wiederverfügbarkeit
 vorheriger Exporte gewünscht ist, müssen sie nach Restore manuell zurückkopiert werden.
 Eine spätere Erweiterung von `restore_from()` um einen optionalen Export-Restore ist möglich,
 ist aber kein Pflichtinhalt von Schritt 7.
@@ -415,7 +420,7 @@ ist aber kein Pflichtinhalt von Schritt 7.
 
 ### Schritt 1b – BookUseCase vervollständigen _(bereits in Phase 3 implementiert)_
 
-(V4 §7.9 Pflichtanforderung / ArbZG §5)
+(V5 §7.10 Pflichtanforderung / ArbZG §5)
 
 Ruhezeitprüfung in `use_cases/book_time.py`: Bei GO/BREAK_END Vortagesbuchungen
 laden; `flags += check_rest_period(last_go_dt, next_come_dt)`.
@@ -424,19 +429,19 @@ Analog in `ApproveSupplementUseCase`.
 Testfall in `tests/application/test_book_time.py`:
 GO nach < 11h Ruhezeit → POSSIBLE_REST_VIOLATION ReviewCase + status NEEDS_REVIEW.
 
-Abweisungsprotokoll (Regelwerk v4 §5): unbekannte/inaktive Karte →
+Abweisungsprotokoll (Regelwerk v5 §5): unbekannte/inaktive Karte →
 AuditLogEntry (BOOKING_REJECTED_UNKNOWN_CARD / _INACTIVE_CARD) vor Fehler-Raising.
 
 Regelzeitfenster-Check: `work_schedule_repo.get_effective(weekday, on_date, employee_id)`;
 liegt `booked_at.time()` außerhalb `[start_time, end_time]` → OUTSIDE_SCHEDULE_WINDOW
 ReviewCase mit WARN-Flag.
 
-Deckt V4 §16-Testpflicht „Unterschreitung der Ruhezeit" ab.
+Deckt V5 §16-Testpflicht „Unterschreitung der Ruhezeit" ab.
 
 
 ### Schritt 1c – Rollenprüfung in alle schreibenden Use Cases _(bereits in Phase 3 implementiert)_
 
-(Pflichtenheft v4 §5 / Regelwerk v4 §16)
+(Pflichtenheft v5 §5 / Regelwerk v5 §16)
 
 - `RegisterSupplementUseCase`: Rolle in {ADMIN, REVIEWER}, sonst `PermissionDeniedError`
 - `CorrectBookingUseCase`: Rolle in {ADMIN, REVIEWER}
@@ -448,14 +453,14 @@ und bei inaktivem Benutzer (`user.is_active == False`). Alle drei Fälle werden 
 `PermissionDeniedError` abgewiesen — keine Unterscheidung nach Fehlerursache nach außen.
 
 
-### Systemzeitprotokollierung (Phase 5, Pflichtenheft v4 §9.3 / Regelwerk v4 §21)
+### Systemzeitprotokollierung (Phase 5, Pflichtenheft v5 §9.3 / Regelwerk v5 §21)
 
-(Pflichtenheft v4 §9.3 / Regelwerk v4 §21)
+(Pflichtenheft v5 §9.3 / Regelwerk v5 §21)
 
 `system_events`-Tabelle bereits im Schema vorhanden.
 Zeitsprünge und manuelle Uhrzeitänderungen müssen erkannt (TIME_JUMP_DETECTED,
 MANUAL_TIME_CHANGE_DETECTED), protokolliert und fachlich geprüft werden.
-Umsetzung in Phase 5 (Betriebsschicht). Deckt V4 §16-Testpflicht
+Umsetzung in Phase 5 (Betriebsschicht). Deckt V5 §16-Testpflicht
 „Systemzeitabweichung" ab.
 
 
@@ -466,7 +471,7 @@ Umsetzung in Phase 5 (Betriebsschicht). Deckt V4 §16-Testpflicht
 Kein Excel/openpyxl. PDF-Bibliothek: **reportlab** (rein Python, stabil,
 tabellarisch, keine externen Binaries, Linux-kompatibel).
 
-Kernprinzip (Regelwerk v4 §11): Alle Exportwege (CSV, PDF, Pflichtauswertungen)
+Kernprinzip (Regelwerk v5 §11): Alle Exportwege (CSV, PDF, Pflichtauswertungen)
 nutzen ausschließlich `report_queries.py` als Datenquelle. Direkte Ad-hoc-Queries
 außerhalb dieser Schicht sind architektonisch verboten.
 
@@ -489,7 +494,7 @@ POSSIBLE_MAX_HOURS_VIOLATION, OUTSIDE_SCHEDULE_WINDOW, OPEN_WORK_PHASE …):
 - `list_review_cases_for_booking(conn, booking_id) → list[ReviewCaseRow]`
 
 POSSIBLE_* sind ReviewCaseTypes, keine BookingStatus-Werte.
-Diese Dimensionen sind orthogonal (Regelwerk v4 §11).
+Diese Dimensionen sind orthogonal (Regelwerk v5 §11).
 
 **Weitere Funktionen:**
 - `list_corrections(conn, from_dt, to_dt, employee_id=None) → list[CorrectionRow]`
@@ -498,7 +503,7 @@ Diese Dimensionen sind orthogonal (Regelwerk v4 §11).
   (personnel_no, full_name) — einzige erlaubte Identitätsabfrage außerhalb Repos
 
 18 Integrationstests in `test_export.py` inkl. Pflichtfall
-„Auswertung offener und auffälliger Fälle" (V4 §16).
+„Auswertung offener und auffälliger Fälle" (V5 §16).
 
 
 ### Schritt 8b – csv_exporter.py
@@ -538,8 +543,8 @@ export_verdichtet_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv
 
 Pflichtabschnitte: Buchungen, Korrekturen, Nachträge, Offene Prüffälle, Erläuterungen.
 `_HINWEISE`-Block: erläutert OPEN, WARN, NEEDS_REVIEW, Nachträge, Korrekturen
-(Pflichtenheft v4 §7.11). `get_employee_identity()` zentral aus `report_queries.py`
-– kein Ad-hoc-Query in `pdf_report_service` (Regelwerk v4 §11).
+(Pflichtenheft v5 §7.12). `get_employee_identity()` zentral aus `report_queries.py`
+– kein Ad-hoc-Query in `pdf_report_service` (Regelwerk v5 §11).
 
 Dateinamen:
 ```
@@ -557,12 +562,12 @@ Beide Varianten vorhanden:
 - `list_open_review_cases()` — alle offenen Fälle ohne Zeitgrenze
   (sinnvoll für globale Prüfübersicht)
 - `list_open_review_cases_in_period(from_dt, to_dt, employee_id=None)` —
-  zeitraumgefiltert nach detected_at (Pflichtenheft v4 §7.12)
+  zeitraumgefiltert nach detected_at (Pflichtenheft v5 §7.13)
 
 
 ### Schritt 8d – Pflichtauswertungen
 
-(Pflichtenheft v4 §7.12)
+(Pflichtenheft v5 §7.13)
 
 Alle acht Kategorien über `report_queries.py` + `csv_exporter.py` abgedeckt:
 
@@ -579,7 +584,7 @@ Alle acht Kategorien über `report_queries.py` + `csv_exporter.py` abgedeckt:
 Alle Auswertungen: filterbar nach Zeitraum und Mitarbeiter, als CSV exportierbar.
 In-App-Ansicht: Phase 5 (Präsentation).
 
-Schutz und Archivierung (Regelwerk v4 §17/§18/§20): Exportverzeichnis im
+Schutz und Archivierung (Regelwerk v5 §17/§18/§20): Exportverzeichnis im
 Zugriffsschutz- und Archivierungskonzept; Exportdateien in Backup einbezogen
 (Schritt 7b).
 
@@ -588,7 +593,7 @@ Zugriffsschutz- und Archivierungskonzept; Exportdateien in Backup einbezogen
 
 ```
 tests/integration/test_export.py    – 18 Tests  (report_queries, Filterlogik,
-                                                   Pflichtfall V4 §16)
+                                                   Pflichtfall V5 §16)
 tests/integration/test_csv_export.py – 15 Tests  (CSV-Roundtrips, Korrekturen,
                                                    Nachträge, Verdichtung)
 tests/integration/test_pdf.py       – 20 Tests  (PDF-Erzeugung, Inhaltsprüfung,
@@ -600,7 +605,7 @@ tests/integration/test_pdf.py       – 20 Tests  (PDF-Erzeugung, Inhaltsprüfun
 
 ## Schritt 9 – infrastructure/system_check.py  ✓
 
-(Pflichtenheft v4 §7.10 — spätestens Phase 4, nicht erst Phase 5)
+(Pflichtenheft v5 §7.10 — spätestens Phase 4, nicht erst Phase 5)
 
 SystemCheck-Modul mit folgenden Prüfpunkten (alle implementiert):
 
@@ -627,18 +632,18 @@ Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslösbar).
 ## Verifikation
 
 ```
-pytest tests/test_migrations.py   –  11 Tests  (Phase 1)
-pytest tests/domain/              –  63 Tests  (Phase 2)
-pytest tests/application/         – 107 Tests  (Phase 3)
-pytest tests/integration/         – 142 Tests  (Phase 4)
-pytest tests/e2e/                 –  19 Tests  (Phase 4)
-pytest tests/                     – 369 Tests grün gesamt
+pytest tests/test_migrations.py   –  12 Tests  (Phase 1)
+pytest tests/domain/              –  67 Tests  (Phase 2, nach phase2_coding_aufgabe)
+pytest tests/application/         – 109 Tests  (Phase 3, nach phase3_coding_aufgabe)
+pytest tests/integration/         – 165 Tests  (Phase 4)
+pytest tests/e2e/                 –  22 Tests  (Phase 4, nach phase4_coding_aufgabe)
+pytest tests/                     – 395 Tests grün gesamt
 ```
 
 
 ---
 
-## V4 §16 Testpflicht-Abdeckung nach Phase 4
+## V5 §16 Testpflicht-Abdeckung nach Phase 4
 
 ```
 >6h ohne Pause              → test_compliance_checks.py  (grün)
@@ -646,7 +651,7 @@ pytest tests/                     – 369 Tests grün gesamt
 >8h Arbeitszeit             → test_compliance_checks.py + test_book_time.py  (grün)
 >10h Arbeitszeit            → test_compliance_checks.py + test_book_time.py  (grün)
 Ruhezeitverletzung <11h     → test_book_time.py  (grün)
-Systemzeitabweichung        → Phase 5 (Regelwerk v4 §21) ✓
+Systemzeitabweichung        → Phase 5 (Regelwerk v5 §21) ✓
 Notfallnachtrag             → test_register_supplement.py  (grün)
 Restore-Test                → tests/e2e/test_backup.py  (grün)
 Auswertung offener Fälle    → test_export.py  (grün)
@@ -655,10 +660,10 @@ Auswertung offener Fälle    → test_export.py  (grün)
 
 ---
 
-## V4-Bezüge und organisatorische Auflagen
+## V5-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
-`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
+`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
