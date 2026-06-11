@@ -119,7 +119,7 @@ Das Projekt bietet zwei Hauptbetriebsarten: die Terminal-Oberfläche für die ei
 Für den Kiosk- bzw. Terminalbetrieb wird die Terminal-Oberfläche gestartet:
 
 ```bash
-python -m arbeitszeit.presentation.terminalui.main --db arbeitszeit.db --numpad /dev/input/by-id/usb-numpad --rfid /dev/input/by-id/usb-rfid --terminal-id 1
+python -m arbeitszeit.presentation.terminal_ui.main --db arbeitszeit.db --numpad /dev/input/by-id/usb-numpad --rfid /dev/input/by-id/usb-rfid --terminal-id 1
 ```
 
 Dabei müssen die Gerätepfade zu Ihrem tatsächlichen USB-Numpad und RFID-Leser passen. Die Terminal-Anwendung läuft als Schleife und beendet sich sauber bei `SIGTERM` oder `SIGINT`.
@@ -129,7 +129,7 @@ Dabei müssen die Gerätepfade zu Ihrem tatsächlichen USB-Numpad und RFID-Leser
 Für Verwaltungsaufgaben wird die Admin-CLI verwendet:
 
 ```bash
-python -m arbeitszeit.presentation.admincli.main --user-id 1
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1
 ```
 
 Über diese Oberfläche lassen sich unter anderem Mitarbeiter verwalten, RFID-Karten zuweisen, Korrekturen und Nachträge bearbeiten, Regelarbeitszeiten pflegen, Pflichtauswertungen abrufen, Exporte erzeugen, Backups anstoßen und ein Systemcheck durchführen.
