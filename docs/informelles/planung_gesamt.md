@@ -126,7 +126,7 @@ Umgesetzt unter `src/arbeitszeit/domain/`.[cite:7]
 
 **`entities.py`** — 9 frozen `@dataclass`-Entitäten mit fachlichen Invarianten, darunter `TimeBooking`, `WorkScheduleVersion`, `ReviewCase`, `Supplement`, `BookingCorrection` und `AuditLogEntry`.[cite:7]
 
-**`services/booking_rules.py`** — `validate_booking_sequence()`, `ValidationResult`.[cite:7]
+**`services/booking_rules.py`** — `validate_booking_sequence()` (Rückgabetyp `None`; `ValidationResult` entfernt).[cite:7]
 
 **`services/compliance_checks.py`** — `check_break_compliance()`, `check_max_hours()`, `check_rest_period()`, `ComplianceFlag`.[cite:7]
 

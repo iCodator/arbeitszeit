@@ -168,14 +168,17 @@ Domänen-Kern-Events (originär Phase 2):
 Infrastruktur-Events (später ergänzt, Phase 4/Schritt 9b):
   BACKUP_CREATED, BACKUP_SYNCED_TO_NAS, BACKUP_SYNC_FAILED, RESTORE_COMPLETED.
 
-Verhindert freie String-Literale im Code (Regelwerk v4 §11-konform).
+Verhindert freie String-Literale im Code (Regelwerk v5 §11-konform).
 
 
 services/booking_rules.py
 --------------------------
 
 `validate_booking_sequence(booking_type, day_bookings: Sequence[TimeBooking])`
-→ `ValidationResult` | raises `InvalidBookingSequenceError` | `OpenPhaseConflictError`
+→ `None` | raises `InvalidBookingSequenceError` | `OpenPhaseConflictError`
+
+Hinweis: `ValidationResult` wurde entfernt (war toter Code — alle Felder hartcodiert,
+kein Aufrufer las den Rückgabewert). Rückgabetyp seit phase2_coding_aufgabe: `None`.
 
 Regeln (day_bookings in chronologischer Reihenfolge):
 
@@ -188,14 +191,10 @@ Regeln (day_bookings in chronologischer Reihenfolge):
 
 Hilfsfunktionen: `_has_open_work(day_bookings)`, `_has_open_break(day_bookings)`
 
-`ValidationResult`: @dataclass(frozen=True)
-  accepted: bool, initial_status: BookingStatus,
-  reason_code: str | None, follow_up_case_types: tuple[ReviewCaseType, ...]
-
 
 services/compliance_checks.py
 ------------------------------
-Pflichtanforderung Pflichtenheft v4 §7.9 (ArbZG §3/4/5).
+Pflichtanforderung Pflichtenheft v5 §7.10 (ArbZG §3/4/5).
 
 `ComplianceFlag`: @dataclass(frozen=True)
   case_type: ReviewCaseType, severity: ReviewSeverity
@@ -217,10 +216,10 @@ Pflichtanforderung Pflichtenheft v4 §7.9 (ArbZG §3/4/5).
   Finale Domänenschnittstelle: nimmt zwei datetime-Objekte entgegen (letzter GO-Zeitpunkt,
   nächster COME-Zeitpunkt) — nicht zwei Buchungslisten wie ursprünglich geplant.
   <11h zwischen letztem GO und nächstem COME → POSSIBLE_REST_VIOLATION, CRITICAL (ArbZG §5).
-  V4 §7.9 Pflichtanforderung. Integration in BookUseCase + ApproveSupplementUseCase
+  V5 §7.10 Pflichtanforderung. Integration in BookUseCase + ApproveSupplementUseCase
   nach Phase 4/Schritt 1b.
 
-Verbindliche Architekturentscheidung (Regelwerk v4 §11):
+Verbindliche Architekturentscheidung (Regelwerk v5 §11):
   POSSIBLE_* werden als ReviewCase (ReviewCaseType + ReviewSeverity) abgebildet,
   nicht als BookingStatus-Werte. MANUAL_ENTRY → BookingSource.MANUAL. Beide Dimensionen
   sind orthogonal zu BookingStatus. report_queries.py ist die einzige Ableitungsquelle
@@ -289,10 +288,10 @@ Testverteilung Phase 2
 
 ```
 tests/domain/test_entities.py          – 42 Tests  (Plan: 19)
-tests/domain/test_booking_rules.py     – 10 Tests  (Plan: 10 ✓)
+tests/domain/test_booking_rules.py     – 14 Tests  (Plan: 10; +4 Erfolgsfall-Tests aus phase2_coding_aufgabe)
 tests/domain/test_compliance_checks.py –  9 Tests  (Plan:  9 ✓)
 tests/domain/test_audit_events.py      –  2 Tests  (neu, nicht im Plan)
-Gesamt tests/domain/                   – 63 Tests  (Plan: 38/44)
+Gesamt tests/domain/                   – 67 Tests  (Plan: 38/44)
 ```
 
 test_entities.py hat 42 statt 19 Tests — tiefere Invarianten-Abdeckung,
@@ -324,8 +323,8 @@ Invarianten getestet, Protokolle definiert — nicht als: Gesamtsystem ausliefer
 
 ## V4-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
-`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
+`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
