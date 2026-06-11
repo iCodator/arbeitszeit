@@ -45,8 +45,19 @@ ergänzt (Plan nannte irrtümlich 0004).
 
 ### FakeUnitOfWork.__exit__
 
-Ruft `rollback()` bei Exception, damit Tests das reale Transaktionsverhalten
-widerspiegeln.
+Implementiert commit-or-rollback-Semantik identisch zu `SQLiteUnitOfWork`:
+Rollt zurück, wenn `commit()` nicht aufgerufen wurde — unabhängig davon, ob eine
+Exception auftrat oder der `with`-Block sauber verlassen wurde.
+
+```python
+def __exit__(self, exc_type, exc_val, exc_tb):
+    if not self.committed:
+        self.rollback()
+```
+
+Hinweis: Ursprüngliche Formulierung lautete „Rollback bei Exception"; tatsächliche
+Semantik ist strenger und entspricht der `SQLiteUnitOfWork`-Semantik.
+Zwei Gegentests in `tests/application/test_fake_unit_of_work.py`.
 
 
 ### Transaktionsregel
@@ -275,7 +286,7 @@ Rollenprüfung in Phase 3 bereits implementiert.
 
 ---
 
-## Rollenprüfung (Pflichtenheft v4 §5 / Regelwerk v4 §16)
+## Rollenprüfung (Pflichtenheft v5 §5 / Regelwerk v5 §16)
 
 Plan sah Nachrüstung in Phase 4/Schritt 1c vor — tatsächlich bereits in Phase 3 umgesetzt.
 
@@ -300,7 +311,8 @@ tests/application/test_correct_booking.py       – 15 Tests
 tests/application/test_book_time.py             – 21 Tests
 tests/application/test_approve_supplement.py    – 21 Tests  (Phase 4 vorimpl.)
 tests/application/test_reject_supplement.py     – 13 Tests  (Phase 4 vorimpl.)
-Gesamt tests/application/                       – 107 Tests
+tests/application/test_fake_unit_of_work.py     –  2 Tests  (phase3_coding_aufgabe)
+Gesamt tests/application/                       – 109 Tests
 ```
 
 
@@ -309,15 +321,15 @@ Gesamt tests/application/                       – 107 Tests
 ## Verifikation
 
 ```
-pytest tests/domain/       # 63 Tests grün (Phase 2)
-pytest tests/application/  # 107 Tests grün
+pytest tests/domain/       # 67 Tests grün (Phase 2, nach phase2_coding_aufgabe)
+pytest tests/application/  # 109 Tests grün (inkl. test_fake_unit_of_work.py)
 pytest tests/              # alle Tests grün inkl. Migrationen
 ```
 
 
 ---
 
-## Pflichtenheft v4 §16 Testpflicht-Abdeckung nach Phase 3
+## Pflichtenheft v5 §16 Testpflicht-Abdeckung nach Phase 3
 
 ```
 >6h ohne Pause              → test_compliance_checks.py  (grün)
@@ -325,7 +337,7 @@ pytest tests/              # alle Tests grün inkl. Migrationen
 >8h Arbeitszeit             → test_compliance_checks.py + test_book_time.py  (grün)
 >10h Arbeitszeit            → test_compliance_checks.py + test_book_time.py  (grün)
 Ruhezeitverletzung <11h     → test_book_time.py  (grün — in Phase 3 vorimpl.)
-Systemzeitabweichung        → Phase 5 (Regelwerk v4 §21) ✓
+Systemzeitabweichung        → Phase 5 (Regelwerk v5 §21) ✓
 Notfallnachtrag             → test_register_supplement.py  (grün)
 Restore-Test                → tests/e2e/test_backup.py  (Phase 4/7)
 Auswertung offener Fälle    → test_export.py / test_pdf.py  (Phase 4/8)
@@ -336,8 +348,8 @@ Auswertung offener Fälle    → test_export.py / test_pdf.py  (Phase 4/8)
 
 ## V4-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v4.md`,
-`docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
+`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
