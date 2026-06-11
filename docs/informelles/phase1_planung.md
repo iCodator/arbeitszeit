@@ -1,4 +1,4 @@
-Phase 1 – Grundgerüst (abgeschlossen)
+Phase 1 – Grundgerüst (offen)
 ======================================
 
 Historischer Lieferumfang Phase 1 (originaler Abschlussstand)
