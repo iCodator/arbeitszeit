@@ -1,328 +1,224 @@
-# Installationsanleitung – Arbeitszeit
+# Installationsanleitung für arbeitszeit
 
-**Zeiterfassungssystem für die Zahnarztpraxis**
+Diese Anleitung erklärt Schritt für Schritt, wie das Zeiterfassungssystem **arbeitszeit** auf einem Linux-Rechner installiert wird. Das Ziel ist eine einfache Ersteinrichtung auch für Personen, die nicht täglich mit Python-Projekten arbeiten. Die Anwendung läuft vollständig lokal, speichert ihre Daten in einer SQLite-Datenbank und benötigt keinen Cloud-Dienst.
 
----
+## Worum es bei arbeitszeit geht
 
-## Was ist „Arbeitszeit"?
+`arbeitszeit` ist ein lokales Zeiterfassungssystem für eine Zahnarztpraxis. Mitarbeiter buchen Zeiten über ein physisches Terminal mit USB-Numpad und RFID-Leser; zusätzlich gibt es eine Admin-Konsole für Stammdaten, Berichte, Korrekturen, Nachträge, Backups und Systemprüfungen.
 
-„Arbeitszeit" ist ein lokales Computerprogramm zur Erfassung der Arbeitszeiten der Mitarbeiter in einer Zahnarztpraxis. Jeder Mitarbeiter hat eine RFID-Karte (ähnlich wie eine Schlüsselkarte) und kann damit am Terminal per Tastendruck ein- und ausbuchen. Das Programm läuft vollständig auf dem lokalen Rechner in der Praxis – keine Internetverbindung, kein Cloud-Dienst, keine externen Server. Alle Daten bleiben im Haus.
+## Voraussetzungen
 
----
+Vor der Installation sollte der Rechner folgende Grundvoraussetzungen erfüllen:
 
-## Was wird benötigt?
+- Linux-System, zum Beispiel Linux Mint oder Lubuntu.
+- Python 3.11, 3.12 oder 3.13.
+- Git zum Herunterladen des Quellcodes.
+- Für den späteren Echtbetrieb: ein USB-RFID-Leser und ein separates USB-Numpad.
 
-Bevor die Installation beginnt, müssen folgende Voraussetzungen erfüllt sein:
+### Zusätzliche Systempakete
 
-**Hardware:**
-- Ein Linux-Computer (z. B. ein kleiner PC oder ein Raspberry Pi)
-- Ein USB-Numpad (die Zehnertastatur, die man extern einsteckt)
-- Ein USB-RFID-Leser (liest die Mitarbeiterkarten)
-- Optional: ein NAS-Laufwerk (Netzwerkspeicher) für automatische Datensicherungen
+Bevor die Python-Abhängigkeiten installiert werden, müssen auf dem System einige Entwicklungswerkzeuge vorhanden sein. Das ist wichtig, weil das Paket `evdev` nativen Code enthält und deshalb beim Installieren kompiliert werden muss.
 
-**Software:**
-- Das Betriebssystem **Linux** muss bereits installiert sein
-- **Python 3.14** muss installiert sein (genau diese Version – nicht neuer, nicht älter; siehe nächster Abschnitt)
-- **Git** muss installiert sein (dient zum Herunterladen des Programms)
-- Eine Internetverbindung ist nur für die einmalige Installation nötig
-
-> **Hinweis:** Für erste Tests kann auch ohne die echte Hardware gearbeitet werden – das Programm enthält einen Simulator.
-
----
-
-## Schritt 0 – Python 3.14 prüfen und installieren
-
-Das Programm benötigt **exakt Python 3.14** – keine ältere und keine neuere Version. Da auf den meisten Linux-Systemen bereits eine andere Python-Version vorinstalliert ist, muss zuerst geprüft werden, was vorhanden ist.
-
-### Python-Version prüfen
-
-Öffne ein Terminal-Fenster und gib ein:
+Bitte installieren Sie **immer** diese drei Pakete bzw. Paketgruppen:
 
 ```bash
-python3 --version
+sudo apt update
+sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev
 ```
 
-Die Ausgabe zeigt die installierte Version, z. B.:
+Dabei gilt:
 
-```
-Python 3.12.3
-```
+- `build-essential` installiert unter anderem `gcc` und `make`, also die grundlegenden Werkzeuge zum Kompilieren von Programmen.
+- `linux-headers-$(uname -r)` installiert die Header-Dateien für den aktuell laufenden Linux-Kernel, die bei hardwarenahen Python-Paketen benötigt werden können.
+- `python3-dev` installiert die Python-Entwicklerdateien wie `Python.h`, die für Python-Erweiterungen mit C-Anteilen gebraucht werden.
 
-**Was bedeutet das?**
-
-| Ausgabe | Bedeutung | Aktion nötig? |
-|---|---|---|
-| `Python 3.14.x` | Richtige Version vorhanden | ✅ Nein – weiter mit Schritt 1 |
-| `Python 3.12.x` oder ähnlich | Falsche Version | ⚠️ Ja – Python 3.14 zusätzlich installieren |
-| Fehlermeldung / nicht gefunden | Python fehlt komplett | ⚠️ Ja – Python 3.14 installieren |
-
-> **Wichtig:** Die vorhandene Python-Version wird **nicht gelöscht** – sie bleibt erhalten und wird vom System weiterhin genutzt. Python 3.14 wird **zusätzlich** installiert.
-
----
-
-### Python 3.14 installieren mit pyenv
-
-Der einfachste Weg, eine zusätzliche Python-Version zu installieren, ist das Werkzeug **pyenv**. Es verwaltet mehrere Python-Versionen nebeneinander, ohne das System zu beeinflussen.
-
-#### 0a – Abhängigkeiten installieren
-
-Zuerst werden einige Hilfspakete benötigt, die Linux zum Bauen von Python braucht:
+Mit diesem Befehl können Sie prüfen, ob der Compiler vorhanden ist:
 
 ```bash
-sudo apt update && sudo apt install -y \
-    build-essential libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev \
-    curl git libncursesw5-dev xz-utils tk-dev \
-    libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
+gcc --version
 ```
 
-> Das Passwort für `sudo` wird abgefragt – das ist das normale Systempasswort.
+Wenn eine Versionsnummer angezeigt wird, ist der Compiler korrekt installiert.
 
-**Was passiert hier?** Linux braucht diese Bausteine, um Python aus dem Quellcode zu kompilieren (also selbst zu „übersetzen"). Das ist einmalig nötig.
+## Projekt herunterladen
 
-#### 0b – pyenv installieren
-
-```bash
-git clone https://github.com/pyenv/pyenv.git ~/.pyenv
-```
-
-Dann pyenv zum System bekannt machen. Folgende drei Zeilen in die Konfigurationsdatei der Shell eintragen:
-
-```bash
-echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc
-```
-
-Anschließend die Konfiguration neu einlesen:
-
-```bash
-source ~/.bashrc
-```
-
-> **Was ist `.bashrc`?** Das ist eine versteckte Konfigurationsdatei, die beim Öffnen jedes Terminal-Fensters automatisch gelesen wird. Die drei `echo`-Befehle hängen einfach drei neue Zeilen ans Ende dieser Datei an.
-
-#### 0c – Python 3.14 installieren
-
-```bash
-pyenv install 3.14.0
-```
-
-> Dieser Vorgang **dauert einige Minuten** (5–15 Minuten je nach Rechner), weil Python aus dem Quellcode gebaut wird. Das ist normal – einfach abwarten bis die Eingabeaufforderung wieder erscheint.
-
-Prüfen, ob die Installation geklappt hat:
-
-```bash
-pyenv versions
-```
-
-Beispielausgabe:
-
-```
-* system (set by /home/benutzer/.pyenv/version)
-  3.14.0
-```
-
-Das `*` zeigt die aktuell aktive Version. `system` ist die alte vorinstallierte Version, `3.14.0` ist die neu installierte.
-
-#### 0d – Python 3.14 für das arbeitszeit-Projekt festlegen
-
-Python 3.14 wird **nur im Projektordner** aktiviert – nicht systemweit. Das schützt andere Programme vor unerwünschten Änderungen.
-
-Zuerst in den Projektordner wechseln (oder erst nach Schritt 1 zurückkommen):
-
-```bash
-cd arbeitszeit
-pyenv local 3.14.0
-```
-
-Dieser Befehl legt eine kleine Datei (`.python-version`) im Projektordner an. Damit weiß pyenv: „In diesem Ordner immer Python 3.14 benutzen."
-
-Zur Kontrolle:
-
-```bash
-python3 --version
-```
-
-Erwartete Ausgabe:
-
-```
-Python 3.14.0
-```
-
-✅ Wenn das steht, ist Python 3.14 korrekt eingerichtet.
-
----
-
-## Schritt 1 – Programm herunterladen
-
-Öffne ein Terminal-Fenster (die schwarze Eingabeaufforderung in Linux) und gib folgende Befehle ein. Nach jeder Zeile die Eingabe-Taste drücken.
+Laden Sie das Projekt aus GitHub herunter und wechseln Sie in das Projektverzeichnis:
 
 ```bash
 git clone https://github.com/iCodator/arbeitszeit.git
 cd arbeitszeit
 ```
 
-**Was passiert hier?**
-- `git clone` lädt das gesamte Programm aus dem Internet herunter und speichert es in einem Ordner namens `arbeitszeit`.
-- `cd arbeitszeit` wechselt in diesen Ordner.
+`git clone` erstellt dabei eine lokale Kopie des gesamten Projekts auf Ihrem Rechner.
 
----
+## Virtuelle Python-Umgebung anlegen
 
-## Schritt 2 – Virtuelle Umgebung erstellen
+Für Python-Projekte ist es sinnvoll, eine sogenannte virtuelle Umgebung zu verwenden. Dadurch werden die benötigten Pakete nur für dieses Projekt installiert und nicht systemweit verteilt.
 
-Eine „virtuelle Umgebung" ist ein abgeschlossener Bereich auf dem Computer, in dem das Programm mit all seinen Hilfsbibliotheken installiert wird – ohne das restliche System zu beeinflussen.
+Erstellen und aktivieren Sie die virtuelle Umgebung so:
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-Nach dem zweiten Befehl erscheint in der Eingabezeile der Zusatz `(.venv)` – das zeigt an, dass die virtuelle Umgebung aktiv ist.
+Wenn die Aktivierung erfolgreich war, erscheint meist `(.venv)` am Anfang der Terminalzeile.
 
-> **Wichtig:** Immer wenn das Programm später gestartet oder verwaltet werden soll, muss zuerst dieser Befehl ausgeführt werden: `source .venv/bin/activate`
+## Python-Abhängigkeiten installieren
 
----
-
-## Schritt 3 – Programm installieren
+Installieren Sie nun das Projekt mit seinen Entwicklungswerkzeugen:
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-Dieser Befehl installiert das Programm selbst sowie alle benötigten Hilfsprogramme automatisch. Je nach Internetgeschwindigkeit kann das 1–3 Minuten dauern. Am Ende erscheint eine Erfolgsmeldung.
+Dieser Befehl installiert das Projekt im sogenannten „editable“-Modus. Änderungen am Quellcode werden dadurch direkt aus dem Projektordner verwendet. Zusätzlich werden die in `pyproject.toml` definierten Laufzeit- und Entwicklungsabhängigkeiten installiert, unter anderem `evdev`, `reportlab`, `pytest`, `pytest-cov`, `pypdf` und `ruff`.
 
----
+## Datenbank initialisieren
 
-## Schritt 4 – Datenbank einrichten
-
-Das Programm speichert alle Zeitbuchungen in einer Datei (der „Datenbank"). Diese muss zuerst angelegt werden:
+Nach der Paketinstallation muss die lokale SQLite-Datenbank angelegt werden. Dafür ist im Projekt ein Skript vorgesehen:
 
 ```bash
 python scripts/init_db.py --db arbeitszeit.db
 ```
 
-**Was passiert hier?** Es wird die Datei `arbeitszeit.db` erstellt. Diese Datei ist die zentrale Datenspeicher-Datei – sie sollte regelmäßig gesichert werden.
+Dieses Skript erstellt die Datenbankdatei `arbeitszeit.db` und führt die versionierten Migrationen aus. Dabei werden das Schema und die Standarddaten eingerichtet.
 
----
+Wenn keine Fehler auftreten, ist die Datenbank anschließend einsatzbereit.
 
-## Schritt 5 – Verzeichnisse konfigurieren
+## Ersteinrichtung ausführen
 
-Einmalig müssen zwei Ordner festgelegt werden:
-- Ein **Backup-Ordner**: Wohin werden die Datensicherungen gespeichert?
-- Ein **Export-Ordner**: Wohin werden PDF- und CSV-Berichte gespeichert?
+Nach der Datenbankinitialisierung muss einmalig die betriebliche Grundkonfiguration gesetzt werden. Dazu gehören insbesondere Verzeichnisse für Backups und Exporte.
 
-### Option A – Interaktiv (empfohlen für Einsteiger)
+### Interaktive Einrichtung
+
+Wenn Sie die Pfade beim Start eingeben möchten, verwenden Sie:
 
 ```bash
 python scripts/setup.py --db arbeitszeit.db
 ```
 
-Das Programm fragt dann der Reihe nach nach den Pfaden. Einfach eingeben, was man möchte, z. B.:
-- Backup-Verzeichnis: `/var/backups/arbeitszeit`
-- Export-Verzeichnis: `/var/exports/arbeitszeit`
+Das Skript fragt dann die benötigten Pfade nacheinander ab und legt die Verzeichnisse bei Bedarf automatisch an.
 
-### Option B – Alles auf einmal
+### Nicht-interaktive Einrichtung
 
-```bash
-python scripts/setup.py --db arbeitszeit.db \
-    --backup-dir /var/backups/arbeitszeit \
-    --export-dir /var/exports/arbeitszeit
-```
-
----
-
-## Schritt 6 – Terminal-Anzeige starten
-
-Sobald das USB-Numpad und der RFID-Leser angeschlossen sind, kann das Terminal gestartet werden. Dazu müssen die Gerätepfade der Hardware bekannt sein (meist unter `/dev/input/by-id/` zu finden):
+Wenn Sie die Pfade direkt angeben möchten, verwenden Sie zum Beispiel:
 
 ```bash
-python -m arbeitszeit.presentation.terminal_ui.main \
-    --db arbeitszeit.db \
-    --numpad /dev/input/by-id/usb-numpad \
-    --rfid   /dev/input/by-id/usb-rfid \
-    --terminal-id 1
+python scripts/setup.py --db arbeitszeit.db --backup-dir /data/backups/arbeitszeit --export-dir /data/exports/arbeitszeit
 ```
 
-**Was passiert?** Das Terminal läuft als Dauerprogramm und wartet auf Kartenbuchungen. Es lässt sich sauber mit `Strg + C` beenden.
+Das ist besonders praktisch, wenn die Installation dokumentiert oder mehrfach auf ähnlichen Systemen wiederholt werden soll.
 
-> **Tipp:** Den genauen Gerätepfad herausfinden mit: `ls /dev/input/by-id/`
+## Anwendung starten
 
----
+Das Projekt bietet zwei Hauptbetriebsarten: die Terminal-Oberfläche für die eigentliche Zeiterfassung und die Admin-CLI für Verwaltung und Auswertung.
 
-## Schritt 7 – Verwaltung über die Admin-Oberfläche
+### Terminal-UI starten
 
-Die Administration (Mitarbeiter anlegen, Berichte erstellen, Backups machen usw.) läuft über eine Text-Befehlsoberfläche. Grundstruktur:
+Für den Kiosk- bzw. Terminalbetrieb wird die Terminal-Oberfläche gestartet:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 <Befehl>
+python -m arbeitszeit.presentation.terminalui.main --db arbeitszeit.db --numpad /dev/input/by-id/usb-numpad --rfid /dev/input/by-id/usb-rfid --terminal-id 1
 ```
 
-Die `1` steht für die ID des Admin-Benutzers. Wichtige Beispiele:
+Dabei müssen die Gerätepfade zu Ihrem tatsächlichen USB-Numpad und RFID-Leser passen. Die Terminal-Anwendung läuft als Schleife und beendet sich sauber bei `SIGTERM` oder `SIGINT`.
 
-| Was soll gemacht werden? | Befehl |
-|---|---|
-| Alle Mitarbeiter anzeigen | `employees list` |
-| Neuen Mitarbeiter anlegen | `employees add` |
-| RFID-Karte zuweisen | `cards assign` |
-| Systemcheck ausführen | `system check` |
-| Manuelles Backup starten | `system backup` |
-| Monatsbericht als PDF | `reports export-pdf-month` |
+### Admin-CLI starten
 
-**Vollständiges Beispiel – Systemcheck:**
+Für Verwaltungsaufgaben wird die Admin-CLI verwendet:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 system check
+python -m arbeitszeit.presentation.admincli.main --user-id 1
 ```
 
----
+Über diese Oberfläche lassen sich unter anderem Mitarbeiter verwalten, RFID-Karten zuweisen, Korrekturen und Nachträge bearbeiten, Regelarbeitszeiten pflegen, Pflichtauswertungen abrufen, Exporte erzeugen, Backups anstoßen und ein Systemcheck durchführen.
 
-## Datensicherung (Backup)
+## Wichtige Admin-Befehle
 
-Die Datenbank sollte regelmäßig gesichert werden. Das geht manuell mit:
+Die folgenden Befehlsgruppen sind laut Projektdokumentation vorgesehen:
+
+| Bereich | Beispielbefehle | Zweck |
+|---|---|---|
+| `employees` | `list`, `add`, `deactivate`, `reactivate` | Mitarbeiter verwalten. |
+| `cards` | `assign-card`, `replace-card` | RFID-Karten zuordnen oder ersetzen. |
+| `bookings` | `supplement add`, `supplement approve`, `supplement reject`, `correct` | Nachträge und Korrekturen bearbeiten. |
+| `schedule` | `show`, `set` | Regelarbeitszeiten anzeigen oder ändern. |
+| `reports` | `open-bookings`, `warn-cases`, `corrections`, `supplements`, `open-review-cases`, `export-csv`, `export-pdf-daily`, `export-pdf-weekly`, `export-pdf-monthly` | Auswertungen und Exporte erzeugen. |
+| `system` | `check`, `backup` | Systemprüfung und manuelles Backup. |
+
+Viele Berichte akzeptieren zusätzlich Zeitfilter über `--from` und `--to` im ISO-8601-Format.
+
+## Backup manuell ausführen
+
+Ein manuelles Backup kann mit folgendem Skript erstellt werden:
 
 ```bash
-python scripts/backup.py \
-    --db arbeitszeit.db \
-    --backup-dir /var/backups/arbeitszeit
+python scripts/backup.py --db arbeitszeit.db --backup-dir /var/backups/arbeitszeit
 ```
 
-Für automatische tägliche Backups kann dieser Befehl als **cron-Job** oder **systemd-Timer** eingerichtet werden. Falls ein NAS vorhanden ist, kann der Backup-Pfad auf einen Netzwerkordner gesetzt werden – das System spiegelt die Daten dort automatisch hin.
+Optional kann zusätzlich ein Exportverzeichnis angegeben werden. Ein möglicher NAS-Sync wird über die Systemkonfiguration gesteuert und dient als Spiegelziel, nicht als eigenständiges Langzeitarchiv.
 
----
+## Funktionstest nach der Installation
 
-## Häufige Fragen
+Nach der Installation empfiehlt sich ein kurzer Test. So lässt sich früh erkennen, ob Python-Pakete, Datenbank und Projektstruktur korrekt eingerichtet sind.
 
-**Muss immer das Terminal offen bleiben?**
-Im produktiven Betrieb läuft das Terminalprogramm als Dauerprozess. Es empfiehlt sich, es als systemd-Dienst einzurichten, damit es nach einem Neustart automatisch startet.
+Sinnvolle Prüfschritte sind:
 
-**Was ist, wenn ich die Hardware noch nicht habe?**
-Das Programm enthält einen Hardware-Simulator für Tests. Die Installation funktioniert genauso – einfach ohne die `--numpad` und `--rfid` Parameter starten oder den Simulator verwenden.
+1. Virtuelle Umgebung aktivieren.
+2. Testlauf starten:
 
-**Wo sind die Mitarbeiterdaten gespeichert?**
-Ausschließlich in der Datei `arbeitszeit.db` auf dem lokalen Rechner. Es werden keine Daten ins Internet übertragen.
+```bash
+python -m pytest
+```
 
-**Kann ich die Datenbank auf mehrere Computer verteilen?**
-Nein – das System ist für einen einzelnen lokalen Rechner ausgelegt. Der NAS-Sync dient nur als Backup, nicht als gleichzeitiger Zugriff von mehreren Rechnern.
+Im Projekt sind mehrere Testebenen vorgesehen: Domain-Tests, Application-Tests, Integrations-Tests und End-to-End-Tests.
 
-**Wird meine bisherige Python-Version gelöscht?**
-Nein. pyenv installiert Python 3.14 zusätzlich. Die Systemversion bleibt unverändert erhalten. Nur im `arbeitszeit`-Ordner wird automatisch Python 3.14 verwendet.
+## Typische Fehler und Lösungen
 
----
+### Fehler: `x86_64-linux-gnu-gcc` nicht gefunden
 
-## Zusammenfassung – Reihenfolge der Schritte
+Wenn bei `pip install -e ".[dev]"` eine Meldung wie `command 'x86_64-linux-gnu-gcc' failed: No such file or directory` erscheint, fehlt der C-Compiler. Installieren Sie in diesem Fall die Pflichtpakete aus dem Abschnitt „Zusätzliche Systempakete“.
 
-| Schritt | Befehl / Aktion |
-|---|---|
-| 0. Python 3.14 prüfen & installieren | `python3 --version` → ggf. pyenv + `pyenv install 3.14.0` |
-| 1. Herunterladen | `git clone …` + `cd arbeitszeit` |
-| 2. Virtuelle Umgebung | `python3 -m venv .venv` + `source .venv/bin/activate` |
-| 3. Installieren | `pip install -e ".[dev]"` |
-| 4. Datenbank anlegen | `python scripts/init_db.py --db arbeitszeit.db` |
-| 5. Verzeichnisse einrichten | `python scripts/setup.py --db arbeitszeit.db` |
-| 6. Terminal starten | `python -m arbeitszeit.presentation.terminal_ui.main …` |
-| 7. Admin-CLI nutzen | `python -m arbeitszeit.presentation.admin_cli.main …` |
+```bash
+sudo apt update
+sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev
+```
 
----
+Danach aktivieren Sie die virtuelle Umgebung erneut und starten die Installation noch einmal:
 
-*Dieses Dokument basiert auf dem [README.md](https://github.com/iCodator/arbeitszeit/blob/main/README.md) und der Projektstruktur des arbeitszeit-Repositories.*
+```bash
+source .venv/bin/activate
+pip install -e ".[dev]"
+```
+
+### Fehler: `Python.h: No such file or directory`
+
+Diese Meldung weist darauf hin, dass die Python-Entwicklerdateien fehlen. Auch dieser Fall wird durch die Installation von `python3-dev` behoben.
+
+```bash
+sudo apt install -y python3-dev
+```
+
+### Fehler: Datenbankdatei nicht gefunden
+
+Wenn `scripts/setup.py` meldet, dass die Datenbank nicht gefunden wurde, wurde `scripts/init_db.py` noch nicht ausgeführt. Initialisieren Sie zuerst die Datenbank und wiederholen Sie danach die Einrichtung.
+
+## Reihenfolge in Kurzform
+
+Für eine Standardinstallation reicht meistens diese Reihenfolge:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev
+
+git clone https://github.com/iCodator/arbeitszeit.git
+cd arbeitszeit
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+python scripts/init_db.py --db arbeitszeit.db
+python scripts/setup.py --db arbeitszeit.db
+```
+
+Danach können je nach Bedarf entweder die Terminal-UI oder die Admin-CLI gestartet werden.
