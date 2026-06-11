@@ -4,17 +4,17 @@
 
 Die Dokumente unter `docs/informelles/` dokumentieren eine vollständige Design-Session für das Zeiterfassungssystem. Sie enthalten die wesentlichen Entscheidungen zu Domänenmodell, Datenbankschema, Projektstruktur, Use-Cases, Prüfregeln, Export, Betrieb und Testabdeckung.[cite:7]
 
-**Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v4.md`, `docs/regelwerk_arbeitszeit_v4.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.[cite:8][cite:9][cite:10]
+**Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v5.md`, `docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.[cite:8][cite:9][cite:10]
 
-Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungsstand des Projekts. Organisatorische, datenschutzrechtliche und betriebliche Pflichten der Praxis werden ausdrücklich benannt, soweit sie laut Pflichtenheft v4, Regelwerk v4 und Anlage v2 nicht allein durch Code erfüllt werden können.[cite:8][cite:9][cite:10]
+Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungsstand des Projekts. Organisatorische, datenschutzrechtliche und betriebliche Pflichten der Praxis werden ausdrücklich benannt, soweit sie laut Pflichtenheft v5, Regelwerk v5 und Anlage v2 nicht allein durch Code erfüllt werden können.[cite:8][cite:9][cite:10]
 
 ---
 
-## Ergänzende Leitplanken aus den Referenzdokumenten v4/v2
+## Ergänzende Leitplanken aus den Referenzdokumenten v5/v2
 
 ### Rechts- und Regelrahmen
 
-Die Systemauslegung stützt sich auf die Pflicht zu einem objektiven, verlässlichen und zugänglichen Zeiterfassungssystem sowie auf die arbeitszeitrechtlichen Anforderungen zu Höchstarbeitszeit, Ruhepausen und Ruhezeit. Pflichtenheft v4 ergänzt dies ausdrücklich um das Arbeitsschutzgesetz als organisatorische Grundlage des Arbeitgebers für geeignete Schutz- und Erfassungsmaßnahmen.[cite:8]
+Die Systemauslegung stützt sich auf die Pflicht zu einem objektiven, verlässlichen und zugänglichen Zeiterfassungssystem sowie auf die arbeitszeitrechtlichen Anforderungen zu Höchstarbeitszeit, Ruhepausen und Ruhezeit. Pflichtenheft v5 ergänzt dies ausdrücklich um das Arbeitsschutzgesetz als organisatorische Grundlage des Arbeitgebers für geeignete Schutz- und Erfassungsmaßnahmen.[cite:8]
 
 Für den Betrieb in der Zahnarztpraxis ist zusätzlich die IT-Sicherheitsrichtlinie nach § 75b SGB V zu beachten. Rollen, Rechte, Backup, Protokollierung, Schutz der Praxis-IT und die Einbindung in das Praxis-IT-Sicherheitskonzept sind daher nicht nur technische, sondern auch organisatorische Anforderungen.[cite:8][cite:9][cite:10]
 
@@ -29,6 +29,26 @@ Verschlüsselte Backups dürfen optional zusätzlich in einem externen Cloud-Spe
 Die Anlage Einhaltung Pflichtenheft v2 bewertet das Projekt fachlich als weit fortgeschritten, benennt aber weiterhin offene organisatorische und formale Nachweise. Dazu gehören insbesondere eine schriftlich verabschiedete Betriebsdokumentation zu Export, Rechten, Aufbewahrung, Löschregeln, Backup und Restore, eine revisionsfeste Testmatrix, die Entscheidung zum produktiven `device_events`-/`device_event_id`-Pfad sowie die organisatorische Zuordnung von Rollen, Freigabeverantwortungen, Prüfintervallen und IT-Sicherheitsverantwortlichkeiten.[cite:10]
 
 Diese Punkte werden in den fachlichen Phasen unten dort aufgegriffen, wo sie technischen Bezug haben. Soweit sie rein organisatorisch sind, werden sie als externe Auflagen gekennzeichnet und nicht fälschlich als bereits durch Code erfüllt dargestellt.[cite:10]
+
+### Benutzer- und Rollenverwaltung (Pflichtenheft v5 §7.9 / Regelwerk v5 §16, §16a)
+
+Pflichtenheft v5 §7.9 (neu gegenüber v4) macht die Admin-CLI-basierte Benutzerkontenverwaltung zur verbindlichen Anforderung. Direktes SQL darf kein regulärer Betriebsprozess sein.
+
+Regelwerk v5 §16a (neu) definiert Benutzerkonten als eigenständige Zugangsobjekte, die optional einem Mitarbeiterdatensatz zugeordnet sein können. Doppelte Benutzernamen sind unzulässig; inaktive Konten dürfen keine administrativen oder prüfenden Aktionen ausführen.
+
+Implementiert (`admin_cli users`-Modul, Phase 5+):
+
+- `users add --username <u> --role <ADMIN|REVIEWER|TECH> [--employee-id <id>] [--password <pw>]`
+- `users list`
+- `users deactivate --user-id <id>`
+- Passwort-Hashing via `hashlib.pbkdf2_hmac` (stdlib, salt:hash-Format)
+- Audit-Events `USER_ACCOUNT_CREATED`, `USER_ACCOUNT_DEACTIVATED`
+
+Noch nicht implementiert — offene Punkte gemäß Pflichtenheft v5 §7.9 und §16 Testanforderungen:
+
+- `users reactivate --user-id <id>` (Reaktivierung deaktivierter Konten)
+- `users change-role --user-id <id> --role <NEUE_ROLLE>` (Rollenwechsel)
+- Bootstrap-Prozess: Ersteinrichtung des ersten Administratorkontos über die CLI, solange noch kein aktives Administratorkonto vorhanden ist. (Pflichtenheft v5 §7.9: „dieser Bootstrap-Prozess darf nur nutzbar sein, solange noch kein aktives Administratorkonto vorhanden ist")
 
 ---
 
@@ -140,7 +160,7 @@ V4- und Regelwerk-konforme Statusmodellierung:
 - `BookCommand.device_event_id: int | None` wird an `TimeBooking.device_event_id` durchgereicht.[cite:7]
 - Die betriebliche End-to-End-Verkettung ist vorbereitet, aber laut aktuellem Stand noch nicht produktiv geschlossen. Dieser Punkt bleibt als offener Architekturpunkt markiert und entspricht der Bewertung in Anlage v2.[cite:7][cite:10]
 
-**Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases gemäß Pflichtenheft v4 §5 und Regelwerk v4 §16.[cite:7][cite:8][cite:9]
+**Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases gemäß Pflichtenheft v5 §5 und Regelwerk v5 §16.[cite:7][cite:8][cite:9]
 
 | Use Case | Erlaubte Rollen | Prüf-ID |
 | --- | --- | --- |
@@ -167,13 +187,13 @@ src/arbeitszeit/application/
     └── book_time.py
 ```
 
-Die in Phase 3 festgelegten Commands, Results, Fakes und Use Cases entsprechen dem dokumentierten Fachmodell und den Prüfregeln. Die in Pflichtenheft v4 geforderten Kernabläufe, Korrektur-/Nachtragsmechanismen und Prüfpfade sind damit in der Anwendungslogik abgebildet.[cite:7][cite:8]
+Die in Phase 3 festgelegten Commands, Results, Fakes und Use Cases entsprechen dem dokumentierten Fachmodell und den Prüfregeln. Die in Pflichtenheft v5 geforderten Kernabläufe, Korrektur-/Nachtragsmechanismen und Prüfpfade sind damit in der Anwendungslogik abgebildet.[cite:7][cite:8]
 
 ---
 
 ### Phase 4 – Infrastruktur ✓ vollständig abgeschlossen
 
-Phase 4 schließt Datenbank-Integration, echte Repositorys, Unit of Work, Backup, Export, Pflichtauswertungen und Selbsttest. Die technische Umsetzung deckt damit große Teile von Pflichtenheft v4 §7.10–§7.12, §9.3, §12 und §14 ab.[cite:7][cite:8]
+Phase 4 schließt Datenbank-Integration, echte Repositorys, Unit of Work, Backup, Export, Pflichtauswertungen und Selbsttest. Die technische Umsetzung deckt damit große Teile von Pflichtenheft v5 §7.11–§7.13, §9.3, §12 und §14 ab.[cite:7][cite:8]
 
 Wesentliche Punkte:
 - `SQLiteUnitOfWork` mit konsequenter commit-or-rollback-Semantik.[cite:7]
@@ -195,7 +215,8 @@ Die Präsentationsschicht umfasst `presentation/terminal_ui/` und `presentation/
 Wesentliche Punkte:
 - Terminal-UI mit `process_booking()`, `format_feedback()`, Systemcheck beim Start und Fehlerprotokollierung.[cite:7]
 - Admin-CLI mit Befehlen für Mitarbeiter, Karten, Buchungen, Regelzeiten, Reports und Systemfunktionen.[cite:7]
-- Pflichtauswertungen sind in der Anwendung einsehbar und exportierbar, wie es Pflichtenheft v4 §7.12 verlangt.[cite:7][cite:8]
+- Admin-CLI `users`-Gruppe (Pflichtenheft v5 §7.9): `users add`, `users list`, `users deactivate`. Passwort-Hashing via `hashlib.pbkdf2_hmac`. Audit-Events `USER_ACCOUNT_CREATED`, `USER_ACCOUNT_DEACTIVATED` im Audit-Log. Implementiert nach Phase-5-Abschluss als direktes Folge-Increment zu §7.9.[cite:8]
+- Pflichtauswertungen sind in der Anwendung einsehbar und exportierbar, wie es Pflichtenheft v5 §7.13 verlangt.[cite:7][cite:8]
 - Systemzeitprotokollierung ist in den Loop integriert und damit auch betrieblich angebunden.[cite:7]
 
 **Offener Architekturpunkt – `device_event_id`-Verkettung:**
@@ -215,7 +236,7 @@ Die Spalte `time_bookings.device_event_id` ist im Schema vorhanden. Die vollstä
 
 Die vorhandene Testdokumentation weist die Pflichtszenarien fachlich gut zu. Anlage v2 fordert darüber hinaus eine **revisionsfeste Testmatrix**, die Muss-Anforderungen und Abnahmekriterien direkt einzelnen Tests zuordnet. Diese Matrix ist nicht Teil des vorliegenden Dokuments und bleibt als gesonderter Nachweispunkt offen.[cite:7][cite:10]
 
-## V4-/V2-Abgleich: offene Punkte und externe Auflagen
+## V5-/V2-Abgleich: offene Punkte und externe Auflagen
 
 Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** und bewusst als offen oder extern gekennzeichnet, weil sie laut Referenzdokumenten nicht allein durch den implementierten Code als erledigt gelten dürfen:[cite:8][cite:9][cite:10]
 
@@ -226,8 +247,11 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 - Datenschutz- und Backup-Unterlagen der Praxis für AV-Vertrag, Schlüsselverwaltung, Speicherorte, TOM, Rotationskonzept und Restore-Freigabe.[cite:8][cite:9][cite:10]
 - Formale Einbindung des Systems in das Praxis-IT-Sicherheitskonzept nach § 75b SGB V.[cite:8][cite:9][cite:10]
 - Optionale Cloud-Backup-Nutzung nur mit vorgelagerter clientseitiger Verschlüsselung und sauber dokumentierter datenschutzrechtlicher Grundlage; eine operative Cloud-Backup-Implementierung ist in diesem Plan nicht beschrieben.[cite:8][cite:9]
+- `users reactivate`: Reaktivierung deaktivierter Benutzerkonten (Pflichtenheft v5 §7.9, Regelwerk v5 §16). Noch nicht implementiert.[cite:8][cite:9]
+- `users change-role`: Rollenwechsel eines bestehenden Benutzerkontos (Pflichtenheft v5 §7.9, Regelwerk v5 §16). Audit-Event `USER_ACCOUNT_ROLE_CHANGED` erforderlich. Noch nicht implementiert.[cite:8][cite:9]
+- Bootstrap-Prozess: Ersteinrichtung des ersten Administratorkontos über die CLI, solange noch kein aktives Administratorkonto vorhanden ist (Pflichtenheft v5 §7.9). Aktuell nur per direktem SQL möglich; kein betriebsprozess-tauglicher Weg vorhanden. Noch nicht implementiert.[cite:8][cite:9]
 
-## V3 §16 / Pflichtenheft §16 Testpflicht-Abdeckung
+## Pflichtenheft v5 §16 Testpflicht-Abdeckung
 
 | Pflichtszenario | Abdeckung | Status |
 | --- | --- | --- |
@@ -240,5 +264,16 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 | Notfallnachtrag | `tests/application/test_register_supplement.py` | ✓ |
 | Restore-Test mit echtem Backup | `tests/e2e/test_backup.py` | ✓ |
 | Auswertung offener und auffälliger Fälle | `tests/integration/test_export.py` | ✓ |
+| Bootstrap-Prozess: erster Admin über CLI, solange kein aktives Admin-Konto existiert | — | ✗ offen |
+| Anlegen Benutzerkonto mit Rolle `REVIEWER` | `tests/integration/test_user_accounts.py` | ✓ |
+| Anlegen Benutzerkonto mit Rolle `TECH` | `tests/integration/test_user_accounts.py` | ✓ |
+| Zurückweisung ungültiger Rollenwerte | `tests/integration/test_user_accounts.py` | ✓ |
+| Zurückweisung doppelter Benutzernamen | `tests/integration/test_user_accounts.py` | ✓ |
+| Deaktivierung eines Benutzerkontos | `tests/integration/test_user_accounts.py` | ✓ |
+| Reaktivierung eines Benutzerkontos | — | ✗ offen |
+| Rollenwechsel eines bestehenden Benutzerkontos | — | ✗ offen |
+| Zugriffsschutz: Nicht-Admin darf keine Benutzer-/Rollenänderung ausführen | `tests/integration/test_user_accounts.py` | ✓ |
+| Audit-Log-Nachweis für Anlage und Deaktivierung | `tests/integration/test_user_accounts.py` | ✓ |
+| Audit-Log-Nachweis für Reaktivierung und Rollenwechsel | — | ✗ offen |
 
 Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. Sie ersetzt nicht die zusätzlich geforderte formale Testmatrix für Abnahme- und Revisionszwecke.[cite:7][cite:8][cite:10]
