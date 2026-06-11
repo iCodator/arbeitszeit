@@ -168,6 +168,9 @@ Domänen-Kern-Events (originär Phase 2):
 Infrastruktur-Events (später ergänzt, Phase 4/Schritt 9b):
   BACKUP_CREATED, BACKUP_SYNCED_TO_NAS, BACKUP_SYNC_FAILED, RESTORE_COMPLETED.
 
+Benutzerverwaltungs-Events (später ergänzt, users-Modul Phase 5+):
+  USER_ACCOUNT_CREATED, USER_ACCOUNT_DEACTIVATED.
+
 Verhindert freie String-Literale im Code (Regelwerk v5 §11-konform).
 
 
@@ -323,8 +326,9 @@ Invarianten getestet, Protokolle definiert — nicht als: Gesamtsystem ausliefer
 
 ## V4-Bezüge und organisatorische Auflagen
 
-Verbindliche Referenzdokumente: `docs/pflichtenheft_arbeitszeit_v5.md`,
-`docs/regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+Verbindliche Referenzdokumente: `pflichtenheft_arbeitszeit_v5.md`,
+`regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.
+(Pflichtenheft v5 und Regelwerk v5 liegen im Projektwurzel, nicht in `docs/`.)
 
 Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
