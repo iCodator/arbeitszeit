@@ -138,8 +138,6 @@ Eindeutig belegt sind die Paketstruktur, die vorhandenen Einstiegspunkte, die SQ
 
 Nicht jeder fachliche Zielanspruch aus den Projektdokumenten lässt sich bereits als vollständig nachgewiesene Gesamteigenschaft des aktuellen Repositorystands formulieren. Das betrifft insbesondere pauschale Aussagen zur vollständigen rechtlichen Absicherung im Produktiveinsatz, zu konkreten Betriebsprozessen in einer Praxisumgebung und zu NAS-spezifischen Backup-Abläufen, soweit diese nicht unmittelbar im Code oder in klar zuordenbaren Konfigurationsdateien implementiert sind.
 
-Auffällig ist zudem ein Widerspruch zwischen dem Projektkontext "Python 3.11" und der aktuell im Repository hinterlegten Anforderung `>=3.14,<3.15` in `pyproject.toml`. Für neue Mitentwickler sollte dieser Punkt vor weiterer Nutzung oder Dokumentationsfortschreibung zuerst geklärt werden.
-
 ## Weiterführende Dokumentation
 
 - [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) – separate Installationsanleitung.
