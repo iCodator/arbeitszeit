@@ -177,7 +177,51 @@ Bei wesentlichen Änderungen (z.B. Major-Release, Umbau der Infrastruktur, Praxi
 
 ---
 
-## 11. Bezug zu anderen Dokumenten
+## 11. Wann ist dieses Protokoll erneut zu verwenden?
+
+Dieses Betriebsfreigabe-Protokoll ist nicht nur einmalig zu verwenden, sondern
+bei bestimmten Änderungen erneut auszufüllen oder in Abschnitt 10 zu ergänzen.
+
+Eine **erneute Betriebsfreigabe** (neues Protokoll oder Ergänzung zu Abschnitt 10)
+ist erforderlich, wenn mindestens einer der folgenden Punkte zutrifft:
+
+- **Neue Hauptversion des Systems**
+  - Versionssprung im `pyproject.toml` im MAJOR-Teil (z.B. `0.9.x` → `1.0.0`
+    oder `1.x` → `2.0.0`).
+  - Einführung wesentlicher neuer Kernfunktionen oder Änderungen, die das bisherige
+    Verhalten fachlich spürbar beeinflussen (z.B. neue ArbZG-Prüflogik).
+
+- **Wechsel oder wesentliche Änderung der Hardware-Plattform**
+  - Austausch des Terminalgeräts (PC/NUC/Thin Client).
+  - Austausch des RFID-Readers oder USB-Numpads durch ein anderes Modell.
+  - Änderung der Anschlussart mit möglichem Einfluss auf das Verhalten
+    (z.B. neue Dockingstation, anderer USB-Hub).
+
+- **Relevante Infrastrukturänderungen**
+  - Umzug der SQLite-Datenbank auf ein anderes Laufwerk oder Dateisystem.
+  - Einführung oder Wechsel der NAS-Lösung für Backups.
+  - Wechsel des Betriebssystems oder Major-Upgrade (z.B. neue Linux-Hauptversion).
+  - Änderung der Backup- und Restore-Strategie (Rotation, zusätzlicher Standort).
+
+- **Bedeutende fachliche oder organisatorische Änderungen**
+  - Anpassung der fachlichen Regeln zur Zeiterfassung oder den Prüffunktionen
+    (Pausen, Ruhezeiten, Höchstarbeitszeiten).
+  - Änderung des Rollen- oder Berechtigungskonzepts (z.B. neue Rollen, andere Zuständigkeiten).
+  - Praxisumzug oder Eröffnung weiterer Standorte mit eigenen Terminals.
+  - Wechsel der Praxisleitung / verantwortlichen Stelle mit neuer Zuständigkeitsverteilung.
+
+- **Sicherheits- oder Datenschutzanlässe**
+  - Schwerwiegender Sicherheits- oder Datenschutzvorfall, nach dem das System
+    oder seine Konfiguration überarbeitet wurde.
+  - Ergebnisse einer Datenschutz- oder IT-Sicherheitsprüfung, die wesentliche
+    Maßnahmen am System erforderlich gemacht haben.
+
+In Zweifelsfällen kann die Praxis entscheiden, ob eine kurze Ergänzung in
+Abschnitt 10 („Wiederholte Betriebsfreigabe / Änderungen“) genügt oder ein neues,
+vollständig ausgefülltes Protokoll angelegt wird.
+
+---
+## 12. Bezug zu anderen Dokumenten
 
 Dieses Betriebsfreigabe-Protokoll steht in Zusammenhang mit:
 
