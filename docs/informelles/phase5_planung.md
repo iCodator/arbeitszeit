@@ -254,7 +254,7 @@ keinen RESERVED-Lock mehr hält, wenn `audit_conn` schreiben will.
 - Nachtrag genehmigen (inaktiver Mitarbeiter) → InactiveEmployeeError
 - Nachtrag genehmigen (unbekannter Benutzer) → PermissionDeniedError
 
-361 Tests grün (alle Ebenen, Stand Phase 5/Schritt 2; heute 395).
+361 Tests grün (historischer Stand Phase 5/Schritt 2); heutiger Gesamtstand: 395 Tests.
 
 Strukturiertes CLI (argparse oder click), untergeordnete Befehle:
 
@@ -319,6 +319,7 @@ protokolliert (bereits in `system_check.py` implementiert).
 
 Terminal-UI ruft Systemcheck beim Start automatisch auf.
 Bei kritischem Befund: Warnung ausgeben, aber weiterlaufen (kein Hard-Stop).
+Betriebliche Abläufe (Terminal-UI + Admin-CLI): `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` Abschnitte 3–4.
 
 
 ### Schritt 5 – Systemzeitprotokollierung  ✓
@@ -372,7 +373,7 @@ tests/e2e/test_booking_flow.py    — vollständiger Buchungsablauf
                                      (12 Tests, inkl. 2 APPLICATION_ERROR-Tests)
 tests/e2e/test_supplement_flow.py — Nachtrag von Erfassung bis Genehmigung
                                      inkl. Ablehnung, Rollenprüfung
-                                     (Schätzung: ~8 Tests)
+                                     (8 Tests)
 ```
 
 tests/e2e/ verwendet Simulator (SimulatedHardwareReader) und

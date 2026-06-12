@@ -392,6 +392,7 @@ zugeordnet, da es Phase-4-Infrastruktur nutzt.
 Exportdateien-Sicherung, 3 neue restore_exports-Tests aus phase4_coding_aufgabe).
 Deckt V5 §14/§20 und Regelwerk v5 §20 ab.
 V5 §16-Testpflicht „Restore-Test mit echtem Backup" erfüllt (PRAGMA integrity_check explizit).
+Betriebliche Abläufe: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` Abschnitt 5.
 
 `restore_from()` unterstützt seit phase4_coding_aufgabe optionalen Parameter
 `restore_exports: bool = False` — kopiert `backup_dir/exports/` zurück in `export_dir`
@@ -631,6 +632,7 @@ Werte laut `0001_schema.sql` sind `SELFTEST_OK` und `SELFTEST_FAIL`.
 Schnittstelle: `run_system_check(db_path, *, numpad_path=None, rfid_path=None) -> SystemCheckResult`
 17 Integrationstests in `tests/integration/test_system_check.py`.
 Phase 5 ergänzt nur den UI-Aufrufpunkt (manuell aus Admin-CLI auslösbar).
+Betriebliche Abläufe: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` Abschnitt 7.
 
 
 ---

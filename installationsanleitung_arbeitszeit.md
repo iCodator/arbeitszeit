@@ -1,4 +1,4 @@
-# Installationsanleitung für arbeitszeit
+# Installationsanleitung für arbeitszeit - v1.0
 
 Diese Anleitung erklärt Schritt für Schritt, wie das Zeiterfassungssystem **arbeitszeit** auf einem Linux-Rechner installiert wird. Das Ziel ist eine einfache Ersteinrichtung auch für Personen, die nicht täglich mit Python-Projekten arbeiten. Die Anwendung läuft vollständig lokal, speichert ihre Daten in einer SQLite-Datenbank und benötigt keinen Cloud-Dienst.
 

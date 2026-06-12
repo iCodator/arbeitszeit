@@ -349,3 +349,19 @@ Was diese Phase technisch leistet und was als externe organisatorische Auflagen
 (ArbSchG §3, IT-Sicherheitsrichtlinie §75b SGB V, Betriebsdokumentation, revisionsfeste
 Testmatrix) außerhalb des Codes verbleibt, ist in `planung_gesamt.md` Abschnitt
 „Offene Praxis- und Nachweispflichten" beschrieben.
+
+
+---
+
+## Kompakte Migrationsübersicht
+
+Ergänzt 2026-06-11. Belegbasis: SQL-Kommentare und DDL/INSERT-Inhalt der Migrationsdateien.
+
+| Migration | Technische Änderung | Fachliche Änderung | Änderungstyp | Belegbasis / Kommentar |
+| --- | --- | --- | --- | --- |
+| `0001_schema.sql` | 16 Tabellen (incl. schema_migrations), 17 Indizes, FK-Constraints, CHECK-Constraints | Vollständiges Fachschema: employees, user_accounts, rfid_cards, time_bookings, device_events, supplements, booking_corrections, review_cases u.a. | Initialschema | DDL vollständig lesbar; kein SQL-Kommentar vorhanden |
+| `0002_seed_defaults.sql` | INSERT in work_schedule_versions (5 Zeilen), system_config (4 Zeilen); audit_log (9 Einträge automatisch) | Mo–Fr Regelarbeitszeiten 07:30–18:00 (Do 14:00, Fr 16:00); Standardkonfig (backup.nas_enabled=false, app.timezone=Europe/Berlin) | fachliche Erweiterung | INSERT-Inhalt direkt lesbar; kein SQL-Kommentar vorhanden |
+| `0003_cleanup_booking_status.sql` | CHECK-Constraint auf time_bookings.current_status und booking_status_history.new_status bereinigt (Table-Rebuild) | Entfernung von POSSIBLE_* und MANUAL_ENTRY aus BookingStatus — orthogonale Modellierung via ReviewCaseType und BookingSource | Compliance-/Nachweisfeld | SQL-Kommentar Z.1–5: „BookingStatus bereinigen, POSSIBLE_*und MANUAL_ENTRY entfernen" |
+| `0004_supplement_reject_fields_and_review_note.sql` | supplements: rejected_by_user_id, rejected_at als eigene Felder; review_cases: note TEXT ergänzt | Ablehnung formal von Genehmigung getrennt; Prüffall-Notiz als eigenständiges Feld | fachliche Erweiterung | SQL-Kommentar Z.1–6: „Semantische Trennung Genehmigung/Ablehnung, Notizfeld für Prüffälle" |
+| `0005_time_bookings_device_event_id.sql` | device_event_id INTEGER FK REFERENCES device_events(id); Table-Rebuild; bestehende Zeilen device_event_id=NULL | Schemaverknüpfung time_bookings → device_events vorbereitet; operative Nutzung zum Migrationszeitpunkt noch nicht aktiv | Vorbereitungspunkt ohne belegte operative Nutzung zum Zeitpunkt der Migration | SQL-Kommentar Z.1–3; operative Nutzung aktiviert mit Commit `0f20931` (2026-06-11) |
+| `0006_system_events_application_error.sql` | CHECK-Constraint system_events.event_type um APPLICATION_ERROR erweitert; Table-Rebuild | Neuer Systemereignistyp für abgefangene Laufzeitfehler (Prozess läuft weiter); Abgrenzung zu APPLICATION_STOP | technische Strukturergänzung | SQL-Kommentar Z.1–5: „APPLICATION_ERROR protokolliert Laufzeitfehler bei weitergeführtem Betrieb" |

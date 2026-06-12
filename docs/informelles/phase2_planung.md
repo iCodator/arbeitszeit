@@ -324,7 +324,7 @@ Invarianten getestet, Protokolle definiert — nicht als: Gesamtsystem ausliefer
 
 ---
 
-## V4-Bezüge und organisatorische Auflagen
+## V5-Bezüge und organisatorische Auflagen
 
 Verbindliche Referenzdokumente: `pflichtenheft_arbeitszeit_v5.md`,
 `regelwerk_arbeitszeit_v5.md`, `docs/anlage_einhaltung_pflichtenheft_v2.md`.

@@ -199,6 +199,8 @@ src/arbeitszeit/application/
 
 Die in Phase 3 festgelegten Commands, Results, Fakes und Use Cases entsprechen dem dokumentierten Fachmodell und den Prüfregeln. Die in Pflichtenheft v5 geforderten Kernabläufe, Korrektur-/Nachtragsmechanismen und Prüfpfade sind damit in der Anwendungslogik abgebildet.
 
+Hinweis: `approve_supplement.py` und `reject_supplement.py` wurden in Phase 3 vorimplementiert (Phase-4-Inhalt). Detailliert dokumentiert in `phase3_planung.md`.
+
 ---
 
 ### Phase 4 – Infrastruktur ✓ vollständig abgeschlossen
@@ -250,7 +252,7 @@ Die vorhandene Testdokumentation weist die Pflichtszenarien fachlich gut zu. Anl
 
 Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** und bewusst als offen oder extern gekennzeichnet, weil sie laut Referenzdokumenten nicht allein durch den implementierten Code als erledigt gelten dürfen:
 
-- Schriftlich verabschiedete Betriebsdokumentation zu Exportverzeichnis, Dateirechten, Aufbewahrung, Löschregeln, Backup und Restore.
+- Schriftlich verabschiedete Betriebsdokumentation zu Exportverzeichnis, Dateirechten, Aufbewahrung, Löschregeln, Backup und Restore. Technische Betriebsdokumentation erstellt: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` (2026-06-11); formale Verabschiedung außerhalb des Repos.
 - ~~Revisionsfeste Testmatrix~~ — erstellt: `docs/informelles/testmatrix_revision_v1.md` (2026-06-11).
 - ~~Entscheidung und vollständige produktive Umsetzung des `device_events`-/`device_event_id`-Pfads~~ — implementiert (Commit `0f20931`) und dokumentiert (`device_event_architekturentscheidung_v1.md`).
 - Organisatorische Zuordnung von Rollen, Freigabeverantwortungen, Prüfintervallen und IT-Sicherheitsverantwortlichkeiten in der Praxis.
@@ -258,6 +260,10 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 - Formale Einbindung des Systems in das Praxis-IT-Sicherheitskonzept nach § 75b SGB V.
 - Optionale Cloud-Backup-Nutzung nur mit vorgelagerter clientseitiger Verschlüsselung und sauber dokumentierter datenschutzrechtlicher Grundlage; eine operative Cloud-Backup-Implementierung ist in diesem Plan nicht beschrieben.
 - ~~`users reactivate`, `users change-role`, Bootstrap-Prozess~~ — implementiert (Phase 5 abgeschlossen).
+
+Evidenzgrenzen (was aus dem Repo belegbar ist und was nicht): `docs/informelles/audit_evidenzgrenzen_v1.md`.
+
+Phasenübergreifende Nachtragsmatrix (vorgezogene/nachgezogene Artefakte, 44 Einträge): `docs/informelles/nachtragsmatrix_phasen_v1.md` (2026-06-11).
 
 ## Pflichtenheft v5 §16 Testpflicht-Abdeckung
 
