@@ -251,8 +251,8 @@ Die vorhandene Testdokumentation weist die Pflichtszenarien fachlich gut zu. Anl
 Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** und bewusst als offen oder extern gekennzeichnet, weil sie laut Referenzdokumenten nicht allein durch den implementierten Code als erledigt gelten dürfen:
 
 - Schriftlich verabschiedete Betriebsdokumentation zu Exportverzeichnis, Dateirechten, Aufbewahrung, Löschregeln, Backup und Restore.
-- Revisionsfeste Testmatrix mit direkter Zuordnung von Muss-Anforderungen und Abnahmekriterien zu konkreten Tests.
-- Entscheidung und vollständige produktive Umsetzung des `device_events`-/`device_event_id`-Pfads.
+- ~~Revisionsfeste Testmatrix~~ — erstellt: `docs/informelles/testmatrix_revision_v1.md` (2026-06-11).
+- ~~Entscheidung und vollständige produktive Umsetzung des `device_events`-/`device_event_id`-Pfads~~ — implementiert (Commit `0f20931`) und dokumentiert (`device_event_architekturentscheidung_v1.md`).
 - Organisatorische Zuordnung von Rollen, Freigabeverantwortungen, Prüfintervallen und IT-Sicherheitsverantwortlichkeiten in der Praxis.
 - Datenschutz- und Backup-Unterlagen der Praxis für AV-Vertrag, Schlüsselverwaltung, Speicherorte, TOM, Rotationskonzept und Restore-Freigabe.
 - Formale Einbindung des Systems in das Praxis-IT-Sicherheitskonzept nach § 75b SGB V.
@@ -283,5 +283,8 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 | Zugriffsschutz: Nicht-Admin darf keine Benutzer-/Rollenänderung ausführen | `tests/integration/test_user_accounts.py` | ✓ |
 | Audit-Log-Nachweis für Anlage und Deaktivierung | `tests/integration/test_user_accounts.py` | ✓ |
 | Audit-Log-Nachweis für Reaktivierung und Rollenwechsel | `tests/integration/test_user_accounts.py` | ✓ |
+| device_events-Record bei erfolgreicher Buchung + Verknüpfung device_event_id | `tests/integration/test_device_event_booking.py::test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id` | ✓ |
+| device_events-Record bei abgewiesener Buchung (UnknownCard) | `tests/integration/test_device_event_booking.py::test_unknown_card_schreibt_device_event_aber_keine_buchung` | ✓ |
+| INSERT-Fehler device_events verhindert Buchung | `tests/integration/test_device_event_booking.py::test_fehler_im_device_event_insert_verhindert_buchung` | ✓ |
 
-Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. Sie ersetzt nicht die zusätzlich geforderte formale Testmatrix für Abnahme- und Revisionszwecke.
+Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/informelles/testmatrix_revision_v1.md`.
