@@ -1,204 +1,150 @@
 # arbeitszeit
 
-Lokales Zeiterfassungssystem für eine Zahnarztpraxis. Mitarbeiter buchen Arbeitszeiten
-über ein physisches Terminal (USB-Numpad + RFID-Leser). Eine separate Admin-CLI verwaltet
-Stammdaten, Berichte und den Betrieb.
+Lokales Zeiterfassungssystem für eine Zahnarztpraxis mit Python, SQLite, Terminal-Oberfläche und angebundener HID-Hardware für Buchungen.
 
-Das System läuft vollständig lokal — kein externer Server, kein Cloud-Dienst. Daten werden
-in einer SQLite-Datenbank gespeichert, Backups optional auf einen NAS gespiegelt.
+## Kurzüberblick
 
----
+- `arbeitszeit` ist ein lokal betriebenes Zeiterfassungssystem als Python-Paket im `src`-Layout.
+- Das Repository richtet sich an Betreiber und Mitentwickler eines Zeiterfassungssystems für eine kleine Praxisumgebung.
+- Technisch prägend sind eine getrennte Schichtenstruktur (`domain`, `application`, `infrastructure`, `presentation`), SQLite-Migrationen, CLI-/Terminal-Einstiegspunkte sowie evdev-basierte Hardwareanbindung.
+- Die vorhandenen Dokumente und Module beziehen sich auf Linux-Betrieb mit lokalen Dateien statt Cloud-Backend.
+- Der Projektstand wirkt auf Nachvollziehbarkeit, Prüfbarkeit und klar getrennte Verantwortlichkeiten zwischen Fachlogik, Datenbank, Export, Backup und Hardware ausgelegt.
 
-## Funktionsumfang
+## Zweck und Einsatzbereich
 
-**Terminal (Kiosk-Betrieb)**
-- Buchungserfassung: KOMMEN / GEHEN / PAUSE_ANFANG / PAUSE_ENDE via Numpad + RFID-Karte
-- Automatische Compliance-Prüfung (ArbZG §3 Höchstarbeitszeit, §5 Ruhezeit, §4 Pausenregel)
-- Protokollierung unbekannter und inaktiver Karten
-- Systemzeitüberwachung (erkennt Zeitsprünge während Betrieb)
+Das Projekt dient der lokalen Arbeitszeiterfassung in einer Zahnarztpraxis. Aus Paketbeschreibung, Dokumentation und Modulstruktur geht hervor, dass Buchungen, Korrekturen, Nachträge, Berichte, Backups und Systemprüfungen in einem lokal betriebenen System zusammengeführt werden sollen.
 
-**Admin-CLI**
-- Mitarbeiter- und RFID-Kartenverwaltung
-- Nachtragserfassung und Genehmigung / Ablehnung
-- Buchungskorrekturen (Altstand bleibt erhalten, kein stilles Überschreiben)
-- Regelarbeitszeitverwaltung (global und mitarbeiterspezifisch)
-- Pflichtauswertungen als tabellarische In-App-Ansicht und CSV- / PDF-Export
-- Manuelles Backup mit optionalem NAS-Sync
-- Systemcheck auf einen Blick
+Die Struktur des Repositories legt einen Betrieb auf Linux-Systemen mit SQLite-Datenbank und angebundenen Eingabegeräten nahe. Die Umsetzung ist dabei nicht als Cloud-Anwendung organisiert, sondern als lokal auszuführendes Python-Projekt mit Skripten, Migrationen und getrennten Oberflächen für Terminalbetrieb und Administration.
 
----
+## Systemumfang
 
-## Voraussetzungen
-
-- Python 3.11 oder 3.12
-- Linux (evdev für Hardware-Zugriff)
-- USB-Numpad und RFID-Leser (für Terminal-Betrieb; Simulator für Tests vorhanden)
-
-```bash
-pip install -e ".[dev]"
-```
-
----
-
-## Ersteinrichtung
-
-```bash
-# 1. Datenbank initialisieren (Migrationen + Seed-Daten)
-python scripts/init_db.py --db arbeitszeit.db
-
-# 2. Deployment-spezifische Pfade konfigurieren (einmalig)
-python scripts/setup.py --db arbeitszeit.db
-#   → fragt interaktiv nach Backup-Verzeichnis und Export-Verzeichnis
-#   Alternativ nicht-interaktiv:
-python scripts/setup.py --db arbeitszeit.db \
-    --backup-dir /var/backups/arbeitszeit \
-    --export-dir /var/exports/arbeitszeit
-```
-
----
-
-## Betrieb
-
-### Terminal-UI starten
-
-```bash
-python -m arbeitszeit.presentation.terminal_ui.main \
-    --db arbeitszeit.db \
-    --numpad /dev/input/by-id/usb-numpad \
-    --rfid   /dev/input/by-id/usb-rfid \
-    --terminal-id 1
-```
-
-Das Terminal läuft als Endlosschleife und beendet sich sauber bei `SIGTERM` / `SIGINT`.
-
-### Admin-CLI
-
-```bash
-# Datenbank und Benutzer-ID via Flags
-python -m arbeitszeit.presentation.admin_cli.main \
-    --db arbeitszeit.db \
-    --user-id 1 \
-    <Befehl>
-```
-
-**Übersicht der Befehle:**
-
-| Gruppe | Befehl | Beschreibung |
+| Bereich | Beschreibung | Status |
 |---|---|---|
-| `employees` | `list` | Alle Mitarbeiter anzeigen |
-| | `add` | Mitarbeiter anlegen |
-| | `deactivate` / `reactivate` | Status ändern |
-| | `assign-card` / `replace-card` | RFID-Karte zuweisen |
-| `bookings` | `supplement add` | Nachtrag anlegen |
-| | `supplement approve` / `reject` | Nachtrag genehmigen / ablehnen |
-| | `correct` | Buchung korrigieren |
-| `schedule` | `show` | Aktuelle Regelarbeitszeiten |
-| | `set` | Neue Regelarbeitszeit setzen |
-| `reports` | `open-bookings` | Offene Buchungen |
-| | `warn-cases` | Buchungen mit Prüfstatus |
-| | `corrections` | Korrekturen |
-| | `supplements` | Nachträge |
-| | `open-review-cases` | Offene Prüffälle |
-| | `export-csv` | Detailexport als CSV |
-| | `export-pdf-daily` / `weekly` / `monthly` | PDF-Berichte |
-| | `export-employee` | Mitarbeiterbericht (CSV) |
-| `system` | `check` | Systemcheck ausführen |
-| | `backup` | Manuelles Backup erstellen |
+| Terminalbetrieb | Terminal-Einstiegspunkt für den operativen Buchungsbetrieb mit Endlosschleife, Systemcheck und Hardware-Lesern über `src/arbeitszeit/presentation/terminal_ui/main.py`. | vorhanden |
+| Admin-CLI | Separate Admin-Oberfläche mit Modulen für Buchungen, Mitarbeitende, Berichte, Dienstplan, System und Benutzerkonten unter `src/arbeitszeit/presentation/admin_cli/`. | vorhanden |
+| Fachlogik | Fachobjekte, Fehler, Enums, Audit-Ereignisse und Domänen-Services unter `src/arbeitszeit/domain/`. | vorhanden |
+| Use-Cases | Anwendungsfälle für Buchen, Korrigieren, Nachträge sowie Genehmigen oder Ablehnen von Ergänzungen unter `src/arbeitszeit/application/use_cases/`. | vorhanden |
+| Datenbank | SQLite-Anbindung, Repository-Schicht, Unit-of-Work und SQL-Migrationen unter `src/arbeitszeit/infrastructure/db/` und `migrations/`. | vorhanden |
+| Hardware | evdev-basierter Reader für Numpad und RFID-Reader sowie Simulator unter `src/arbeitszeit/infrastructure/hardware/`. | vorhanden |
+| Exporte | CSV-Export, PDF-Berichtserzeugung und Report-Abfragen unter `src/arbeitszeit/infrastructure/export/`. | vorhanden |
+| Backups | Backup-Service im Paket und separates Skript `scripts/backup.py`. | vorhanden |
+| Rechtliche Vollständigkeit im Produktivbetrieb | Das Zielbild wird in den Fach- und Projektdokumenten beschrieben, ist als Gesamteigenschaft des aktuellen Repostands aber nicht vollständig allein aus Codepfaden belegbar. | nicht eindeutig belegbar |
+| NAS-Backup | In der Projektdokumentation erwähnt, als konkrete NAS-spezifische Implementierung im Codebestand jedoch nicht eindeutig ausgewiesen. | nicht eindeutig belegbar |
 
-Alle Befehle akzeptieren `--from` / `--to` für Zeitraumfilter (ISO-8601-Datum).
+## Technik und Rahmenbedingungen
 
-### Backup (automatisch per systemd-Timer oder manuell)
-
-```bash
-python scripts/backup.py \
-    --db arbeitszeit.db \
-    --backup-dir /var/backups/arbeitszeit
-```
-
-NAS-Sync wird über `backup.nas_enabled` und `backup.nas_path` in `system_config` gesteuert
-(via `admin system backup` oder direkt per SQL). Der NAS-Pfad wird als striktes Spiegelziel
-geführt (`rsync --delete`), nicht als eigenständiges Langzeitarchiv.
-
----
-
-## Architektur
-
-```text
-src/arbeitszeit/
-├── domain/          Enums, Entities, Businessregeln, Compliance-Checks, Repository-Ports
-├── application/     Use Cases, Commands, Results, Unit-of-Work-Protocol
-├── infrastructure/  SQLite-Repos, UoW, Hardware-Adapter, Backup, Export, Systemcheck
-└── presentation/
-    ├── terminal_ui/ Kiosk-Schleife: Numpad → RFID → BookUseCase → Feedback
-    └── admin_cli/   argparse-CLI für Verwaltung und Betrieb
-```
-
-**Wichtige Architekturentscheidungen:**
-
-- Buchungen werden nie physisch gelöscht; Klärung ausschließlich über Status
-  (`CORRECTED`, `CLOSED_WITH_NOTE`) oder Korrekturobjekte (ArbZG §16 Abs. 2).
-- Audit-Log schreibt **nach** `uow.commit()` über eine separate `audit_conn`-Verbindung
-  (SQLite WAL: verhindert RESERVED-Lock-Konflikt bei gleichzeitigem Schreiben).
-- `report_queries.py` ist die einzige Wahrheitsquelle für alle Berichte und Exporte.
-- Compliance-Prüfungen (ArbZG §3 / §4 / §5) laufen in der Domain-Schicht, nicht in SQLite.
-
----
-
-## Datenbankschema
-
-16 Tabellen in `migrations/0001_schema.sql` (15 fachliche + `schema_migrations`):
-
-| Ebene | Tabellen |
+| Thema | Wert |
 |---|---|
-| Person | `employees`, `user_accounts`, `rfid_cards` |
-| Erfassung | `terminals`, `time_bookings`, `device_events` |
-| Prüfung | `review_cases`, `review_case_actions`, `booking_status_history` |
-| Änderung | `booking_corrections`, `supplements`, `work_schedule_versions` |
-| Nachweis | `audit_log`, `system_events`, `system_config` |
-
-Migrationen werden versioniert und idempotent über `scripts/init_db.py` angewendet.
-
----
-
-## Tests
-
-```bash
-# Alle Tests
-python -m pytest
-
-# Mit Coverage
-python -m pytest --cov=arbeitszeit --cov-report=term-missing
-```
-
-369 Tests in vier Ebenen:
-
-| Verzeichnis | Inhalt |
-|---|---|
-| `tests/domain/` | Domänenregeln, Entity-Invarianten |
-| `tests/application/` | Use Cases mit Fake-Repos |
-| `tests/integration/` | Repositories und UoW gegen echte SQLite-DB |
-| `tests/e2e/` | Vollständige Abläufe mit Hardware-Simulator |
-
----
+| Programmiersprache | Python |
+| Python-Version | `>=3.14,<3.15` in `pyproject.toml`; zusätzlich liegt `.python-version` im Repository vor |
+| Paketname | `arbeitszeit` |
+| Paketversion | `0.1.0` |
+| Datenbank | SQLite |
+| Hardwarebezug | evdev, USB-HID-Eingabegeräte für Numpad und RFID-Reader |
+| Betriebsart | lokal ausgeführtes Python-Projekt mit Dateien, Skripten und lokaler Datenbank |
+| Externe Dienste | keine externen Dienste im `pyproject.toml` ausgewiesen |
+| Kernabhängigkeiten | `evdev`, `reportlab` |
+| Dev-Abhängigkeiten | `pytest`, `pytest-cov`, `pypdf`, `ruff` |
 
 ## Projektstruktur
 
-```text
-arbeitszeit/
-├── migrations/          SQL-Migrationen (0001–0006)
-├── scripts/
-│   ├── init_db.py       Datenbankinitialisierung
-│   ├── setup.py         Ersteinrichtung (einmalig nach init_db.py)
-│   └── backup.py        Backup-Script für systemd-Timer / cron
-├── src/arbeitszeit/     Quellcode (siehe Architektur)
-├── tests/               Testsuites
-└── docs/
-    ├── pflichtenheft_arbeitszeit_v3.md
-    └── regelwerk_arbeitszeit_v3.md
+| Pfad | Bedeutung |
+|---|---|
+| [`pyproject.toml`](pyproject.toml) | Paketdefinition, Abhängigkeiten und pytest-Konfiguration. |
+| [`src/arbeitszeit/`](src/arbeitszeit) | Python-Paket im `src`-Layout. |
+| [`src/arbeitszeit/domain/`](src/arbeitszeit/domain) | Fachmodell, Fehlerklassen, Enums, Audit-Ereignisse und Ports/Services. |
+| [`src/arbeitszeit/application/`](src/arbeitszeit/application) | Befehle, Ergebnisse, Unit-of-Work-Abstraktion und Use-Cases. |
+| [`src/arbeitszeit/infrastructure/db/`](src/arbeitszeit/infrastructure/db) | SQLite-Verbindung, Migrationen, Repositories und konkrete Unit-of-Work. |
+| [`src/arbeitszeit/infrastructure/hardware/`](src/arbeitszeit/infrastructure/hardware) | Hardwarezugriff für evdev-Geräte, UID-Hashing und Simulator. |
+| [`src/arbeitszeit/infrastructure/export/`](src/arbeitszeit/infrastructure/export) | CSV- und PDF-Export sowie Berichtabfragen. |
+| [`src/arbeitszeit/infrastructure/backup/`](src/arbeitszeit/infrastructure/backup) | Backup-Logik im Anwendungspaket. |
+| [`src/arbeitszeit/presentation/terminal_ui/`](src/arbeitszeit/presentation/terminal_ui) | Einstiegspunkt und Buchungsschleife für den Terminalbetrieb. |
+| [`src/arbeitszeit/presentation/admin_cli/`](src/arbeitszeit/presentation/admin_cli) | Administrative CLI-Module für Pflege, Auswertung und Systemfunktionen. |
+| [`scripts/`](scripts) | Hilfsskripte für Setup, Datenbankinitialisierung und Backup. |
+| [`migrations/`](migrations) | SQL-Migrationsdateien zur Schema- und Dateninitialisierung. |
+| [`tests/`](tests) | Teststruktur für Domain, Application, Integration, End-to-End und Migrationen. |
+| [`docs/`](docs) | Zusätzliche Dokumentation im Repository. |
+
+Wichtige Einstiegspunkte sind insbesondere [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py), [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py), [`scripts/init_db.py`](scripts/init_db.py) und [`scripts/setup.py`](scripts/setup.py).
+
+## Installation und lokales Setup
+
+Für die Inbetriebnahme existiert mit der Datei [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) bereits eine eigene Installationsdokumentation. Für den README-Einstieg reichen die Grundschritte unten.
+
+1. Repository klonen.
+2. In das Projektverzeichnis wechseln.
+3. Virtuelle Umgebung erstellen und aktivieren.
+4. Abhängigkeiten installieren.
+5. Datenbank initialisieren bzw. Setup ausführen.
+
+```bash
+git clone https://github.com/iCodator/arbeitszeit.git
+cd arbeitszeit
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .[dev]
+python scripts/init_db.py
 ```
 
----
+Ob zusätzlich `scripts/setup.py` oder weitere Installationsschritte nötig sind, sollte vor einem Produktiveinsatz mit der separaten Installationsanleitung abgeglichen werden.
 
-## Lizenz
+## Starten und Testen
 
-Privates Projekt — nicht zur öffentlichen Nutzung freigegeben.
+### Starten
+
+| Zweck | Befehl | Bedeutung |
+|---|---|---|
+| Terminalbetrieb starten | `python -m arbeitszeit.presentation.terminal_ui.main --db <pfad> --numpad <event-pfad> --rfid <event-pfad> --terminal-id <id>` | Startet die Endlosschleife für operative Buchungen mit Datenbank, Numpad, RFID-Reader und Terminal-ID. |
+| Admin-CLI starten | `python -m arbeitszeit.presentation.admin_cli.main --db <pfad>` | Startet die administrative Kommandozeilenoberfläche mit Datenbankpfad. |
+| Datenbank initialisieren | `python scripts/init_db.py` | Führt die vorgesehene Initialisierung der lokalen Datenbank aus. |
+| Setup ausführen | `python scripts/setup.py` | Führt projektbezogene Setup-Schritte aus, soweit im Skript implementiert. |
+| Backup anstoßen | `python scripts/backup.py` | Startet den Backup-Ablauf über das bereitgestellte Hilfsskript. |
+
+### Testen
+
+| Zweck | Befehl | Bedeutung |
+|---|---|---|
+| Gesamte Testsuite | `pytest` | Führt die in `pyproject.toml` auf `tests` konfigurierte Testsuite aus. |
+| Testabdeckung mit Coverage | `pytest --cov=arbeitszeit` | Nutzt die im Projekt vorgesehenen Dev-Abhängigkeiten für Coverage-Auswertung. |
+| Nur Migrationstests | `pytest tests/test_migrations.py` | Prüft die Migrationen gezielt über die vorhandene Testdatei. |
+
+## Wichtige Skripte und Einstiegspunkte
+
+| Datei/Modul | Zweck | Wann relevant |
+|---|---|---|
+| [`scripts/init_db.py`](scripts/init_db.py) | Initialisiert die Datenbank bzw. stößt den Migrationspfad für ein neues System an. | Beim ersten lokalen Setup oder bei Neuaufbau einer Instanz. |
+| [`scripts/setup.py`](scripts/setup.py) | Bündelt Setup-Aufgaben außerhalb des eigentlichen Paketstarts. | Beim vorbereitenden Einrichten eines Systems. |
+| [`scripts/backup.py`](scripts/backup.py) | Startet den Backup-Ablauf per Hilfsskript. | Für manuelle oder geplante Sicherungen. |
+| [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py) | Einstiegspunkt des operativen Terminalbetriebs. | Für den laufenden Buchungsbetrieb mit Hardware. |
+| [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py) | Einstiegspunkt der administrativen CLI. | Für Pflege, Auswertung und Systemverwaltung. |
+| [`src/arbeitszeit/infrastructure/system_check.py`](src/arbeitszeit/infrastructure/system_check.py) | Prüft systemnahe Voraussetzungen vor bzw. während des Betriebs. | Bei Inbetriebnahme, Diagnose und Fehlersuche. |
+| [`src/arbeitszeit/infrastructure/time_monitor.py`](src/arbeitszeit/infrastructure/time_monitor.py) | Überwacht die Systemzeit und greift in den Buchungsablauf ein. | Wenn Zeitabweichungen oder Plausibilitätsprüfungen relevant sind. |
+
+## Hardwarebezug
+
+Die Hardware-Anbindung ist im Repository konkret über `evdev` umgesetzt. Das Modul [`src/arbeitszeit/infrastructure/hardware/evdev_reader.py`](src/arbeitszeit/infrastructure/hardware/evdev_reader.py) beschreibt zwei Eingabegeräte: ein USB-Numpad zur Auswahl des Buchungstyps per Taste `1` bis `4` sowie einen RFID-Reader, der seine UID als HID-Tastatureingabe mit Abschluss durch `Enter` liefert.
+
+Aus dem Modul gehen außerdem Linux-Gerätedateien unter `/dev/input/event*`, notwendiger Lesezugriff auf die Gerätedateien und ein konfigurierbarer Timeout für den RFID-Lesevorgang hervor. Für Tests ist zusätzlich ein Simulator unter [`src/arbeitszeit/infrastructure/hardware/simulator.py`](src/arbeitszeit/infrastructure/hardware/simulator.py) vorhanden.
+
+## Entwicklungshinweise
+
+Die Paketstruktur zeigt eine bewusste Trennung zwischen Fachlogik, Anwendungsfällen, Infrastruktur und Präsentationsschicht. Neue Funktionen sollten sich an dieser Aufteilung orientieren und nicht direkt zwischen CLI, Hardware und Datenzugriff vermischen.
+
+Für die lokale Entwicklung sind die Dev-Abhängigkeiten in `pyproject.toml` hinterlegt. Tests laufen über `pytest`, statische Prüfungen sind mit `ruff` vorgesehen, und die vorhandenen Testordner decken Unit-, Integrations-, End-to-End- und Migrationstests ab.
+
+## Grenzen und offener Stand
+
+Eindeutig belegt sind die Paketstruktur, die vorhandenen Einstiegspunkte, die SQLite-Migrationsbasis, die evdev-Hardwareanbindung, Export- und Backup-Bausteine sowie die Teststruktur. Ebenfalls klar sichtbar sind Module für Nachträge, Korrekturen, Berichte, Benutzerkonten, Systemprüfung und Zeitüberwachung.
+
+Nicht jeder fachliche Zielanspruch aus den Projektdokumenten lässt sich bereits als vollständig nachgewiesene Gesamteigenschaft des aktuellen Repositorystands formulieren. Das betrifft insbesondere pauschale Aussagen zur vollständigen rechtlichen Absicherung im Produktiveinsatz, zu konkreten Betriebsprozessen in einer Praxisumgebung und zu NAS-spezifischen Backup-Abläufen, soweit diese nicht unmittelbar im Code oder in klar zuordenbaren Konfigurationsdateien implementiert sind.
+
+Auffällig ist zudem ein Widerspruch zwischen dem Projektkontext "Python 3.11" und der aktuell im Repository hinterlegten Anforderung `>=3.14,<3.15` in `pyproject.toml`. Für neue Mitentwickler sollte dieser Punkt vor weiterer Nutzung oder Dokumentationsfortschreibung zuerst geklärt werden.
+
+## Weiterführende Dokumentation
+
+- [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) – separate Installationsanleitung.
+- [`pflichtenheft_arbeitszeit_v5.md`](pflichtenheft_arbeitszeit_v5.md) – Pflichtenheft zum Projektkontext und Zielbild.
+- [`regelwerk_arbeitszeit_v5.md`](regelwerk_arbeitszeit_v5.md) – Regelwerk mit fachlichem Rahmen.
+- [`handbuch_rollen_cli_ergaenzung_v1_0.md`](handbuch_rollen_cli_ergaenzung_v1_0.md) – Ergänzende Dokumentation zur Rollen-CLI.
+- [`handbuch_arbeitszeit.html`](handbuch_arbeitszeit.html) – HTML-Handbuch im Repository.
+- [`docs/`](docs) – weiterer Dokumentationsordner mit ergänzenden Unterlagen.
