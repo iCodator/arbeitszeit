@@ -10,6 +10,7 @@ __pycache__/
 dist/
 build/
 docs/claude_coding/
+docs/archive
 
 *.db
 *.db-shm
