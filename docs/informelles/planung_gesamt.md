@@ -4,7 +4,8 @@
 
 Die Dokumente unter `docs/informelles/` dokumentieren eine vollständige Design-Session für das Zeiterfassungssystem. Sie enthalten die wesentlichen Entscheidungen zu Domänenmodell, Datenbankschema, Projektstruktur, Use-Cases, Prüfregeln, Export, Betrieb und Testabdeckung.
 
-**Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v5.md`, `docs/regelwerk_arbeitszeit_v5.md`, `docs/archive/anlage_einhaltung_pflichtenheft_v2.md` (archiviert; aktueller Stand der Betriebsdokumentation: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`).
+**Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v5.md`, `docs/regelwerk_arbeitszeit_v5.md`.  
+Anlage-Dokumente im Repo: `anlage_einhaltung_pflichtenheft.md` (Wurzelverzeichnis, v1) und `docs/archive/anlage_einhaltung_pflichtenheft_v2.md` (Version 2, referenziert Pflichtenheft v4, archiviert). Aktueller Stand der Betriebsdokumentation: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`.
 
 Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungsstand des Projekts. Organisatorische, datenschutzrechtliche und betriebliche Pflichten der Praxis werden ausdrücklich benannt, soweit sie laut Pflichtenheft v5, Regelwerk v5 und Anlage v2 nicht allein durch Code erfüllt werden können.
 
