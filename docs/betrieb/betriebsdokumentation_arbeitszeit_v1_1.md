@@ -1,7 +1,7 @@
 # Betriebsdokumentation – arbeitszeit
 
-**Version:** 1.0  
-**Datum:** 2026-06-11  
+**Version:** 1.1  
+**Datum:** 2026-06-13  
 **Grundlage:** `docs/claude_coding/claude_code_prompt_hoch_arbeitszeit_v1_2026-06-11_20-08.md`
 
 **Methodik:** Alle Aussagen sind ausschließlich aus Repo-Artefakten belegt.
@@ -36,7 +36,7 @@ Es besteht aus fünf Komponenten:
 
 ### 2.1 Datenbankinitialisierung
 
-```
+```bash
 python scripts/init_db.py --db arbeitszeit.db
 ```
 
@@ -47,7 +47,7 @@ python scripts/init_db.py --db arbeitszeit.db
 
 ### 2.2 Systemkonfiguration interaktiv
 
-```
+```bash
 python scripts/setup.py --db arbeitszeit.db
 ```
 
@@ -60,7 +60,7 @@ abgefragt, können aber leer gelassen werden.
 
 ### 2.3 Bootstrap: Ersten Admin-Account anlegen
 
-```
+```bash
 python -m arbeitszeit.presentation.admin_cli.main \
   --db arbeitszeit.db \
   users bootstrap \
@@ -74,7 +74,7 @@ Aufruf abgelehnt.
 
 ### 2.4 Systemcheck nach Einrichtung
 
-```
+```bash
 python -m arbeitszeit.infrastructure.system_check \
   --db arbeitszeit.db
 ```
@@ -89,7 +89,7 @@ Fremdschlüssel-Konsistenz.
 
 **Beleg:** `presentation/terminal_ui/main.py`, `phase5_planung.md`
 
-```
+```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
   --db arbeitszeit.db \
   --terminal-id 1
@@ -120,11 +120,17 @@ Erkannte Ereignisse werden als `TIME_JUMP_DETECTED` oder
 `MANUAL_TIME_CHANGE_DETECTED` in `system_events` geschrieben.  
 **Beleg:** `infrastructure/time_monitor.py`, `phase5_planung.md Schritt 5`
 
+**Hinweis: Fehlerbehandlung Zeitmonitor**  
+Kann der Zeitmonitor interne Ereignisse (z. B. Schreibfehler in `system_events`)
+nicht protokollieren, werden diese Fehler mindestens als Warnung im Log erfasst.
+Damit bleibt ein defekter Zeitmonitor nicht unbemerkt; die eigentliche
+Arbeitszeiterfassung läuft jedoch weiter.
+
 ### 3.3 Gerätesimulator
 
 Für Tests ohne Echthardware:
 
-```
+```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
   --db arbeitszeit.db --terminal-id 1 --simulator
 ```
@@ -153,6 +159,14 @@ oder die Umgebungsvariable `ADMIN_USER_ID`.
 | `users bootstrap` | Ersten Admin anlegen | kein aktiver Admin vorhanden |
 
 **Beleg:** `presentation/admin_cli/user_accounts.py`
+
+**Hinweis: Passwort-Hashing (DSGVO Art. 32)**  
+Passwörter werden nicht im Klartext gespeichert. Die Admin-CLI verwendet
+PBKDF2-HMAC-SHA256 mit einem zufälligen Salt und einer erhöhten Iterationszahl,
+um die Passwörter vor einfachen Brute-Force-Angriffen zu schützen. Dieses Verfahren
+ist als technische Maßnahme im Sinne von DSGVO Art. 32 zu verstehen und für die
+lokale Einzelplatzanwendung der Praxis angemessen. Die konkrete Ausgestaltung
+(Iterationszahl, Salt-Länge) ist im Quellcode (`user_accounts.py`) dokumentiert.
 
 ### 4.2 Mitarbeiterverwaltung
 
@@ -192,7 +206,7 @@ oder die Umgebungsvariable `ADMIN_USER_ID`.
 
 ### 5.1 Lokales Backup erstellen
 
-```
+```bash
 python scripts/backup.py \
   --db arbeitszeit.db \
   --backup-dir backups/ \
@@ -200,12 +214,12 @@ python scripts/backup.py \
 ```
 
 - Erzeugt timestamped SQLite-Copy im `--backup-dir`
-- Optional: `--export-dir` kopiert CSV/PDF-Exporte in `backup-dir/exports/`
+- Optional: `--export-dir` kopiert CSV/PDF-Exporte in `backup_dir/exports/`
 - Protokolliert `BACKUP_CREATED` in `system_events`
 
 ### 5.2 NAS-Spiegelung
 
-```
+```bash
 python scripts/backup.py \
   --db arbeitszeit.db \
   --backup-dir backups/ \
@@ -218,8 +232,6 @@ Nutzt `rsync --archive --delete`: striktes Spiegeln ohne eigenständige Archivfu
 Hot-Backup-Spiegel vorgesehen. Für Langzeitarchivierung ist ein zweiter NAS-Pfad
 ohne `--delete` oder lokale Rotation vor der Spiegelung erforderlich.  
 **Beleg:** `phase4_planung.md Z.363–371`
-
-Erfolg: `BACKUP_SYNCED_TO_NAS`; Fehler: `BACKUP_SYNC_FAILED` in `system_events`.
 
 ### 5.3 Restore
 
@@ -266,7 +278,7 @@ dies ist **nicht Teil des Codes**.
 
 Empfohlene Prüfhäufigkeit: täglich oder bei Systemstart.
 
-```
+```bash
 python -m arbeitszeit.infrastructure.system_check --db arbeitszeit.db
 ```
 
