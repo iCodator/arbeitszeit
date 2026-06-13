@@ -94,7 +94,8 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - `infrastructure/system_check.py` — Systemcheck (DB, Config, NAS, FK-Konsistenz)
 - `scripts/backup.py` — Backup-Skript mit optionalem `--export-dir`
 - `migrations/0003_cleanup_booking_status.sql` — `POSSIBLE_*`-Werte aus
-  `time_bookings.current_status` entfernt
+  `time_bookings.current_status` entfernt (korrigiert historische BookingStatus-
+  Inkonsistenz aus `0001_schema.sql`; bereinigt durch Phase-4-Migration)
 - `migrations/0004_supplement_reject_fields_and_review_note.sql` —
   Ablehnung formal von Genehmigung getrennt; Notizfeld für Prüffälle
 - `migrations/0005_time_bookings_device_event_id.sql` — Schemavorbereitung

@@ -50,16 +50,16 @@ Aussage aus DDL-Tabellenstruktur bzw. INSERT-Werten direkt abgeleitet.
 
 ---
 
-## Offene Einordnungsfragen
+## Historische Einordnung und geschlossene Befunde
 
-**Migration 0003 — Befund Audit P1-02:**
+**Migration 0003 — Befund Audit P1-02 (geschlossen):**
 `0001_schema.sql` enthielt ursprünglich die Werte `POSSIBLE_BREAK_VIOLATION`,
 `POSSIBLE_REST_VIOLATION`, `POSSIBLE_MAX_HOURS_VIOLATION` und `MANUAL_ENTRY` als
 `BookingStatus`-Werte. Diese waren regelwerkswidrig (Regelwerk v5 §11: diese Zustände
-gehören zu `ReviewCaseType`, nicht zu `BookingStatus`). Erst durch `0003` wurde das
-Schema regelwerkskonform bereinigt — das initiale Schema war damit transient
-inkonsistent. Dies ist ein dauerhafter Befund im Änderungsprotokoll (irreversibel für
-bestehende Installationen, da `schema_migrations` `0001` bereits als angewandt führt).
+gehören zu `ReviewCaseType`, nicht zu `BookingStatus`). `0003_cleanup_booking_status.sql`
+hat diese Werte aus dem CHECK-Constraint entfernt und das Schema damit regelwerkskonform
+bereinigt. Das initiale Schema war transient inkonsistent; der Fehler gilt als
+dauerhaft dokumentiert und durch `0003` behoben.
 
 **Migration 0005:**
 - Die Migration bereitet `device_event_id` im Schema vor und setzt alle bestehenden
