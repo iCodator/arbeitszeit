@@ -39,7 +39,7 @@ oder werden, sind als solche markiert.
 
 | Thema | Kategorie | Belegbasis | Aussagegrenze | Folgefrage |
 | --- | --- | --- | --- | --- |
-| Betriebsdokumentation | technisch vorbereitet, organisatorisch nicht belegt | `betriebsdokumentation_arbeitszeit_v1.md` (geplant durch hoch-Aufgabe) | Formale Verabschiedung fehlt im Repo | Wer gibt das Dokument frei? |
+| Betriebsdokumentation | technisch vorbereitet, organisatorisch nicht belegt | `betriebsdokumentation_arbeitszeit_v1_1.md` (geplant durch hoch-Aufgabe) | Formale Verabschiedung fehlt im Repo | Wer gibt das Dokument frei? |
 | NAS-Backup-Funktion | technisch vorbereitet, organisatorisch nicht belegt | backup_service.py sync_to_nas(); E2E-Tests mit Mock-NAS | Echter NAS-Pfad nur als Betriebsentscheidung dokumentiert | Wurde NAS-Sync im Betrieb getestet? |
 | Exportverzeichnis-Schutz | technisch vorbereitet, organisatorisch nicht belegt | setup.py setzt export.export_dir; Zugriffsrechte OS-Ebene nicht im Repo | Dateisystem-Rechte außerhalb des Codes | Wurden Zugriffsrechte auf dem Zielsystem gesetzt? |
 | Restore-Freigabe | technisch vorbereitet, organisatorisch nicht belegt | restore_from() implementiert und getestet | Berechtigung zur Restore-Durchführung ist Betriebsregel | Wer ist im Betrieb berechtigt? |

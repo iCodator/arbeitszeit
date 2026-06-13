@@ -188,7 +188,7 @@ ist dieses Protokoll zu aktualisieren oder ein neues Protokoll anzulegen.
 
 Dieses Protokoll ist fachlich verknüpft mit:
 
-- `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`
+- `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`
 - `docs/datenschutz/vvt_arbeitszeit_v1.md`
 - `docs/betrieb/rollenzuweisung.md`
 - `CHANGELOG.md` (Abschnitte zur Hardware-/Infrastrukturphase)

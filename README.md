@@ -149,7 +149,7 @@ insbesondere folgende Unterlagen relevant:
     TOM, Betroffenenrechte und DSFA-Einschätzung.
 
 - **Betrieb allgemein**
-  - `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`  
+  - `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`  
     Betriebsdokumentation mit Systemübersicht, Rollen, Backup/Restore, Prüfkonzept und
     Grenzen des Repositorystands.
   - `docs/betrieb/betriebsfreigabe_protokoll.md`  

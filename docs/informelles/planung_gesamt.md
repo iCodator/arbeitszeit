@@ -5,7 +5,7 @@
 Die Dokumente unter `docs/informelles/` dokumentieren eine vollständige Design-Session für das Zeiterfassungssystem. Sie enthalten die wesentlichen Entscheidungen zu Domänenmodell, Datenbankschema, Projektstruktur, Use-Cases, Prüfregeln, Export, Betrieb und Testabdeckung.
 
 **Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v5.md`, `docs/regelwerk_arbeitszeit_v5.md`.  
-Anlage-Dokumente im Repo: `anlage_einhaltung_pflichtenheft.md` (Wurzelverzeichnis, v1) und `docs/archive/anlage_einhaltung_pflichtenheft_v2.md` (Version 2, referenziert Pflichtenheft v4, archiviert). Aktueller Stand der Betriebsdokumentation: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`.
+Anlage-Dokumente im Repo: `anlage_einhaltung_pflichtenheft.md` (Wurzelverzeichnis, v1) und `docs/archive/anlage_einhaltung_pflichtenheft_v2.md` (Version 2, referenziert Pflichtenheft v4, archiviert). Aktueller Stand der Betriebsdokumentation: `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`.
 
 Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungsstand des Projekts. Organisatorische, datenschutzrechtliche und betriebliche Pflichten der Praxis werden ausdrücklich benannt, soweit sie laut Pflichtenheft v5, Regelwerk v5 und Anlage v2 nicht allein durch Code erfüllt werden können.
 
@@ -259,7 +259,7 @@ Die vorhandene Testdokumentation weist die Pflichtszenarien fachlich gut zu. Anl
 
 Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** und bewusst als offen oder extern gekennzeichnet, weil sie laut Referenzdokumenten nicht allein durch den implementierten Code als erledigt gelten dürfen:
 
-- Schriftlich verabschiedete Betriebsdokumentation zu Exportverzeichnis, Dateirechten, Aufbewahrung, Löschregeln, Backup und Restore. Technische Betriebsdokumentation erstellt: `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` (2026-06-11); formale Verabschiedung außerhalb des Repos.
+- Schriftlich verabschiedete Betriebsdokumentation zu Exportverzeichnis, Dateirechten, Aufbewahrung, Löschregeln, Backup und Restore. Technische Betriebsdokumentation erstellt: `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md` (2026-06-11); formale Verabschiedung außerhalb des Repos.
 - ~~Revisionsfeste Testmatrix~~ — erstellt: `docs/informelles/testmatrix_revision_v1.md` (2026-06-11).
 - ~~Entscheidung und vollständige produktive Umsetzung des `device_events`-/`device_event_id`-Pfads~~ — implementiert (Commit `0f20931`) und dokumentiert (`device_event_architekturentscheidung_v1.md`).
 - Organisatorische Zuordnung von Rollen, Freigabeverantwortungen, Prüfintervallen und IT-Sicherheitsverantwortlichkeiten in der Praxis.

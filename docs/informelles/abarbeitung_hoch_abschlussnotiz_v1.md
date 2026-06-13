@@ -10,7 +10,7 @@
 | Deliverable | Soll | Ist | Status |
 | --- | --- | --- | --- |
 | `nachtragsmatrix_phasen_v1.md` | Phasenübergreifende Nachtragsmatrix, ca. 40+ Zeilen | erstellt (44 Artefakte) | ✓ |
-| `betriebsdokumentation_arbeitszeit_v1.md` | Formale Betriebsdokumentation, 12 Abschnitte | erstellt | ✓ |
+| `betriebsdokumentation_arbeitszeit_v1_1.md` | Formale Betriebsdokumentation, 12 Abschnitte | erstellt | ✓ |
 | Verweise in `planung_gesamt.md` | Kurze Verweise auf neue Dokumente | ergänzt | ✓ |
 | Verweise in `phase4_planung.md` | Schritt 7 + Schritt 9 | ergänzt | ✓ |
 | Verweise in `phase5_planung.md` | Terminal-UI-Abschnitt | ergänzt | ✓ |
@@ -36,7 +36,7 @@
 
 ---
 
-## Inhalt Betriebsdokumentation (`betriebsdokumentation_arbeitszeit_v1.md`)
+## Inhalt Betriebsdokumentation (`betriebsdokumentation_arbeitszeit_v1_1.md`)
 
 12 Abschnitte:
 1. Systemübersicht

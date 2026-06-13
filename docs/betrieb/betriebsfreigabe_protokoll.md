@@ -54,7 +54,7 @@ Bitte jeweils „Ja/Nein“ markieren und bei Bedarf die konkret verwendete Vers
 | Regelwerk `regelwerk_arbeitszeit_v5.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Installationsanleitung `installationsanleitung_arbeitszeit.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Handbuch `handbuch_arbeitszeit.md` | ______ | ☐ Ja ☐ Nein | __________________ |
-| Betriebsdokumentation `betriebsdokumentation_arbeitszeit_v1.md` | ______ | ☐ Ja ☐ Nein | __________________ |
+| Betriebsdokumentation `betriebsdokumentation_arbeitszeit_v1_1.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | VVT `docs/datenschutz/vvt_arbeitszeit_v1.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Rollenzuweisung `docs/betrieb/rollenzuweisung.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Hardware-Inbetriebnahmeprotokoll `docs/betrieb/hardware_inbetriebnahme_protokoll.md` | ______ | ☐ Ja ☐ Nein | __________________ |
@@ -225,7 +225,7 @@ vollständig ausgefülltes Protokoll angelegt wird.
 
 Dieses Betriebsfreigabe-Protokoll steht in Zusammenhang mit:
 
-- `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`
+- `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`
 - `docs/datenschutz/vvt_arbeitszeit_v1.md`
 - `docs/betrieb/rollenzuweisung.md`
 - `docs/betrieb/hardware_inbetriebnahme_protokoll.md`

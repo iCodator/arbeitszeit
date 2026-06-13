@@ -96,7 +96,7 @@ Die Checkliste soll sicherstellen, dass ein Restore nur geplant, dokumentiert un
 
 Nach dem Restore sind mindestens folgende Unterlagen zu prüfen bzw. zu ergänzen:
 
-- `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`
+- `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`
 - `docs/betrieb/betriebsfreigabe_protokoll.md` (Abschnitt Wiederholte Betriebsfreigabe / Änderungen)
 - `docs/betrieb/backup_zeitplan_und_automatisierung.md` (falls das Restore auf Backup-Probleme hinweist)
 - internes Störungs- oder Maßnahmenprotokoll der Praxis

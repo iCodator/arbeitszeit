@@ -213,7 +213,7 @@ Beispiele:
 betreffen, sind zu prüfen auf:
 
 1. Anpassung des Pflichtenhefts/Regelwerks nötig?
-2. Ergänzung in `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` sinnvoll?
+2. Ergänzung in `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md` sinnvoll?
 3. Bedarf für neue Test-/Auditnotizen?
 
 Fachliche Regeln werden nicht stillschweigend nur im Code geändert.
@@ -245,7 +245,7 @@ Bei Änderungen an Bedienabläufen, CLI-Optionen, Terminal-UI:
 Relevante Dokumente:
 
 - `docs/datenschutz/vvt_arbeitszeit_v1.md`
-- `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`
+- `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`
 - `docs/betrieb/rollenzuweisung.md`
 
 Änderungen an Rollen, Zugriffslogik, Export, Backup oder Audit sollten – falls relevant – dort nachgeführt werden.

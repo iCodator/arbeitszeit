@@ -37,7 +37,7 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - device_events-Produktionspfad: RFID_SCAN-Record (Autocommit) vor `BookUseCase` —
   Audit-Trail bleibt auch bei Buchungsfehler erhalten
 - `SQLiteDeviceEventRepository` + `DeviceEventRepository`-Protokoll
-- Betriebsdokumentation (`betriebsdokumentation_arbeitszeit_v1.md`, 12 Abschnitte)
+- Betriebsdokumentation (`betriebsdokumentation_arbeitszeit_v1_1.md`, 12 Abschnitte)
 - Phasenübergreifende Nachtragsmatrix (44 Artefakte mit Phasenzuordnung und Belegen)
 - Revisionsfeste Testmatrix (406 Tests, Pflichtenheft v5 §16-Abdeckung)
 - Installationsanleitung v2.0 (Markdown + HTML)

@@ -319,7 +319,7 @@ protokolliert (bereits in `system_check.py` implementiert).
 
 Terminal-UI ruft Systemcheck beim Start automatisch auf.
 Bei kritischem Befund: Warnung ausgeben, aber weiterlaufen (kein Hard-Stop).
-Betriebliche Abläufe (Terminal-UI + Admin-CLI): `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md` Abschnitte 3–4.
+Betriebliche Abläufe (Terminal-UI + Admin-CLI): `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md` Abschnitte 3–4.
 
 
 ### Schritt 5 – Systemzeitprotokollierung  ✓

@@ -201,7 +201,7 @@ Dieses Formular ist inhaltlich auf die folgenden Unterlagen abgestimmt:
 
 - `pflichtenheft_arbeitszeit_v5.md`.
 - `regelwerk_arbeitszeit_v5.md`.
-- `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`.
+- `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`.
 - `docs/datenschutz/vvt_arbeitszeit_v1.md`.
 
 ---
@@ -264,7 +264,7 @@ Spätestens **einmal jährlich** ist eine Überprüfung fällig, ob alle Angaben
 Bei jeder inhaltlichen Änderung der Rollenverteilung ist zu prüfen, ob Anpassungen in folgenden Dokumenten erforderlich sind:
 
 - `docs/datenschutz/vvt_arbeitszeit_v1.md` (VVT / Verantwortlichkeiten),
-- `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`,
+- `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`,
 - interne Dienst- oder Organisationsanweisungen (falls vorhanden).
 
 Änderungen sind so zu dokumentieren, dass jederzeit nachvollziehbar ist, **wer** seit **wann** welche Rolle innehat und **wer** die Änderung freigegeben hat.
