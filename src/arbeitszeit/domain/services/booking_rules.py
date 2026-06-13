@@ -42,6 +42,9 @@ def validate_booking_sequence(
 
     elif booking_type == BookingType.BREAK_START:
         if not open_work:
+            # Deckt implizit auch den Regelwerk-v5-§6-Fall „BREAK_START nach GO" ab:
+            # Nach einem GO ist keine Arbeitsphase mehr offen, sodass dieser Check
+            # greift, ohne dass ein eigener GO-Zweig erforderlich ist.
             raise InvalidBookingSequenceError("BREAK_START ohne offene Arbeitsphase.")
         if open_break:
             raise InvalidBookingSequenceError(

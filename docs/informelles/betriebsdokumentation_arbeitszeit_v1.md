@@ -102,6 +102,14 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 3. `BookUseCase` ausführen (COME/GO/BREAK-Logik, Ruhezeit- und Rollenprüfung)
 4. Ergebnis ausgeben; Fehler → APPLICATION_ERROR in `system_events` protokollieren
 
+**Designentscheidung — rollenlose Terminal-Buchung (Regelwerk v5 §16):**  
+Terminal-Buchungen prüfen keine `UserRole`. Die Authentifikation des Mitarbeiters
+erfolgt ausschließlich über die gültige, aktiv-gestellte RFID-Karte. Dies ist die
+vom Regelwerk v5 §16 vorgesehene Mitarbeiteraktion; eine zusätzliche Benutzerkonten-
+Prüfung ist darin nicht gefordert. Schreibende Administrationsaktionen (Korrekturen,
+Nachträge, Regelzeitänderungen) prüfen die `UserRole` gesondert in ihren jeweiligen
+Use Cases.
+
 ### 3.2 Zeitmonitor
 
 Läuft parallel im Terminal-UI. Prüft Systemzeitsprünge alle 30 Sekunden.  

@@ -141,6 +141,12 @@ Umgesetzt unter `src/arbeitszeit/domain/`.
 
 V4-relevant bleibt: Die arbeitszeitrechtlichen Prüfungen orientieren sich an den im Pflichtenheft genannten Tagesanforderungen. Eine mögliche spätere Erweiterung um Wochenprüfungen ist dokumentarisch vorgesehen, aber kein aktueller Implementierungsbestandteil.
 
+**Bekannte Nichtabdeckung — Backlog-Item N-02 (Audit P2-04):** Kumulative
+Wochenarbeitszeit nach ArbZG §3 (Höchstarbeitszeit über 5 Werktage) ist derzeit
+nicht implementiert. Die tagbezogenen Prüfungen in `compliance_checks.py` decken
+§3 nur indirekt ab. Wochenprüfungen werden als späteres Backlog-Thema geführt;
+kein Handlungsbedarf für den aktuellen Pflichtenheft-v5-Scope.
+
 V4- und Regelwerk-konforme Statusmodellierung:
 - `POSSIBLE_*`-Prüflagen werden als `ReviewCaseType` modelliert.
 - `MANUAL_ENTRY` wird als `BookingSource.MANUAL` modelliert.

@@ -1,6 +1,6 @@
 """Systemzeitprotokollierung: Erkennung von Zeitsprüngen und manuellen Uhrzeitänderungen.
 
-Pflichtenheft v3 §9.3 / Regelwerk v3 §21.
+Pflichtenheft v5 §9.3 / Regelwerk v5 §21.
 
 Strategie: Monotone Clock (time.monotonic()) ist unabhängig von Systemuhranpassungen.
 Durch Vergleich des Monoton-Deltas mit dem Wall-Clock-Delta lassen sich Sprünge erkennen:
@@ -11,6 +11,7 @@ Die NTP-Synchronisation ist Betriebsvoraussetzung und nicht Aufgabe dieser Schic
 NTP-Drift (< 1s/Stunde) wird durch den konfigurierbaren Schwellenwert herausgefiltert.
 """
 import json
+import logging
 import time
 from collections.abc import Callable
 from datetime import datetime, timezone
@@ -79,8 +80,8 @@ class SystemTimeMonitor:
                 )
             finally:
                 conn.close()
-        except Exception:
-            pass
+        except Exception as exc:  # noqa: BLE001
+            logging.warning("time_monitor._log fehlgeschlagen: %s", exc)
 
 
 def load_threshold_from_config(db_path: Path, default: float = 60.0) -> float:

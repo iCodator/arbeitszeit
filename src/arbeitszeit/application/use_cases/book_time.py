@@ -70,6 +70,11 @@ class BookUseCase:
         self._uow = uow
 
     def execute(self, cmd: BookCommand) -> BookResult:
+        # Terminal-Buchungen erfordern keine explizite UserRole-Prüfung. Die
+        # Authentifikation erfolgt durch die gültige RFID-Karte des Mitarbeiters;
+        # dies ist die vom Regelwerk v5 §16 vorgesehene Mitarbeiteraktion.
+        # Schreibende Admin-Aktionen (Korrektur, Nachtrag, Regelzeitänderung) prüfen
+        # die UserRole gesondert in ihren jeweiligen Use Cases.
         with self._uow:
             # INVARIANTE Ablehnungspfade: Vor jedem audit_log_repo.add() in einem
             # Ablehnungspfad (UnknownCard/InactiveCard) darf conn keine Schreiboperation

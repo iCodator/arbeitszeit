@@ -1,3 +1,10 @@
+"""ArbZG-Prüfhilfen für Pausen, Höchstarbeitszeit und Ruhezeiten.
+
+Alle Prüfungen arbeiten auf der **Netto-Arbeitszeit** (Gesamtdauer der Arbeitsphasen
+abzüglich aller erfassten Pausen). §4 ArbZG definiert die Pausenpflicht formal über
+die Brutto-Anwesenheitszeit; die Netto-Betrachtung ist als fachliche Prüfhilfe
+konzipiert und ersetzt keine rechtsverbindliche Einzelfallbewertung.
+"""
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Sequence

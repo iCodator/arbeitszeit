@@ -51,6 +51,10 @@ def _audit(
 
 
 def _hash_password(password: str) -> str:
+    # PBKDF2-HMAC-SHA256, 260.000 Iterationen, 16-Byte-Zufallssalt.
+    # Ausgabeformat: hex(salt):hex(dk) — salt und Schlüssel getrennt lesbar.
+    # Technische Maßnahme gemäß DSGVO Art. 32 (angemessener Schutz personenbezogener
+    # Authentifikationsdaten) für eine lokale Einzelplatzanwendung.
     salt = os.urandom(16)
     dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 260_000)
     return binascii.hexlify(salt).decode() + ":" + binascii.hexlify(dk).decode()
