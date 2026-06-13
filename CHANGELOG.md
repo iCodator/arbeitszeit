@@ -18,6 +18,15 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
   (`docs/informelles/audit_evidenzgrenzen_v1.md`) und die Nachtragsmatrix
   (`docs/informelles/nachtragsmatrix_phasen_v1.md`) als ergänzende Nachweise
   für Pflichtenheft v5.
+- Betriebsdokumentation nachgezogen und nach `docs/betrieb/` überführt:
+  `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md` mit erweiterten
+  Hinweisen zu Zeitmonitor, Passwort-Hashing und Rollenmodell.
+- Neues Aufbewahrungs- und Löschkonzept für die Praxis:
+  `docs/betrieb/aufbewahrungs_und_loeschkonzept_arbeitszeit_v1_0.md`.
+- Neues Datenschutz- und TOM-Dokument (inkl. Backup-Rahmen):
+  `docs/betrieb/datenschutz_und_tom_arbeitszeit_v1_0.md`.
+- Neue betriebliche Rollenzuweisung für ADMIN/REVIEWER/TECH:
+  `docs/betrieb/rollenzuweisung_arbeitszeit_v1_0.md`.
 
 ### Geändert
 - Abschnitt „Betrieb & Rechtliches“ im `README.md` inhaltlich an den
@@ -27,6 +36,9 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - Klarstellung in der Dokumentation, dass die ArbZG-Prüfhilfen auf der
   Netto-Arbeitszeit basieren und als fachliche Indikatoren (nicht als
   rechtsverbindliche Bewertung) zu verstehen sind.
+- `docs/informelles/planung_gesamt.md`: Referenzen auf
+  `anlage_einhaltung_pflichtenheft_v2.md` präzisiert (Root-Anlage v1 und
+  Archiv-Version unter `docs/archive/`).
 
 ---
 
