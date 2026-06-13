@@ -138,6 +138,46 @@ Eindeutig belegt sind die Paketstruktur, die vorhandenen Einstiegspunkte, die SQ
 
 Nicht jeder fachliche Zielanspruch aus den Projektdokumenten lässt sich bereits als vollständig nachgewiesene Gesamteigenschaft des aktuellen Repositorystands formulieren. Das betrifft insbesondere pauschale Aussagen zur vollständigen rechtlichen Absicherung im Produktiveinsatz, zu konkreten Betriebsprozessen in einer Praxisumgebung und zu NAS-spezifischen Backup-Abläufen, soweit diese nicht unmittelbar im Code oder in klar zuordenbaren Konfigurationsdateien implementiert sind.
 
+## Betrieb & Rechtliches
+
+Für den produktiven Betrieb in einer Praxisumgebung sind neben Code und Tests
+insbesondere folgende Unterlagen relevant:
+
+- **Datenschutz / DSGVO**
+  - `docs/datenschutz/vvt_arbeitszeit_v1.md`  
+    Verzeichnis von Verarbeitungstätigkeiten nach Art. 30 DSGVO, inkl. Rechtsgrundlagen,
+    TOM, Betroffenenrechte und DSFA-Einschätzung.
+
+- **Betrieb allgemein**
+  - `docs/informelles/betriebsdokumentation_arbeitszeit_v1.md`  
+    Betriebsdokumentation mit Systemübersicht, Rollen, Backup/Restore, Prüfkonzept und
+    Grenzen des Repositorystands.
+  - `docs/betrieb/betriebsfreigabe_protokoll.md`  
+    Vorlage für die formale Betriebsfreigabe / Systemabnahme (Tests, Mängel,
+    Unterschriften, erneute Freigabe).
+
+- **Rollen und Verantwortlichkeiten**
+  - `docs/betrieb/rollenzuweisung.md`  
+    Organisatorische Rollenzuweisung (ADMIN / REVIEWER / TECH) inkl. Einweisungs- und
+    Pflegeanleitung.
+
+- **Hardware & Infrastruktur**
+  - `docs/betrieb/hardware_inbetriebnahme_protokoll.md`  
+    Inbetriebnahme- und Smoke-Test-Protokoll für das Zielterminal mit RFID-Reader,
+    USB-Numpad und (optional) NAS.
+
+- **Backup & Wiederherstellung**
+  - `docs/betrieb/backup_zeitplan_und_automatisierung.md`  
+    Backup-Zeitplan und Beispiele für Automatisierung (cron, systemd-timer) inkl.
+    Verantwortlichkeiten und Aufbewahrungsstrategie.
+  - `docs/betrieb/restore_checkliste.md`  
+    Operative Checkliste für Restore-Fälle (Freigabe, Durchführung, Prüfung,
+    Nachdokumentation).
+
+Diese Dokumente sind bewusst als Vorlagen gestaltet und müssen in der jeweiligen
+Praxisumgebung ausgefüllt, freigegeben und außerhalb des Repositories revisionssicher
+aufbewahrt werden.
+
 ## Weiterführende Dokumentation
 
 - [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) – separate Installationsanleitung.

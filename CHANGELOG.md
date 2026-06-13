@@ -127,3 +127,14 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - `infrastructure/db/migrations.py` — Glob-Runner mit Idempotenz und Rollback-Sicherung
 - `scripts/init_db.py` — Datenbankinitialisierung
 - 12 Migrationstests
+
+## [Audit & Dokumentation] – 2026-06-13
+
+### Hinzugefügt
+- Abschnitt „Betrieb & Rechtliches“ im `README.md` mit Verweisen auf VVT,
+  Betriebsdokumentation, Rollenzuweisung, Betriebsfreigabe-Protokoll,
+  Hardware-Inbetriebnahmeprotokoll, Backup-Zeitplan und Restore-Checkliste.
+
+### Geändert
+- Dokumentationsstand an die neuen Betriebsdokumente unter `docs/datenschutz/`
+  und `docs/betrieb/` angepasst.
