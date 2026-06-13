@@ -5,6 +5,31 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Audit & Dokumentation] – 2026-06-13
+
+### Hinzugefügt
+- Audit-Bericht `docs/audits/audit_arbeitszeit_v1_2026-06-13_09-04.md` mit Phasenbewertung 1–5,
+  GO/NO-GO-Matrix, Befundklassifikation und priorisierter To-do-Liste.
+- Dokumentation der Migrationshistorie zu `BookingStatus` (Entfernung der Werte
+  `POSSIBLE_*` und `MANUAL_ENTRY` aus `time_bookings.current_status` durch
+  `migrations/0003_cleanup_booking_status.sql`) als fachlich relevantes
+  Änderungsprotokoll.
+- Verweis in der Projektdokumentation auf die Audit-Evidenzgrenzen
+  (`docs/informelles/audit_evidenzgrenzen_v1.md`) und die Nachtragsmatrix
+  (`docs/informelles/nachtragsmatrix_phasen_v1.md`) als ergänzende Nachweise
+  für Pflichtenheft v5.
+
+### Geändert
+- Abschnitt „Betrieb & Rechtliches“ im `README.md` inhaltlich an den
+  Audit-Bericht angepasst (explizite Hinweise auf organisatorische Auflagen
+  zu Rollenzuweisung, Aufbewahrungs- und Löschkonzept, Datenschutz- und
+  Backup-Unterlagen, Betriebsfreigabe-Protokoll).
+- Klarstellung in der Dokumentation, dass die ArbZG-Prüfhilfen auf der
+  Netto-Arbeitszeit basieren und als fachliche Indikatoren (nicht als
+  rechtsverbindliche Bewertung) zu verstehen sind.
+
+---
+
 ## [Audit & Dokumentation] – 2026-06-11 bis 2026-06-12
 
 ### Hinzugefügt
@@ -127,14 +152,3 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 - `infrastructure/db/migrations.py` — Glob-Runner mit Idempotenz und Rollback-Sicherung
 - `scripts/init_db.py` — Datenbankinitialisierung
 - 12 Migrationstests
-
-## [Audit & Dokumentation] – 2026-06-13
-
-### Hinzugefügt
-- Abschnitt „Betrieb & Rechtliches“ im `README.md` mit Verweisen auf VVT,
-  Betriebsdokumentation, Rollenzuweisung, Betriebsfreigabe-Protokoll,
-  Hardware-Inbetriebnahmeprotokoll, Backup-Zeitplan und Restore-Checkliste.
-
-### Geändert
-- Dokumentationsstand an die neuen Betriebsdokumente unter `docs/datenschutz/`
-  und `docs/betrieb/` angepasst.
