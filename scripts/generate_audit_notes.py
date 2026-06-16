@@ -319,8 +319,8 @@ def render(data: dict[str, ReportData], timestamp: datetime) -> str:
     cov = data["coverage"]
     tests = data["tests"]
 
-    ts_display = timestamp.strftime("%Y-%m-%d %H:%M")
-    ts_iso = timestamp.strftime("%Y-%m-%dT%H:%M:%SZ")
+    ts_display = timestamp.strftime("%Y-%m-%d %H:%M")  # lokale Zeit
+    ts_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # Meta: UTC
 
     lines: list[str] = []
     a = lines.append
@@ -565,14 +565,15 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     report_dir: Path = args.report_dir
-    output: Path = args.output or report_dir / "audit-notes.md"
     project_root = Path(__file__).parent.parent
 
     if not report_dir.exists():
         print(f"Fehler: Report-Verzeichnis nicht gefunden: {report_dir}", file=sys.stderr)
         sys.exit(1)
 
-    timestamp = datetime.now(timezone.utc)
+    timestamp = datetime.now().astimezone()  # lokale Systemzeit mit Offset
+    date_tag = timestamp.strftime("%Y-%m-%d")
+    output = args.output or report_dir / f"audit-notes-{date_tag}.md"
 
     data: dict[str, ReportData] = {
         "ruff": parse_ruff(report_dir / "ruff-report.txt"),
@@ -587,7 +588,7 @@ def main(argv: list[str] | None = None) -> None:
 
     md = render(data, timestamp)
     output.write_text(md, encoding="utf-8")
-    print(f"audit-notes.md geschrieben: {output}")
+    print(f"audit-notes geschrieben: {output}")
 
 
 if __name__ == "__main__":
