@@ -60,8 +60,11 @@ def conn(db: Path):
 
 def test_erster_aufruf_kein_ereignis(db: Path, conn) -> None:
     """Erster check()-Aufruf setzt nur den Basiszeitpunkt — kein Ereignis."""
-    wall_fn = lambda: _T0_WALL
-    mono_fn = lambda: _T0_MONO
+    def wall_fn() -> datetime:
+        return _T0_WALL
+
+    def mono_fn() -> float:
+        return _T0_MONO
     monitor = SystemTimeMonitor(
         db, threshold_seconds=60.0, _wall_clock=wall_fn, _mono_clock=mono_fn
     )

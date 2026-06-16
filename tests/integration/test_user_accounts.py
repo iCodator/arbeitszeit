@@ -10,7 +10,6 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
-from arbeitszeit.presentation.admin_cli import user_accounts
 from arbeitszeit.presentation.admin_cli.main import run as cli_run
 
 
@@ -634,7 +633,7 @@ def test_users_bootstrap_legt_ersten_admin_an(tmp_path):
 
 def test_users_bootstrap_schlaegt_fehl_wenn_admin_existiert(tmp_path):
     db = _make_db(tmp_path)
-    admin_id = _seed_admin(db)
+    _seed_admin(db)
     with pytest.raises(SystemExit):
         cli_run(
             [

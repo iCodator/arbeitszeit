@@ -24,9 +24,8 @@ from arbeitszeit.application.use_cases.register_supplement import (
     RegisterSupplementUseCase,
 )
 from arbeitszeit.application.use_cases.reject_supplement import RejectSupplementUseCase
-from arbeitszeit.domain.enums import BookingSource, BookingType
+from arbeitszeit.domain.enums import BookingType
 from arbeitszeit.domain.errors import DomainError
-from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 

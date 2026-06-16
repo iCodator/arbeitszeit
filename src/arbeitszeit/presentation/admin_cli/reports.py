@@ -22,8 +22,6 @@ from arbeitszeit.infrastructure.export.report_queries import (
 )
 from arbeitszeit.presentation.admin_cli._intervals import (
     day_interval,
-    month_interval,
-    week_interval,
 )
 
 

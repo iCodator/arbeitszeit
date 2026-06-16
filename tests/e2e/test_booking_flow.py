@@ -12,7 +12,9 @@ from arbeitszeit.domain.errors import InactiveCardError, UnknownCardError
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.hardware.simulator import SimulatedHardwareReader
+from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor
 from arbeitszeit.presentation.terminal_ui.booking_loop import process_booking
+from arbeitszeit.presentation.terminal_ui.main import _run_one_cycle
 
 _UID_HASH = "aabbccdd"
 _INACTIVE_UID_HASH = "deadbeef"
@@ -216,11 +218,6 @@ def test_inaktive_karte_speichert_keine_buchung(db, terminal_id, inactive_card_i
 
 
 # --- APPLICATION_ERROR-Logging ---
-
-
-from arbeitszeit.domain.errors import UnknownCardError
-from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor
-from arbeitszeit.presentation.terminal_ui.main import _run_one_cycle
 
 
 def _make_monitor(db: Path) -> SystemTimeMonitor:
