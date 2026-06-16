@@ -221,7 +221,7 @@ def cmd_cards_deactivate(conn: sqlite3.Connection, args: argparse.Namespace, use
 
 
 def register_subcommands(
-    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+    sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
     # --- employees ---
     emp = sub.add_parser("employees", help="Mitarbeiterverwaltung")

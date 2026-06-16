@@ -149,7 +149,7 @@ def cmd_bookings_reject_supplement(
 
 
 def register_subcommands(
-    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+    sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
     bookings = sub.add_parser("bookings", help="Buchungskorrekturen und Nachträge")
     bsub = bookings.add_subparsers(dest="bookings_cmd", required=True)

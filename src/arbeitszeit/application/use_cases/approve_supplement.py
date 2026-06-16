@@ -68,16 +68,7 @@ class ApproveSupplementUseCase:
 
     def execute(self, cmd: ApproveSupplementCommand) -> ApproveSupplementResult:
         with self._uow:
-            approver = self._uow.user_account_repo.get_by_id(cmd.approving_user_id)
-            if (
-                approver is None
-                or not approver.is_active
-                or approver.role not in {UserRole.REVIEWER, UserRole.ADMIN}
-            ):
-                raise PermissionDeniedError(
-                    f"Benutzer {cmd.approving_user_id} ist nicht berechtigt, "
-                    "Nachträge freizugeben."
-                )
+            self._check_permission(cmd.approving_user_id)
 
             supplement = self._uow.supplement_repo.get_by_id(cmd.supplement_id)
             if supplement is None:
@@ -169,23 +160,9 @@ class ApproveSupplementUseCase:
                 )
             )
 
-            follow_up_case_ids: list[int] = []
-            for flag in flags:
-                case = self._uow.review_case_repo.add(
-                    ReviewCase(
-                        id=0,
-                        employee_id=supplement.employee_id,
-                        case_type=flag.case_type,
-                        severity=flag.severity,
-                        status=ReviewCaseStatus.OPEN,
-                        description=(f"Automatisch erkannt bei Freigabe Nachtrag #{supplement.id}"),
-                        booking_id=booking.id,
-                        created_at=now,
-                        closed_at=None,
-                        closed_by_user_id=None,
-                    )
-                )
-                follow_up_case_ids.append(case.id)
+            follow_up_case_ids = self._create_follow_up_cases(
+                supplement.employee_id, booking.id, flags, cmd.approving_user_id, now, supplement.id
+            )
 
             # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
             self._uow.commit()
@@ -219,3 +196,42 @@ class ApproveSupplementUseCase:
                 booking_status=status,
                 follow_up_case_ids=tuple(follow_up_case_ids),
             )
+
+    def _check_permission(self, user_id: int) -> None:
+        approver = self._uow.user_account_repo.get_by_id(user_id)
+        if (
+            approver is None
+            or not approver.is_active
+            or approver.role not in {UserRole.REVIEWER, UserRole.ADMIN}
+        ):
+            raise PermissionDeniedError(
+                f"Benutzer {user_id} ist nicht berechtigt, Nachträge freizugeben."
+            )
+
+    def _create_follow_up_cases(
+        self,
+        employee_id: int,
+        booking_id: int,
+        flags: list[ComplianceFlag],
+        approver_id: int,
+        now: datetime,
+        supplement_id: int,
+    ) -> list[int]:
+        case_ids: list[int] = []
+        for flag in flags:
+            case = self._uow.review_case_repo.add(
+                ReviewCase(
+                    id=0,
+                    employee_id=employee_id,
+                    case_type=flag.case_type,
+                    severity=flag.severity,
+                    status=ReviewCaseStatus.OPEN,
+                    description=f"Automatisch erkannt bei Freigabe Nachtrag #{supplement_id}",
+                    booking_id=booking_id,
+                    created_at=now,
+                    closed_at=None,
+                    closed_by_user_id=None,
+                )
+            )
+            case_ids.append(case.id)
+        return case_ids

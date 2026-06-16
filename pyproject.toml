@@ -24,9 +24,6 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-
 [tool.black]
 line-length = 100
 target-version = ["py314"]
@@ -36,9 +33,14 @@ profile = "black"
 line_length = 100
 
 [tool.ruff]
-src = ["src"]
 line-length = 100
 target-version = "py314"
+exclude = [
+  ".git",
+  ".venv",
+  "__pycache__",
+  "docs/audits/reports",
+]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B"]  # Errors, Warnings, Imports, Bugbear
@@ -61,8 +63,33 @@ layers = [
 [tool.mypy]
 python_version = "3.14"
 strict = true
-ignore_missing_imports = true
-disallow_untyped_defs = true
 disallow_incomplete_defs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
 warn_unused_ignores = true
 warn_return_any = true
+show_error_codes = true
+exclude = [
+  '(^\.venv/)',
+  '(^docs/audits/reports/)',
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+  "-ra",
+  "--strict-markers",
+  "--cov=arbeitszeit",
+  "--cov-report=term-missing",
+  "--cov-report=xml:docs/audits/reports/coverage.xml",
+  "--cov-report=html:docs/audits/reports/htmlcov",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["arbeitszeit"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

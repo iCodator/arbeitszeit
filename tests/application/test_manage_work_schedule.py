@@ -18,6 +18,7 @@ from arbeitszeit.domain.errors import (
     PermissionDeniedError,
     ValidationError,
 )
+
 from tests.application.fakes import FakeUnitOfWork
 
 _ADMIN_ID = 1  # id des ADMIN-UserAccounts (erstes Element im Fake-Store)

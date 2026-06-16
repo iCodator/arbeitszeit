@@ -144,24 +144,34 @@ class Supplement:
 
     def __post_init__(self) -> None:
         if self.approval_status == ApprovalStatus.PENDING:
-            if self.approved_by_user_id is not None or self.approved_at is not None:
-                raise ValueError("Ausstehender Nachtrag darf keine Freigabedaten haben.")
-            if self.rejected_by_user_id is not None or self.rejected_at is not None:
-                raise ValueError("Ausstehender Nachtrag darf keine Ablehnungsdaten haben.")
+            self._require_no_approval_data()
+            self._require_no_rejection_data()
         elif self.approval_status == ApprovalStatus.APPROVED:
-            if self.approved_by_user_id is None or self.approved_at is None:
-                raise ValueError("Genehmigter Nachtrag muss Freigabedaten haben.")
-            if self.rejected_by_user_id is not None or self.rejected_at is not None:
-                raise ValueError("Genehmigter Nachtrag darf keine Ablehnungsdaten haben.")
-            if self.approved_at < self.recorded_at:
-                raise ValueError("approved_at darf nicht vor recorded_at liegen.")
+            self._require_approval_data()
+            self._require_no_rejection_data()
         elif self.approval_status == ApprovalStatus.REJECTED:
-            if self.rejected_by_user_id is None or self.rejected_at is None:
-                raise ValueError("Abgelehnter Nachtrag muss Ablehnungsdaten haben.")
-            if self.approved_by_user_id is not None or self.approved_at is not None:
-                raise ValueError("Abgelehnter Nachtrag darf keine Freigabedaten haben.")
-            if self.rejected_at < self.recorded_at:
-                raise ValueError("rejected_at darf nicht vor recorded_at liegen.")
+            self._require_rejection_data()
+            self._require_no_approval_data()
+
+    def _require_no_approval_data(self) -> None:
+        if self.approved_by_user_id is not None or self.approved_at is not None:
+            raise ValueError("Ausstehender Nachtrag darf keine Freigabedaten haben.")
+
+    def _require_no_rejection_data(self) -> None:
+        if self.rejected_by_user_id is not None or self.rejected_at is not None:
+            raise ValueError("Ausstehender Nachtrag darf keine Ablehnungsdaten haben.")
+
+    def _require_approval_data(self) -> None:
+        if self.approved_by_user_id is None or self.approved_at is None:
+            raise ValueError("Genehmigter Nachtrag muss Freigabedaten haben.")
+        if self.approved_at < self.recorded_at:
+            raise ValueError("approved_at darf nicht vor recorded_at liegen.")
+
+    def _require_rejection_data(self) -> None:
+        if self.rejected_by_user_id is None or self.rejected_at is None:
+            raise ValueError("Abgelehnter Nachtrag muss Ablehnungsdaten haben.")
+        if self.rejected_at < self.recorded_at:
+            raise ValueError("rejected_at darf nicht vor recorded_at liegen.")
 
 
 @dataclass(frozen=True)

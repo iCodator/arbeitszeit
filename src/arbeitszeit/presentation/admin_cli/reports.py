@@ -254,7 +254,7 @@ def cmd_reports_open_review_cases(
 
 
 def register_subcommands(
-    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+    sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
     reports = sub.add_parser("reports", help="Berichte und Pflichtauswertungen")
     rsub = reports.add_subparsers(dest="reports_cmd", required=True)

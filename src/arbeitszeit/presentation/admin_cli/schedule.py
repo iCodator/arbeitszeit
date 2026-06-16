@@ -118,7 +118,7 @@ def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
 
 
 def register_subcommands(
-    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+    sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
     sched = sub.add_parser("schedule", help="Regelarbeitszeit verwalten")
     ssub = sched.add_subparsers(dest="schedule_cmd", required=True)

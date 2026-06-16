@@ -31,6 +31,7 @@ from arbeitszeit.domain.errors import (
     OpenPhaseConflictError,
     UnknownCardError,
 )
+
 from tests.application.fakes import FakeUnitOfWork
 
 _DATE = date(2025, 3, 10)

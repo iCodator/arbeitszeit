@@ -101,7 +101,7 @@ def cmd_system_backup(
 
 
 def register_subcommands(
-    sub: argparse._SubParsersAction,  # type: ignore[type-arg]
+    sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
     system = sub.add_parser("system", help="Systemcheck und Backup")
     ssub = system.add_subparsers(dest="system_cmd", required=True)
