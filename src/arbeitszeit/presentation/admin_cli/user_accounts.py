@@ -20,13 +20,9 @@ _ALLOWED_ROLES = ("ADMIN", "REVIEWER", "TECH")
 
 
 def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute(
-        "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
-    ).fetchone()
+    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
     if row is None or not row["active"] or row["role"] != "ADMIN":
-        print(
-            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr
-        )
+        print("Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr)
         sys.exit(1)
 
 
@@ -63,9 +59,7 @@ def _hash_password(password: str) -> str:
     return binascii.hexlify(salt).decode() + ":" + binascii.hexlify(dk).decode()
 
 
-def cmd_users_add(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_users_add(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     role = args.role.upper()
     if role not in _ALLOWED_ROLES:
@@ -121,9 +115,7 @@ def cmd_users_list(conn: sqlite3.Connection, args: argparse.Namespace) -> None:
         print(f"{row['id']:>4}  {row['username']:20}  {row['role']:10}  {status}")
 
 
-def cmd_users_deactivate(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_users_deactivate(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     row = conn.execute(
         "SELECT id, username, active FROM user_accounts WHERE id = ?",
@@ -154,9 +146,7 @@ def cmd_users_deactivate(
     print(f"Benutzerkonto '{row['username']}' deaktiviert.")
 
 
-def cmd_users_reactivate(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_users_reactivate(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     row = conn.execute(
         "SELECT id, username, active FROM user_accounts WHERE id = ?",
@@ -187,9 +177,7 @@ def cmd_users_reactivate(
     print(f"Benutzerkonto '{row['username']}' reaktiviert.")
 
 
-def cmd_users_change_role(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_users_change_role(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     row = conn.execute(
         "SELECT id, username, role FROM user_accounts WHERE id = ?",
@@ -271,9 +259,7 @@ def cmd_users_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace) -> N
 def register_subcommands(
     sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
-    users = sub.add_parser(
-        "users", help="Benutzerkonten verwalten (ADMIN/REVIEWER/TECH)"
-    )
+    users = sub.add_parser("users", help="Benutzerkonten verwalten (ADMIN/REVIEWER/TECH)")
     users_sub = users.add_subparsers(dest="users_cmd", required=True)
 
     # add
@@ -321,9 +307,7 @@ def register_subcommands(
     )
 
     # change-role
-    change = users_sub.add_parser(
-        "change-role", help="Rolle eines Benutzerkontos ändern"
-    )
+    change = users_sub.add_parser("change-role", help="Rolle eines Benutzerkontos ändern")
     change.add_argument(
         "--user-id",
         dest="target_user_id",
@@ -343,9 +327,7 @@ def register_subcommands(
         "bootstrap",
         help="Erstes Administratorkonto anlegen (nur wenn kein Admin existiert)",
     )
-    boot.add_argument(
-        "--username", required=True, help="Benutzername des ersten Administrators"
-    )
+    boot.add_argument("--username", required=True, help="Benutzername des ersten Administrators")
     boot.add_argument(
         "--password",
         default=None,

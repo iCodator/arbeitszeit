@@ -111,9 +111,7 @@ class EvdevHardwareReader(HardwareReader):
         raw_uid = self._read_rfid_uid(timeout=self._rfid_timeout).strip()
         occurred_at = datetime.now(timezone.utc)
         if not raw_uid:
-            raise EmptyUidError(
-                "RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen."
-            )
+            raise EmptyUidError("RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen.")
         return RawBookingRequest(
             booking_type=booking_type,
             uid_hash=hash_uid(raw_uid),
@@ -149,14 +147,10 @@ class EvdevHardwareReader(HardwareReader):
         while True:
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                raise HardwareTimeoutError(
-                    f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit."
-                )
+                raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
             ready, _, _ = select.select([self._rfid.fd], [], [], remaining)
             if not ready:
-                raise HardwareTimeoutError(
-                    f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit."
-                )
+                raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
             for event in self._rfid.read():
                 if event.type != ecodes.EV_KEY:
                     continue

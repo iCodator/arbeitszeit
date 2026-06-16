@@ -46,14 +46,10 @@ class RejectSupplementUseCase:
                 )
 
             now = datetime.now(timezone.utc)
-            self._uow.supplement_repo.reject(
-                supplement.id, cmd.rejected_by_user_id, now
-            )
+            self._uow.supplement_repo.reject(supplement.id, cmd.rejected_by_user_id, now)
 
             review_case_id: int | None = None
-            open_cases = self._uow.review_case_repo.list_open_for_employee(
-                supplement.employee_id
-            )
+            open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
             for case in open_cases:
                 if (
                     case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW

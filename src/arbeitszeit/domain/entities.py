@@ -86,19 +86,13 @@ class WorkScheduleVersion:
 
     def __post_init__(self) -> None:
         if self.scope_type == ScopeType.GLOBAL and self.scope_employee_id is not None:
-            raise ValueError(
-                "Globale Regelarbeitszeit darf keinen Mitarbeiterbezug haben."
-            )
+            raise ValueError("Globale Regelarbeitszeit darf keinen Mitarbeiterbezug haben.")
         if self.scope_type == ScopeType.EMPLOYEE and self.scope_employee_id is None:
-            raise ValueError(
-                "Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben."
-            )
+            raise ValueError("Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben.")
         # weekday 1–7 entspricht ISO-Wochentag (1=Mo, 7=So), konsistent mit
         # Python datetime.isoweekday() und dem Schema-CHECK in work_schedule_versions.
         if not (1 <= self.weekday <= 7):
-            raise ValueError(
-                f"Wochentag {self.weekday} ungültig, muss 1–7 sein (ISO: 1=Mo, 7=So)."
-            )
+            raise ValueError(f"Wochentag {self.weekday} ungültig, muss 1–7 sein (ISO: 1=Mo, 7=So).")
         if self.start_time >= self.end_time:
             raise ValueError("start_time muss vor end_time liegen.")
         if self.valid_until is not None and self.valid_until < self.valid_from:
@@ -128,13 +122,8 @@ class ReviewCase:
         elif self.status in closed_statuses:
             if self.closed_at is None or self.closed_by_user_id is None:
                 raise ValueError("Geschlossener Prüffall muss Schließungsdaten haben.")
-            if (
-                self.status == ReviewCaseStatus.CLOSED_WITH_NOTE
-                and not (self.note or "").strip()
-            ):
-                raise ValueError(
-                    "CLOSED_WITH_NOTE erfordert eine nicht-leere Begründung (note)."
-                )
+            if self.status == ReviewCaseStatus.CLOSED_WITH_NOTE and not (self.note or "").strip():
+                raise ValueError("CLOSED_WITH_NOTE erfordert eine nicht-leere Begründung (note).")
 
 
 @dataclass(frozen=True)
@@ -156,20 +145,14 @@ class Supplement:
     def __post_init__(self) -> None:
         if self.approval_status == ApprovalStatus.PENDING:
             if self.approved_by_user_id is not None or self.approved_at is not None:
-                raise ValueError(
-                    "Ausstehender Nachtrag darf keine Freigabedaten haben."
-                )
+                raise ValueError("Ausstehender Nachtrag darf keine Freigabedaten haben.")
             if self.rejected_by_user_id is not None or self.rejected_at is not None:
-                raise ValueError(
-                    "Ausstehender Nachtrag darf keine Ablehnungsdaten haben."
-                )
+                raise ValueError("Ausstehender Nachtrag darf keine Ablehnungsdaten haben.")
         elif self.approval_status == ApprovalStatus.APPROVED:
             if self.approved_by_user_id is None or self.approved_at is None:
                 raise ValueError("Genehmigter Nachtrag muss Freigabedaten haben.")
             if self.rejected_by_user_id is not None or self.rejected_at is not None:
-                raise ValueError(
-                    "Genehmigter Nachtrag darf keine Ablehnungsdaten haben."
-                )
+                raise ValueError("Genehmigter Nachtrag darf keine Ablehnungsdaten haben.")
             if self.approved_at < self.recorded_at:
                 raise ValueError("approved_at darf nicht vor recorded_at liegen.")
         elif self.approval_status == ApprovalStatus.REJECTED:

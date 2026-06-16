@@ -1,4 +1,5 @@
 import json
+import sqlite3
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -42,14 +43,9 @@ def _count_employees(path: Path) -> int:
 
 def _audit_events(path: Path) -> list[dict]:
     conn = open_connection(path)
-    rows = conn.execute(
-        "SELECT event_type, details_json FROM audit_log ORDER BY id"
-    ).fetchall()
+    rows = conn.execute("SELECT event_type, details_json FROM audit_log ORDER BY id").fetchall()
     conn.close()
-    return [
-        {"event_type": r["event_type"], "details": json.loads(r["details_json"])}
-        for r in rows
-    ]
+    return [{"event_type": r["event_type"], "details": json.loads(r["details_json"])} for r in rows]
 
 
 # --- create_local_backup ---
@@ -91,15 +87,11 @@ def test_backup_enthaelt_alle_tabellen(tmp_path):
     bak_conn = open_connection(backup_path)
     src_tables = {
         r[0]
-        for r in src_conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        ).fetchall()
+        for r in src_conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
     }
     bak_tables = {
         r[0]
-        for r in bak_conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        ).fetchall()
+        for r in bak_conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()
     }
     src_conn.close()
     bak_conn.close()
@@ -165,9 +157,7 @@ def test_restore_aus_backup_behaelt_schema_migrations(tmp_path):
     service.restore_from(backup_path)
 
     conn = open_connection(db)
-    rows = conn.execute(
-        "SELECT version FROM schema_migrations ORDER BY version"
-    ).fetchall()
+    rows = conn.execute("SELECT version FROM schema_migrations ORDER BY version").fetchall()
     conn.close()
     versions = [r["version"] for r in rows]
     assert "0001" in versions
@@ -204,7 +194,7 @@ def test_restore_aus_beschaedigter_datei_schlaegt_fehl(tmp_path):
     corrupt = tmp_path / "corrupt.db"
     corrupt.write_bytes(b"this is not a valid sqlite database file")
 
-    with pytest.raises(Exception):
+    with pytest.raises(sqlite3.DatabaseError):
         service.restore_from(corrupt)
 
 
@@ -270,9 +260,7 @@ def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
         service.sync_to_nas(Path("/nonexistent/nas/path"))
 
     events = _audit_events(db)
-    failed = next(
-        e for e in events if e["event_type"] == audit_events.BACKUP_SYNC_FAILED
-    )
+    failed = next(e for e in events if e["event_type"] == audit_events.BACKUP_SYNC_FAILED)
     assert failed["details"]["returncode"] != 0
     assert "cmd" in failed["details"]
     assert "stderr" in failed["details"]
@@ -311,9 +299,7 @@ def test_backup_ohne_export_dir_legt_kein_exports_verzeichnis_an(tmp_path):
 def test_backup_mit_nicht_existierendem_export_dir_wird_ignoriert(tmp_path):
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
-    service = SQLiteBackupService(
-        db, tmp_path / "backups", export_dir=tmp_path / "noch_nicht_da"
-    )
+    service = SQLiteBackupService(db, tmp_path / "backups", export_dir=tmp_path / "noch_nicht_da")
     backup_path = service.create_local_backup(now=_NOW)
     assert backup_path.exists()
     assert not (tmp_path / "backups" / "exports").exists()

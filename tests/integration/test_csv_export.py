@@ -190,9 +190,7 @@ def test_detail_csv_filtert_nach_employee_id(conn, export_dir):
     emp2 = _insert_employee(conn, "E002")
     _insert_booking(conn, emp1)
     _insert_booking(conn, emp2)
-    path = export_detail(
-        conn, _FROM, _TO, export_dir, employee_id=emp1, now=_EXPORT_NOW
-    )
+    path = export_detail(conn, _FROM, _TO, export_dir, employee_id=emp1, now=_EXPORT_NOW)
 
     rows = _read_csv(path)
     assert len(rows) == 1

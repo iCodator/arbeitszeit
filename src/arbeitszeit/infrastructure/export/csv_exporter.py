@@ -27,9 +27,7 @@ from arbeitszeit.infrastructure.export.report_queries import (
 # ---------------------------------------------------------------------------
 
 
-def _make_filename(
-    prefix: str, from_dt: datetime, to_dt: datetime, now: datetime
-) -> str:
+def _make_filename(prefix: str, from_dt: datetime, to_dt: datetime, now: datetime) -> str:
     return (
         f"{prefix}_"
         f"{from_dt.strftime('%Y%m%d')}_"
@@ -98,12 +96,8 @@ def _day_stats(day: list[BookingRow]) -> dict[str, object]:
     open_count = 0
     warn_count = 0
     needs_review_count = 0
-    work_phase_start: datetime | None = (
-        None  # gesetzt zwischen COME/BREAK_END und BREAK_START/GO
-    )
-    break_phase_start: datetime | None = (
-        None  # gesetzt zwischen BREAK_START und BREAK_END
-    )
+    work_phase_start: datetime | None = None  # gesetzt zwischen COME/BREAK_END und BREAK_START/GO
+    break_phase_start: datetime | None = None  # gesetzt zwischen BREAK_START und BREAK_END
 
     for b in sorted(day, key=lambda x: x.booked_at):
         if b.booking_type == BookingType.COME:
@@ -208,9 +202,7 @@ def export_detail(
                     "status": b.status.value,
                     "quelle": b.source.value,
                     "ist_nachtrag": "ja" if b.is_manual else "nein",
-                    "ist_korrigiert": (
-                        "ja" if b.status.value == "CORRECTED" else "nein"
-                    ),
+                    "ist_korrigiert": ("ja" if b.status.value == "CORRECTED" else "nein"),
                     "dauer_minuten": _duration_minutes(b, day) or "",
                 }
             )
@@ -277,9 +269,7 @@ def export_condensed(
         writer = csv.DictWriter(f, fieldnames=_CONDENSED_FIELDS)
         writer.writeheader()
 
-        for (emp_id, day_date), day in sorted(
-            groups.items(), key=lambda kv: (kv[0][0], kv[0][1])
-        ):
+        for (emp_id, day_date), day in sorted(groups.items(), key=lambda kv: (kv[0][0], kv[0][1])):
             stats = _day_stats(day)
             first = day[0]
             writer.writerow(

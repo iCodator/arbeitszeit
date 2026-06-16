@@ -43,11 +43,7 @@ def _evaluate_booking(
 
     if prev_bookings is not None:
         last_go = next(
-            (
-                b.booked_at
-                for b in reversed(prev_bookings)
-                if b.booking_type == BookingType.GO
-            ),
+            (b.booked_at for b in reversed(prev_bookings) if b.booking_type == BookingType.GO),
             None,
         )
         first_come = next(
@@ -94,21 +90,15 @@ class ApproveSupplementUseCase:
 
             employee = self._uow.employee_repo.get_by_id(supplement.employee_id)
             if employee is None:
-                raise NotFoundError(
-                    f"Mitarbeiter {supplement.employee_id} nicht gefunden."
-                )
+                raise NotFoundError(f"Mitarbeiter {supplement.employee_id} nicht gefunden.")
             if not employee.is_active:
-                raise InactiveEmployeeError(
-                    f"Mitarbeiter {supplement.employee_id} ist inaktiv."
-                )
+                raise InactiveEmployeeError(f"Mitarbeiter {supplement.employee_id} ist inaktiv.")
 
             now = datetime.now(timezone.utc)
             self._uow.supplement_repo.approve(supplement.id, cmd.approving_user_id, now)
 
             review_case_id: int | None = None
-            open_cases = self._uow.review_case_repo.list_open_for_employee(
-                supplement.employee_id
-            )
+            open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
             for case in open_cases:
                 if (
                     case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW
@@ -152,9 +142,7 @@ class ApproveSupplementUseCase:
                 schedule.start_time <= supplement.event_at.time() <= schedule.end_time
             ):
                 schedule_flags = [
-                    ComplianceFlag(
-                        ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
-                    )
+                    ComplianceFlag(ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN)
                 ]
 
             prev_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
@@ -190,9 +178,7 @@ class ApproveSupplementUseCase:
                         case_type=flag.case_type,
                         severity=flag.severity,
                         status=ReviewCaseStatus.OPEN,
-                        description=(
-                            f"Automatisch erkannt bei Freigabe Nachtrag #{supplement.id}"
-                        ),
+                        description=(f"Automatisch erkannt bei Freigabe Nachtrag #{supplement.id}"),
                         booking_id=booking.id,
                         created_at=now,
                         closed_at=None,

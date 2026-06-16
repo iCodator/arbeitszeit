@@ -133,9 +133,7 @@ def test_come_pause_go_ablauf(db, terminal_id, card_id):
 
 def test_buchung_erzeugt_audit_log_eintrag(db, terminal_id, card_id):
     reader = SimulatedHardwareReader()
-    reader.inject(
-        BookingType.COME, _UID_HASH, datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc)
-    )
+    reader.inject(BookingType.COME, _UID_HASH, datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc))
     process_booking(reader, db, terminal_id)
 
     events = _audit_events(db)
@@ -144,9 +142,7 @@ def test_buchung_erzeugt_audit_log_eintrag(db, terminal_id, card_id):
 
 def test_book_result_enthaelt_booking_id(db, terminal_id, card_id):
     reader = SimulatedHardwareReader()
-    reader.inject(
-        BookingType.COME, _UID_HASH, datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc)
-    )
+    reader.inject(BookingType.COME, _UID_HASH, datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc))
     result = process_booking(reader, db, terminal_id)
     assert result.booking_id > 0
 
@@ -226,9 +222,7 @@ def _make_monitor(db: Path) -> SystemTimeMonitor:
     return monitor
 
 
-def test_unerwartete_exception_schreibt_application_error_in_system_events(
-    db, terminal_id
-):
+def test_unerwartete_exception_schreibt_application_error_in_system_events(db, terminal_id):
     class BrokenReader:
         def read_next(self):
             raise RuntimeError("Gerätepanne simuliert")

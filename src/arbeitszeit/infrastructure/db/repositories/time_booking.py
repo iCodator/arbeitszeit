@@ -53,9 +53,7 @@ class SQLiteTimeBookingRepository:
         row = self._conn.execute(f"{_SELECT} WHERE id = ?", (booking_id,)).fetchone()
         return _row_to_booking(row) if row else None
 
-    def list_for_employee_on_day(
-        self, employee_id: int, day: date
-    ) -> list[TimeBooking]:
+    def list_for_employee_on_day(self, employee_id: int, day: date) -> list[TimeBooking]:
         # `day` muss ein UTC-Kalendertag sein, konsistent mit UTC-normalisierten booked_at-Werten.
         # Die Application-Schicht ist verantwortlich für die Normalisierung vor dem Aufruf.
         day_start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)

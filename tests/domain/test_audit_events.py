@@ -27,23 +27,15 @@ _EXPECTED = {
 
 def test_alle_event_type_werte_sind_eindeutig():
     all_values = [
-        v
-        for k, v in vars(audit_events).items()
-        if not k.startswith("_") and isinstance(v, str)
+        v for k, v in vars(audit_events).items() if not k.startswith("_") and isinstance(v, str)
     ]
-    assert len(all_values) == len(
-        set(all_values)
-    ), "Doppelte event_type-Werte im Katalog: " + str(
+    assert len(all_values) == len(set(all_values)), "Doppelte event_type-Werte im Katalog: " + str(
         [v for v in all_values if all_values.count(v) > 1]
     )
 
 
 def test_katalog_enthaelt_genau_die_erwarteten_namen():
     actual = {
-        v
-        for k, v in vars(audit_events).items()
-        if not k.startswith("_") and isinstance(v, str)
+        v for k, v in vars(audit_events).items() if not k.startswith("_") and isinstance(v, str)
     }
-    assert (
-        actual == _EXPECTED
-    ), f"Unbekannte: {actual - _EXPECTED}, Fehlende: {_EXPECTED - actual}"
+    assert actual == _EXPECTED, f"Unbekannte: {actual - _EXPECTED}, Fehlende: {_EXPECTED - actual}"

@@ -10,8 +10,7 @@ class SQLiteUserAccountRepository:
 
     def get_by_id(self, user_id: int) -> UserAccount | None:
         row = self._conn.execute(
-            "SELECT id, employee_id, username, role, active "
-            "FROM user_accounts WHERE id = ?",
+            "SELECT id, employee_id, username, role, active " "FROM user_accounts WHERE id = ?",
             (user_id,),
         ).fetchone()
         return _row_to_user_account(row) if row else None

@@ -34,7 +34,7 @@ def run_migrations(
         sql = path.read_text(encoding="utf-8")
         # Migration-SQL und Versionsregistrierung in einer einzigen Transaktion,
         # damit "angewendet" und "registriert" untrennbar sind.
-        script = (
+        script = (  # nosec B608 – version ist durch isdigit()+len==4 auf 0000–9999 beschränkt
             f"BEGIN;\n{sql}\n"
             f"INSERT INTO schema_migrations (version, applied_at)"
             f" VALUES ('{version}', datetime('now'));\n"

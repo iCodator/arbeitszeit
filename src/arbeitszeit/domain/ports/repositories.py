@@ -34,9 +34,7 @@ class RfidCardRepository(Protocol):
 class TimeBookingRepository(Protocol):
     def add(self, booking: TimeBooking) -> TimeBooking: ...
     def get_by_id(self, booking_id: int) -> TimeBooking | None: ...
-    def list_for_employee_on_day(
-        self, employee_id: int, day: date
-    ) -> list[TimeBooking]:
+    def list_for_employee_on_day(self, employee_id: int, day: date) -> list[TimeBooking]:
         # Muss aufsteigend nach booked_at sortiert zurückgeben.
         # Compliance-Prüfungen (Pausen, Ruhezeit, Maximalstunden) setzen
         # chronologische Reihenfolge voraus.

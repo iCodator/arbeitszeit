@@ -70,9 +70,7 @@ def _device_events(db: Path) -> list[dict]:
 
 def _bookings_with_device_event(db: Path) -> list[dict]:
     conn = open_connection(db)
-    rows = conn.execute(
-        "SELECT id, device_event_id FROM time_bookings ORDER BY id"
-    ).fetchall()
+    rows = conn.execute("SELECT id, device_event_id FROM time_bookings ORDER BY id").fetchall()
     conn.close()
     return [dict(r) for r in rows]
 
@@ -80,9 +78,7 @@ def _bookings_with_device_event(db: Path) -> list[dict]:
 # --- Test 1: Erfolgreiche Buchung ---
 
 
-def test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id(
-    db, terminal_id, card_id
-):
+def test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id(db, terminal_id, card_id):
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, _UID_HASH, _NOW)
 

@@ -233,9 +233,7 @@ def test_review_case_bleibt_offen_wenn_related_booking_id_none():
 
     result = uc.execute(_cmd(supplement_id))
 
-    assert (
-        uow.review_case_repo._store[case_with_none.id].status == ReviewCaseStatus.OPEN
-    )
+    assert uow.review_case_repo._store[case_with_none.id].status == ReviewCaseStatus.OPEN
     assert result.review_case_id is None
 
 

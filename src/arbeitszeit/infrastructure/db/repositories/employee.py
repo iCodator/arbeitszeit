@@ -9,8 +9,7 @@ class SQLiteEmployeeRepository:
 
     def get_by_id(self, employee_id: int) -> Employee | None:
         row = self._conn.execute(
-            "SELECT id, personnel_no, first_name, last_name, active "
-            "FROM employees WHERE id = ?",
+            "SELECT id, personnel_no, first_name, last_name, active " "FROM employees WHERE id = ?",
             (employee_id,),
         ).fetchone()
         return _row_to_employee(row) if row else None

@@ -128,9 +128,7 @@ def _create_supplement(db: Path, employee_id: int, user_id: int) -> int:
     return result.supplement_id
 
 
-def test_nachtrag_erfassen_reviewer(
-    db: Path, employee_id: int, reviewer_user_id: int
-) -> None:
+def test_nachtrag_erfassen_reviewer(db: Path, employee_id: int, reviewer_user_id: int) -> None:
     cmd = CreateSupplementCommand(
         employee_id=employee_id,
         related_booking_id=None,
@@ -169,9 +167,7 @@ def test_nachtrag_erfassen_employee_verweigert(
         RegisterSupplementUseCase(_make_uow(db)).execute(cmd)
 
 
-def test_nachtrag_erfassen_unbekannter_mitarbeiter(
-    db: Path, reviewer_user_id: int
-) -> None:
+def test_nachtrag_erfassen_unbekannter_mitarbeiter(db: Path, reviewer_user_id: int) -> None:
     cmd = CreateSupplementCommand(
         employee_id=9999,
         related_booking_id=None,
@@ -217,9 +213,7 @@ def test_nachtrag_genehmigen_erzeugt_buchung(
     assert booking_row["source"] == "MANUAL"
 
 
-def test_nachtrag_ablehnen_reviewer(
-    db: Path, employee_id: int, reviewer_user_id: int
-) -> None:
+def test_nachtrag_ablehnen_reviewer(db: Path, employee_id: int, reviewer_user_id: int) -> None:
     supplement_id = _create_supplement(db, employee_id, reviewer_user_id)
 
     cmd = RejectSupplementCommand(

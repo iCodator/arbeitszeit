@@ -67,10 +67,7 @@ def run(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     # Bootstrap benötigt keine user-id — es gibt noch keinen Admin
-    if (
-        getattr(args, "domain", None) == "users"
-        and getattr(args, "users_cmd", None) == "bootstrap"
-    ):
+    if getattr(args, "domain", None) == "users" and getattr(args, "users_cmd", None) == "bootstrap":
         conn = open_connection(args.db)
         try:
             run_migrations(conn)
@@ -103,26 +100,48 @@ def _dispatch(
     table: dict[tuple[str, str], Callable[[], None]] = {
         ("employees", "list"): lambda: employees.cmd_employees_list(conn, args),
         ("employees", "add"): lambda: employees.cmd_employees_add(conn, args, user_id),
-        ("employees", "deactivate"): lambda: employees.cmd_employees_deactivate(conn, args, user_id),
+        ("employees", "deactivate"): lambda: employees.cmd_employees_deactivate(
+            conn, args, user_id
+        ),
         ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, args, user_id),
         ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, args, user_id),
         ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(conn, args, user_id),
-        ("bookings", "correct"): lambda: bookings.cmd_bookings_correct(conn, audit_conn, args, user_id),
-        ("bookings", "supplement"): lambda: bookings.cmd_bookings_supplement(conn, audit_conn, args, user_id),
-        ("bookings", "approve-supplement"): lambda: bookings.cmd_bookings_approve_supplement(conn, audit_conn, args, user_id),
-        ("bookings", "reject-supplement"): lambda: bookings.cmd_bookings_reject_supplement(conn, audit_conn, args, user_id),
+        ("bookings", "correct"): lambda: bookings.cmd_bookings_correct(
+            conn, audit_conn, args, user_id
+        ),
+        ("bookings", "supplement"): lambda: bookings.cmd_bookings_supplement(
+            conn, audit_conn, args, user_id
+        ),
+        ("bookings", "approve-supplement"): lambda: bookings.cmd_bookings_approve_supplement(
+            conn, audit_conn, args, user_id
+        ),
+        ("bookings", "reject-supplement"): lambda: bookings.cmd_bookings_reject_supplement(
+            conn, audit_conn, args, user_id
+        ),
         ("schedule", "set"): lambda: schedule.cmd_schedule_set(conn, audit_conn, args, user_id),
         ("schedule", "show"): lambda: schedule.cmd_schedule_show(conn, args, user_id),
         ("reports", "export-csv"): lambda: reports.cmd_reports_export_csv(conn, args, user_id),
-        ("reports", "export-pdf-day"): lambda: reports.cmd_reports_export_pdf_day(conn, args, user_id),
-        ("reports", "export-pdf-week"): lambda: reports.cmd_reports_export_pdf_week(conn, args, user_id),
-        ("reports", "export-pdf-month"): lambda: reports.cmd_reports_export_pdf_month(conn, args, user_id),
-        ("reports", "export-pdf-employee"): lambda: reports.cmd_reports_export_pdf_employee(conn, args, user_id),
-        ("reports", "open-bookings"): lambda: reports.cmd_reports_open_bookings(conn, args, user_id),
+        ("reports", "export-pdf-day"): lambda: reports.cmd_reports_export_pdf_day(
+            conn, args, user_id
+        ),
+        ("reports", "export-pdf-week"): lambda: reports.cmd_reports_export_pdf_week(
+            conn, args, user_id
+        ),
+        ("reports", "export-pdf-month"): lambda: reports.cmd_reports_export_pdf_month(
+            conn, args, user_id
+        ),
+        ("reports", "export-pdf-employee"): lambda: reports.cmd_reports_export_pdf_employee(
+            conn, args, user_id
+        ),
+        ("reports", "open-bookings"): lambda: reports.cmd_reports_open_bookings(
+            conn, args, user_id
+        ),
         ("reports", "warn-cases"): lambda: reports.cmd_reports_warn_cases(conn, args, user_id),
         ("reports", "corrections"): lambda: reports.cmd_reports_corrections(conn, args, user_id),
         ("reports", "supplements"): lambda: reports.cmd_reports_supplements(conn, args, user_id),
-        ("reports", "open-review-cases"): lambda: reports.cmd_reports_open_review_cases(conn, args, user_id),
+        ("reports", "open-review-cases"): lambda: reports.cmd_reports_open_review_cases(
+            conn, args, user_id
+        ),
         ("system", "check"): lambda: system.cmd_system_check(db_path, conn, args, user_id),
         ("system", "backup"): lambda: system.cmd_system_backup(db_path, conn, args, user_id),
         ("users", "add"): lambda: user_accounts.cmd_users_add(conn, args, user_id),

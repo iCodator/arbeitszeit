@@ -59,9 +59,7 @@ class SQLiteWorkScheduleRepository:
             raise NotFoundError(f"WorkScheduleVersion {version_id} nicht gefunden.")
         valid_from = _parse_date(row["valid_from"])
         if valid_until < valid_from:
-            raise ValidationError(
-                f"valid_until {valid_until} liegt vor valid_from {valid_from}."
-            )
+            raise ValidationError(f"valid_until {valid_until} liegt vor valid_from {valid_from}.")
         self._conn.execute(
             "UPDATE work_schedule_versions SET valid_until = ? WHERE id = ?",
             (valid_until.isoformat(), version_id),
@@ -100,9 +98,7 @@ class SQLiteWorkScheduleRepository:
     ) -> list[WorkScheduleVersion]:
         # scope_employee_id=None bedeutet GLOBAL-Scope (kein "alle Scopes").
         # Caller, der EMPLOYEE-Versionen sucht, muss eine konkrete employee_id übergeben.
-        scope_type = (
-            ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
-        )
+        scope_type = ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
         if weekday is not None:
             rows = self._conn.execute(
                 f"{_SELECT} WHERE scope_type = ? AND scope_employee_id IS ? "
@@ -111,8 +107,7 @@ class SQLiteWorkScheduleRepository:
             ).fetchall()
         else:
             rows = self._conn.execute(
-                f"{_SELECT} WHERE scope_type = ? AND scope_employee_id IS ? "
-                "ORDER BY valid_from",
+                f"{_SELECT} WHERE scope_type = ? AND scope_employee_id IS ? " "ORDER BY valid_from",
                 (scope_type.value, scope_employee_id),
             ).fetchall()
         return [_row_to_version(r) for r in rows]

@@ -26,9 +26,7 @@ from arbeitszeit.presentation.admin_cli._intervals import (
 
 
 def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute(
-        "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
-    ).fetchone()
+    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
     if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
         print(
             "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
@@ -55,9 +53,7 @@ def _parse_date(value: str) -> date:
     try:
         return date.fromisoformat(value)
     except ValueError:
-        print(
-            f"Fehler: Ungültiges Datum {value!r} (erwartet YYYY-MM-DD)", file=sys.stderr
-        )
+        print(f"Fehler: Ungültiges Datum {value!r} (erwartet YYYY-MM-DD)", file=sys.stderr)
         sys.exit(1)
 
 
@@ -127,12 +123,8 @@ def cmd_reports_export_csv(
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
-    detail_path = csv_exporter.export_detail(
-        conn, from_dt, to_dt, export_dir, employee_id
-    )
-    condensed_path = csv_exporter.export_condensed(
-        conn, from_dt, to_dt, export_dir, employee_id
-    )
+    detail_path = csv_exporter.export_detail(conn, from_dt, to_dt, export_dir, employee_id)
+    condensed_path = csv_exporter.export_condensed(conn, from_dt, to_dt, export_dir, employee_id)
     print(f"Detail-CSV: {detail_path}")
     print(f"Verdichtet-CSV: {condensed_path}")
 
@@ -156,9 +148,7 @@ def cmd_reports_export_pdf_week(
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
-    path = pdf_report_service.create_weekly_report(
-        conn, args.year, args.week, export_dir
-    )
+    path = pdf_report_service.create_weekly_report(conn, args.year, args.week, export_dir)
     print(f"PDF: {path}")
 
 
@@ -169,9 +159,7 @@ def cmd_reports_export_pdf_month(
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
-    path = pdf_report_service.create_monthly_report(
-        conn, args.year, args.month, export_dir
-    )
+    path = pdf_report_service.create_monthly_report(conn, args.year, args.month, export_dir)
     print(f"PDF: {path}")
 
 
@@ -203,9 +191,7 @@ def cmd_reports_open_bookings(
     if from_date is not None and to_date is not None:
         from_dt, _ = day_interval(_parse_date(from_date))
         _, to_dt = day_interval(_parse_date(to_date))
-        rows = list_open_bookings_in_period(
-            conn, from_dt, to_dt, employee_id=employee_id
-        )
+        rows = list_open_bookings_in_period(conn, from_dt, to_dt, employee_id=employee_id)
         print(f"Offene Buchungen (Status OPEN) von {from_date} bis {to_date}:")
     else:
         rows = list_open_bookings(conn, employee_id=employee_id)
@@ -259,9 +245,7 @@ def cmd_reports_open_review_cases(
     if from_date is not None and to_date is not None:
         from_dt, _ = day_interval(_parse_date(from_date))
         _, to_dt = day_interval(_parse_date(to_date))
-        rows = list_open_review_cases_in_period(
-            conn, from_dt, to_dt, employee_id=employee_id
-        )
+        rows = list_open_review_cases_in_period(conn, from_dt, to_dt, employee_id=employee_id)
         print(f"Offene Prüffälle von {from_date} bis {to_date}:")
     else:
         rows = list_open_review_cases(conn, employee_id=employee_id)
@@ -277,9 +261,7 @@ def register_subcommands(
 
     # --- Export ---
     csv_cmd = rsub.add_parser("export-csv", help="CSV-Export (Detail + verdichtet)")
-    csv_cmd.add_argument(
-        "--from", required=True, dest="from_date", metavar="YYYY-MM-DD"
-    )
+    csv_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
     csv_cmd.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
     csv_cmd.add_argument("--employee-id", type=int, default=None)
 
@@ -296,9 +278,7 @@ def register_subcommands(
 
     pdf_emp = rsub.add_parser("export-pdf-employee", help="Mitarbeiterbericht als PDF")
     pdf_emp.add_argument("--employee-id", required=True, type=int)
-    pdf_emp.add_argument(
-        "--from", required=True, dest="from_date", metavar="YYYY-MM-DD"
-    )
+    pdf_emp.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
     pdf_emp.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
 
     # --- Pflichtauswertungen ---

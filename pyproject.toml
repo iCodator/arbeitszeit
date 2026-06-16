@@ -28,16 +28,16 @@ where = ["src"]
 testpaths = ["tests"]
 
 [tool.black]
-line-length = 88
+line-length = 100
 target-version = ["py314"]
 
 [tool.isort]
 profile = "black"
-line_length = 88
+line_length = 100
 
 [tool.ruff]
 src = ["src"]
-line-length = 88
+line-length = 100
 target-version = "py314"
 
 [tool.ruff.lint]

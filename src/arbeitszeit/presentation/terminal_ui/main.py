@@ -36,9 +36,7 @@ _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
 }
 
 
-def _log_system_event(
-    db_path: Path, event_type: str, details: dict[str, object]
-) -> None:
+def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]) -> None:
     try:
         conn = open_connection(db_path)
         try:

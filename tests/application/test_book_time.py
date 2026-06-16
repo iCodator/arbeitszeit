@@ -79,9 +79,7 @@ def _cmd(**overrides) -> BookCommand:
     return BookCommand(**{**defaults, **overrides})
 
 
-def _add_booking(
-    uow: FakeUnitOfWork, booking_type: BookingType, hour: int
-) -> TimeBooking:
+def _add_booking(uow: FakeUnitOfWork, booking_type: BookingType, hour: int) -> TimeBooking:
     return uow.time_booking_repo.add(
         TimeBooking(
             id=0,
@@ -98,9 +96,7 @@ def _add_booking(
     )
 
 
-def _add_booking_at(
-    uow: FakeUnitOfWork, booking_type: BookingType, dt: datetime
-) -> TimeBooking:
+def _add_booking_at(uow: FakeUnitOfWork, booking_type: BookingType, dt: datetime) -> TimeBooking:
     return uow.time_booking_repo.add(
         TimeBooking(
             id=0,
@@ -335,7 +331,7 @@ def test_unbekannte_karte_schreibt_audit_log():
     uow = _make_uow()
     uc = BookUseCase(uow)
 
-    with pytest.raises(Exception):
+    with pytest.raises(UnknownCardError):
         uc.execute(_cmd(uid_hash="unbekannt"))
 
     entries = [
@@ -350,7 +346,7 @@ def test_inaktive_karte_schreibt_audit_log():
     uow = _make_uow(card_status=CardStatus.INACTIVE)
     uc = BookUseCase(uow)
 
-    with pytest.raises(Exception):
+    with pytest.raises(InactiveCardError):
         uc.execute(_cmd())
 
     entries = [

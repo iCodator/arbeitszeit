@@ -209,9 +209,7 @@ def test_monatsbericht_valides_pdf(conn, export_dir):
 def test_mitarbeiterbericht_dateiname_korrekt(conn, export_dir):
     emp_id = _base_setup(conn)
     path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
-    assert (
-        path.name == "bericht_mitarbeiter_E001_20250601_20250630_20250601T180000Z.pdf"
-    )
+    assert path.name == "bericht_mitarbeiter_E001_20250601_20250630_20250601T180000Z.pdf"
 
 
 def test_mitarbeiterbericht_valides_pdf(conn, export_dir):

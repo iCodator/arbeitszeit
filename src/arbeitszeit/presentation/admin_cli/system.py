@@ -11,9 +11,7 @@ from arbeitszeit.infrastructure.system_check import run_system_check
 
 
 def _require_admin_or_tech(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute(
-        "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
-    ).fetchone()
+    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
     if row is None or not row["active"] or row["role"] not in ("ADMIN", "TECH"):
         print(
             "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder TECH-Rolle.",

@@ -29,9 +29,7 @@ from arbeitszeit.domain.errors import DomainError
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 
-def _make_uow(
-    conn: sqlite3.Connection, audit_conn: sqlite3.Connection
-) -> SQLiteUnitOfWork:
+def _make_uow(conn: sqlite3.Connection, audit_conn: sqlite3.Connection) -> SQLiteUnitOfWork:
     return SQLiteUnitOfWork(conn, audit_conn)
 
 
@@ -55,9 +53,7 @@ def _parse_booking_type(value: str) -> BookingType:
         return BookingType(value.upper())
     except ValueError:
         valid = ", ".join(t.value for t in BookingType)
-        print(
-            f"Fehler: Ungültige Buchungsart {value!r}. Gültig: {valid}", file=sys.stderr
-        )
+        print(f"Fehler: Ungültige Buchungsart {value!r}. Gültig: {valid}", file=sys.stderr)
         sys.exit(1)
 
 

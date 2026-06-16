@@ -21,9 +21,7 @@ def _parse_time(value: str) -> time:
         h, m = value.split(":")
         return time(int(h), int(m))
     except ValueError, AttributeError:
-        print(
-            f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr
-        )
+        print(f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr)
         sys.exit(1)
 
 
@@ -54,9 +52,7 @@ def cmd_schedule_set(
         reason=None,
     )
     try:
-        result = ManageWorkScheduleUseCase(SQLiteUnitOfWork(conn, audit_conn)).execute(
-            cmd
-        )
+        result = ManageWorkScheduleUseCase(SQLiteUnitOfWork(conn, audit_conn)).execute(cmd)
     except DomainError as exc:
         print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
@@ -69,9 +65,7 @@ def cmd_schedule_set(
         print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
 
 
-def cmd_schedule_show(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin_or_reviewer(conn, user_id)
     rows = conn.execute(
         "SELECT id, scope_type, scope_employee_id, weekday, start_time, end_time, "
@@ -93,14 +87,13 @@ def cmd_schedule_show(
         for r in global_rows:
             day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
             print(
-                f"  {r['id']:>4}  {day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+                f"  {r['id']:>4}  {day_name:3}  "
+                f"{r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
             )
 
     if employee_rows:
         print("\nMitarbeiterspezifische Regelarbeitszeit:")
-        print(
-            f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}"
-        )
+        print(f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
         for r in employee_rows:
             day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
             print(
@@ -109,19 +102,13 @@ def cmd_schedule_show(
             )
 
     if not global_rows and employee_rows:
-        print(
-            "\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt."
-        )
+        print("\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt.")
     elif global_rows and not employee_rows:
-        print(
-            "\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen)."
-        )
+        print("\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).")
 
 
 def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute(
-        "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
-    ).fetchone()
+    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
     if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
         print(
             "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
@@ -142,8 +129,6 @@ def register_subcommands(
     )
     set_cmd.add_argument("--start", required=True, metavar="HH:MM")
     set_cmd.add_argument("--end", required=True, metavar="HH:MM")
-    set_cmd.add_argument(
-        "--from", required=True, dest="from_date", metavar="YYYY-MM-DD"
-    )
+    set_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
 
     ssub.add_parser("show", help="Aktive Regelarbeitszeiten anzeigen")

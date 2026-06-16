@@ -159,9 +159,7 @@ def test_break_end_ohne_offene_pause_loest_invalid_sequence_error():
     from arbeitszeit.domain.entities import TimeBooking
     from arbeitszeit.domain.enums import BookingStatus as BS
 
-    uow, supplement_id = _make_uow_with_pending_supplement(
-        booking_type=BookingType.BREAK_END
-    )
+    uow, supplement_id = _make_uow_with_pending_supplement(booking_type=BookingType.BREAK_END)
     uow.time_booking_repo.add(
         TimeBooking(
             id=0,
@@ -269,9 +267,7 @@ def test_buchung_wird_angelegt():
 
 
 def test_buchung_hat_status_open_fuer_come():
-    uow, supplement_id = _make_uow_with_pending_supplement(
-        booking_type=BookingType.COME
-    )
+    uow, supplement_id = _make_uow_with_pending_supplement(booking_type=BookingType.COME)
     uc = ApproveSupplementUseCase(uow)
 
     result = uc.execute(_cmd(supplement_id))
@@ -487,17 +483,9 @@ def test_nur_passender_review_case_wird_geschlossen():
 
     uc.execute(_cmd(supplement_id))
 
-    assert (
-        uow.review_case_repo._store[case_matching.id].status
-        == ReviewCaseStatus.RESOLVED
-    )
-    assert (
-        uow.review_case_repo._store[case_other_booking.id].status
-        == ReviewCaseStatus.OPEN
-    )
-    assert (
-        uow.review_case_repo._store[case_other_type.id].status == ReviewCaseStatus.OPEN
-    )
+    assert uow.review_case_repo._store[case_matching.id].status == ReviewCaseStatus.RESOLVED
+    assert uow.review_case_repo._store[case_other_booking.id].status == ReviewCaseStatus.OPEN
+    assert uow.review_case_repo._store[case_other_type.id].status == ReviewCaseStatus.OPEN
 
 
 # --- Regelzeitfenster ---

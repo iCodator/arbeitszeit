@@ -322,9 +322,7 @@ def test_work_schedule_gleiche_start_und_end_time_ist_ungueltig():
 
 def test_employee_mit_leerem_personnel_no_ist_ungueltig():
     with pytest.raises(ValueError):
-        Employee(
-            id=1, personnel_no="", first_name="Anna", last_name="Muster", is_active=True
-        )
+        Employee(id=1, personnel_no="", first_name="Anna", last_name="Muster", is_active=True)
 
 
 def test_employee_mit_nur_leerzeichen_personnel_no_ist_ungueltig():
@@ -339,9 +337,7 @@ def test_employee_mit_nur_leerzeichen_personnel_no_ist_ungueltig():
 
 
 def test_employee_mit_gueltigem_personnel_no_ist_gueltig():
-    emp = Employee(
-        id=1, personnel_no="E001", first_name="Anna", last_name="Muster", is_active=True
-    )
+    emp = Employee(id=1, personnel_no="E001", first_name="Anna", last_name="Muster", is_active=True)
     assert emp.personnel_no == "E001"
 
 
@@ -350,22 +346,16 @@ def test_employee_mit_gueltigem_personnel_no_ist_gueltig():
 
 def test_user_account_mit_leerem_username_ist_ungueltig():
     with pytest.raises(ValueError):
-        UserAccount(
-            id=1, employee_id=None, username="", role=UserRole.ADMIN, is_active=True
-        )
+        UserAccount(id=1, employee_id=None, username="", role=UserRole.ADMIN, is_active=True)
 
 
 def test_user_account_mit_nur_leerzeichen_username_ist_ungueltig():
     with pytest.raises(ValueError):
-        UserAccount(
-            id=1, employee_id=None, username="  ", role=UserRole.ADMIN, is_active=True
-        )
+        UserAccount(id=1, employee_id=None, username="  ", role=UserRole.ADMIN, is_active=True)
 
 
 def test_user_account_mit_gueltigem_username_ist_gueltig():
-    acc = UserAccount(
-        id=1, employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True
-    )
+    acc = UserAccount(id=1, employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True)
     assert acc.username == "admin"
 
 

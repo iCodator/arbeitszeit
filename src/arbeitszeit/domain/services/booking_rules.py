@@ -18,9 +18,7 @@ def validate_booking_sequence(
             BookingType.BREAK_END,
             BookingType.BREAK_START,
         ):
-            raise InvalidBookingSequenceError(
-                f"Erste Tagesbuchung darf nicht {booking_type} sein."
-            )
+            raise InvalidBookingSequenceError(f"Erste Tagesbuchung darf nicht {booking_type} sein.")
         return
 
     open_work = _has_open_work(day_bookings)
@@ -30,19 +28,13 @@ def validate_booking_sequence(
         if open_work:
             raise InvalidBookingSequenceError("COME nach offenem COME nicht zulässig.")
         if open_break:
-            raise InvalidBookingSequenceError(
-                "COME während offener Pause nicht zulässig."
-            )
+            raise InvalidBookingSequenceError("COME während offener Pause nicht zulässig.")
 
     elif booking_type == BookingType.GO:
         if not open_work:
-            raise InvalidBookingSequenceError(
-                "GO ohne offene Arbeitsphase nicht zulässig."
-            )
+            raise InvalidBookingSequenceError("GO ohne offene Arbeitsphase nicht zulässig.")
         if open_break:
-            raise OpenPhaseConflictError(
-                "GO bei offener Pause: Pause zuerst schließen."
-            )
+            raise OpenPhaseConflictError("GO bei offener Pause: Pause zuerst schließen.")
 
     elif booking_type == BookingType.BREAK_START:
         if not open_work:
@@ -51,15 +43,11 @@ def validate_booking_sequence(
             # greift, ohne dass ein eigener GO-Zweig erforderlich ist.
             raise InvalidBookingSequenceError("BREAK_START ohne offene Arbeitsphase.")
         if open_break:
-            raise InvalidBookingSequenceError(
-                "BREAK_START bei offener Pause nicht zulässig."
-            )
+            raise InvalidBookingSequenceError("BREAK_START bei offener Pause nicht zulässig.")
 
     elif booking_type == BookingType.BREAK_END:
         if not open_break:
-            raise InvalidBookingSequenceError(
-                "BREAK_END ohne offene Pause nicht zulässig."
-            )
+            raise InvalidBookingSequenceError("BREAK_END ohne offene Pause nicht zulässig.")
 
 
 def _has_open_work(day_bookings: Sequence[BookingType]) -> bool:

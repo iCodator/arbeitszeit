@@ -77,8 +77,7 @@ def test_seed_daten_vorhanden_nach_migration(conn):
     run_migrations(conn)
 
     schedule_rows = conn.execute(
-        "SELECT weekday, start_time, end_time "
-        "FROM work_schedule_versions ORDER BY weekday"
+        "SELECT weekday, start_time, end_time " "FROM work_schedule_versions ORDER BY weekday"
     ).fetchall()
     assert len(schedule_rows) == 5
 
@@ -88,8 +87,7 @@ def test_seed_daten_vorhanden_nach_migration(conn):
     assert weekdays[5] == ("07:30", "16:00")
 
     config_keys = {
-        row[0]
-        for row in conn.execute("SELECT config_key FROM system_config").fetchall()
+        row[0] for row in conn.execute("SELECT config_key FROM system_config").fetchall()
     }
     assert "app.timezone" in config_keys
     assert "backup.nas_enabled" in config_keys
@@ -98,48 +96,36 @@ def test_seed_daten_vorhanden_nach_migration(conn):
 def test_audit_log_enthaelt_seed_eintraege(conn):
     run_migrations(conn)
 
-    count = conn.execute(
-        "SELECT COUNT(*) FROM audit_log WHERE event_type = 'SEEDED'"
-    ).fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM audit_log WHERE event_type = 'SEEDED'").fetchone()[0]
     assert count == 9
 
 
 def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
     run_migrations(conn)
 
-    versions = {
-        row[0]
-        for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
-    }
+    versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
     assert versions == {"0001", "0002", "0003", "0004", "0005", "0006"}
 
 
 def test_migration_0004_fuegt_neue_spalten_ein(conn):
     run_migrations(conn)
 
-    supplement_cols = {
-        row[1] for row in conn.execute("PRAGMA table_info(supplements)").fetchall()
-    }
+    supplement_cols = {row[1] for row in conn.execute("PRAGMA table_info(supplements)").fetchall()}
     assert "rejected_by_user_id" in supplement_cols
     assert "rejected_at" in supplement_cols
 
-    review_cols = {
-        row[1] for row in conn.execute("PRAGMA table_info(review_cases)").fetchall()
-    }
+    review_cols = {row[1] for row in conn.execute("PRAGMA table_info(review_cases)").fetchall()}
     assert "note" in review_cols
 
 
 def test_migration_0005_fuegt_device_event_id_ein(conn):
     run_migrations(conn)
 
-    tb_cols = {
-        row[1] for row in conn.execute("PRAGMA table_info(time_bookings)").fetchall()
-    }
+    tb_cols = {row[1] for row in conn.execute("PRAGMA table_info(time_bookings)").fetchall()}
     assert "device_event_id" in tb_cols
 
     fk_targets = {
-        row[2]
-        for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
+        row[2] for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
     }
     assert "device_events" in fk_targets
 
@@ -148,8 +134,7 @@ def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(conn):
     run_migrations(conn)
 
     fk_targets = {
-        row[2]
-        for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
+        row[2] for row in conn.execute("PRAGMA foreign_key_list(time_bookings)").fetchall()
     }
     assert {"employees", "rfid_cards", "terminals", "device_events"} == fk_targets
 
@@ -215,9 +200,7 @@ def test_migration_0005_datensatz_bleibt_erhalten(conn, tmp_path):
     assert row["device_event_id"] is None
 
 
-def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(
-    conn, tmp_path
-):
+def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(conn, tmp_path):
     partial_dir = tmp_path / "partial"
     partial_dir.mkdir()
     shutil.copy(_MIGRATIONS_ROOT / "0001_schema.sql", partial_dir / "0001_schema.sql")
@@ -228,13 +211,10 @@ def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag
     broken = partial_dir / "0002_broken.sql"
     broken.write_text("CREATE TABLE employees (x TEXT);")
 
-    with pytest.raises(Exception):
+    with pytest.raises(sqlite3.OperationalError):
         run_migrations(conn, migrations_dir=partial_dir)
 
-    versions = {
-        row[0]
-        for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
-    }
+    versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
     assert "0002" not in versions
 
 
@@ -246,9 +226,7 @@ def test_migration_0006_application_error_event_type_verfuegbar(conn):
         "(event_type, source, severity, event_at) "
         "VALUES ('APPLICATION_ERROR', 'test', 'ERROR', '2026-01-01T00:00:00+00:00')"
     )
-    row = conn.execute(
-        "SELECT event_type FROM system_events WHERE source = 'test'"
-    ).fetchone()
+    row = conn.execute("SELECT event_type FROM system_events WHERE source = 'test'").fetchone()
     assert row["event_type"] == "APPLICATION_ERROR"
 
 
@@ -256,9 +234,7 @@ def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
     run_migrations(conn)
     run_migrations(conn)
 
-    schedule_count = conn.execute(
-        "SELECT COUNT(*) FROM work_schedule_versions"
-    ).fetchone()[0]
+    schedule_count = conn.execute("SELECT COUNT(*) FROM work_schedule_versions").fetchone()[0]
     assert schedule_count == 5
 
     config_count = conn.execute("SELECT COUNT(*) FROM system_config").fetchone()[0]

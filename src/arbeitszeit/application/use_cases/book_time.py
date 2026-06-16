@@ -42,11 +42,7 @@ def _evaluate_booking(
 
     if prev_bookings is not None:
         last_go = next(
-            (
-                b.booked_at
-                for b in reversed(prev_bookings)
-                if b.booking_type == BookingType.GO
-            ),
+            (b.booked_at for b in reversed(prev_bookings) if b.booking_type == BookingType.GO),
             None,
         )
         first_come = next(
@@ -129,9 +125,7 @@ class BookUseCase:
             if employee is None:
                 raise NotFoundError(f"Mitarbeiter {card.employee_id} nicht gefunden.")
             if not employee.is_active:
-                raise InactiveEmployeeError(
-                    f"Mitarbeiter {card.employee_id} ist nicht aktiv."
-                )
+                raise InactiveEmployeeError(f"Mitarbeiter {card.employee_id} ist nicht aktiv.")
 
             day_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 employee.id, cmd.booked_at.date()
@@ -150,9 +144,7 @@ class BookUseCase:
                 schedule.start_time <= cmd.booked_at.time() <= schedule.end_time
             ):
                 schedule_flags = [
-                    ComplianceFlag(
-                        ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
-                    )
+                    ComplianceFlag(ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN)
                 ]
 
             prev_bookings = self._uow.time_booking_repo.list_for_employee_on_day(

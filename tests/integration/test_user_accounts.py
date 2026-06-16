@@ -599,7 +599,8 @@ def test_users_change_role_erstellt_audit_log_eintrag(tmp_path):
     )
     conn = open_connection(db)
     row = conn.execute(
-        "SELECT event_type, details_json FROM audit_log WHERE event_type = 'USER_ACCOUNT_ROLE_CHANGED'"
+        "SELECT event_type, details_json FROM audit_log "
+        "WHERE event_type = 'USER_ACCOUNT_ROLE_CHANGED'"
     ).fetchone()
     conn.close()
     assert row is not None

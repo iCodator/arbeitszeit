@@ -68,9 +68,7 @@ class SQLiteSupplementRepository:
         ).fetchall()
         return [_row_to_supplement(r) for r in rows]
 
-    def approve(
-        self, supplement_id: int, approved_by_user_id: int, approved_at: datetime
-    ) -> None:
+    def approve(self, supplement_id: int, approved_by_user_id: int, approved_at: datetime) -> None:
         cursor = self._conn.execute(
             "UPDATE supplements SET approval_status = 'APPROVED', "
             "approved_by_user_id = ?, approved_at = ? WHERE id = ?",
@@ -79,9 +77,7 @@ class SQLiteSupplementRepository:
         if cursor.rowcount == 0:
             raise NotFoundError(f"Supplement {supplement_id} nicht gefunden.")
 
-    def reject(
-        self, supplement_id: int, rejected_by_user_id: int, rejected_at: datetime
-    ) -> None:
+    def reject(self, supplement_id: int, rejected_by_user_id: int, rejected_at: datetime) -> None:
         cursor = self._conn.execute(
             "UPDATE supplements SET approval_status = 'REJECTED', "
             "rejected_by_user_id = ?, rejected_at = ? WHERE id = ?",

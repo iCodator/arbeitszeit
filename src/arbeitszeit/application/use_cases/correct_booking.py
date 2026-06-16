@@ -53,19 +53,13 @@ class CorrectBookingUseCase:
 
             booking = self._uow.time_booking_repo.get_by_id(cmd.original_booking_id)
             if booking is None:
-                raise NotFoundError(
-                    f"Buchung {cmd.original_booking_id} nicht gefunden."
-                )
+                raise NotFoundError(f"Buchung {cmd.original_booking_id} nicht gefunden.")
 
             employee = self._uow.employee_repo.get_by_id(booking.employee_id)
             if employee is None:
-                raise NotFoundError(
-                    f"Mitarbeiter {booking.employee_id} nicht gefunden."
-                )
+                raise NotFoundError(f"Mitarbeiter {booking.employee_id} nicht gefunden.")
             if not employee.is_active:
-                raise InactiveEmployeeError(
-                    f"Mitarbeiter {booking.employee_id} ist inaktiv."
-                )
+                raise InactiveEmployeeError(f"Mitarbeiter {booking.employee_id} ist inaktiv.")
 
             now = datetime.now(timezone.utc)
 
@@ -90,15 +84,10 @@ class CorrectBookingUseCase:
                 changed_by_user_id=cmd.corrected_by_user_id,
             )
 
-            open_cases = self._uow.review_case_repo.list_open_for_employee(
-                booking.employee_id
-            )
+            open_cases = self._uow.review_case_repo.list_open_for_employee(booking.employee_id)
             review_case_id: int | None = None
             for case in open_cases:
-                if (
-                    case.booking_id == booking.id
-                    and case.case_type in _CORRECTABLE_CASE_TYPES
-                ):
+                if case.booking_id == booking.id and case.case_type in _CORRECTABLE_CASE_TYPES:
                     self._uow.review_case_repo.resolve(
                         case.id,
                         status=ReviewCaseStatus.RESOLVED,

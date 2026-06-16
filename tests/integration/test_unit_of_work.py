@@ -50,9 +50,7 @@ def test_commit_macht_daten_sichtbar(conn, uow):
         )
         uow.commit()
 
-    count = conn.execute(
-        "SELECT COUNT(*) FROM employees WHERE personnel_no = 'E001'"
-    ).fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM employees WHERE personnel_no = 'E001'").fetchone()[0]
     assert count == 1
 
 
@@ -65,9 +63,7 @@ def test_rollback_verwirft_daten(conn, uow):
         )
         uow.rollback()
 
-    count = conn.execute(
-        "SELECT COUNT(*) FROM employees WHERE personnel_no = 'E002'"
-    ).fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM employees WHERE personnel_no = 'E002'").fetchone()[0]
     assert count == 0
 
 
@@ -81,9 +77,7 @@ def test_exception_im_with_block_loest_rollback_aus(conn, uow):
             )
             raise ValueError("simulierter Fehler")
 
-    count = conn.execute(
-        "SELECT COUNT(*) FROM employees WHERE personnel_no = 'E003'"
-    ).fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM employees WHERE personnel_no = 'E003'").fetchone()[0]
     assert count == 0
 
 
@@ -97,9 +91,7 @@ def test_kein_spurious_rollback_nach_commit(conn, uow):
         uow.commit()
     # __exit__ wird mit exc_type=None aufgerufen → kein Rollback
     # Daten müssen noch da sein
-    count = conn.execute(
-        "SELECT COUNT(*) FROM employees WHERE personnel_no = 'E004'"
-    ).fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM employees WHERE personnel_no = 'E004'").fetchone()[0]
     assert count == 1
 
 
@@ -124,9 +116,7 @@ def test_vergessenes_commit_rollt_automatisch_zurueck(conn, uow):
         )
         # commit() absichtlich weggelassen
 
-    count = conn.execute(
-        "SELECT COUNT(*) FROM employees WHERE personnel_no = 'E005'"
-    ).fetchone()[0]
+    count = conn.execute("SELECT COUNT(*) FROM employees WHERE personnel_no = 'E005'").fetchone()[0]
     assert count == 0
 
 

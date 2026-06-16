@@ -91,6 +91,4 @@ def test_break_start_nach_come_wird_akzeptiert():
 
 
 def test_break_end_nach_break_start_wird_akzeptiert():
-    validate_booking_sequence(
-        BookingType.BREAK_END, [BookingType.COME, BookingType.BREAK_START]
-    )
+    validate_booking_sequence(BookingType.BREAK_END, [BookingType.COME, BookingType.BREAK_START])

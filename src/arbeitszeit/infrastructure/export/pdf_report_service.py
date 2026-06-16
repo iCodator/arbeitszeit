@@ -202,7 +202,8 @@ _HINWEISE: list[tuple[str, str]] = [
         "Korrekturen",
         "Buchungen, die von einem Bearbeiter korrigiert wurden. "
         "Die ursprüngliche Buchung bleibt mit Status CORRECTED erhalten; "
-        "der neue Zustand ist in der Korrekturtabelle (Alter/Neuer Typ und Zeitpunkt) dokumentiert.",
+        "der neue Zustand ist in der Korrekturtabelle"
+        " (Alter/Neuer Typ und Zeitpunkt) dokumentiert.",
     ),
 ]
 

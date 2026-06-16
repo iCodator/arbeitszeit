@@ -152,9 +152,7 @@ def test_resolve_auf_bekannter_id_setzt_status(conn, employee_id, user_id):
         status=ReviewCaseStatus.RESOLVED,
         closed_by_user_id=user_id,
     )
-    row = conn.execute(
-        "SELECT status FROM review_cases WHERE id = ?", (case_id,)
-    ).fetchone()
+    row = conn.execute("SELECT status FROM review_cases WHERE id = ?", (case_id,)).fetchone()
     assert row["status"] == ReviewCaseStatus.RESOLVED.value
 
 
@@ -242,9 +240,7 @@ def test_get_effective_employee_scope_hat_vorrang_vor_global(conn, employee_id):
         scope_type="EMPLOYEE",
         scope_employee_id=employee_id,
     )
-    result = repo.get_effective(
-        weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id
-    )
+    result = repo.get_effective(weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id)
     assert result is not None
     assert result.scope_type == ScopeType.EMPLOYEE
     assert result.scope_employee_id == employee_id
@@ -259,9 +255,7 @@ def test_get_effective_faellt_auf_global_zurueck(conn, employee_id):
         scope_type="GLOBAL",
         scope_employee_id=None,
     )
-    result = repo.get_effective(
-        weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id
-    )
+    result = repo.get_effective(weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id)
     assert result is not None
     assert result.scope_type == ScopeType.GLOBAL
 

@@ -80,8 +80,7 @@ def _check_db_access(
 
     try:
         applied = {
-            row[0]
-            for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
+            row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()
         }
     except sqlite3.OperationalError as exc:
         conn.close()
@@ -130,9 +129,7 @@ def _check_nas(conn: sqlite3.Connection) -> CheckResult:
         "WHERE config_key = 'backup.nas_enabled' ORDER BY version DESC LIMIT 1"
     ).fetchone()
     if row is None:
-        return CheckResult(
-            name="nas_reachability", ok=True, detail="NAS-Backup nicht konfiguriert"
-        )
+        return CheckResult(name="nas_reachability", ok=True, detail="NAS-Backup nicht konfiguriert")
 
     try:
         nas_enabled = json.loads(row[0])
@@ -140,9 +137,7 @@ def _check_nas(conn: sqlite3.Connection) -> CheckResult:
         nas_enabled = False
 
     if not nas_enabled:
-        return CheckResult(
-            name="nas_reachability", ok=True, detail="NAS-Backup deaktiviert"
-        )
+        return CheckResult(name="nas_reachability", ok=True, detail="NAS-Backup deaktiviert")
 
     row = conn.execute(
         "SELECT config_value_json FROM system_config "
@@ -221,11 +216,7 @@ def _check_devices(
 def _write_event(db_path: Path, result: SystemCheckResult) -> None:
     event_type = "SELFTEST_OK" if result.overall_ok else "SELFTEST_FAIL"
     severity = "INFO" if result.overall_ok else "WARN"
-    details = {
-        "checks": [
-            {"name": c.name, "ok": c.ok, "detail": c.detail} for c in result.checks
-        ]
-    }
+    details = {"checks": [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in result.checks]}
     try:
         conn = open_connection(db_path)
         try:

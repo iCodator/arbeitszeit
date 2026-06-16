@@ -161,13 +161,9 @@ def test_rfid_card_get_by_uid_hash_findet_auch_inaktive_karte(conn, employee_id)
     assert SQLiteRfidCardRepository(conn).get_by_uid_hash("HASH_INACTIVE") is not None
 
 
-def test_rfid_card_get_active_by_uid_hash_gibt_none_fuer_inaktive_karte(
-    conn, employee_id
-):
+def test_rfid_card_get_active_by_uid_hash_gibt_none_fuer_inaktive_karte(conn, employee_id):
     _insert_rfid_card(conn, employee_id, uid_hash="HASH_INACTIVE", status="INACTIVE")
-    assert (
-        SQLiteRfidCardRepository(conn).get_active_by_uid_hash("HASH_INACTIVE") is None
-    )
+    assert SQLiteRfidCardRepository(conn).get_active_by_uid_hash("HASH_INACTIVE") is None
 
 
 def test_rfid_card_get_by_id(conn, employee_id):
@@ -194,9 +190,7 @@ def test_time_booking_add_und_get_by_id_roundtrip(conn, employee_id):
 def test_time_booking_list_for_employee_on_day_filtert_nach_tag(conn, employee_id):
     repo = SQLiteTimeBookingRepository(conn)
     b_mo = repo.add(
-        _make_booking(
-            employee_id, booked_at=datetime(2025, 6, 1, 8, 0, tzinfo=timezone.utc)
-        )
+        _make_booking(employee_id, booked_at=datetime(2025, 6, 1, 8, 0, tzinfo=timezone.utc))
     )
     b_mo2 = repo.add(
         _make_booking(
@@ -207,11 +201,7 @@ def test_time_booking_list_for_employee_on_day_filtert_nach_tag(conn, employee_i
         )
     )
     # Buchung am Folgetag — darf nicht im Ergebnis sein
-    repo.add(
-        _make_booking(
-            employee_id, booked_at=datetime(2025, 6, 2, 8, 0, tzinfo=timezone.utc)
-        )
-    )
+    repo.add(_make_booking(employee_id, booked_at=datetime(2025, 6, 2, 8, 0, tzinfo=timezone.utc)))
     result = repo.list_for_employee_on_day(employee_id, date(2025, 6, 1))
     assert {r.id for r in result} == {b_mo.id, b_mo2.id}
 
@@ -235,16 +225,10 @@ def test_time_booking_list_open_for_employee(conn, employee_id):
 def test_time_booking_list_between(conn, employee_id):
     repo = SQLiteTimeBookingRepository(conn)
     b_in = repo.add(
-        _make_booking(
-            employee_id, booked_at=datetime(2025, 6, 1, 9, 0, tzinfo=timezone.utc)
-        )
+        _make_booking(employee_id, booked_at=datetime(2025, 6, 1, 9, 0, tzinfo=timezone.utc))
     )
     # Buchung außerhalb des Zeitraums
-    repo.add(
-        _make_booking(
-            employee_id, booked_at=datetime(2025, 6, 5, 8, 0, tzinfo=timezone.utc)
-        )
-    )
+    repo.add(_make_booking(employee_id, booked_at=datetime(2025, 6, 5, 8, 0, tzinfo=timezone.utc)))
     result = repo.list_between(
         employee_id,
         datetime(2025, 6, 1, 0, 0, tzinfo=timezone.utc),
@@ -269,22 +253,14 @@ def test_work_schedule_add_und_get_effective_roundtrip(conn):
 def test_work_schedule_list_versions_filtert_nach_scope(conn, employee_id):
     repo = SQLiteWorkScheduleRepository(conn)
     repo.add(_make_work_schedule(scope_type=ScopeType.GLOBAL))
-    repo.add(
-        _make_work_schedule(
-            scope_type=ScopeType.EMPLOYEE, scope_employee_id=employee_id
-        )
-    )
+    repo.add(_make_work_schedule(scope_type=ScopeType.EMPLOYEE, scope_employee_id=employee_id))
     global_versions = repo.list_versions(weekday=_WEEKDAY, scope_employee_id=None)
-    employee_versions = repo.list_versions(
-        weekday=_WEEKDAY, scope_employee_id=employee_id
-    )
+    employee_versions = repo.list_versions(weekday=_WEEKDAY, scope_employee_id=employee_id)
     assert all(v.scope_type == ScopeType.GLOBAL for v in global_versions)
     assert all(v.scope_type == ScopeType.EMPLOYEE for v in employee_versions)
 
 
-def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(
-    conn, employee_id
-):
+def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(conn, employee_id):
     """Pflicht-Testfall: Infrastruktur selektiert deterministisch die neuere Version."""
     repo = SQLiteWorkScheduleRepository(conn)
     repo.add(
@@ -305,9 +281,7 @@ def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(
             end_time=time(13, 0),
         )
     )
-    result = repo.get_effective(
-        weekday=_WEEKDAY, on_date=date(2025, 6, 1), employee_id=employee_id
-    )
+    result = repo.get_effective(weekday=_WEEKDAY, on_date=date(2025, 6, 1), employee_id=employee_id)
     assert result is not None
     assert result.id == newer.id
     assert result.start_time == time(9, 0)
@@ -316,9 +290,7 @@ def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(
 # --- BookingCorrectionRepository ---
 
 
-def test_booking_correction_add_und_list_for_booking_roundtrip(
-    conn, employee_id, user_id
-):
+def test_booking_correction_add_und_list_for_booking_roundtrip(conn, employee_id, user_id):
     booking_repo = SQLiteTimeBookingRepository(conn)
     corr_repo = SQLiteBookingCorrectionRepository(conn)
     booking = booking_repo.add(_make_booking(employee_id))

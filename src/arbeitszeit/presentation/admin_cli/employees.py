@@ -12,13 +12,9 @@ from datetime import date, datetime, timezone
 
 
 def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute(
-        "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
-    ).fetchone()
+    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
     if row is None or not row["active"] or row["role"] != "ADMIN":
-        print(
-            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr
-        )
+        print("Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr)
         sys.exit(1)
 
 
@@ -63,9 +59,7 @@ def cmd_employees_list(conn: sqlite3.Connection, args: argparse.Namespace) -> No
         print(f"{row['id']:>4}  {row['personnel_no']:10}  {name:30}  {status}")
 
 
-def cmd_employees_add(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_employees_add(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     now = datetime.now(timezone.utc).isoformat()
     try:
@@ -103,9 +97,7 @@ def cmd_employees_deactivate(
 ) -> None:
     _require_admin(conn, user_id)
     conn.execute("BEGIN")
-    row = conn.execute(
-        "SELECT id, active FROM employees WHERE id = ?", (args.id,)
-    ).fetchone()
+    row = conn.execute("SELECT id, active FROM employees WHERE id = ?", (args.id,)).fetchone()
     if row is None:
         conn.execute("ROLLBACK")
         print(f"Fehler: Mitarbeiter {args.id} nicht gefunden.", file=sys.stderr)
@@ -120,17 +112,13 @@ def cmd_employees_deactivate(
     print(f"Mitarbeiter {args.id} deaktiviert.")
 
 
-def cmd_cards_assign(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_cards_assign(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     emp = conn.execute(
         "SELECT id, active FROM employees WHERE id = ?", (args.employee_id,)
     ).fetchone()
     if emp is None:
-        print(
-            f"Fehler: Mitarbeiter {args.employee_id} nicht gefunden.", file=sys.stderr
-        )
+        print(f"Fehler: Mitarbeiter {args.employee_id} nicht gefunden.", file=sys.stderr)
         sys.exit(1)
     now = datetime.now(timezone.utc).isoformat()
     today = date.today().isoformat()
@@ -163,9 +151,7 @@ def cmd_cards_assign(
     print(f"Karte zugewiesen (ID {card_id}).")
 
 
-def cmd_cards_replace(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_cards_replace(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     old_card = conn.execute(
         "SELECT id, employee_id, status FROM rfid_cards WHERE id = ?",
@@ -211,9 +197,7 @@ def cmd_cards_replace(
     print(f"Karte ersetzt: alt={args.old_card_id}, neu={new_card_id}.")
 
 
-def cmd_cards_deactivate(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
+def cmd_cards_deactivate(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     _require_admin(conn, user_id)
     card = conn.execute(
         "SELECT id, employee_id FROM rfid_cards WHERE id = ?", (args.id,)

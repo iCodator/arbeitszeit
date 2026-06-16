@@ -70,9 +70,7 @@ def _insert_booking(
     return row["id"]
 
 
-def _insert_correction(
-    conn, booking_id: int, user_id: int, corrected_at: datetime = _NOW
-) -> int:
+def _insert_correction(conn, booking_id: int, user_id: int, corrected_at: datetime = _NOW) -> int:
     old = json.dumps({"booking_type": "COME", "booked_at": _NOW.isoformat()})
     new = json.dumps({"booking_type": "GO", "booked_at": _LATER.isoformat()})
     row = conn.execute(
@@ -181,9 +179,7 @@ def test_list_bookings_filtert_nach_employee_id(conn):
 
 def test_list_bookings_exkludiert_buchungen_ausserhalb_zeitraum(conn):
     emp_id = _insert_employee(conn)
-    _insert_booking(
-        conn, emp_id, booked_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc)
-    )
+    _insert_booking(conn, emp_id, booked_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc))
 
     result = list_bookings(conn, _FROM, _TO)
 
@@ -314,9 +310,7 @@ def test_list_supplements_liefert_nachtrag(conn):
 
 def test_list_supplements_filtert_nach_zeitraum(conn):
     emp_id = _insert_employee(conn)
-    _insert_supplement(
-        conn, emp_id, event_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc)
-    )
+    _insert_supplement(conn, emp_id, event_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc))
 
     result = list_supplements(conn, _FROM, _TO)
 
@@ -425,9 +419,7 @@ def test_list_open_review_cases_in_period_filtert_nach_employee_id(conn):
 def test_list_review_cases_for_booking_liefert_alle_typen(conn):
     emp_id = _insert_employee(conn)
     booking_id = _insert_booking(conn, emp_id)
-    other_booking_id = _insert_booking(
-        conn, emp_id, booking_type="GO", booked_at=_LATER
-    )
+    other_booking_id = _insert_booking(conn, emp_id, booking_type="GO", booked_at=_LATER)
     _insert_review_case(conn, emp_id, booking_id, status="OPEN")
     _insert_review_case(
         conn, emp_id, booking_id, status="RESOLVED", case_type="OUTSIDE_SCHEDULE_WINDOW"
