@@ -79,7 +79,7 @@ def _group_by_employee_day(
     return groups
 
 
-def _day_stats(day: list[BookingRow]) -> dict:
+def _day_stats(day: list[BookingRow]) -> dict[str, object]:
     """Berechnet Tagesstatistiken als Zustandsmaschine.
 
     Nettoarbeitszeit = Summe aller Arbeitsphasen (COME→BREAK_START + BREAK_END→GO).

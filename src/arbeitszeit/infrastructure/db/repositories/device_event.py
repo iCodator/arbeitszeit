@@ -26,4 +26,4 @@ class SQLiteDeviceEventRepository:
                 occurred_at.isoformat(),
             ),
         ).fetchone()
-        return row["id"]
+        return int(row["id"])

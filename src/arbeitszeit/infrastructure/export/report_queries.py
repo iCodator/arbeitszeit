@@ -193,7 +193,7 @@ def list_bookings(
         "JOIN employees e ON e.id = tb.employee_id "
         "WHERE tb.booked_at >= ? AND tb.booked_at < ?"
     )
-    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    params: list[object] = [from_dt.isoformat(), to_dt.isoformat()]
     if employee_id is not None:
         sql += " AND tb.employee_id = ?"
         params.append(employee_id)
@@ -218,7 +218,7 @@ def list_open_bookings(
         "JOIN employees e ON e.id = tb.employee_id "
         "WHERE tb.current_status = 'OPEN'"
     )
-    params: list = []
+    params: list[object] = []
     if employee_id is not None:
         sql += " AND tb.employee_id = ?"
         params.append(employee_id)
@@ -243,7 +243,7 @@ def list_warn_bookings(
         "WHERE tb.current_status IN ('WARN', 'NEEDS_REVIEW') "
         "AND tb.booked_at >= ? AND tb.booked_at < ?"
     )
-    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    params: list[object] = [from_dt.isoformat(), to_dt.isoformat()]
     if employee_id is not None:
         sql += " AND tb.employee_id = ?"
         params.append(employee_id)
@@ -271,7 +271,7 @@ def list_open_bookings_in_period(
         "WHERE tb.current_status = 'OPEN' "
         "AND tb.booked_at >= ? AND tb.booked_at < ?"
     )
-    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    params: list[object] = [from_dt.isoformat(), to_dt.isoformat()]
     if employee_id is not None:
         sql += " AND tb.employee_id = ?"
         params.append(employee_id)
@@ -301,7 +301,7 @@ def list_corrections(
         "JOIN employees e ON e.id = tb.employee_id "
         "WHERE bc.corrected_at >= ? AND bc.corrected_at < ?"
     )
-    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    params: list[object] = [from_dt.isoformat(), to_dt.isoformat()]
     if employee_id is not None:
         sql += " AND tb.employee_id = ?"
         params.append(employee_id)
@@ -330,7 +330,7 @@ def list_supplements(
         "JOIN employees e ON e.id = s.employee_id "
         "WHERE s.event_at >= ? AND s.event_at < ?"
     )
-    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    params: list[object] = [from_dt.isoformat(), to_dt.isoformat()]
     if employee_id is not None:
         sql += " AND s.employee_id = ?"
         params.append(employee_id)
@@ -355,7 +355,7 @@ def list_open_review_cases(
         "JOIN employees e ON e.id = rc.employee_id "
         "WHERE rc.status IN ('OPEN', 'IN_REVIEW')"
     )
-    params: list = []
+    params: list[object] = []
     if employee_id is not None:
         sql += " AND rc.employee_id = ?"
         params.append(employee_id)
@@ -384,7 +384,7 @@ def list_open_review_cases_in_period(
         "WHERE rc.status IN ('OPEN', 'IN_REVIEW') "
         "AND rc.detected_at >= ? AND rc.detected_at < ?"
     )
-    params: list = [from_dt.isoformat(), to_dt.isoformat()]
+    params: list[object] = [from_dt.isoformat(), to_dt.isoformat()]
     if employee_id is not None:
         sql += " AND rc.employee_id = ?"
         params.append(employee_id)

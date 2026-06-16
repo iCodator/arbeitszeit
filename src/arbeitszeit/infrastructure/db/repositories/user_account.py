@@ -30,7 +30,7 @@ class SQLiteUserAccountRepository:
             "VALUES (?, ?, ?, ?, 1, ?, ?) RETURNING id",
             (username, password_hash, role.value, employee_id, now, now),
         ).fetchone()
-        return row["id"]
+        return int(row["id"])
 
     def get_by_username(self, username: str) -> UserAccount | None:
         row = self._conn.execute(

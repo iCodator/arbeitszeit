@@ -26,7 +26,7 @@ def _audit(
     object_id: int,
     user_id: int,
     employee_id: int | None = None,
-    details: dict | None = None,
+    details: dict[str, object] | None = None,
 ) -> None:
     conn.execute(
         "INSERT INTO audit_log "

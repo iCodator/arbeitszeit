@@ -7,6 +7,10 @@ from datetime import date
 
 from arbeitszeit.infrastructure.export import csv_exporter, pdf_report_service
 from arbeitszeit.infrastructure.export.report_queries import (
+    BookingRow,
+    CorrectionRow,
+    ReviewCaseRow,
+    SupplementRow,
     list_corrections,
     list_open_bookings,
     list_open_bookings_in_period,
@@ -45,7 +49,7 @@ def _get_export_dir(conn: sqlite3.Connection) -> str:
             file=sys.stderr,
         )
         sys.exit(1)
-    return json.loads(row["config_value_json"])
+    return str(json.loads(row["config_value_json"]))
 
 
 def _parse_date(value: str) -> date:
@@ -56,7 +60,7 @@ def _parse_date(value: str) -> date:
         sys.exit(1)
 
 
-def _print_bookings_table(rows: list) -> None:
+def _print_bookings_table(rows: list[BookingRow]) -> None:
     if not rows:
         print("Keine Buchungen gefunden.")
         return
@@ -70,7 +74,7 @@ def _print_bookings_table(rows: list) -> None:
     print(f"\n{len(rows)} Buchung(en).")
 
 
-def _print_corrections_table(rows: list) -> None:
+def _print_corrections_table(rows: list[CorrectionRow]) -> None:
     if not rows:
         print("Keine Korrekturen gefunden.")
         return
@@ -84,7 +88,7 @@ def _print_corrections_table(rows: list) -> None:
     print(f"\n{len(rows)} Korrektur(en).")
 
 
-def _print_supplements_table(rows: list) -> None:
+def _print_supplements_table(rows: list[SupplementRow]) -> None:
     if not rows:
         print("Keine Nachträge gefunden.")
         return
@@ -97,7 +101,7 @@ def _print_supplements_table(rows: list) -> None:
     print(f"\n{len(rows)} Nachtrag/Nachträge.")
 
 
-def _print_review_cases_table(rows: list) -> None:
+def _print_review_cases_table(rows: list[ReviewCaseRow]) -> None:
     if not rows:
         print("Keine Prüffälle gefunden.")
         return

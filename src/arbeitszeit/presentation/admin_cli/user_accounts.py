@@ -32,7 +32,7 @@ def _audit(
     event_type: str,
     object_id: int,
     user_id: int,
-    details: dict | None = None,
+    details: dict[str, object] | None = None,
 ) -> None:
     conn.execute(
         "INSERT INTO audit_log "
@@ -254,7 +254,7 @@ def cmd_users_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace) -> N
         print(f"Generiertes Passwort (einmalig sichtbar): {password}")
 
 
-def register_subcommands(sub: argparse._SubParsersAction) -> None:
+def register_subcommands(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     users = sub.add_parser("users", help="Benutzerkonten verwalten (ADMIN/REVIEWER/TECH)")
     users_sub = users.add_subparsers(dest="users_cmd", required=True)
 

@@ -57,7 +57,7 @@ class SQLiteBackupService:
                 self._backup_dir / "exports",
                 dirs_exist_ok=True,
             )
-        details: dict = {
+        details: dict[str, object] = {
             "backup_path": str(backup_path),
             "size_bytes": backup_path.stat().st_size,
         }
@@ -156,7 +156,7 @@ class SQLiteBackupService:
             synced_to_nas=synced,
         )
 
-    def _log_audit(self, event_type: str, details: dict) -> None:
+    def _log_audit(self, event_type: str, details: dict[str, object]) -> None:
         conn = open_connection(self._db_path)
         try:
             repo = SQLiteAuditLogRepository(conn)

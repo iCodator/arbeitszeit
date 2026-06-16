@@ -1,6 +1,7 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
 import argparse
 import os
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -79,8 +80,8 @@ def run(argv: list[str] | None = None) -> None:
 
 def _dispatch(
     args: argparse.Namespace,
-    conn,
-    audit_conn,
+    conn: sqlite3.Connection,
+    audit_conn: sqlite3.Connection,
     user_id: int,
     db_path: Path,
 ) -> None:
