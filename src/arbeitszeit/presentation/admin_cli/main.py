@@ -4,6 +4,7 @@ import argparse
 import os
 import sqlite3
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 from arbeitszeit.infrastructure.db.connection import open_connection
@@ -99,88 +100,43 @@ def _dispatch(
     user_id: int,
     db_path: Path,
 ) -> None:
-    domain = args.domain
-
-    if domain == "employees":
-        cmd = args.employees_cmd
-        if cmd == "list":
-            employees.cmd_employees_list(conn, args)
-        elif cmd == "add":
-            employees.cmd_employees_add(conn, args, user_id)
-        elif cmd == "deactivate":
-            employees.cmd_employees_deactivate(conn, args, user_id)
-
-    elif domain == "cards":
-        cmd = args.cards_cmd
-        if cmd == "assign":
-            employees.cmd_cards_assign(conn, args, user_id)
-        elif cmd == "replace":
-            employees.cmd_cards_replace(conn, args, user_id)
-        elif cmd == "deactivate":
-            employees.cmd_cards_deactivate(conn, args, user_id)
-
-    elif domain == "bookings":
-        cmd = args.bookings_cmd
-        if cmd == "correct":
-            bookings.cmd_bookings_correct(conn, audit_conn, args, user_id)
-        elif cmd == "supplement":
-            bookings.cmd_bookings_supplement(conn, audit_conn, args, user_id)
-        elif cmd == "approve-supplement":
-            bookings.cmd_bookings_approve_supplement(conn, audit_conn, args, user_id)
-        elif cmd == "reject-supplement":
-            bookings.cmd_bookings_reject_supplement(conn, audit_conn, args, user_id)
-
-    elif domain == "schedule":
-        cmd = args.schedule_cmd
-        if cmd == "set":
-            schedule.cmd_schedule_set(conn, audit_conn, args, user_id)
-        elif cmd == "show":
-            schedule.cmd_schedule_show(conn, args, user_id)
-
-    elif domain == "reports":
-        cmd = args.reports_cmd
-        if cmd == "export-csv":
-            reports.cmd_reports_export_csv(conn, args, user_id)
-        elif cmd == "export-pdf-day":
-            reports.cmd_reports_export_pdf_day(conn, args, user_id)
-        elif cmd == "export-pdf-week":
-            reports.cmd_reports_export_pdf_week(conn, args, user_id)
-        elif cmd == "export-pdf-month":
-            reports.cmd_reports_export_pdf_month(conn, args, user_id)
-        elif cmd == "export-pdf-employee":
-            reports.cmd_reports_export_pdf_employee(conn, args, user_id)
-        elif cmd == "open-bookings":
-            reports.cmd_reports_open_bookings(conn, args, user_id)
-        elif cmd == "warn-cases":
-            reports.cmd_reports_warn_cases(conn, args, user_id)
-        elif cmd == "corrections":
-            reports.cmd_reports_corrections(conn, args, user_id)
-        elif cmd == "supplements":
-            reports.cmd_reports_supplements(conn, args, user_id)
-        elif cmd == "open-review-cases":
-            reports.cmd_reports_open_review_cases(conn, args, user_id)
-
-    elif domain == "system":
-        cmd = args.system_cmd
-        if cmd == "check":
-            system.cmd_system_check(db_path, conn, args, user_id)
-        elif cmd == "backup":
-            system.cmd_system_backup(db_path, conn, args, user_id)
-
-    elif domain == "users":
-        cmd = args.users_cmd
-        if cmd == "add":
-            user_accounts.cmd_users_add(conn, args, user_id)
-        elif cmd == "list":
-            user_accounts.cmd_users_list(conn, args)
-        elif cmd == "deactivate":
-            user_accounts.cmd_users_deactivate(conn, args, user_id)
-        elif cmd == "reactivate":
-            user_accounts.cmd_users_reactivate(conn, args, user_id)
-        elif cmd == "change-role":
-            user_accounts.cmd_users_change_role(conn, args, user_id)
-        elif cmd == "bootstrap":
-            user_accounts.cmd_users_bootstrap(conn, args)
+    table: dict[tuple[str, str], Callable[[], None]] = {
+        ("employees", "list"): lambda: employees.cmd_employees_list(conn, args),
+        ("employees", "add"): lambda: employees.cmd_employees_add(conn, args, user_id),
+        ("employees", "deactivate"): lambda: employees.cmd_employees_deactivate(conn, args, user_id),
+        ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, args, user_id),
+        ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, args, user_id),
+        ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(conn, args, user_id),
+        ("bookings", "correct"): lambda: bookings.cmd_bookings_correct(conn, audit_conn, args, user_id),
+        ("bookings", "supplement"): lambda: bookings.cmd_bookings_supplement(conn, audit_conn, args, user_id),
+        ("bookings", "approve-supplement"): lambda: bookings.cmd_bookings_approve_supplement(conn, audit_conn, args, user_id),
+        ("bookings", "reject-supplement"): lambda: bookings.cmd_bookings_reject_supplement(conn, audit_conn, args, user_id),
+        ("schedule", "set"): lambda: schedule.cmd_schedule_set(conn, audit_conn, args, user_id),
+        ("schedule", "show"): lambda: schedule.cmd_schedule_show(conn, args, user_id),
+        ("reports", "export-csv"): lambda: reports.cmd_reports_export_csv(conn, args, user_id),
+        ("reports", "export-pdf-day"): lambda: reports.cmd_reports_export_pdf_day(conn, args, user_id),
+        ("reports", "export-pdf-week"): lambda: reports.cmd_reports_export_pdf_week(conn, args, user_id),
+        ("reports", "export-pdf-month"): lambda: reports.cmd_reports_export_pdf_month(conn, args, user_id),
+        ("reports", "export-pdf-employee"): lambda: reports.cmd_reports_export_pdf_employee(conn, args, user_id),
+        ("reports", "open-bookings"): lambda: reports.cmd_reports_open_bookings(conn, args, user_id),
+        ("reports", "warn-cases"): lambda: reports.cmd_reports_warn_cases(conn, args, user_id),
+        ("reports", "corrections"): lambda: reports.cmd_reports_corrections(conn, args, user_id),
+        ("reports", "supplements"): lambda: reports.cmd_reports_supplements(conn, args, user_id),
+        ("reports", "open-review-cases"): lambda: reports.cmd_reports_open_review_cases(conn, args, user_id),
+        ("system", "check"): lambda: system.cmd_system_check(db_path, conn, args, user_id),
+        ("system", "backup"): lambda: system.cmd_system_backup(db_path, conn, args, user_id),
+        ("users", "add"): lambda: user_accounts.cmd_users_add(conn, args, user_id),
+        ("users", "list"): lambda: user_accounts.cmd_users_list(conn, args),
+        ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, args, user_id),
+        ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, args, user_id),
+        ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, args, user_id),
+        ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, args),
+    }
+    domain: str = args.domain
+    cmd: str | None = getattr(args, f"{domain}_cmd", None)
+    handler = table.get((domain, cmd)) if cmd is not None else None
+    if handler is not None:
+        handler()
 
 
 if __name__ == "__main__":
