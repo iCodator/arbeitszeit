@@ -29,8 +29,10 @@ Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 import select
 import time
 from datetime import datetime, timezone
+from typing import cast
 
 from evdev import InputDevice, categorize, ecodes
+from evdev.events import KeyEvent
 
 from arbeitszeit.domain.enums import BookingType
 
@@ -116,11 +118,11 @@ class EvdevHardwareReader(HardwareReader):
         for event in self._numpad.read_loop():
             if event.type != ecodes.EV_KEY:
                 continue
-            key_event = categorize(event)
+            key_event = cast(KeyEvent, categorize(event))
             if key_event.keystate != key_event.key_down:
                 continue
             keycode = key_event.keycode
-            if isinstance(keycode, list):
+            if isinstance(keycode, tuple):
                 keycode = keycode[0]
             bt = _NUMPAD_TO_BOOKING_TYPE.get(keycode)
             if bt is not None:
@@ -152,9 +154,9 @@ class EvdevHardwareReader(HardwareReader):
             for event in self._rfid.read():
                 if event.type != ecodes.EV_KEY:
                     continue
-                key_event = categorize(event)
+                key_event = cast(KeyEvent, categorize(event))
                 keycode = key_event.keycode
-                if isinstance(keycode, list):
+                if isinstance(keycode, tuple):
                     keycode = keycode[0]
                 if key_event.keystate == key_event.key_down:
                     if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):

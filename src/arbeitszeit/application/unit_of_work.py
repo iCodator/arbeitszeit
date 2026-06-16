@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Protocol
+from typing import Protocol, Self
 
 from arbeitszeit.domain.ports.repositories import (
     AuditLogRepository,
@@ -31,7 +31,7 @@ class UnitOfWork(Protocol):
 
     def commit(self) -> None: ...
     def rollback(self) -> None: ...
-    def __enter__(self) -> "UnitOfWork": ...
+    def __enter__(self) -> Self: ...
     def __exit__(
         self,
         exc_type: type[BaseException] | None,
