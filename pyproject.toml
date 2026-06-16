@@ -24,6 +24,30 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# ---------------------------------------------------------------------------
+# Test & Coverage
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["arbeitszeit"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+# ---------------------------------------------------------------------------
+# Code Quality
+# ---------------------------------------------------------------------------
+
 [tool.black]
 line-length = 100
 target-version = ["py314"]
@@ -33,18 +57,43 @@ profile = "black"
 line_length = 100
 
 [tool.ruff]
+src = ["src"]
 line-length = 100
 target-version = "py314"
 exclude = [
-  ".git",
-  ".venv",
-  "__pycache__",
-  "docs/audits/reports",
+    ".git",
+    ".venv",
+    "__pycache__",
+    "docs/audits/reports",
 ]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B"]  # Errors, Warnings, Imports, Bugbear
 ignore = []
+
+# ---------------------------------------------------------------------------
+# Type Checking
+# ---------------------------------------------------------------------------
+
+[tool.mypy]
+python_version = "3.14"
+mypy_path = "src"
+explicit_package_bases = true
+strict = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_return_any = true
+show_error_codes = true
+exclude = [
+    '(^\.venv/)',
+    '(^docs/audits/reports/)',
+]
+
+# ---------------------------------------------------------------------------
+# Architecture
+# ---------------------------------------------------------------------------
 
 [tool.importlinter]
 root_package = "arbeitszeit"
@@ -59,37 +108,3 @@ layers = [
     "arbeitszeit.application",
     "arbeitszeit.domain",
 ]
-
-[tool.mypy]
-python_version = "3.14"
-strict = true
-disallow_incomplete_defs = true
-disallow_untyped_defs = true
-ignore_missing_imports = true
-warn_unused_ignores = true
-warn_return_any = true
-show_error_codes = true
-exclude = [
-  '(^\.venv/)',
-  '(^docs/audits/reports/)',
-]
-
-[tool.pytest.ini_options]
-minversion = "8.0"
-testpaths = ["tests"]
-addopts = [
-  "-ra",
-  "--strict-markers",
-  "--cov=arbeitszeit",
-  "--cov-report=term-missing",
-  "--cov-report=xml:docs/audits/reports/coverage.xml",
-  "--cov-report=html:docs/audits/reports/htmlcov",
-]
-
-[tool.coverage.run]
-branch = true
-source = ["arbeitszeit"]
-
-[tool.coverage.report]
-show_missing = true
-skip_covered = true

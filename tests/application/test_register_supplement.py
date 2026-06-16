@@ -24,7 +24,6 @@ from arbeitszeit.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
 )
-
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
