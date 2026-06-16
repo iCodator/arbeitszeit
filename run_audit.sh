@@ -40,4 +40,8 @@ pytest \
     | tee "$REPORT_DIR/pytest.txt"
 
 echo
+echo "== Audit-Notizen generieren =="
+python scripts/generate_audit_notes.py --report-dir "$REPORT_DIR"
+
+echo
 echo "Audit abgeschlossen. Reports liegen unter: $REPORT_DIR"
