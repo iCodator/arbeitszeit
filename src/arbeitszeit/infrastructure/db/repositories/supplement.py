@@ -59,9 +59,7 @@ class SQLiteSupplementRepository:
         )
 
     def get_by_id(self, supplement_id: int) -> Supplement | None:
-        row = self._conn.execute(
-            f"{_SELECT} WHERE id = ?", (supplement_id,)
-        ).fetchone()
+        row = self._conn.execute(f"{_SELECT} WHERE id = ?", (supplement_id,)).fetchone()
         return _row_to_supplement(row) if row else None
 
     def list_pending(self) -> list[Supplement]:

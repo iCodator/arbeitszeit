@@ -96,9 +96,9 @@ def test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id(
 
     bookings = _bookings_with_device_event(db)
     assert len(bookings) == 1, "Genau eine time_bookings-Zeile erwartet"
-    assert bookings[0]["device_event_id"] == events[0]["id"], (
-        "time_bookings.device_event_id muss auf device_events.id zeigen"
-    )
+    assert (
+        bookings[0]["device_event_id"] == events[0]["id"]
+    ), "time_bookings.device_event_id muss auf device_events.id zeigen"
 
 
 # --- Test 2: Abgelehnte Buchung (UnknownCard) ---

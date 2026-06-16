@@ -3,6 +3,7 @@
 Schreibende Operationen erfordern ADMIN-Rolle.
 Lesende Operationen (list) sind ohne Rolleneinschränkung nutzbar.
 """
+
 import argparse
 import binascii
 import hashlib
@@ -23,7 +24,9 @@ def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
         "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
     ).fetchone()
     if row is None or not row["active"] or row["role"] != "ADMIN":
-        print("Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr)
+        print(
+            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr
+        )
         sys.exit(1)
 
 
@@ -60,7 +63,9 @@ def _hash_password(password: str) -> str:
     return binascii.hexlify(salt).decode() + ":" + binascii.hexlify(dk).decode()
 
 
-def cmd_users_add(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
+def cmd_users_add(
+    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
     _require_admin(conn, user_id)
     role = args.role.upper()
     if role not in _ALLOWED_ROLES:
@@ -125,7 +130,10 @@ def cmd_users_deactivate(
         (args.deactivate_user_id,),
     ).fetchone()
     if row is None:
-        print(f"Fehler: Benutzerkonto {args.deactivate_user_id} nicht gefunden.", file=sys.stderr)
+        print(
+            f"Fehler: Benutzerkonto {args.deactivate_user_id} nicht gefunden.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     if not row["active"]:
         print(f"Hinweis: Benutzerkonto '{row['username']}' ist bereits inaktiv.")
@@ -155,7 +163,10 @@ def cmd_users_reactivate(
         (args.reactivate_user_id,),
     ).fetchone()
     if row is None:
-        print(f"Fehler: Benutzerkonto {args.reactivate_user_id} nicht gefunden.", file=sys.stderr)
+        print(
+            f"Fehler: Benutzerkonto {args.reactivate_user_id} nicht gefunden.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     if row["active"]:
         print(f"Hinweis: Benutzerkonto '{row['username']}' ist bereits aktiv.")
@@ -185,7 +196,10 @@ def cmd_users_change_role(
         (args.target_user_id,),
     ).fetchone()
     if row is None:
-        print(f"Fehler: Benutzerkonto {args.target_user_id} nicht gefunden.", file=sys.stderr)
+        print(
+            f"Fehler: Benutzerkonto {args.target_user_id} nicht gefunden.",
+            file=sys.stderr,
+        )
         sys.exit(1)
     new_role = args.role.upper()
     if new_role not in _ALLOWED_ROLES:
@@ -254,8 +268,12 @@ def cmd_users_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace) -> N
         print(f"Generiertes Passwort (einmalig sichtbar): {password}")
 
 
-def register_subcommands(sub: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
-    users = sub.add_parser("users", help="Benutzerkonten verwalten (ADMIN/REVIEWER/TECH)")
+def register_subcommands(
+    sub: argparse._SubParsersAction[argparse.ArgumentParser],
+) -> None:
+    users = sub.add_parser(
+        "users", help="Benutzerkonten verwalten (ADMIN/REVIEWER/TECH)"
+    )
     users_sub = users.add_subparsers(dest="users_cmd", required=True)
 
     # add
@@ -267,26 +285,69 @@ def register_subcommands(sub: argparse._SubParsersAction[argparse.ArgumentParser
         choices=["ADMIN", "REVIEWER", "TECH"],
         help="Rolle: ADMIN, REVIEWER oder TECH",
     )
-    add.add_argument("--employee-id", type=int, default=None, help="Verknüpfter Mitarbeiter (optional)")
-    add.add_argument("--password", default=None, help="Passwort (wird gehasht gespeichert; leer lassen für automatisch generiertes)")
+    add.add_argument(
+        "--employee-id",
+        type=int,
+        default=None,
+        help="Verknüpfter Mitarbeiter (optional)",
+    )
+    add.add_argument(
+        "--password",
+        default=None,
+        help="Passwort (wird gehasht gespeichert; leer lassen für automatisch generiertes)",
+    )
 
     # list
     users_sub.add_parser("list", help="Alle Benutzerkonten anzeigen")
 
     # deactivate
     deact = users_sub.add_parser("deactivate", help="Benutzerkonto deaktivieren")
-    deact.add_argument("--user-id", dest="deactivate_user_id", type=int, required=True, help="ID des zu deaktivierenden Kontos")
+    deact.add_argument(
+        "--user-id",
+        dest="deactivate_user_id",
+        type=int,
+        required=True,
+        help="ID des zu deaktivierenden Kontos",
+    )
 
     # reactivate
     react = users_sub.add_parser("reactivate", help="Benutzerkonto reaktivieren")
-    react.add_argument("--user-id", dest="reactivate_user_id", type=int, required=True, help="ID des zu reaktivierenden Kontos")
+    react.add_argument(
+        "--user-id",
+        dest="reactivate_user_id",
+        type=int,
+        required=True,
+        help="ID des zu reaktivierenden Kontos",
+    )
 
     # change-role
-    change = users_sub.add_parser("change-role", help="Rolle eines Benutzerkontos ändern")
-    change.add_argument("--user-id", dest="target_user_id", type=int, required=True, help="ID des Benutzerkontos")
-    change.add_argument("--role", required=True, choices=["ADMIN", "REVIEWER", "TECH"], help="Neue Rolle")
+    change = users_sub.add_parser(
+        "change-role", help="Rolle eines Benutzerkontos ändern"
+    )
+    change.add_argument(
+        "--user-id",
+        dest="target_user_id",
+        type=int,
+        required=True,
+        help="ID des Benutzerkontos",
+    )
+    change.add_argument(
+        "--role",
+        required=True,
+        choices=["ADMIN", "REVIEWER", "TECH"],
+        help="Neue Rolle",
+    )
 
     # bootstrap
-    boot = users_sub.add_parser("bootstrap", help="Erstes Administratorkonto anlegen (nur wenn kein Admin existiert)")
-    boot.add_argument("--username", required=True, help="Benutzername des ersten Administrators")
-    boot.add_argument("--password", default=None, help="Passwort (leer lassen für automatisch generiertes)")
+    boot = users_sub.add_parser(
+        "bootstrap",
+        help="Erstes Administratorkonto anlegen (nur wenn kein Admin existiert)",
+    )
+    boot.add_argument(
+        "--username", required=True, help="Benutzername des ersten Administrators"
+    )
+    boot.add_argument(
+        "--password",
+        default=None,
+        help="Passwort (leer lassen für automatisch generiertes)",
+    )

@@ -5,6 +5,7 @@ diese Funktionen nutzen. Ad-hoc-Konstruktion aus Benutzereingaben ist verboten,
 da UTC-Normalisierung und halboffene Intervalle [from_dt, to_dt) sonst nicht
 garantiert werden können.
 """
+
 from datetime import date, datetime, timedelta, timezone
 
 

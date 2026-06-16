@@ -5,6 +5,7 @@ abzüglich aller erfassten Pausen). §4 ArbZG definiert die Pausenpflicht formal
 die Brutto-Anwesenheitszeit; die Netto-Betrachtung ist als fachliche Prüfhilfe
 konzipiert und ersetzt keine rechtsverbindliche Einzelfallbewertung.
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Sequence
@@ -31,15 +32,23 @@ def check_break_compliance(day_bookings: Sequence[TimeBooking]) -> list[Complian
 
     # Verlaufstatbestand: ununterbrochener Arbeitsblock > 6h
     if stats.max_continuous > 6 * 3600:
-        return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.WARN)]
+        return [
+            ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.WARN)
+        ]
 
     # > 9h Nettoarbeitszeit mit < 45min Gesamtpause
     if stats.net_work > 9 * 3600 and stats.total_break < 45 * 60:
-        return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.CRITICAL)]
+        return [
+            ComplianceFlag(
+                ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.CRITICAL
+            )
+        ]
 
     # > 6h Nettoarbeitszeit mit < 30min Gesamtpause
     if stats.net_work > 6 * 3600 and stats.total_break < 30 * 60:
-        return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.WARN)]
+        return [
+            ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.WARN)
+        ]
 
     return []
 
@@ -47,21 +56,27 @@ def check_break_compliance(day_bookings: Sequence[TimeBooking]) -> list[Complian
 def check_max_hours(day_bookings: Sequence[TimeBooking]) -> list[ComplianceFlag]:
     stats = _work_stats(day_bookings)
     if stats.net_work > 10 * 3600:
-        return [ComplianceFlag(
-            ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION, ReviewSeverity.CRITICAL
-        )]
+        return [
+            ComplianceFlag(
+                ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION, ReviewSeverity.CRITICAL
+            )
+        ]
     if stats.net_work > 8 * 3600:
-        return [ComplianceFlag(
-            ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION, ReviewSeverity.WARN
-        )]
+        return [
+            ComplianceFlag(
+                ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION, ReviewSeverity.WARN
+            )
+        ]
     return []
 
 
 def check_rest_period(last_go: datetime, next_come: datetime) -> list[ComplianceFlag]:
     if (next_come - last_go).total_seconds() < 11 * 3600:
-        return [ComplianceFlag(
-            ReviewCaseType.POSSIBLE_REST_VIOLATION, ReviewSeverity.CRITICAL
-        )]
+        return [
+            ComplianceFlag(
+                ReviewCaseType.POSSIBLE_REST_VIOLATION, ReviewSeverity.CRITICAL
+            )
+        ]
     return []
 
 

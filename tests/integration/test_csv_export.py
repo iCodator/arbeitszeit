@@ -1,4 +1,5 @@
 """Integrationstests für csv_exporter.py gegen In-Memory-SQLite."""
+
 import csv
 import json
 import sys
@@ -25,6 +26,7 @@ _EXPORT_NOW = datetime(2025, 6, 1, 18, 0, tzinfo=timezone.utc)
 # Fixtures und Helfer
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def export_dir(tmp_path):
     return tmp_path / "export"
@@ -39,8 +41,14 @@ def _insert_employee(conn, personnel_no: str = "E001") -> int:
     ).fetchone()["id"]
 
 
-def _insert_booking(conn, employee_id, booking_type="COME", booked_at=_NOW,
-                    status="OPEN", source="TERMINAL") -> int:
+def _insert_booking(
+    conn,
+    employee_id,
+    booking_type="COME",
+    booked_at=_NOW,
+    status="OPEN",
+    source="TERMINAL",
+) -> int:
     return conn.execute(
         "INSERT INTO time_bookings (employee_id, booking_type, booked_at, "
         "source, current_status, created_at) "
@@ -93,6 +101,7 @@ def _read_csv(path: Path) -> list[dict]:
 # Dateinamen
 # ---------------------------------------------------------------------------
 
+
 def test_export_detail_dateiname_korrekt(conn, export_dir):
     _insert_booking(conn, _insert_employee(conn))
     path = export_detail(conn, _FROM, _TO, export_dir, now=_EXPORT_NOW)
@@ -115,6 +124,7 @@ def test_export_dir_wird_angelegt(conn, export_dir):
 # ---------------------------------------------------------------------------
 # Detail-CSV: Inhalt
 # ---------------------------------------------------------------------------
+
 
 def test_detail_csv_enthaelt_buchungszeile(conn, export_dir):
     emp_id = _insert_employee(conn)
@@ -180,7 +190,9 @@ def test_detail_csv_filtert_nach_employee_id(conn, export_dir):
     emp2 = _insert_employee(conn, "E002")
     _insert_booking(conn, emp1)
     _insert_booking(conn, emp2)
-    path = export_detail(conn, _FROM, _TO, export_dir, employee_id=emp1, now=_EXPORT_NOW)
+    path = export_detail(
+        conn, _FROM, _TO, export_dir, employee_id=emp1, now=_EXPORT_NOW
+    )
 
     rows = _read_csv(path)
     assert len(rows) == 1
@@ -196,6 +208,7 @@ def test_detail_csv_leere_datei_wenn_keine_buchungen(conn, export_dir):
 # ---------------------------------------------------------------------------
 # Verdichteter CSV: Inhalt
 # ---------------------------------------------------------------------------
+
 
 def test_verdichtet_csv_eine_zeile_pro_tag(conn, export_dir):
     emp_id = _insert_employee(conn)
@@ -221,12 +234,18 @@ def test_verdichtet_csv_pausenzeit_und_nettoarbeitszeit_korrekt(conn, export_dir
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booking_type="COME", booked_at=_NOW)
     _insert_booking(
-        conn, emp_id, booking_type="BREAK_START",
-        booked_at=datetime(2025, 6, 1, 12, 0, tzinfo=timezone.utc), status="OPEN"
+        conn,
+        emp_id,
+        booking_type="BREAK_START",
+        booked_at=datetime(2025, 6, 1, 12, 0, tzinfo=timezone.utc),
+        status="OPEN",
     )
     _insert_booking(
-        conn, emp_id, booking_type="BREAK_END",
-        booked_at=datetime(2025, 6, 1, 12, 30, tzinfo=timezone.utc), status="OK"
+        conn,
+        emp_id,
+        booking_type="BREAK_END",
+        booked_at=datetime(2025, 6, 1, 12, 30, tzinfo=timezone.utc),
+        status="OK",
     )
     _insert_booking(conn, emp_id, booking_type="GO", booked_at=_LATER, status="OK")
     path = export_condensed(conn, _FROM, _TO, export_dir, now=_EXPORT_NOW)

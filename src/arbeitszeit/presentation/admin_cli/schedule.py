@@ -1,11 +1,14 @@
 """Admin-CLI: Regelarbeitszeit verwalten (ADMIN-Rolle für Schreiben)."""
+
 import argparse
 import sqlite3
 import sys
 from datetime import date, time
 
 from arbeitszeit.application.commands import ChangeWorkScheduleCommand
-from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+from arbeitszeit.application.use_cases.manage_work_schedule import (
+    ManageWorkScheduleUseCase,
+)
 from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
 from arbeitszeit.domain.errors import DomainError
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
@@ -17,8 +20,10 @@ def _parse_time(value: str) -> time:
     try:
         h, m = value.split(":")
         return time(int(h), int(m))
-    except (ValueError, AttributeError):
-        print(f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr)
+    except ValueError, AttributeError:
+        print(
+            f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr
+        )
         sys.exit(1)
 
 
@@ -31,7 +36,10 @@ def cmd_schedule_set(
     try:
         valid_from = date.fromisoformat(args.from_date)
     except ValueError:
-        print(f"Fehler: Ungültiges Datum {args.from_date!r} (erwartet YYYY-MM-DD)", file=sys.stderr)
+        print(
+            f"Fehler: Ungültiges Datum {args.from_date!r} (erwartet YYYY-MM-DD)",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     cmd = ChangeWorkScheduleCommand(
@@ -46,7 +54,9 @@ def cmd_schedule_set(
         reason=None,
     )
     try:
-        result = ManageWorkScheduleUseCase(SQLiteUnitOfWork(conn, audit_conn)).execute(cmd)
+        result = ManageWorkScheduleUseCase(SQLiteUnitOfWork(conn, audit_conn)).execute(
+            cmd
+        )
     except DomainError as exc:
         print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
@@ -59,7 +69,9 @@ def cmd_schedule_set(
         print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
 
 
-def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
+def cmd_schedule_show(
+    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
     _require_admin_or_reviewer(conn, user_id)
     rows = conn.execute(
         "SELECT id, scope_type, scope_employee_id, weekday, start_time, end_time, "
@@ -80,11 +92,15 @@ def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_i
         print(f"  {'ID':>4}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
         for r in global_rows:
             day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
-            print(f"  {r['id']:>4}  {day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}")
+            print(
+                f"  {r['id']:>4}  {day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+            )
 
     if employee_rows:
         print("\nMitarbeiterspezifische Regelarbeitszeit:")
-        print(f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
+        print(
+            f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}"
+        )
         for r in employee_rows:
             day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
             print(
@@ -93,9 +109,13 @@ def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_i
             )
 
     if not global_rows and employee_rows:
-        print("\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt.")
+        print(
+            "\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt."
+        )
     elif global_rows and not employee_rows:
-        print("\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).")
+        print(
+            "\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen)."
+        )
 
 
 def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
@@ -117,10 +137,13 @@ def register_subcommands(
     ssub = sched.add_subparsers(dest="schedule_cmd", required=True)
 
     set_cmd = ssub.add_parser("set", help="Regelarbeitszeit setzen")
-    set_cmd.add_argument("--weekday", required=True, type=int, choices=range(1, 8),
-                         metavar="1-7 (1=Mo)")
+    set_cmd.add_argument(
+        "--weekday", required=True, type=int, choices=range(1, 8), metavar="1-7 (1=Mo)"
+    )
     set_cmd.add_argument("--start", required=True, metavar="HH:MM")
     set_cmd.add_argument("--end", required=True, metavar="HH:MM")
-    set_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
+    set_cmd.add_argument(
+        "--from", required=True, dest="from_date", metavar="YYYY-MM-DD"
+    )
 
     ssub.add_parser("show", help="Aktive Regelarbeitszeiten anzeigen")

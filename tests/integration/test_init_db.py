@@ -19,7 +19,9 @@ _SCRIPTS_DIR = Path(__file__).parents[2] / "scripts"
 
 
 def _load_init_db():
-    spec = importlib.util.spec_from_file_location("init_db", _SCRIPTS_DIR / "init_db.py")
+    spec = importlib.util.spec_from_file_location(
+        "init_db", _SCRIPTS_DIR / "init_db.py"
+    )
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -41,11 +43,14 @@ def _setze_deployment_keys(db: Path, tmp_path: Path) -> None:
         ("backup.backup_dir", str(tmp_path / "backups")),
         ("export.export_dir", str(tmp_path / "exports")),
     ):
-        config.set_current(key, json.dumps(val), ChangeOrigin.MIGRATION, None, now, "test")
+        config.set_current(
+            key, json.dumps(val), ChangeOrigin.MIGRATION, None, now, "test"
+        )
     conn.close()
 
 
 # --- setup_vollstaendig ---
+
 
 def test_setup_vollstaendig_false_nach_migration_ohne_setup(tmp_path):
     db = _migrierte_db(tmp_path)
@@ -77,6 +82,7 @@ def test_setup_vollstaendig_false_wenn_nur_ein_key_gesetzt(tmp_path):
 
 
 # --- Ausgabe main() ---
+
 
 def test_main_gibt_warnung_aus_bei_fehlenden_deployment_keys(tmp_path, capsys):
     db = _migrierte_db(tmp_path)

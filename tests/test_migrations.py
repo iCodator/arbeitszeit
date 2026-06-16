@@ -7,6 +7,7 @@ wurden passende Testfälle ergänzt; der Prüfumfang wuchs auf 12 Tests.
 Jeder Testlauf verifiziert den aktuellen Gesamtstand der Migrationskette,
 nicht nur den historischen Phase-1-Lieferumfang.
 """
+
 import shutil
 import sqlite3
 import sys
@@ -48,14 +49,12 @@ def conn(tmp_path):
 
 
 def _table_names(conn: sqlite3.Connection) -> set[str]:
-    rows = conn.execute(
-        """
+    rows = conn.execute("""
         SELECT name
         FROM sqlite_master
         WHERE type = 'table'
           AND name NOT LIKE 'sqlite_%'
-        """
-    ).fetchall()
+        """).fetchall()
     return {row[0] for row in rows}
 
 
@@ -119,15 +118,13 @@ def test_migration_0004_fuegt_neue_spalten_ein(conn):
     run_migrations(conn)
 
     supplement_cols = {
-        row[1]
-        for row in conn.execute("PRAGMA table_info(supplements)").fetchall()
+        row[1] for row in conn.execute("PRAGMA table_info(supplements)").fetchall()
     }
     assert "rejected_by_user_id" in supplement_cols
     assert "rejected_at" in supplement_cols
 
     review_cols = {
-        row[1]
-        for row in conn.execute("PRAGMA table_info(review_cases)").fetchall()
+        row[1] for row in conn.execute("PRAGMA table_info(review_cases)").fetchall()
     }
     assert "note" in review_cols
 
@@ -136,8 +133,7 @@ def test_migration_0005_fuegt_device_event_id_ein(conn):
     run_migrations(conn)
 
     tb_cols = {
-        row[1]
-        for row in conn.execute("PRAGMA table_info(time_bookings)").fetchall()
+        row[1] for row in conn.execute("PRAGMA table_info(time_bookings)").fetchall()
     }
     assert "device_event_id" in tb_cols
 
@@ -265,7 +261,5 @@ def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
     ).fetchone()[0]
     assert schedule_count == 5
 
-    config_count = conn.execute(
-        "SELECT COUNT(*) FROM system_config"
-    ).fetchone()[0]
+    config_count = conn.execute("SELECT COUNT(*) FROM system_config").fetchone()[0]
     assert config_count == 4

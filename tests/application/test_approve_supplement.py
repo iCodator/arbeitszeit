@@ -6,12 +6,17 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
-from arbeitszeit.domain import audit_events
-
 from arbeitszeit.application.commands import ApproveSupplementCommand
-from arbeitszeit.application.use_cases.approve_supplement import ApproveSupplementUseCase
+from arbeitszeit.application.use_cases.approve_supplement import (
+    ApproveSupplementUseCase,
+)
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import (
-    Employee, ReviewCase, Supplement, UserAccount, WorkScheduleVersion,
+    Employee,
+    ReviewCase,
+    Supplement,
+    UserAccount,
+    WorkScheduleVersion,
 )
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
@@ -48,29 +53,41 @@ def _make_uow_with_pending_supplement(
     booking_type: BookingType = BookingType.COME,
 ) -> tuple[FakeUnitOfWork, int]:
     uow = FakeUnitOfWork()
-    uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="reviewer",
-        role=UserRole.REVIEWER, is_active=True,
-    ))
-    emp = uow.employee_repo.add(Employee(
-        id=0, personnel_no="E001", first_name="Anna",
-        last_name="Muster", is_active=employee_active,
-    ))
-    supplement = uow.supplement_repo.add(Supplement(
-        id=0,
-        employee_id=emp.id,
-        related_booking_id=related_booking_id,
-        booking_type=booking_type,
-        event_at=_EVENT_AT,
-        recorded_at=_NOW,
-        reason="Vergessen einzustempeln",
-        recorded_by_user_id=2,
-        approval_status=ApprovalStatus.PENDING,
-        approved_by_user_id=None,
-        approved_at=None,
-        rejected_by_user_id=None,
-        rejected_at=None,
-    ))
+    uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="reviewer",
+            role=UserRole.REVIEWER,
+            is_active=True,
+        )
+    )
+    emp = uow.employee_repo.add(
+        Employee(
+            id=0,
+            personnel_no="E001",
+            first_name="Anna",
+            last_name="Muster",
+            is_active=employee_active,
+        )
+    )
+    supplement = uow.supplement_repo.add(
+        Supplement(
+            id=0,
+            employee_id=emp.id,
+            related_booking_id=related_booking_id,
+            booking_type=booking_type,
+            event_at=_EVENT_AT,
+            recorded_at=_NOW,
+            reason="Vergessen einzustempeln",
+            recorded_by_user_id=2,
+            approval_status=ApprovalStatus.PENDING,
+            approved_by_user_id=None,
+            approved_at=None,
+            rejected_by_user_id=None,
+            rejected_at=None,
+        )
+    )
     return uow, supplement.id
 
 
@@ -81,14 +98,20 @@ def _cmd(supplement_id: int, **overrides) -> ApproveSupplementCommand:
 
 def _uow_with_reviewer() -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
-    uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="reviewer",
-        role=UserRole.REVIEWER, is_active=True,
-    ))
+    uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="reviewer",
+            role=UserRole.REVIEWER,
+            is_active=True,
+        )
+    )
     return uow
 
 
 # --- Fehlerbehandlung ---
+
 
 def test_nachtrag_nicht_gefunden_loest_not_found_error():
     uow = _uow_with_reviewer()
@@ -125,9 +148,7 @@ def test_fehlender_mitarbeiter_loest_not_found_error():
 
 
 def test_go_als_erste_buchung_loest_invalid_sequence_error():
-    uow, supplement_id = _make_uow_with_pending_supplement(
-        booking_type=BookingType.GO
-    )
+    uow, supplement_id = _make_uow_with_pending_supplement(booking_type=BookingType.GO)
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(InvalidBookingSequenceError):
@@ -137,15 +158,24 @@ def test_go_als_erste_buchung_loest_invalid_sequence_error():
 def test_break_end_ohne_offene_pause_loest_invalid_sequence_error():
     from arbeitszeit.domain.entities import TimeBooking
     from arbeitszeit.domain.enums import BookingStatus as BS
+
     uow, supplement_id = _make_uow_with_pending_supplement(
         booking_type=BookingType.BREAK_END
     )
-    uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=BookingType.COME,
-        booked_at=_EVENT_AT - timedelta(hours=1),
-        source=BookingSource.TERMINAL, status=BS.OPEN,
-        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
-    ))
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=BookingType.COME,
+            booked_at=_EVENT_AT - timedelta(hours=1),
+            source=BookingSource.TERMINAL,
+            status=BS.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(InvalidBookingSequenceError):
@@ -155,21 +185,36 @@ def test_break_end_ohne_offene_pause_loest_invalid_sequence_error():
 def test_go_bei_offener_pause_loest_open_phase_conflict():
     from arbeitszeit.domain.entities import TimeBooking
     from arbeitszeit.domain.enums import BookingStatus as BS
-    uow, supplement_id = _make_uow_with_pending_supplement(
-        booking_type=BookingType.GO
+
+    uow, supplement_id = _make_uow_with_pending_supplement(booking_type=BookingType.GO)
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=BookingType.COME,
+            booked_at=_EVENT_AT - timedelta(hours=2),
+            source=BookingSource.TERMINAL,
+            status=BS.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
     )
-    uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=BookingType.COME,
-        booked_at=_EVENT_AT - timedelta(hours=2),
-        source=BookingSource.TERMINAL, status=BS.OPEN,
-        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
-    ))
-    uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=BookingType.BREAK_START,
-        booked_at=_EVENT_AT - timedelta(hours=1),
-        source=BookingSource.TERMINAL, status=BS.OPEN,
-        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
-    ))
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=BookingType.BREAK_START,
+            booked_at=_EVENT_AT - timedelta(hours=1),
+            source=BookingSource.TERMINAL,
+            status=BS.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(OpenPhaseConflictError):
@@ -177,6 +222,7 @@ def test_go_bei_offener_pause_loest_open_phase_conflict():
 
 
 # --- Fehlerpfade hinterlassen keine Spuren ---
+
 
 def test_fehler_kein_commit_kein_audit_log():
     uow = _uow_with_reviewer()
@@ -190,6 +236,7 @@ def test_fehler_kein_commit_kein_audit_log():
 
 
 # --- Supplement wird genehmigt ---
+
 
 def test_supplement_erhaelt_status_approved():
     uow, supplement_id = _make_uow_with_pending_supplement()
@@ -206,6 +253,7 @@ def test_supplement_erhaelt_status_approved():
 
 
 # --- Buchung wird angelegt ---
+
 
 def test_buchung_wird_angelegt():
     uow, supplement_id = _make_uow_with_pending_supplement()
@@ -235,25 +283,40 @@ def test_buchung_hat_status_open_fuer_come():
 def test_buchung_ohne_compliance_flags_hat_status_ok():
     from arbeitszeit.domain.entities import TimeBooking
     from arbeitszeit.domain.enums import BookingStatus as BS
-    uow, supplement_id = _make_uow_with_pending_supplement(
-        booking_type=BookingType.GO
-    )
+
+    uow, supplement_id = _make_uow_with_pending_supplement(booking_type=BookingType.GO)
     # COME 08:00 bereits vorhanden, GO um 13:00 -> 5h, kein Flag
-    uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=BookingType.COME,
-        booked_at=_EVENT_AT,
-        source=BookingSource.TERMINAL, status=BS.OPEN,
-        terminal_id=1, rfid_card_id=1, device_event_id=None, note=None,
-    ))
-    go_supplement = uow.supplement_repo.add(Supplement(
-        id=0, employee_id=1, related_booking_id=None,
-        booking_type=BookingType.GO,
-        event_at=_EVENT_AT + timedelta(hours=5),
-        recorded_at=_NOW, reason="Test", recorded_by_user_id=2,
-        approval_status=ApprovalStatus.PENDING,
-        approved_by_user_id=None, approved_at=None,
-        rejected_by_user_id=None, rejected_at=None,
-    ))
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=BookingType.COME,
+            booked_at=_EVENT_AT,
+            source=BookingSource.TERMINAL,
+            status=BS.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
+    )
+    go_supplement = uow.supplement_repo.add(
+        Supplement(
+            id=0,
+            employee_id=1,
+            related_booking_id=None,
+            booking_type=BookingType.GO,
+            event_at=_EVENT_AT + timedelta(hours=5),
+            recorded_at=_NOW,
+            reason="Test",
+            recorded_by_user_id=2,
+            approval_status=ApprovalStatus.PENDING,
+            approved_by_user_id=None,
+            approved_at=None,
+            rejected_by_user_id=None,
+            rejected_at=None,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     result = uc.execute(_cmd(go_supplement.id))
@@ -264,14 +327,23 @@ def test_buchung_ohne_compliance_flags_hat_status_ok():
 
 # --- ReviewCase wird geschlossen ---
 
+
 def test_manual_entry_review_case_wird_geschlossen():
     uow, supplement_id = _make_uow_with_pending_supplement()
-    review_case = uow.review_case_repo.add(ReviewCase(
-        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
-        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
-        description="Nachtrag", booking_id=None,
-        created_at=_NOW, closed_at=None, closed_by_user_id=None,
-    ))
+    review_case = uow.review_case_repo.add(
+        ReviewCase(
+            id=0,
+            employee_id=1,
+            case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+            severity=ReviewSeverity.INFO,
+            status=ReviewCaseStatus.OPEN,
+            description="Nachtrag",
+            booking_id=None,
+            created_at=_NOW,
+            closed_at=None,
+            closed_by_user_id=None,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     uc.execute(_cmd(supplement_id))
@@ -290,6 +362,7 @@ def test_kein_review_case_wenn_keiner_passt():
 
 
 # --- Audit-Log ---
+
 
 def test_audit_log_eintrag_vorhanden():
     uow, supplement_id = _make_uow_with_pending_supplement()
@@ -319,6 +392,7 @@ def test_audit_log_enthaelt_fachliche_felder():
 
 # --- Rollenprüfung ---
 
+
 def test_unbekannter_benutzer_loest_permission_denied():
     uow, supplement_id = _make_uow_with_pending_supplement()
     uc = ApproveSupplementUseCase(uow)
@@ -329,10 +403,15 @@ def test_unbekannter_benutzer_loest_permission_denied():
 
 def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
     uow, supplement_id = _make_uow_with_pending_supplement()
-    employee_user = uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=1, username="employee",
-        role=UserRole.EMPLOYEE, is_active=True,
-    ))
+    employee_user = uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=1,
+            username="employee",
+            role=UserRole.EMPLOYEE,
+            is_active=True,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(PermissionDeniedError):
@@ -341,10 +420,15 @@ def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
 
 def test_inaktiver_benutzer_loest_permission_denied():
     uow, supplement_id = _make_uow_with_pending_supplement()
-    inactive = uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="inactive_reviewer",
-        role=UserRole.REVIEWER, is_active=False,
-    ))
+    inactive = uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="inactive_reviewer",
+            role=UserRole.REVIEWER,
+            is_active=False,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     with pytest.raises(PermissionDeniedError):
@@ -353,48 +437,90 @@ def test_inaktiver_benutzer_loest_permission_denied():
 
 # --- Review-Case-Selektivität ---
 
+
 def test_nur_passender_review_case_wird_geschlossen():
     # Nachtrag mit related_booking_id=7 → schließt genau den Case mit booking_id=7
     uow, supplement_id = _make_uow_with_pending_supplement(related_booking_id=7)
-    case_matching = uow.review_case_repo.add(ReviewCase(
-        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
-        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
-        description="Passender Fall", booking_id=7,
-        created_at=_NOW, closed_at=None, closed_by_user_id=None,
-    ))
-    case_other_booking = uow.review_case_repo.add(ReviewCase(
-        id=0, employee_id=1, case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
-        severity=ReviewSeverity.INFO, status=ReviewCaseStatus.OPEN,
-        description="Anderer Nachtrag", booking_id=99,
-        created_at=_NOW, closed_at=None, closed_by_user_id=None,
-    ))
-    case_other_type = uow.review_case_repo.add(ReviewCase(
-        id=0, employee_id=1, case_type=ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
-        severity=ReviewSeverity.WARN, status=ReviewCaseStatus.OPEN,
-        description="Anderer Typ", booking_id=7,
-        created_at=_NOW, closed_at=None, closed_by_user_id=None,
-    ))
+    case_matching = uow.review_case_repo.add(
+        ReviewCase(
+            id=0,
+            employee_id=1,
+            case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+            severity=ReviewSeverity.INFO,
+            status=ReviewCaseStatus.OPEN,
+            description="Passender Fall",
+            booking_id=7,
+            created_at=_NOW,
+            closed_at=None,
+            closed_by_user_id=None,
+        )
+    )
+    case_other_booking = uow.review_case_repo.add(
+        ReviewCase(
+            id=0,
+            employee_id=1,
+            case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
+            severity=ReviewSeverity.INFO,
+            status=ReviewCaseStatus.OPEN,
+            description="Anderer Nachtrag",
+            booking_id=99,
+            created_at=_NOW,
+            closed_at=None,
+            closed_by_user_id=None,
+        )
+    )
+    case_other_type = uow.review_case_repo.add(
+        ReviewCase(
+            id=0,
+            employee_id=1,
+            case_type=ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
+            severity=ReviewSeverity.WARN,
+            status=ReviewCaseStatus.OPEN,
+            description="Anderer Typ",
+            booking_id=7,
+            created_at=_NOW,
+            closed_at=None,
+            closed_by_user_id=None,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     uc.execute(_cmd(supplement_id))
 
-    assert uow.review_case_repo._store[case_matching.id].status == ReviewCaseStatus.RESOLVED
-    assert uow.review_case_repo._store[case_other_booking.id].status == ReviewCaseStatus.OPEN
-    assert uow.review_case_repo._store[case_other_type.id].status == ReviewCaseStatus.OPEN
+    assert (
+        uow.review_case_repo._store[case_matching.id].status
+        == ReviewCaseStatus.RESOLVED
+    )
+    assert (
+        uow.review_case_repo._store[case_other_booking.id].status
+        == ReviewCaseStatus.OPEN
+    )
+    assert (
+        uow.review_case_repo._store[case_other_type.id].status == ReviewCaseStatus.OPEN
+    )
 
 
 # --- Regelzeitfenster ---
+
 
 def test_nachtrag_ausserhalb_regelzeitfenster_erzeugt_review_case():
     # _EVENT_AT = 2025-03-10 08:00 UTC, isoweekday=1 (Montag)
     # Fenster 09:00–17:00 → 08:00 liegt vor Fensterbeginn → OUTSIDE_SCHEDULE_WINDOW
     uow, supplement_id = _make_uow_with_pending_supplement()
-    uow.work_schedule_repo.add(WorkScheduleVersion(
-        id=0, scope_type=ScopeType.GLOBAL, scope_employee_id=None,
-        weekday=1, start_time=time(9, 0), end_time=time(17, 0),
-        valid_from=date(2000, 1, 1), valid_until=None,
-        change_origin=ChangeOrigin.SYSTEM_SEED, changed_by_user_id=None,
-    ))
+    uow.work_schedule_repo.add(
+        WorkScheduleVersion(
+            id=0,
+            scope_type=ScopeType.GLOBAL,
+            scope_employee_id=None,
+            weekday=1,
+            start_time=time(9, 0),
+            end_time=time(17, 0),
+            valid_from=date(2000, 1, 1),
+            valid_until=None,
+            change_origin=ChangeOrigin.SYSTEM_SEED,
+            changed_by_user_id=None,
+        )
+    )
     uc = ApproveSupplementUseCase(uow)
 
     result = uc.execute(_cmd(supplement_id))

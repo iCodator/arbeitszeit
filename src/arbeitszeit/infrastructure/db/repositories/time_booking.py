@@ -50,9 +50,7 @@ class SQLiteTimeBookingRepository:
         )
 
     def get_by_id(self, booking_id: int) -> TimeBooking | None:
-        row = self._conn.execute(
-            f"{_SELECT} WHERE id = ?", (booking_id,)
-        ).fetchone()
+        row = self._conn.execute(f"{_SELECT} WHERE id = ?", (booking_id,)).fetchone()
         return _row_to_booking(row) if row else None
 
     def list_for_employee_on_day(

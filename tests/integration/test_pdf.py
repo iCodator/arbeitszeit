@@ -3,11 +3,11 @@
 Prüft: PDF wird erzeugt, hat validen Header, enthält Inhalt (Seitenanzahl > 0),
 Dateiname entspricht Konvention, Pflichtabschnitte und Erläuterungen vorhanden.
 """
+
+import json
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
-
-import json
 
 import pypdf
 import pytest
@@ -42,8 +42,13 @@ def _insert_employee(conn, personnel_no: str = "E001") -> int:
     ).fetchone()["id"]
 
 
-def _insert_booking(conn, employee_id: int, booking_type: str = "COME",
-                    booked_at: datetime = _NOW, status: str = "OPEN") -> int:
+def _insert_booking(
+    conn,
+    employee_id: int,
+    booking_type: str = "COME",
+    booked_at: datetime = _NOW,
+    status: str = "OPEN",
+) -> int:
     return conn.execute(
         "INSERT INTO time_bookings (employee_id, booking_type, booked_at, "
         "source, current_status, created_at) "
@@ -107,13 +112,18 @@ def _pdf_text(path: Path) -> str:
 
 
 _PFLICHT_ABSCHNITTE = [
-    "Buchungen", "Korrekturen", "Nachträge", "Offene Prüffälle", "Erläuterungen",
+    "Buchungen",
+    "Korrekturen",
+    "Nachträge",
+    "Offene Prüffälle",
+    "Erläuterungen",
 ]
 
 
 # ---------------------------------------------------------------------------
 # Hilfsfunktionen für alle Berichte
 # ---------------------------------------------------------------------------
+
 
 def _base_setup(conn):
     emp_id = _insert_employee(conn)
@@ -125,6 +135,7 @@ def _base_setup(conn):
 # ---------------------------------------------------------------------------
 # Tagesbericht
 # ---------------------------------------------------------------------------
+
 
 def test_tagesbericht_dateiname_korrekt(conn, export_dir):
     _base_setup(conn)
@@ -156,6 +167,7 @@ def test_tagesbericht_verzeichnis_wird_angelegt(conn, export_dir):
 # Wochenbericht
 # ---------------------------------------------------------------------------
 
+
 def test_wochenbericht_dateiname_korrekt(conn, export_dir):
     _base_setup(conn)
     path = create_weekly_report(conn, 2025, 23, export_dir, now=_REPORT_NOW)
@@ -173,6 +185,7 @@ def test_wochenbericht_valides_pdf(conn, export_dir):
 # ---------------------------------------------------------------------------
 # Monatsbericht
 # ---------------------------------------------------------------------------
+
 
 def test_monatsbericht_dateiname_korrekt(conn, export_dir):
     _base_setup(conn)
@@ -192,10 +205,13 @@ def test_monatsbericht_valides_pdf(conn, export_dir):
 # Mitarbeiterbericht
 # ---------------------------------------------------------------------------
 
+
 def test_mitarbeiterbericht_dateiname_korrekt(conn, export_dir):
     emp_id = _base_setup(conn)
     path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
-    assert path.name == "bericht_mitarbeiter_E001_20250601_20250630_20250601T180000Z.pdf"
+    assert (
+        path.name == "bericht_mitarbeiter_E001_20250601_20250630_20250601T180000Z.pdf"
+    )
 
 
 def test_mitarbeiterbericht_valides_pdf(conn, export_dir):
@@ -214,7 +230,11 @@ def test_mitarbeiterbericht_filtert_nach_employee(conn, export_dir):
 
     path1 = create_employee_report(conn, emp1, _FROM, _TO, export_dir, now=_REPORT_NOW)
     path2 = create_employee_report(
-        conn, emp2, _FROM, _TO, export_dir,
+        conn,
+        emp2,
+        _FROM,
+        _TO,
+        export_dir,
         now=datetime(2025, 6, 1, 18, 1, tzinfo=timezone.utc),
     )
 
@@ -226,6 +246,7 @@ def test_mitarbeiterbericht_filtert_nach_employee(conn, export_dir):
 # ---------------------------------------------------------------------------
 # Pflichtfall: Schlüsselfelder vorhanden (Zeitraum, Erstellungszeitpunkt)
 # ---------------------------------------------------------------------------
+
 
 def test_alle_vier_berichtstypen_erzeugen_gueltige_pdfs(conn, export_dir):
     """Pflichtenheft v3 §7.11 + §16: Alle vier Berichte müssen generierbar sein."""
@@ -245,6 +266,7 @@ def test_alle_vier_berichtstypen_erzeugen_gueltige_pdfs(conn, export_dir):
 # ---------------------------------------------------------------------------
 # Inhaltsprüfung: Pflichtabschnitte und Erläuterungen
 # ---------------------------------------------------------------------------
+
 
 def test_tagesbericht_enthaelt_pflichtabschnitte(conn, export_dir):
     _base_setup(conn)
@@ -315,7 +337,9 @@ def test_mitarbeiterbericht_ohne_buchungen_mit_korrekturen_nachtraegen_prueffael
 
     # Buchung außerhalb des Berichtszeitraums — nur für FK-Referenz der Korrektur
     booking_id = _insert_booking(
-        conn, emp_id, status="CORRECTED",
+        conn,
+        emp_id,
+        status="CORRECTED",
         booked_at=datetime(2025, 5, 1, 8, 0, tzinfo=timezone.utc),
     )
     _insert_correction_for(conn, booking_id)

@@ -84,48 +84,50 @@ class BookUseCase:
             # diese Reihenfolge muss bei Erweiterungen gewahrt bleiben.
             card = self._uow.rfid_card_repo.get_by_uid_hash(cmd.uid_hash)
             if card is None:
-                self._uow.audit_log_repo.add(AuditLogEntry(
-                    id=0,
-                    event_type=audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
-                    object_type="rfid_cards",
-                    object_id=0,
-                    user_id=None,
-                    employee_id=None,
-                    event_at=datetime.now(timezone.utc),
-                    details_json=json.dumps(
-                        {"uid_hash": cmd.uid_hash, "terminal_id": cmd.terminal_id},
-                        ensure_ascii=False,
-                        sort_keys=True,
-                    ),
-                ))
+                self._uow.audit_log_repo.add(
+                    AuditLogEntry(
+                        id=0,
+                        event_type=audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
+                        object_type="rfid_cards",
+                        object_id=0,
+                        user_id=None,
+                        employee_id=None,
+                        event_at=datetime.now(timezone.utc),
+                        details_json=json.dumps(
+                            {"uid_hash": cmd.uid_hash, "terminal_id": cmd.terminal_id},
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        ),
+                    )
+                )
                 raise UnknownCardError(f"Unbekannte RFID-UID: {cmd.uid_hash}")
 
             if card.status != CardStatus.ACTIVE:
-                self._uow.audit_log_repo.add(AuditLogEntry(
-                    id=0,
-                    event_type=audit_events.BOOKING_REJECTED_INACTIVE_CARD,
-                    object_type="rfid_cards",
-                    object_id=card.id,
-                    user_id=None,
-                    employee_id=card.employee_id,
-                    event_at=datetime.now(timezone.utc),
-                    details_json=json.dumps(
-                        {
-                            "card_id": card.id,
-                            "card_status": card.status.value,
-                            "terminal_id": cmd.terminal_id,
-                        },
-                        ensure_ascii=False,
-                        sort_keys=True,
-                    ),
-                ))
+                self._uow.audit_log_repo.add(
+                    AuditLogEntry(
+                        id=0,
+                        event_type=audit_events.BOOKING_REJECTED_INACTIVE_CARD,
+                        object_type="rfid_cards",
+                        object_id=card.id,
+                        user_id=None,
+                        employee_id=card.employee_id,
+                        event_at=datetime.now(timezone.utc),
+                        details_json=json.dumps(
+                            {
+                                "card_id": card.id,
+                                "card_status": card.status.value,
+                                "terminal_id": cmd.terminal_id,
+                            },
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        ),
+                    )
+                )
                 raise InactiveCardError(f"Karte {card.id} ist nicht aktiv.")
 
             employee = self._uow.employee_repo.get_by_id(card.employee_id)
             if employee is None:
-                raise NotFoundError(
-                    f"Mitarbeiter {card.employee_id} nicht gefunden."
-                )
+                raise NotFoundError(f"Mitarbeiter {card.employee_id} nicht gefunden.")
             if not employee.is_active:
                 raise InactiveEmployeeError(
                     f"Mitarbeiter {card.employee_id} ist nicht aktiv."
@@ -147,9 +149,11 @@ class BookUseCase:
             if schedule is not None and not (
                 schedule.start_time <= cmd.booked_at.time() <= schedule.end_time
             ):
-                schedule_flags = [ComplianceFlag(
-                    ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
-                )]
+                schedule_flags = [
+                    ComplianceFlag(
+                        ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
+                    )
+                ]
 
             prev_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 employee.id, cmd.booked_at.date() - timedelta(days=1)
@@ -191,18 +195,20 @@ class BookUseCase:
             follow_up_case_ids: list[int] = []
 
             for flag in flags:
-                case = self._uow.review_case_repo.add(ReviewCase(
-                    id=0,
-                    employee_id=employee.id,
-                    case_type=flag.case_type,
-                    severity=flag.severity,
-                    status=ReviewCaseStatus.OPEN,
-                    description=f"Automatisch erkannt bei Buchung #{booking.id}",
-                    booking_id=booking.id,
-                    created_at=now,
-                    closed_at=None,
-                    closed_by_user_id=None,
-                ))
+                case = self._uow.review_case_repo.add(
+                    ReviewCase(
+                        id=0,
+                        employee_id=employee.id,
+                        case_type=flag.case_type,
+                        severity=flag.severity,
+                        status=ReviewCaseStatus.OPEN,
+                        description=f"Automatisch erkannt bei Buchung #{booking.id}",
+                        booking_id=booking.id,
+                        created_at=now,
+                        closed_at=None,
+                        closed_by_user_id=None,
+                    )
+                )
                 follow_up_case_ids.append(case.id)
 
             # Erst commit, dann Audit-Log schreiben: nach commit hält conn keinen
@@ -211,27 +217,29 @@ class BookUseCase:
             # dort nur SELECTs ausführt.
             self._uow.commit()
 
-            self._uow.audit_log_repo.add(AuditLogEntry(
-                id=0,
-                event_type=audit_events.TIME_BOOKED,
-                object_type="time_bookings",
-                object_id=booking.id,
-                user_id=None,
-                employee_id=employee.id,
-                event_at=now,
-                details_json=json.dumps(
-                    {
-                        "booking_type": cmd.booking_type.value,
-                        "booked_at": cmd.booked_at.isoformat(),
-                        "status": status.value,
-                        "terminal_id": cmd.terminal_id,
-                        "rfid_card_id": card.id,
-                        "follow_up_case_ids": follow_up_case_ids,
-                    },
-                    ensure_ascii=False,
-                    sort_keys=True,
-                ),
-            ))
+            self._uow.audit_log_repo.add(
+                AuditLogEntry(
+                    id=0,
+                    event_type=audit_events.TIME_BOOKED,
+                    object_type="time_bookings",
+                    object_id=booking.id,
+                    user_id=None,
+                    employee_id=employee.id,
+                    event_at=now,
+                    details_json=json.dumps(
+                        {
+                            "booking_type": cmd.booking_type.value,
+                            "booked_at": cmd.booked_at.isoformat(),
+                            "status": status.value,
+                            "terminal_id": cmd.terminal_id,
+                            "rfid_card_id": card.id,
+                            "follow_up_case_ids": follow_up_case_ids,
+                        },
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                )
+            )
 
             return BookResult(
                 booking_id=booking.id,

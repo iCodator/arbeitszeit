@@ -51,6 +51,7 @@ def _severity(flags, case_type: ReviewCaseType) -> ReviewSeverity | None:
 
 # --- check_break_compliance ---
 
+
 def test_keine_pausenverletzung_bei_kurzer_arbeitszeit():
     bookings = [_booking(BookingType.COME, 8), _booking(BookingType.GO, 11)]
     assert check_break_compliance(bookings) == []
@@ -77,7 +78,8 @@ def test_pausenverletzung_ueber_9h_ohne_45min_pause():
     flags = check_break_compliance(bookings)
     assert _has(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION)
     assert (
-        _severity(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION) == ReviewSeverity.CRITICAL
+        _severity(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION)
+        == ReviewSeverity.CRITICAL
     )
 
 
@@ -93,6 +95,7 @@ def test_keine_pausenverletzung_mit_ausreichender_pause():
 
 # --- check_max_hours ---
 
+
 def test_keine_ueberschreitung_bei_normaler_arbeitszeit():
     bookings = [_booking(BookingType.COME, 7, 30), _booking(BookingType.GO, 15, 30)]
     assert check_max_hours(bookings) == []
@@ -103,7 +106,8 @@ def test_max_hours_warnung_ueber_8h():
     flags = check_max_hours(bookings)
     assert _has(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
     assert (
-        _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.WARN
+        _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
+        == ReviewSeverity.WARN
     )
 
 
@@ -112,11 +116,13 @@ def test_max_hours_eskalation_ueber_10h():
     flags = check_max_hours(bookings)
     assert _has(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
     assert (
-        _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION) == ReviewSeverity.CRITICAL
+        _severity(flags, ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION)
+        == ReviewSeverity.CRITICAL
     )
 
 
 # --- check_rest_period ---
+
 
 def test_keine_ruhezeiverletzung_bei_ausreichender_ruhezeit():
     last_go = datetime(2024, 1, 15, 17, 0, tzinfo=timezone.utc)
@@ -130,5 +136,6 @@ def test_ruhezeit_verletzung_unter_11h():
     flags = check_rest_period(last_go, next_come)
     assert _has(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION)
     assert (
-        _severity(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION) == ReviewSeverity.CRITICAL
+        _severity(flags, ReviewCaseType.POSSIBLE_REST_VIOLATION)
+        == ReviewSeverity.CRITICAL
     )

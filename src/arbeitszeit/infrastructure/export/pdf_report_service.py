@@ -8,6 +8,7 @@ Dateinamen:
   bericht_monat_YYYY-MM_YYYYMMDDTHHMMSSZ.pdf
   bericht_mitarbeiter_NNNN_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.pdf
 """
+
 import sqlite3
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -39,24 +40,32 @@ _STYLES = getSampleStyleSheet()
 _PAGE_W, _PAGE_H = A4
 _MARGIN = 2 * cm
 
-_TBL_HEADER = TableStyle([
-    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
-    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-    ("FONTSIZE", (0, 0), (-1, -1), 8),
-    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#EEF2F8")]),
-    ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#AAAAAA")),
-    ("TOPPADDING", (0, 0), (-1, -1), 3),
-    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-    ("LEFTPADDING", (0, 0), (-1, -1), 4),
-    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
-    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-])
+_TBL_HEADER = TableStyle(
+    [
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTSIZE", (0, 0), (-1, -1), 8),
+        (
+            "ROWBACKGROUNDS",
+            (0, 1),
+            (-1, -1),
+            [colors.white, colors.HexColor("#EEF2F8")],
+        ),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#AAAAAA")),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]
+)
 
 
 # ---------------------------------------------------------------------------
 # Hilfsfunktionen
 # ---------------------------------------------------------------------------
+
 
 def _h1(text: str) -> Paragraph:
     return Paragraph(text, _STYLES["Heading1"])
@@ -77,11 +86,15 @@ def _space(cm_val: float = 0.4) -> Spacer:
 def _meta_table(rows: list[tuple[str, str]]) -> Table:
     data = [[_p(f"<b>{k}:</b>"), _p(v)] for k, v in rows]
     t = Table(data, colWidths=[4 * cm, None])
-    t.setStyle(TableStyle([
-        ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ("TOPPADDING", (0, 0), (-1, -1), 2),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
     return t
 
 
@@ -89,15 +102,17 @@ def _booking_table(bookings: list[BookingRow]) -> Table:
     header = ["MA-Nr", "Name", "Datum", "Uhrzeit", "Art", "Status", "Quelle"]
     rows = [header]
     for b in bookings:
-        rows.append([
-            b.personnel_no,
-            b.employee_name,
-            b.booked_at.date().isoformat(),
-            b.booked_at.strftime("%H:%M"),
-            b.booking_type.value,
-            b.status.value,
-            b.source.value,
-        ])
+        rows.append(
+            [
+                b.personnel_no,
+                b.employee_name,
+                b.booked_at.date().isoformat(),
+                b.booked_at.strftime("%H:%M"),
+                b.booking_type.value,
+                b.status.value,
+                b.source.value,
+            ]
+        )
     col_w = [2 * cm, 3.5 * cm, 2.5 * cm, 2 * cm, 3 * cm, 3 * cm, 2.5 * cm]
     t = Table(rows, colWidths=col_w, repeatRows=1)
     t.setStyle(_TBL_HEADER)
@@ -105,20 +120,30 @@ def _booking_table(bookings: list[BookingRow]) -> Table:
 
 
 def _correction_table(corrections: list[CorrectionRow]) -> Table:
-    header = ["MA-Nr", "Name", "Alter Typ", "Alter Zeitpunkt",
-              "Neuer Typ", "Neuer Zeitpunkt", "Begründung", "Zeitstempel"]
+    header = [
+        "MA-Nr",
+        "Name",
+        "Alter Typ",
+        "Alter Zeitpunkt",
+        "Neuer Typ",
+        "Neuer Zeitpunkt",
+        "Begründung",
+        "Zeitstempel",
+    ]
     rows = [header]
     for c in corrections:
-        rows.append([
-            c.personnel_no,
-            c.employee_name,
-            c.old_booking_type.value,
-            c.old_booked_at.strftime("%d.%m.%Y %H:%M"),
-            c.new_booking_type.value,
-            c.new_booked_at.strftime("%d.%m.%Y %H:%M"),
-            _p(c.reason),
-            c.corrected_at.strftime("%d.%m.%Y %H:%M"),
-        ])
+        rows.append(
+            [
+                c.personnel_no,
+                c.employee_name,
+                c.old_booking_type.value,
+                c.old_booked_at.strftime("%d.%m.%Y %H:%M"),
+                c.new_booking_type.value,
+                c.new_booked_at.strftime("%d.%m.%Y %H:%M"),
+                _p(c.reason),
+                c.corrected_at.strftime("%d.%m.%Y %H:%M"),
+            ]
+        )
     col_w = [1.8 * cm, 3 * cm, 2 * cm, 3 * cm, 2 * cm, 3 * cm, 4 * cm, 3 * cm]
     t = Table(rows, colWidths=col_w, repeatRows=1)
     t.setStyle(_TBL_HEADER)
@@ -126,17 +151,26 @@ def _correction_table(corrections: list[CorrectionRow]) -> Table:
 
 
 def _supplement_table(supplements: list[SupplementRow]) -> Table:
-    header = ["MA-Nr", "Name", "Art", "Ereigniszeitpunkt", "Begründung", "Freigabestatus"]
+    header = [
+        "MA-Nr",
+        "Name",
+        "Art",
+        "Ereigniszeitpunkt",
+        "Begründung",
+        "Freigabestatus",
+    ]
     rows = [header]
     for s in supplements:
-        rows.append([
-            s.personnel_no,
-            s.employee_name,
-            s.booking_type.value,
-            s.event_at.strftime("%d.%m.%Y %H:%M"),
-            _p(s.reason),
-            s.approval_status.value,
-        ])
+        rows.append(
+            [
+                s.personnel_no,
+                s.employee_name,
+                s.booking_type.value,
+                s.event_at.strftime("%d.%m.%Y %H:%M"),
+                _p(s.reason),
+                s.approval_status.value,
+            ]
+        )
     col_w = [1.8 * cm, 3.2 * cm, 2.5 * cm, 3.5 * cm, 5 * cm, 2.5 * cm]
     t = Table(rows, colWidths=col_w, repeatRows=1)
     t.setStyle(_TBL_HEADER)
@@ -144,22 +178,32 @@ def _supplement_table(supplements: list[SupplementRow]) -> Table:
 
 
 _HINWEISE: list[tuple[str, str]] = [
-    ("OPEN",
-     "Buchung noch offen – die zugehörige Abschluss-Buchung (GO bzw. BREAK_END) "
-     "steht noch aus. Prüfung oder manuelle Klärung erforderlich."),
-    ("WARN",
-     "Auffällig – ein Hinweis liegt vor (z. B. Buchung außerhalb des Regelzeitfensters, "
-     "Arbeitszeit über 8 h). Keine zwingende Prüfung, aber Aufmerksamkeit empfohlen."),
-    ("NEEDS_REVIEW",
-     "Prüfpflichtig – ein kritischer Befund liegt vor (z. B. Arbeitszeit über 10 h, "
-     "Ruhezeit unter 11 h). Muss von einem Prüfer bearbeitet und abgeschlossen werden."),
-    ("Nachträge",
-     "Manuell nachträglich erfasste Buchungen (Quelle: MANUAL). "
-     "Freigabestatus: PENDING = noch offen, APPROVED = genehmigt, REJECTED = abgelehnt."),
-    ("Korrekturen",
-     "Buchungen, die von einem Bearbeiter korrigiert wurden. "
-     "Die ursprüngliche Buchung bleibt mit Status CORRECTED erhalten; "
-     "der neue Zustand ist in der Korrekturtabelle (Alter/Neuer Typ und Zeitpunkt) dokumentiert."),
+    (
+        "OPEN",
+        "Buchung noch offen – die zugehörige Abschluss-Buchung (GO bzw. BREAK_END) "
+        "steht noch aus. Prüfung oder manuelle Klärung erforderlich.",
+    ),
+    (
+        "WARN",
+        "Auffällig – ein Hinweis liegt vor (z. B. Buchung außerhalb des Regelzeitfensters, "
+        "Arbeitszeit über 8 h). Keine zwingende Prüfung, aber Aufmerksamkeit empfohlen.",
+    ),
+    (
+        "NEEDS_REVIEW",
+        "Prüfpflichtig – ein kritischer Befund liegt vor (z. B. Arbeitszeit über 10 h, "
+        "Ruhezeit unter 11 h). Muss von einem Prüfer bearbeitet und abgeschlossen werden.",
+    ),
+    (
+        "Nachträge",
+        "Manuell nachträglich erfasste Buchungen (Quelle: MANUAL). "
+        "Freigabestatus: PENDING = noch offen, APPROVED = genehmigt, REJECTED = abgelehnt.",
+    ),
+    (
+        "Korrekturen",
+        "Buchungen, die von einem Bearbeiter korrigiert wurden. "
+        "Die ursprüngliche Buchung bleibt mit Status CORRECTED erhalten; "
+        "der neue Zustand ist in der Korrekturtabelle (Alter/Neuer Typ und Zeitpunkt) dokumentiert.",
+    ),
 ]
 
 
@@ -219,14 +263,16 @@ def _build_pdf(
         header = ["MA-Nr", "Name", "Typ", "Schwere", "Beschreibung", "Erkannt am"]
         rows = [header]
         for rc in open_cases:
-            rows.append([
-                rc.personnel_no,
-                rc.employee_name,
-                rc.case_type.value,
-                rc.severity.value,
-                _p(rc.description),
-                rc.detected_at.strftime("%d.%m.%Y"),
-            ])
+            rows.append(
+                [
+                    rc.personnel_no,
+                    rc.employee_name,
+                    rc.case_type.value,
+                    rc.severity.value,
+                    _p(rc.description),
+                    rc.detected_at.strftime("%d.%m.%Y"),
+                ]
+            )
         col_w = [1.8 * cm, 3 * cm, 4 * cm, 2 * cm, 5.5 * cm, 2.5 * cm]
         t = Table(rows, colWidths=col_w, repeatRows=1)
         t.setStyle(_TBL_HEADER)
@@ -245,6 +291,7 @@ def _build_pdf(
 # ---------------------------------------------------------------------------
 # Öffentliche Berichtsfunktionen
 # ---------------------------------------------------------------------------
+
 
 def create_daily_report(
     conn: sqlite3.Connection,
@@ -268,11 +315,14 @@ def create_daily_report(
         ("Erstellt am", now.strftime("%d.%m.%Y %H:%M UTC")),
     ]
     _build_pdf(
-        path, f"Tagesbericht {day.isoformat()}", meta,
+        path,
+        f"Tagesbericht {day.isoformat()}",
+        meta,
         list_bookings(conn, from_dt, to_dt),
         list_corrections(conn, from_dt, to_dt),
         list_supplements(conn, from_dt, to_dt),
-        conn, employee_id=None,
+        conn,
+        employee_id=None,
     )
     return path
 
@@ -299,15 +349,21 @@ def create_weekly_report(
     meta = [
         ("Berichtstyp", "Wochenbericht"),
         ("Woche", week_str),
-        ("Zeitraum", f"{monday.isoformat()} – {(to_dt - timedelta(days=1)).date().isoformat()}"),
+        (
+            "Zeitraum",
+            f"{monday.isoformat()} – {(to_dt - timedelta(days=1)).date().isoformat()}",
+        ),
         ("Erstellt am", now.strftime("%d.%m.%Y %H:%M UTC")),
     ]
     _build_pdf(
-        path, f"Wochenbericht {week_str}", meta,
+        path,
+        f"Wochenbericht {week_str}",
+        meta,
         list_bookings(conn, from_dt, to_dt),
         list_corrections(conn, from_dt, to_dt),
         list_supplements(conn, from_dt, to_dt),
-        conn, employee_id=None,
+        conn,
+        employee_id=None,
     )
     return path
 
@@ -334,15 +390,21 @@ def create_monthly_report(
     meta = [
         ("Berichtstyp", "Monatsbericht"),
         ("Monat", month_str),
-        ("Zeitraum", f"{from_dt.date().isoformat()} – {(to_dt - timedelta(days=1)).date().isoformat()}"),
+        (
+            "Zeitraum",
+            f"{from_dt.date().isoformat()} – {(to_dt - timedelta(days=1)).date().isoformat()}",
+        ),
         ("Erstellt am", now.strftime("%d.%m.%Y %H:%M UTC")),
     ]
     _build_pdf(
-        path, f"Monatsbericht {month_str}", meta,
+        path,
+        f"Monatsbericht {month_str}",
+        meta,
         list_bookings(conn, from_dt, to_dt),
         list_corrections(conn, from_dt, to_dt),
         list_supplements(conn, from_dt, to_dt),
-        conn, employee_id=None,
+        conn,
+        employee_id=None,
     )
     return path
 
@@ -377,10 +439,13 @@ def create_employee_report(
         ("Erstellt am", now.strftime("%d.%m.%Y %H:%M UTC")),
     ]
     _build_pdf(
-        path, f"Mitarbeiterbericht {employee_name}", meta,
+        path,
+        f"Mitarbeiterbericht {employee_name}",
+        meta,
         bookings,
         list_corrections(conn, from_dt, to_dt, employee_id=employee_id),
         list_supplements(conn, from_dt, to_dt, employee_id=employee_id),
-        conn, employee_id=employee_id,
+        conn,
+        employee_id=employee_id,
     )
     return path

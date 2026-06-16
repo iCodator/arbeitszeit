@@ -1,4 +1,9 @@
-from .ports import EmptyUidError, HardwareReader, HardwareTimeoutError, RawBookingRequest
+from .ports import (
+    EmptyUidError,
+    HardwareReader,
+    HardwareTimeoutError,
+    RawBookingRequest,
+)
 from .simulator import SimulatedHardwareReader
 from .uid_hash import hash_uid
 

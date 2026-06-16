@@ -26,6 +26,7 @@ auch bei Ausnahmen sicher erreicht wird.
 Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutzt.
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
+
 import select
 import time
 from datetime import datetime, timezone
@@ -36,19 +37,24 @@ from evdev.events import KeyEvent
 
 from arbeitszeit.domain.enums import BookingType
 
-from .ports import EmptyUidError, HardwareReader, HardwareTimeoutError, RawBookingRequest
+from .ports import (
+    EmptyUidError,
+    HardwareReader,
+    HardwareTimeoutError,
+    RawBookingRequest,
+)
 from .uid_hash import hash_uid
 
 # Numpad-Tasten 1–4 (KP-Variante und normale Ziffern) → BookingType
 _NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType] = {
     "KEY_KP1": BookingType.COME,
-    "KEY_1":   BookingType.COME,
+    "KEY_1": BookingType.COME,
     "KEY_KP2": BookingType.GO,
-    "KEY_2":   BookingType.GO,
+    "KEY_2": BookingType.GO,
     "KEY_KP3": BookingType.BREAK_START,
-    "KEY_3":   BookingType.BREAK_START,
+    "KEY_3": BookingType.BREAK_START,
     "KEY_KP4": BookingType.BREAK_END,
-    "KEY_4":   BookingType.BREAK_END,
+    "KEY_4": BookingType.BREAK_END,
 }
 
 # Nur Hex-Zeichen (0–9, A–F) – RFID-Lesegeräte liefern ausschließlich Hex-UIDs.

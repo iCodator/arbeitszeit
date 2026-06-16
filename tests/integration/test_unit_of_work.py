@@ -7,7 +7,6 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.domain import audit_events
-
 from arbeitszeit.domain.entities import AuditLogEntry
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
@@ -40,6 +39,7 @@ def uow(conn, audit_conn):
 
 
 # --- Transaktionsverhalten ---
+
 
 def test_commit_macht_daten_sichtbar(conn, uow):
     with uow:
@@ -154,6 +154,7 @@ def test_mehrfache_transaktionen_hintereinander(conn, uow):
 
 
 # --- Audit-Log: Persistenz bei Rollback (via audit_conn) ---
+
 
 def test_audit_log_bleibt_nach_rollback_erhalten(conn, uow):
     entry = AuditLogEntry(

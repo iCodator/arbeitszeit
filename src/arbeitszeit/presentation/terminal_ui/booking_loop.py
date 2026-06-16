@@ -1,4 +1,5 @@
 """Buchungsablauf: Numpad-Eingabe → RFID-Scan → BookUseCase → Feedback."""
+
 import json
 from pathlib import Path
 

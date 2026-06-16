@@ -2,6 +2,7 @@
 Tests für evdev-spezifische Logik: Hex-Filter (map_rfid_key) und Fehlerhierarchie.
 Physische Hardware wird nicht benötigt; getestet werden die reinen Mappingfunktionen.
 """
+
 import sys
 from pathlib import Path
 
@@ -9,7 +10,6 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.hardware import HardwareTimeoutError
 from arbeitszeit.infrastructure.hardware.evdev_reader import map_rfid_key
-
 
 # --- HardwareTimeoutError ---
 

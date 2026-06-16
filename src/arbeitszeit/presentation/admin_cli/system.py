@@ -1,4 +1,5 @@
 """Admin-CLI: Systemcheck und Backup (ADMIN/TECH-Rolle)."""
+
 import argparse
 import json
 import sqlite3
@@ -95,7 +96,10 @@ def cmd_system_backup(
                     service.sync_to_nas(Path(nas_path_val))
                     print("NAS-Synchronisation erfolgreich.")
                 except Exception as exc:
-                    print(f"Warnung: NAS-Synchronisation fehlgeschlagen: {exc}", file=sys.stderr)
+                    print(
+                        f"Warnung: NAS-Synchronisation fehlgeschlagen: {exc}",
+                        file=sys.stderr,
+                    )
 
 
 def register_subcommands(

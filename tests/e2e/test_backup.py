@@ -1,15 +1,14 @@
 import json
 import subprocess
 import sys
-from unittest.mock import Mock
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.domain import audit_events
-
 from arbeitszeit.infrastructure.backup import BackupResult, SQLiteBackupService
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
@@ -90,12 +89,18 @@ def test_backup_enthaelt_alle_tabellen(tmp_path):
 
     src_conn = open_connection(db)
     bak_conn = open_connection(backup_path)
-    src_tables = {r[0] for r in src_conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
-    ).fetchall()}
-    bak_tables = {r[0] for r in bak_conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table'"
-    ).fetchall()}
+    src_tables = {
+        r[0]
+        for r in src_conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+    }
+    bak_tables = {
+        r[0]
+        for r in bak_conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'"
+        ).fetchall()
+    }
     src_conn.close()
     bak_conn.close()
     assert src_tables == bak_tables
@@ -265,7 +270,9 @@ def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
         service.sync_to_nas(Path("/nonexistent/nas/path"))
 
     events = _audit_events(db)
-    failed = next(e for e in events if e["event_type"] == audit_events.BACKUP_SYNC_FAILED)
+    failed = next(
+        e for e in events if e["event_type"] == audit_events.BACKUP_SYNC_FAILED
+    )
     assert failed["details"]["returncode"] != 0
     assert "cmd" in failed["details"]
     assert "stderr" in failed["details"]

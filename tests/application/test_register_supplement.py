@@ -5,12 +5,11 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
-from arbeitszeit.domain import audit_events
-
 from arbeitszeit.application.commands import CreateSupplementCommand
 from arbeitszeit.application.use_cases.register_supplement import (
     RegisterSupplementUseCase,
 )
+from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import Employee, TimeBooking, UserAccount
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
@@ -20,7 +19,11 @@ from arbeitszeit.domain.enums import (
     ReviewCaseStatus,
     UserRole,
 )
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
+from arbeitszeit.domain.errors import (
+    InactiveEmployeeError,
+    NotFoundError,
+    PermissionDeniedError,
+)
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
@@ -29,26 +32,38 @@ _ACTOR_ID = 1  # id des REVIEWER-UserAccounts (erstes Element im Fake-Store)
 
 def _make_uow_with_employee(employee_active: bool = True) -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
-    uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="reviewer",
-        role=UserRole.REVIEWER, is_active=True,
-    ))
-    uow.employee_repo.add(Employee(
-        id=0,
-        personnel_no="E001",
-        first_name="Anna",
-        last_name="Muster",
-        is_active=employee_active,
-    ))
+    uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="reviewer",
+            role=UserRole.REVIEWER,
+            is_active=True,
+        )
+    )
+    uow.employee_repo.add(
+        Employee(
+            id=0,
+            personnel_no="E001",
+            first_name="Anna",
+            last_name="Muster",
+            is_active=employee_active,
+        )
+    )
     return uow
 
 
 def _uow_with_actor() -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
-    uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="reviewer",
-        role=UserRole.REVIEWER, is_active=True,
-    ))
+    uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="reviewer",
+            role=UserRole.REVIEWER,
+            is_active=True,
+        )
+    )
     return uow
 
 
@@ -67,6 +82,7 @@ def _cmd(**overrides) -> CreateSupplementCommand:
 
 # --- Rollenprüfung ---
 
+
 def test_unbekannter_benutzer_loest_permission_denied():
     uow = FakeUnitOfWork()
     uc = RegisterSupplementUseCase(uow)
@@ -77,10 +93,15 @@ def test_unbekannter_benutzer_loest_permission_denied():
 
 def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
     uow = FakeUnitOfWork()
-    emp_user = uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="emp",
-        role=UserRole.EMPLOYEE, is_active=True,
-    ))
+    emp_user = uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="emp",
+            role=UserRole.EMPLOYEE,
+            is_active=True,
+        )
+    )
     uc = RegisterSupplementUseCase(uow)
 
     with pytest.raises(PermissionDeniedError):
@@ -89,10 +110,15 @@ def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
 
 def test_inaktiver_benutzer_loest_permission_denied():
     uow = FakeUnitOfWork()
-    inactive = uow.user_account_repo.add(UserAccount(
-        id=0, employee_id=None, username="inactive_reviewer",
-        role=UserRole.REVIEWER, is_active=False,
-    ))
+    inactive = uow.user_account_repo.add(
+        UserAccount(
+            id=0,
+            employee_id=None,
+            username="inactive_reviewer",
+            role=UserRole.REVIEWER,
+            is_active=False,
+        )
+    )
     uc = RegisterSupplementUseCase(uow)
 
     with pytest.raises(PermissionDeniedError):
@@ -100,6 +126,7 @@ def test_inaktiver_benutzer_loest_permission_denied():
 
 
 # --- Fehlerbehandlung ---
+
 
 def test_unbekannter_mitarbeiter_loest_not_found_error():
     uow = _uow_with_actor()
@@ -179,6 +206,7 @@ def test_audit_log_eintrag_vorhanden():
 
 def test_audit_log_enthaelt_fachliche_felder():
     import json
+
     uow = _make_uow_with_employee()
     booking_id = _add_booking(uow)
     uc = RegisterSupplementUseCase(uow)
@@ -208,6 +236,7 @@ def test_related_booking_id_wird_durchgereicht():
 
 # --- Fehlerpfade hinterlassen keine Spuren ---
 
+
 def test_not_found_error_kein_commit_kein_audit_log():
     uow = _uow_with_actor()
     uc = RegisterSupplementUseCase(uow)
@@ -234,6 +263,7 @@ def test_inactive_employee_error_kein_commit_kein_audit_log():
 
 # --- ReviewCase-Beschreibung ---
 
+
 def test_review_case_description_enthaelt_fachliche_referenz():
     uow = _make_uow_with_employee()
     uc = RegisterSupplementUseCase(uow)
@@ -249,13 +279,22 @@ def test_review_case_description_enthaelt_fachliche_referenz():
 
 # --- related_booking_id-Existenzprüfung ---
 
+
 def _add_booking(uow: FakeUnitOfWork) -> int:
-    booking = uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=BookingType.COME,
-        booked_at=_NOW, source=BookingSource.TERMINAL,
-        status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
-        device_event_id=None, note=None,
-    ))
+    booking = uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=BookingType.COME,
+            booked_at=_NOW,
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
+    )
     return booking.id
 
 

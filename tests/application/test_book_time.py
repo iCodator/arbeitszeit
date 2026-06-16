@@ -5,11 +5,15 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
-from arbeitszeit.domain import audit_events
-
 from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.use_cases.book_time import BookUseCase
-from arbeitszeit.domain.entities import Employee, RfidCard, TimeBooking, WorkScheduleVersion
+from arbeitszeit.domain import audit_events
+from arbeitszeit.domain.entities import (
+    Employee,
+    RfidCard,
+    TimeBooking,
+    WorkScheduleVersion,
+)
 from arbeitszeit.domain.enums import (
     BookingSource,
     BookingStatus,
@@ -40,15 +44,26 @@ def _make_uow(
     employee_active: bool = True, card_status: CardStatus = CardStatus.ACTIVE
 ) -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
-    emp = uow.employee_repo.add(Employee(
-        id=0, personnel_no="E001", first_name="Anna", last_name="Muster",
-        is_active=employee_active,
-    ))
-    uow.rfid_card_repo.add(RfidCard(
-        id=0, employee_id=emp.id, uid_hash="abc123",
-        status=card_status, valid_from=_DATE, valid_until=None,
-        replaced_by_card_id=None,
-    ))
+    emp = uow.employee_repo.add(
+        Employee(
+            id=0,
+            personnel_no="E001",
+            first_name="Anna",
+            last_name="Muster",
+            is_active=employee_active,
+        )
+    )
+    uow.rfid_card_repo.add(
+        RfidCard(
+            id=0,
+            employee_id=emp.id,
+            uid_hash="abc123",
+            status=card_status,
+            valid_from=_DATE,
+            valid_until=None,
+            replaced_by_card_id=None,
+        )
+    )
     return uow
 
 
@@ -67,23 +82,39 @@ def _cmd(**overrides) -> BookCommand:
 def _add_booking(
     uow: FakeUnitOfWork, booking_type: BookingType, hour: int
 ) -> TimeBooking:
-    return uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=booking_type,
-        booked_at=_T(hour), source=BookingSource.TERMINAL,
-        status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
-        device_event_id=None, note=None,
-    ))
+    return uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=booking_type,
+            booked_at=_T(hour),
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
+    )
 
 
 def _add_booking_at(
     uow: FakeUnitOfWork, booking_type: BookingType, dt: datetime
 ) -> TimeBooking:
-    return uow.time_booking_repo.add(TimeBooking(
-        id=0, employee_id=1, booking_type=booking_type,
-        booked_at=dt, source=BookingSource.TERMINAL,
-        status=BookingStatus.OPEN, terminal_id=1, rfid_card_id=1,
-        device_event_id=None, note=None,
-    ))
+    return uow.time_booking_repo.add(
+        TimeBooking(
+            id=0,
+            employee_id=1,
+            booking_type=booking_type,
+            booked_at=dt,
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=1,
+            rfid_card_id=1,
+            device_event_id=None,
+            note=None,
+        )
+    )
 
 
 def _add_global_schedule(
@@ -92,15 +123,24 @@ def _add_global_schedule(
     start: time,
     end: time,
 ) -> None:
-    uow.work_schedule_repo.add(WorkScheduleVersion(
-        id=0, scope_type=ScopeType.GLOBAL, scope_employee_id=None,
-        weekday=weekday, start_time=start, end_time=end,
-        valid_from=date(2000, 1, 1), valid_until=None,
-        change_origin=ChangeOrigin.SYSTEM_SEED, changed_by_user_id=None,
-    ))
+    uow.work_schedule_repo.add(
+        WorkScheduleVersion(
+            id=0,
+            scope_type=ScopeType.GLOBAL,
+            scope_employee_id=None,
+            weekday=weekday,
+            start_time=start,
+            end_time=end,
+            valid_from=date(2000, 1, 1),
+            valid_until=None,
+            change_origin=ChangeOrigin.SYSTEM_SEED,
+            changed_by_user_id=None,
+        )
+    )
 
 
 # --- Fehlerbehandlung Karte / Mitarbeiter ---
+
 
 def test_unbekannte_uid_loest_unknown_card_error():
     uow = _make_uow()
@@ -136,6 +176,7 @@ def test_fehlender_mitarbeiterdatensatz_loest_not_found_error():
 
 
 # --- Sequenzfehler ---
+
 
 def test_go_als_erste_buchung_loest_invalid_sequence_error():
     uow = _make_uow()
@@ -174,6 +215,7 @@ def test_go_bei_offener_pause_loest_open_phase_conflict_error():
 
 
 # --- Statusbestimmung ---
+
 
 def test_come_buchung_hat_status_open():
     uow = _make_uow()
@@ -259,6 +301,7 @@ def test_buchung_wird_trotz_warn_gespeichert():
 
 # --- Audit-Log ---
 
+
 def test_audit_log_eintrag_vorhanden():
     uow = _make_uow()
     uc = BookUseCase(uow)
@@ -273,6 +316,7 @@ def test_audit_log_eintrag_vorhanden():
 
 # --- device_event_id wird durchgereicht ---
 
+
 def test_device_event_id_wird_in_buchung_gespeichert():
     uow = _make_uow()
     uc = BookUseCase(uow)
@@ -286,6 +330,7 @@ def test_device_event_id_wird_in_buchung_gespeichert():
 
 # --- Abweisungsprotokoll ---
 
+
 def test_unbekannte_karte_schreibt_audit_log():
     uow = _make_uow()
     uc = BookUseCase(uow)
@@ -293,8 +338,11 @@ def test_unbekannte_karte_schreibt_audit_log():
     with pytest.raises(Exception):
         uc.execute(_cmd(uid_hash="unbekannt"))
 
-    entries = [e for e in uow.audit_log_repo.entries
-               if e.event_type == audit_events.BOOKING_REJECTED_UNKNOWN_CARD]
+    entries = [
+        e
+        for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.BOOKING_REJECTED_UNKNOWN_CARD
+    ]
     assert len(entries) == 1
 
 
@@ -305,19 +353,24 @@ def test_inaktive_karte_schreibt_audit_log():
     with pytest.raises(Exception):
         uc.execute(_cmd())
 
-    entries = [e for e in uow.audit_log_repo.entries
-               if e.event_type == audit_events.BOOKING_REJECTED_INACTIVE_CARD]
+    entries = [
+        e
+        for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.BOOKING_REJECTED_INACTIVE_CARD
+    ]
     assert len(entries) == 1
 
 
 # --- Ruhezeitprüfung (V3 §7.9 / ArbZG §5) ---
 
+
 def test_go_nach_weniger_als_11h_ruhezeit_hat_status_needs_review():
     _YESTERDAY = _DATE - timedelta(days=1)
 
     def _TY(h: int) -> datetime:
-        return datetime(_YESTERDAY.year, _YESTERDAY.month, _YESTERDAY.day, h, 0,
-                        tzinfo=timezone.utc)
+        return datetime(
+            _YESTERDAY.year, _YESTERDAY.month, _YESTERDAY.day, h, 0, tzinfo=timezone.utc
+        )
 
     uow = _make_uow()
     # Vortag: COME 08:00 → GO 20:00
@@ -336,6 +389,7 @@ def test_go_nach_weniger_als_11h_ruhezeit_hat_status_needs_review():
 
 
 # --- Regelzeitfenster (Regelwerk §9/§10) ---
+
 
 def test_come_ausserhalb_regelzeitfenster_erzeugt_review_case():
     # _DATE = 2025-03-10, isoweekday = 1 (Montag)

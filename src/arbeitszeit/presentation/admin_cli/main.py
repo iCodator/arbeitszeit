@@ -1,4 +1,5 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
+
 import argparse
 import os
 import sqlite3
@@ -39,10 +40,20 @@ def run(argv: list[str] | None = None) -> None:
         prog="admin",
         description="Arbeitszeit Admin-CLI",
     )
-    parser.add_argument("--db", required=True, type=Path, metavar="DB_PATH",
-                        help="Pfad zur SQLite-Datenbankdatei")
-    parser.add_argument("--user-id", type=int, default=None, metavar="ID",
-                        help="Benutzer-ID (alternativ: ADMIN_USER_ID-Umgebungsvariable)")
+    parser.add_argument(
+        "--db",
+        required=True,
+        type=Path,
+        metavar="DB_PATH",
+        help="Pfad zur SQLite-Datenbankdatei",
+    )
+    parser.add_argument(
+        "--user-id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Benutzer-ID (alternativ: ADMIN_USER_ID-Umgebungsvariable)",
+    )
 
     sub = parser.add_subparsers(dest="domain", required=True)
     employees.register_subcommands(sub)
@@ -55,7 +66,10 @@ def run(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     # Bootstrap benötigt keine user-id — es gibt noch keinen Admin
-    if getattr(args, "domain", None) == "users" and getattr(args, "users_cmd", None) == "bootstrap":
+    if (
+        getattr(args, "domain", None) == "users"
+        and getattr(args, "users_cmd", None) == "bootstrap"
+    ):
         conn = open_connection(args.db)
         try:
             run_migrations(conn)

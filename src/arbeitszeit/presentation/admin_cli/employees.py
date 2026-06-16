@@ -3,6 +3,7 @@
 Schreibende Operationen sind ausschließlich Benutzern mit ADMIN-Rolle erlaubt.
 Lesende Operationen (list) sind ohne Rolleneinschränkung nutzbar.
 """
+
 import argparse
 import json
 import sqlite3
@@ -15,7 +16,9 @@ def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
         "SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)
     ).fetchone()
     if row is None or not row["active"] or row["role"] != "ADMIN":
-        print("Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr)
+        print(
+            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr
+        )
         sys.exit(1)
 
 
@@ -74,11 +77,19 @@ def cmd_employees_add(
             (args.personnel_no, args.first_name, args.last_name, now, now),
         ).fetchone()
         employee_id = row["id"]
-        _audit(conn, "EMPLOYEE_CREATED", "employees", employee_id, user_id, employee_id, {
-            "personnel_no": args.personnel_no,
-            "first_name": args.first_name,
-            "last_name": args.last_name,
-        })
+        _audit(
+            conn,
+            "EMPLOYEE_CREATED",
+            "employees",
+            employee_id,
+            user_id,
+            employee_id,
+            {
+                "personnel_no": args.personnel_no,
+                "first_name": args.first_name,
+                "last_name": args.last_name,
+            },
+        )
         conn.execute("COMMIT")
     except sqlite3.IntegrityError as exc:
         conn.execute("ROLLBACK")
@@ -117,7 +128,9 @@ def cmd_cards_assign(
         "SELECT id, active FROM employees WHERE id = ?", (args.employee_id,)
     ).fetchone()
     if emp is None:
-        print(f"Fehler: Mitarbeiter {args.employee_id} nicht gefunden.", file=sys.stderr)
+        print(
+            f"Fehler: Mitarbeiter {args.employee_id} nicht gefunden.", file=sys.stderr
+        )
         sys.exit(1)
     now = datetime.now(timezone.utc).isoformat()
     today = date.today().isoformat()
@@ -130,10 +143,18 @@ def cmd_cards_assign(
             (args.uid_hash, args.employee_id, today, now),
         ).fetchone()
         card_id = row["id"]
-        _audit(conn, "CARD_ASSIGNED", "rfid_cards", card_id, user_id, args.employee_id, {
-            "uid_hash": args.uid_hash,
-            "employee_id": args.employee_id,
-        })
+        _audit(
+            conn,
+            "CARD_ASSIGNED",
+            "rfid_cards",
+            card_id,
+            user_id,
+            args.employee_id,
+            {
+                "uid_hash": args.uid_hash,
+                "employee_id": args.employee_id,
+            },
+        )
         conn.execute("COMMIT")
     except sqlite3.IntegrityError as exc:
         conn.execute("ROLLBACK")
@@ -147,7 +168,8 @@ def cmd_cards_replace(
 ) -> None:
     _require_admin(conn, user_id)
     old_card = conn.execute(
-        "SELECT id, employee_id, status FROM rfid_cards WHERE id = ?", (args.old_card_id,)
+        "SELECT id, employee_id, status FROM rfid_cards WHERE id = ?",
+        (args.old_card_id,),
     ).fetchone()
     if old_card is None:
         print(f"Fehler: Karte {args.old_card_id} nicht gefunden.", file=sys.stderr)
@@ -168,12 +190,19 @@ def cmd_cards_replace(
             "replaced_by_card_id = ? WHERE id = ?",
             (today, new_card_id, args.old_card_id),
         )
-        _audit(conn, "CARD_REPLACED", "rfid_cards", new_card_id, user_id,
-               old_card["employee_id"], {
-                   "old_card_id": args.old_card_id,
-                   "new_card_id": new_card_id,
-                   "uid_hash": args.uid_hash,
-               })
+        _audit(
+            conn,
+            "CARD_REPLACED",
+            "rfid_cards",
+            new_card_id,
+            user_id,
+            old_card["employee_id"],
+            {
+                "old_card_id": args.old_card_id,
+                "new_card_id": new_card_id,
+                "uid_hash": args.uid_hash,
+            },
+        )
         conn.execute("COMMIT")
     except sqlite3.IntegrityError as exc:
         conn.execute("ROLLBACK")
@@ -193,10 +222,16 @@ def cmd_cards_deactivate(
         print(f"Fehler: Karte {args.id} nicht gefunden.", file=sys.stderr)
         sys.exit(1)
     conn.execute("BEGIN")
-    conn.execute(
-        "UPDATE rfid_cards SET status = 'INACTIVE' WHERE id = ?", (args.id,)
+    conn.execute("UPDATE rfid_cards SET status = 'INACTIVE' WHERE id = ?", (args.id,))
+    _audit(
+        conn,
+        "CARD_DEACTIVATED",
+        "rfid_cards",
+        args.id,
+        user_id,
+        card["employee_id"],
+        {},
     )
-    _audit(conn, "CARD_DEACTIVATED", "rfid_cards", args.id, user_id, card["employee_id"], {})
     conn.execute("COMMIT")
     print(f"Karte {args.id} deaktiviert.")
 

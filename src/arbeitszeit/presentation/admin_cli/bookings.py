@@ -4,6 +4,7 @@ Alle Schreiboperationen laufen über Use Cases aus der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und
 Ausgabe gemacht.
 """
+
 import argparse
 import sqlite3
 import sys
@@ -15,9 +16,13 @@ from arbeitszeit.application.commands import (
     CreateSupplementCommand,
     RejectSupplementCommand,
 )
-from arbeitszeit.application.use_cases.approve_supplement import ApproveSupplementUseCase
+from arbeitszeit.application.use_cases.approve_supplement import (
+    ApproveSupplementUseCase,
+)
 from arbeitszeit.application.use_cases.correct_booking import CorrectBookingUseCase
-from arbeitszeit.application.use_cases.register_supplement import RegisterSupplementUseCase
+from arbeitszeit.application.use_cases.register_supplement import (
+    RegisterSupplementUseCase,
+)
 from arbeitszeit.application.use_cases.reject_supplement import RejectSupplementUseCase
 from arbeitszeit.domain.enums import BookingSource, BookingType
 from arbeitszeit.domain.errors import DomainError
@@ -25,7 +30,9 @@ from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 
-def _make_uow(conn: sqlite3.Connection, audit_conn: sqlite3.Connection) -> SQLiteUnitOfWork:
+def _make_uow(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection
+) -> SQLiteUnitOfWork:
     return SQLiteUnitOfWork(conn, audit_conn)
 
 
@@ -34,7 +41,10 @@ def _parse_dt(value: str) -> datetime:
     try:
         dt = datetime.fromisoformat(value)
     except ValueError:
-        print(f"Fehler: Ungültiges Datumsformat: {value!r} (erwartet ISO-8601)", file=sys.stderr)
+        print(
+            f"Fehler: Ungültiges Datumsformat: {value!r} (erwartet ISO-8601)",
+            file=sys.stderr,
+        )
         sys.exit(1)
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
@@ -46,7 +56,9 @@ def _parse_booking_type(value: str) -> BookingType:
         return BookingType(value.upper())
     except ValueError:
         valid = ", ".join(t.value for t in BookingType)
-        print(f"Fehler: Ungültige Buchungsart {value!r}. Gültig: {valid}", file=sys.stderr)
+        print(
+            f"Fehler: Ungültige Buchungsart {value!r}. Gültig: {valid}", file=sys.stderr
+        )
         sys.exit(1)
 
 

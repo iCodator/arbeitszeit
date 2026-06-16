@@ -3,6 +3,7 @@
 Prüft fünf Bereiche und protokolliert das Ergebnis als SELFTEST_OK oder SELFTEST_FAIL
 in system_events. Aufrufbar manuell und beim Systemstart.
 """
+
 from __future__ import annotations
 
 import json
@@ -129,15 +130,19 @@ def _check_nas(conn: sqlite3.Connection) -> CheckResult:
         "WHERE config_key = 'backup.nas_enabled' ORDER BY version DESC LIMIT 1"
     ).fetchone()
     if row is None:
-        return CheckResult(name="nas_reachability", ok=True, detail="NAS-Backup nicht konfiguriert")
+        return CheckResult(
+            name="nas_reachability", ok=True, detail="NAS-Backup nicht konfiguriert"
+        )
 
     try:
         nas_enabled = json.loads(row[0])
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         nas_enabled = False
 
     if not nas_enabled:
-        return CheckResult(name="nas_reachability", ok=True, detail="NAS-Backup deaktiviert")
+        return CheckResult(
+            name="nas_reachability", ok=True, detail="NAS-Backup deaktiviert"
+        )
 
     row = conn.execute(
         "SELECT config_value_json FROM system_config "
@@ -152,7 +157,7 @@ def _check_nas(conn: sqlite3.Connection) -> CheckResult:
 
     try:
         nas_path_str = json.loads(row[0])
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         nas_path_str = None
 
     if not nas_path_str:
@@ -218,8 +223,7 @@ def _write_event(db_path: Path, result: SystemCheckResult) -> None:
     severity = "INFO" if result.overall_ok else "WARN"
     details = {
         "checks": [
-            {"name": c.name, "ok": c.ok, "detail": c.detail}
-            for c in result.checks
+            {"name": c.name, "ok": c.ok, "detail": c.detail} for c in result.checks
         ]
     }
     try:

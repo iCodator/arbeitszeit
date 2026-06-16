@@ -6,22 +6,32 @@ from arbeitszeit.application.results import CorrectionResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection
-from arbeitszeit.domain.enums import BookingStatus, ReviewCaseStatus, ReviewCaseType
-from arbeitszeit.domain.enums import UserRole
-from arbeitszeit.domain.errors import InactiveEmployeeError, NotFoundError, PermissionDeniedError
+from arbeitszeit.domain.enums import (
+    BookingStatus,
+    ReviewCaseStatus,
+    ReviewCaseType,
+    UserRole,
+)
+from arbeitszeit.domain.errors import (
+    InactiveEmployeeError,
+    NotFoundError,
+    PermissionDeniedError,
+)
 
 # Nur Prüffälle, die inhaltlich durch Korrektur der Buchung erledigt sind.
 # MANUAL_ENTRY_REVIEW (Nachtragsprozess), UNKNOWN_CARD_ATTEMPT, INACTIVE_CARD_ATTEMPT
 # und TIME_ANOMALY werden nicht durch eine Buchungskorrektur geschlossen.
-_CORRECTABLE_CASE_TYPES = frozenset({
-    ReviewCaseType.OPEN_WORK_PHASE,
-    ReviewCaseType.OPEN_BREAK_PHASE,
-    ReviewCaseType.IMPLAUSIBLE_SEQUENCE,
-    ReviewCaseType.POSSIBLE_BREAK_VIOLATION,
-    ReviewCaseType.POSSIBLE_REST_VIOLATION,
-    ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
-    ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW,
-})
+_CORRECTABLE_CASE_TYPES = frozenset(
+    {
+        ReviewCaseType.OPEN_WORK_PHASE,
+        ReviewCaseType.OPEN_BREAK_PHASE,
+        ReviewCaseType.IMPLAUSIBLE_SEQUENCE,
+        ReviewCaseType.POSSIBLE_BREAK_VIOLATION,
+        ReviewCaseType.POSSIBLE_REST_VIOLATION,
+        ReviewCaseType.POSSIBLE_MAX_HOURS_VIOLATION,
+        ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW,
+    }
+)
 
 
 class CorrectBookingUseCase:
@@ -59,17 +69,19 @@ class CorrectBookingUseCase:
 
             now = datetime.now(timezone.utc)
 
-            correction = self._uow.booking_correction_repo.add(BookingCorrection(
-                id=0,
-                original_booking_id=booking.id,
-                corrected_by_user_id=cmd.corrected_by_user_id,
-                reason=cmd.reason,
-                old_booking_type=booking.booking_type,
-                old_booked_at=booking.booked_at,
-                new_booking_type=cmd.new_booking_type,
-                new_booked_at=cmd.new_booked_at,
-                created_at=now,
-            ))
+            correction = self._uow.booking_correction_repo.add(
+                BookingCorrection(
+                    id=0,
+                    original_booking_id=booking.id,
+                    corrected_by_user_id=cmd.corrected_by_user_id,
+                    reason=cmd.reason,
+                    old_booking_type=booking.booking_type,
+                    old_booked_at=booking.booked_at,
+                    new_booking_type=cmd.new_booking_type,
+                    new_booked_at=cmd.new_booked_at,
+                    created_at=now,
+                )
+            )
 
             self._uow.time_booking_repo.set_status(
                 booking.id,
@@ -99,29 +111,31 @@ class CorrectBookingUseCase:
             # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
             self._uow.commit()
 
-            self._uow.audit_log_repo.add(AuditLogEntry(
-                id=0,
-                event_type=audit_events.BOOKING_CORRECTED,
-                object_type="booking_corrections",
-                object_id=correction.id,
-                user_id=cmd.corrected_by_user_id,
-                employee_id=booking.employee_id,
-                event_at=now,
-                details_json=json.dumps(
-                    {
-                        "original_booking_id": booking.id,
-                        "old_booking_type": booking.booking_type.value,
-                        "old_booked_at": booking.booked_at.isoformat(),
-                        "new_booking_type": cmd.new_booking_type.value,
-                        "new_booked_at": cmd.new_booked_at.isoformat(),
-                        "reason": cmd.reason,
-                        "status_after": BookingStatus.CORRECTED.value,
-                        "review_case_id": review_case_id,
-                    },
-                    ensure_ascii=False,
-                    sort_keys=True,
-                ),
-            ))
+            self._uow.audit_log_repo.add(
+                AuditLogEntry(
+                    id=0,
+                    event_type=audit_events.BOOKING_CORRECTED,
+                    object_type="booking_corrections",
+                    object_id=correction.id,
+                    user_id=cmd.corrected_by_user_id,
+                    employee_id=booking.employee_id,
+                    event_at=now,
+                    details_json=json.dumps(
+                        {
+                            "original_booking_id": booking.id,
+                            "old_booking_type": booking.booking_type.value,
+                            "old_booked_at": booking.booked_at.isoformat(),
+                            "new_booking_type": cmd.new_booking_type.value,
+                            "new_booked_at": cmd.new_booked_at.isoformat(),
+                            "reason": cmd.reason,
+                            "status_after": BookingStatus.CORRECTED.value,
+                            "review_case_id": review_case_id,
+                        },
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                )
+            )
 
             return CorrectionResult(
                 correction_id=correction.id,

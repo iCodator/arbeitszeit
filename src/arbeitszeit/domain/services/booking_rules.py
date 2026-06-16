@@ -14,7 +14,9 @@ def validate_booking_sequence(
     # day_bookings must be in chronological order
     if not day_bookings:
         if booking_type in (
-            BookingType.GO, BookingType.BREAK_END, BookingType.BREAK_START
+            BookingType.GO,
+            BookingType.BREAK_END,
+            BookingType.BREAK_START,
         ):
             raise InvalidBookingSequenceError(
                 f"Erste Tagesbuchung darf nicht {booking_type} sein."
@@ -38,7 +40,9 @@ def validate_booking_sequence(
                 "GO ohne offene Arbeitsphase nicht zulässig."
             )
         if open_break:
-            raise OpenPhaseConflictError("GO bei offener Pause: Pause zuerst schließen.")
+            raise OpenPhaseConflictError(
+                "GO bei offener Pause: Pause zuerst schließen."
+            )
 
     elif booking_type == BookingType.BREAK_START:
         if not open_work:

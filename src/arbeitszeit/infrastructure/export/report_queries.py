@@ -15,6 +15,7 @@ DB-Spalten-Mapping (Schema ↔ Entity):
   supplements.related_time_booking_id   → related_booking_id
   employees.active                      → is_active (INTEGER 0/1)
 """
+
 import json
 import sqlite3
 from dataclasses import dataclass
@@ -31,28 +32,30 @@ from arbeitszeit.domain.enums import (
 )
 from arbeitszeit.infrastructure.db.repositories._helpers import _parse_dt
 
-
 # ---------------------------------------------------------------------------
 # Normierte Datenstrukturen
 # ---------------------------------------------------------------------------
 
+
 @dataclass(frozen=True)
 class BookingRow:
     """Einzelne Buchung mit Mitarbeiterzuordnung für Berichte."""
+
     booking_id: int
     employee_id: int
     personnel_no: str
-    employee_name: str          # "Vorname Nachname"
+    employee_name: str  # "Vorname Nachname"
     booking_type: BookingType
     booked_at: datetime
     source: BookingSource
     status: BookingStatus
-    is_manual: bool             # source == MANUAL
+    is_manual: bool  # source == MANUAL
 
 
 @dataclass(frozen=True)
 class CorrectionRow:
     """Korrektur mit altem und neuem Zustand (Regelwerk v3 §12)."""
+
     correction_id: int
     booking_id: int
     employee_id: int
@@ -70,6 +73,7 @@ class CorrectionRow:
 @dataclass(frozen=True)
 class SupplementRow:
     """Nachtrag als nachträglich erfasster Datensatz (Regelwerk v3 §13/§19)."""
+
     supplement_id: int
     employee_id: int
     personnel_no: str
@@ -87,6 +91,7 @@ class SupplementRow:
 @dataclass(frozen=True)
 class ReviewCaseRow:
     """Offener oder aktiver Prüffall (Pflichtenheft v3 §7.6/§7.12)."""
+
     case_id: int
     employee_id: int
     personnel_no: str
@@ -103,6 +108,7 @@ class ReviewCaseRow:
 # ---------------------------------------------------------------------------
 # Interne Row-Parser
 # ---------------------------------------------------------------------------
+
 
 def _parse_booking_row(row: sqlite3.Row) -> BookingRow:
     source = BookingSource(row["source"])
@@ -174,6 +180,7 @@ def _parse_review_case_row(row: sqlite3.Row) -> ReviewCaseRow:
 # ---------------------------------------------------------------------------
 # Öffentliche Abfragefunktionen
 # ---------------------------------------------------------------------------
+
 
 def list_bookings(
     conn: sqlite3.Connection,

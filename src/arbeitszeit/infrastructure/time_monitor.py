@@ -10,6 +10,7 @@ Durch Vergleich des Monoton-Deltas mit dem Wall-Clock-Delta lassen sich Sprünge
 Die NTP-Synchronisation ist Betriebsvoraussetzung und nicht Aufgabe dieser Schicht.
 NTP-Drift (< 1s/Stunde) wird durch den konfigurierbaren Schwellenwert herausgefiltert.
 """
+
 import json
 import logging
 import time
@@ -51,8 +52,7 @@ class SystemTimeMonitor:
 
             if abs(diff) > self._threshold:
                 event_type = (
-                    "MANUAL_TIME_CHANGE_DETECTED" if diff < 0
-                    else "TIME_JUMP_DETECTED"
+                    "MANUAL_TIME_CHANGE_DETECTED" if diff < 0 else "TIME_JUMP_DETECTED"
                 )
                 self._log(event_type, diff, wall_now)
 

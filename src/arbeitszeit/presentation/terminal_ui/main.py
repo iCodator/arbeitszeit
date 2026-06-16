@@ -1,4 +1,5 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
+
 import json
 import signal
 import sys
@@ -19,7 +20,11 @@ from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigReposit
 from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader
 from arbeitszeit.infrastructure.hardware.ports import HardwareReader
 from arbeitszeit.infrastructure.system_check import run_system_check
-from arbeitszeit.infrastructure.time_monitor import SystemTimeMonitor, load_threshold_from_config
+from arbeitszeit.infrastructure.time_monitor import (
+    SystemTimeMonitor,
+    load_threshold_from_config,
+)
+
 from .booking_loop import format_feedback, process_booking
 
 _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
@@ -31,7 +36,9 @@ _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
 }
 
 
-def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]) -> None:
+def _log_system_event(
+    db_path: Path, event_type: str, details: dict[str, object]
+) -> None:
     try:
         conn = open_connection(db_path)
         try:

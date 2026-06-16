@@ -100,9 +100,7 @@ class WorkScheduleVersion:
                 f"Wochentag {self.weekday} ungültig, muss 1–7 sein (ISO: 1=Mo, 7=So)."
             )
         if self.start_time >= self.end_time:
-            raise ValueError(
-                "start_time muss vor end_time liegen."
-            )
+            raise ValueError("start_time muss vor end_time liegen.")
         if self.valid_until is not None and self.valid_until < self.valid_from:
             raise ValueError("valid_until darf nicht vor valid_from liegen.")
 
@@ -173,20 +171,14 @@ class Supplement:
                     "Genehmigter Nachtrag darf keine Ablehnungsdaten haben."
                 )
             if self.approved_at < self.recorded_at:
-                raise ValueError(
-                    "approved_at darf nicht vor recorded_at liegen."
-                )
+                raise ValueError("approved_at darf nicht vor recorded_at liegen.")
         elif self.approval_status == ApprovalStatus.REJECTED:
             if self.rejected_by_user_id is None or self.rejected_at is None:
                 raise ValueError("Abgelehnter Nachtrag muss Ablehnungsdaten haben.")
             if self.approved_by_user_id is not None or self.approved_at is not None:
-                raise ValueError(
-                    "Abgelehnter Nachtrag darf keine Freigabedaten haben."
-                )
+                raise ValueError("Abgelehnter Nachtrag darf keine Freigabedaten haben.")
             if self.rejected_at < self.recorded_at:
-                raise ValueError(
-                    "rejected_at darf nicht vor recorded_at liegen."
-                )
+                raise ValueError("rejected_at darf nicht vor recorded_at liegen.")
 
 
 @dataclass(frozen=True)

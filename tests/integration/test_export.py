@@ -1,4 +1,5 @@
 """Integrationstests für report_queries.py gegen In-Memory-SQLite."""
+
 import json
 import sys
 from datetime import datetime, timezone
@@ -41,6 +42,7 @@ _TO = datetime(2025, 6, 30, 23, 59, tzinfo=timezone.utc)
 # Setup helpers
 # ---------------------------------------------------------------------------
 
+
 def _insert_employee(conn, personnel_no: str = "E001") -> int:
     row = conn.execute(
         "INSERT INTO employees (personnel_no, first_name, last_name, active, "
@@ -68,7 +70,9 @@ def _insert_booking(
     return row["id"]
 
 
-def _insert_correction(conn, booking_id: int, user_id: int, corrected_at: datetime = _NOW) -> int:
+def _insert_correction(
+    conn, booking_id: int, user_id: int, corrected_at: datetime = _NOW
+) -> int:
     old = json.dumps({"booking_type": "COME", "booked_at": _NOW.isoformat()})
     new = json.dumps({"booking_type": "GO", "booked_at": _LATER.isoformat()})
     row = conn.execute(
@@ -118,8 +122,16 @@ def _insert_review_case(
         "(employee_id, time_booking_id, case_type, status, severity, "
         "description, detected_at, closed_at, closed_by_user_id) "
         "VALUES (?, ?, ?, ?, ?, 'Test', ?, ?, ?) RETURNING id",
-        (employee_id, booking_id, case_type, status, severity,
-         detected_at.isoformat(), closed_at, closed_by),
+        (
+            employee_id,
+            booking_id,
+            case_type,
+            status,
+            severity,
+            detected_at.isoformat(),
+            closed_at,
+            closed_by,
+        ),
     ).fetchone()
     return row["id"]
 
@@ -137,6 +149,7 @@ def _insert_user(conn) -> int:
 # ---------------------------------------------------------------------------
 # list_bookings
 # ---------------------------------------------------------------------------
+
 
 def test_list_bookings_liefert_buchung_im_zeitraum(conn):
     emp_id = _insert_employee(conn)
@@ -168,7 +181,9 @@ def test_list_bookings_filtert_nach_employee_id(conn):
 
 def test_list_bookings_exkludiert_buchungen_ausserhalb_zeitraum(conn):
     emp_id = _insert_employee(conn)
-    _insert_booking(conn, emp_id, booked_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc))
+    _insert_booking(
+        conn, emp_id, booked_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc)
+    )
 
     result = list_bookings(conn, _FROM, _TO)
 
@@ -199,6 +214,7 @@ def test_list_bookings_sortiert_nach_booked_at(conn):
 # list_open_bookings
 # ---------------------------------------------------------------------------
 
+
 def test_list_open_bookings_liefert_nur_offene(conn):
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, status="OPEN")
@@ -226,6 +242,7 @@ def test_list_open_bookings_filtert_nach_employee_id(conn):
 # list_warn_bookings
 # ---------------------------------------------------------------------------
 
+
 def test_list_warn_bookings_liefert_warn_und_needs_review(conn):
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booking_type="GO", status="WARN", booked_at=_LATER)
@@ -240,6 +257,7 @@ def test_list_warn_bookings_liefert_warn_und_needs_review(conn):
 # ---------------------------------------------------------------------------
 # list_corrections
 # ---------------------------------------------------------------------------
+
 
 def test_list_corrections_liefert_korrektur_mit_altem_und_neuem_zustand(conn):
     emp_id = _insert_employee(conn)
@@ -278,6 +296,7 @@ def test_list_corrections_filtert_nach_employee_id(conn):
 # list_supplements — Nachtragskennzeichnung
 # ---------------------------------------------------------------------------
 
+
 def test_list_supplements_liefert_nachtrag(conn):
     emp_id = _insert_employee(conn)
     _insert_supplement(conn, emp_id, event_at=_NOW)
@@ -295,7 +314,9 @@ def test_list_supplements_liefert_nachtrag(conn):
 
 def test_list_supplements_filtert_nach_zeitraum(conn):
     emp_id = _insert_employee(conn)
-    _insert_supplement(conn, emp_id, event_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc))
+    _insert_supplement(
+        conn, emp_id, event_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc)
+    )
 
     result = list_supplements(conn, _FROM, _TO)
 
@@ -317,6 +338,7 @@ def test_list_supplements_filtert_nach_employee_id(conn):
 # ---------------------------------------------------------------------------
 # list_open_review_cases
 # ---------------------------------------------------------------------------
+
 
 def test_list_open_review_cases_liefert_offene_faelle(conn):
     emp_id = _insert_employee(conn)
@@ -362,6 +384,7 @@ def test_list_open_review_cases_filtert_nach_employee_id(conn):
 # list_open_review_cases_in_period
 # ---------------------------------------------------------------------------
 
+
 def test_list_open_review_cases_in_period_liefert_faelle_im_zeitraum(conn):
     emp_id = _insert_employee(conn)
     _insert_review_case(conn, emp_id, detected_at=_NOW)
@@ -398,13 +421,17 @@ def test_list_open_review_cases_in_period_filtert_nach_employee_id(conn):
 # list_review_cases_for_booking
 # ---------------------------------------------------------------------------
 
+
 def test_list_review_cases_for_booking_liefert_alle_typen(conn):
     emp_id = _insert_employee(conn)
     booking_id = _insert_booking(conn, emp_id)
-    other_booking_id = _insert_booking(conn, emp_id, booking_type="GO", booked_at=_LATER)
+    other_booking_id = _insert_booking(
+        conn, emp_id, booking_type="GO", booked_at=_LATER
+    )
     _insert_review_case(conn, emp_id, booking_id, status="OPEN")
-    _insert_review_case(conn, emp_id, booking_id, status="RESOLVED",
-                        case_type="OUTSIDE_SCHEDULE_WINDOW")
+    _insert_review_case(
+        conn, emp_id, booking_id, status="RESOLVED", case_type="OUTSIDE_SCHEDULE_WINDOW"
+    )
     _insert_review_case(conn, emp_id, other_booking_id)  # anderer Buchungsbezug
 
     result = list_review_cases_for_booking(conn, booking_id)
@@ -417,6 +444,7 @@ def test_list_review_cases_for_booking_liefert_alle_typen(conn):
 # Pflichtfall V3 §16: Auswertung offener und auffälliger Fälle
 # ---------------------------------------------------------------------------
 
+
 def test_pflichtfall_offene_und_auffaellige_faelle(conn):
     """V3 §16 Testpflicht: Systemweit kombinierte Abfrage aller kritischen Zustände."""
     emp_id = _insert_employee(conn)
@@ -425,8 +453,13 @@ def test_pflichtfall_offene_und_auffaellige_faelle(conn):
     warn_booking_id = _insert_booking(
         conn, emp_id, booking_type="GO", status="WARN", booked_at=_LATER
     )
-    _insert_review_case(conn, emp_id, warn_booking_id,
-                        case_type="POSSIBLE_MAX_HOURS_VIOLATION", severity="WARN")
+    _insert_review_case(
+        conn,
+        emp_id,
+        warn_booking_id,
+        case_type="POSSIBLE_MAX_HOURS_VIOLATION",
+        severity="WARN",
+    )
     _insert_supplement(conn, emp_id, event_at=_NOW)
 
     open_bookings = list_open_bookings(conn)

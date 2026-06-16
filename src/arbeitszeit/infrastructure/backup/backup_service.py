@@ -160,15 +160,17 @@ class SQLiteBackupService:
         conn = open_connection(self._db_path)
         try:
             repo = SQLiteAuditLogRepository(conn)
-            repo.add(AuditLogEntry(
-                id=0,
-                event_type=event_type,
-                object_type="backup_service",
-                object_id=0,
-                user_id=None,
-                employee_id=None,
-                event_at=datetime.now(timezone.utc),
-                details_json=json.dumps(details, default=str),
-            ))
+            repo.add(
+                AuditLogEntry(
+                    id=0,
+                    event_type=event_type,
+                    object_type="backup_service",
+                    object_id=0,
+                    user_id=None,
+                    employee_id=None,
+                    event_at=datetime.now(timezone.utc),
+                    details_json=json.dumps(details, default=str),
+                )
+            )
         finally:
             conn.close()

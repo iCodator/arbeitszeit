@@ -14,8 +14,8 @@ from arbeitszeit.domain.enums import (
     ReviewCaseStatus,
     ReviewCaseType,
     ReviewSeverity,
+    UserRole,
 )
-from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import (
     InactiveEmployeeError,
     NotFoundError,
@@ -85,9 +85,7 @@ class ApproveSupplementUseCase:
 
             supplement = self._uow.supplement_repo.get_by_id(cmd.supplement_id)
             if supplement is None:
-                raise NotFoundError(
-                    f"Nachtrag {cmd.supplement_id} nicht gefunden."
-                )
+                raise NotFoundError(f"Nachtrag {cmd.supplement_id} nicht gefunden.")
             if supplement.approval_status != ApprovalStatus.PENDING:
                 raise ValidationError(
                     f"Nachtrag {cmd.supplement_id} ist nicht im Status PENDING "
@@ -105,9 +103,7 @@ class ApproveSupplementUseCase:
                 )
 
             now = datetime.now(timezone.utc)
-            self._uow.supplement_repo.approve(
-                supplement.id, cmd.approving_user_id, now
-            )
+            self._uow.supplement_repo.approve(supplement.id, cmd.approving_user_id, now)
 
             review_case_id: int | None = None
             open_cases = self._uow.review_case_repo.list_open_for_employee(
@@ -148,14 +144,18 @@ class ApproveSupplementUseCase:
             )
             schedule_flags: list[ComplianceFlag] = []
             schedule = self._uow.work_schedule_repo.get_effective(
-                supplement.event_at.isoweekday(), supplement.event_at.date(), employee.id
+                supplement.event_at.isoweekday(),
+                supplement.event_at.date(),
+                employee.id,
             )
             if schedule is not None and not (
                 schedule.start_time <= supplement.event_at.time() <= schedule.end_time
             ):
-                schedule_flags = [ComplianceFlag(
-                    ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
-                )]
+                schedule_flags = [
+                    ComplianceFlag(
+                        ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN
+                    )
+                ]
 
             prev_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 supplement.employee_id,
@@ -166,61 +166,67 @@ class ApproveSupplementUseCase:
                 supplement.booking_type, projected, prev_bookings, schedule_flags
             )
 
-            booking = self._uow.time_booking_repo.add(TimeBooking(
-                id=0,
-                employee_id=supplement.employee_id,
-                booking_type=supplement.booking_type,
-                booked_at=supplement.event_at,
-                source=BookingSource.MANUAL,
-                status=status,
-                terminal_id=None,
-                rfid_card_id=None,
-                device_event_id=None,
-                note=None,
-            ))
+            booking = self._uow.time_booking_repo.add(
+                TimeBooking(
+                    id=0,
+                    employee_id=supplement.employee_id,
+                    booking_type=supplement.booking_type,
+                    booked_at=supplement.event_at,
+                    source=BookingSource.MANUAL,
+                    status=status,
+                    terminal_id=None,
+                    rfid_card_id=None,
+                    device_event_id=None,
+                    note=None,
+                )
+            )
 
             follow_up_case_ids: list[int] = []
             for flag in flags:
-                case = self._uow.review_case_repo.add(ReviewCase(
-                    id=0,
-                    employee_id=supplement.employee_id,
-                    case_type=flag.case_type,
-                    severity=flag.severity,
-                    status=ReviewCaseStatus.OPEN,
-                    description=(
-                        f"Automatisch erkannt bei Freigabe Nachtrag #{supplement.id}"
-                    ),
-                    booking_id=booking.id,
-                    created_at=now,
-                    closed_at=None,
-                    closed_by_user_id=None,
-                ))
+                case = self._uow.review_case_repo.add(
+                    ReviewCase(
+                        id=0,
+                        employee_id=supplement.employee_id,
+                        case_type=flag.case_type,
+                        severity=flag.severity,
+                        status=ReviewCaseStatus.OPEN,
+                        description=(
+                            f"Automatisch erkannt bei Freigabe Nachtrag #{supplement.id}"
+                        ),
+                        booking_id=booking.id,
+                        created_at=now,
+                        closed_at=None,
+                        closed_by_user_id=None,
+                    )
+                )
                 follow_up_case_ids.append(case.id)
 
             # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
             self._uow.commit()
 
-            self._uow.audit_log_repo.add(AuditLogEntry(
-                id=0,
-                event_type=audit_events.SUPPLEMENT_APPROVED,
-                object_type="supplements",
-                object_id=supplement.id,
-                user_id=cmd.approving_user_id,
-                employee_id=supplement.employee_id,
-                event_at=now,
-                details_json=json.dumps(
-                    {
-                        "supplement_id": supplement.id,
-                        "booking_id": booking.id,
-                        "booking_type": supplement.booking_type.value,
-                        "booking_status": status.value,
-                        "follow_up_case_ids": follow_up_case_ids,
-                        "closed_review_case_id": review_case_id,
-                    },
-                    ensure_ascii=False,
-                    sort_keys=True,
-                ),
-            ))
+            self._uow.audit_log_repo.add(
+                AuditLogEntry(
+                    id=0,
+                    event_type=audit_events.SUPPLEMENT_APPROVED,
+                    object_type="supplements",
+                    object_id=supplement.id,
+                    user_id=cmd.approving_user_id,
+                    employee_id=supplement.employee_id,
+                    event_at=now,
+                    details_json=json.dumps(
+                        {
+                            "supplement_id": supplement.id,
+                            "booking_id": booking.id,
+                            "booking_type": supplement.booking_type.value,
+                            "booking_status": status.value,
+                            "follow_up_case_ids": follow_up_case_ids,
+                            "closed_review_case_id": review_case_id,
+                        },
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                )
+            )
             return ApproveSupplementResult(
                 supplement_id=supplement.id,
                 booking_id=booking.id,

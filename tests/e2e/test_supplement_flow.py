@@ -3,6 +3,7 @@
 Verwendet echte dateibasierte SQLite-DB (tmp_path / "arbeitszeit.db")
 und reale Use-Case-Implementierungen ohne Mocks.
 """
+
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,8 +17,12 @@ from arbeitszeit.application.commands import (
     CreateSupplementCommand,
     RejectSupplementCommand,
 )
-from arbeitszeit.application.use_cases.approve_supplement import ApproveSupplementUseCase
-from arbeitszeit.application.use_cases.register_supplement import RegisterSupplementUseCase
+from arbeitszeit.application.use_cases.approve_supplement import (
+    ApproveSupplementUseCase,
+)
+from arbeitszeit.application.use_cases.register_supplement import (
+    RegisterSupplementUseCase,
+)
 from arbeitszeit.application.use_cases.reject_supplement import RejectSupplementUseCase
 from arbeitszeit.domain.enums import ApprovalStatus, BookingStatus, BookingType
 from arbeitszeit.domain.errors import (
@@ -123,7 +128,9 @@ def _create_supplement(db: Path, employee_id: int, user_id: int) -> int:
     return result.supplement_id
 
 
-def test_nachtrag_erfassen_reviewer(db: Path, employee_id: int, reviewer_user_id: int) -> None:
+def test_nachtrag_erfassen_reviewer(
+    db: Path, employee_id: int, reviewer_user_id: int
+) -> None:
     cmd = CreateSupplementCommand(
         employee_id=employee_id,
         related_booking_id=None,
@@ -162,7 +169,9 @@ def test_nachtrag_erfassen_employee_verweigert(
         RegisterSupplementUseCase(_make_uow(db)).execute(cmd)
 
 
-def test_nachtrag_erfassen_unbekannter_mitarbeiter(db: Path, reviewer_user_id: int) -> None:
+def test_nachtrag_erfassen_unbekannter_mitarbeiter(
+    db: Path, reviewer_user_id: int
+) -> None:
     cmd = CreateSupplementCommand(
         employee_id=9999,
         related_booking_id=None,
@@ -189,7 +198,10 @@ def test_nachtrag_genehmigen_erzeugt_buchung(
 
     assert result.booking_id > 0
     assert result.booking_status in (
-        BookingStatus.OK, BookingStatus.OPEN, BookingStatus.WARN, BookingStatus.NEEDS_REVIEW
+        BookingStatus.OK,
+        BookingStatus.OPEN,
+        BookingStatus.WARN,
+        BookingStatus.NEEDS_REVIEW,
     )
 
     conn = open_connection(db)
@@ -257,8 +269,12 @@ def test_nachtrag_genehmigen_inaktiver_mitarbeiter(
         "(employee_id, booking_type, event_at, recorded_at, reason, recorded_by_user_id, "
         "approval_status) "
         "VALUES (?, 'COME', ?, ?, 'Test', ?, 'PENDING') RETURNING id",
-        (inactive_employee_id, _EVENT_AT.isoformat(), _RECORDED_AT.isoformat(),
-         reviewer_user_id),
+        (
+            inactive_employee_id,
+            _EVENT_AT.isoformat(),
+            _RECORDED_AT.isoformat(),
+            reviewer_user_id,
+        ),
     ).fetchone()
     conn.close()
 

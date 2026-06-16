@@ -7,7 +7,11 @@ from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, WorkScheduleVersion
 from arbeitszeit.domain.enums import UserRole
-from arbeitszeit.domain.errors import ConflictError, PermissionDeniedError, ValidationError
+from arbeitszeit.domain.errors import (
+    ConflictError,
+    PermissionDeniedError,
+    ValidationError,
+)
 
 
 class ManageWorkScheduleUseCase:
@@ -21,11 +25,7 @@ class ManageWorkScheduleUseCase:
                     "Regelarbeitszeitänderungen erfordern einen authentifizierten Benutzer."
                 )
             actor = self._uow.user_account_repo.get_by_id(cmd.changed_by_user_id)
-            if (
-                actor is None
-                or not actor.is_active
-                or actor.role != UserRole.ADMIN
-            ):
+            if actor is None or not actor.is_active or actor.role != UserRole.ADMIN:
                 raise PermissionDeniedError(
                     f"Benutzer {cmd.changed_by_user_id} ist nicht berechtigt, "
                     "Regelarbeitszeiten zu ändern (nur ADMIN)."
@@ -77,42 +77,47 @@ class ManageWorkScheduleUseCase:
             # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
             self._uow.commit()
 
-            self._uow.audit_log_repo.add(AuditLogEntry(
-                id=0,
-                event_type=audit_events.WORK_SCHEDULE_CHANGED,
-                object_type="work_schedule_versions",
-                object_id=saved.id,
-                user_id=cmd.changed_by_user_id,
-                employee_id=None,
-                event_at=datetime.now(timezone.utc),
-                details_json=json.dumps(
-                    {
-                        "weekday": cmd.weekday,
-                        "scope_type": cmd.scope_type.value,
-                        "scope_employee_id": cmd.scope_employee_id,
-                        "start_time": cmd.start_time.isoformat(timespec="minutes"),
-                        "end_time": cmd.end_time.isoformat(timespec="minutes"),
-                        "valid_from": cmd.valid_from.isoformat(),
-                        "change_origin": cmd.change_origin.value,
-                        "superseded_version_id": superseded_id,
-                        "previous_valid_from": (
-                            current.valid_from.isoformat()
-                            if current is not None else None
-                        ),
-                        "previous_start_time": (
-                            current.start_time.isoformat(timespec="minutes")
-                            if current is not None else None
-                        ),
-                        "previous_end_time": (
-                            current.end_time.isoformat(timespec="minutes")
-                            if current is not None else None
-                        ),
-                        "reason": cmd.reason,
-                    },
-                    ensure_ascii=False,
-                    sort_keys=True,
-                ),
-            ))
+            self._uow.audit_log_repo.add(
+                AuditLogEntry(
+                    id=0,
+                    event_type=audit_events.WORK_SCHEDULE_CHANGED,
+                    object_type="work_schedule_versions",
+                    object_id=saved.id,
+                    user_id=cmd.changed_by_user_id,
+                    employee_id=None,
+                    event_at=datetime.now(timezone.utc),
+                    details_json=json.dumps(
+                        {
+                            "weekday": cmd.weekday,
+                            "scope_type": cmd.scope_type.value,
+                            "scope_employee_id": cmd.scope_employee_id,
+                            "start_time": cmd.start_time.isoformat(timespec="minutes"),
+                            "end_time": cmd.end_time.isoformat(timespec="minutes"),
+                            "valid_from": cmd.valid_from.isoformat(),
+                            "change_origin": cmd.change_origin.value,
+                            "superseded_version_id": superseded_id,
+                            "previous_valid_from": (
+                                current.valid_from.isoformat()
+                                if current is not None
+                                else None
+                            ),
+                            "previous_start_time": (
+                                current.start_time.isoformat(timespec="minutes")
+                                if current is not None
+                                else None
+                            ),
+                            "previous_end_time": (
+                                current.end_time.isoformat(timespec="minutes")
+                                if current is not None
+                                else None
+                            ),
+                            "reason": cmd.reason,
+                        },
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                )
+            )
 
             return WorkScheduleChangeResult(
                 new_version_id=saved.id,

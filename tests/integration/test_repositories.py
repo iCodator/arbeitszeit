@@ -229,14 +229,22 @@ def test_close_version_mit_ungueltigem_datum_wirft_validation_error(conn):
 def test_get_effective_employee_scope_hat_vorrang_vor_global(conn, employee_id):
     repo = SQLiteWorkScheduleRepository(conn)
     _insert_work_schedule_version(
-        conn, weekday=1, valid_from="2025-01-01",
-        scope_type="GLOBAL", scope_employee_id=None,
+        conn,
+        weekday=1,
+        valid_from="2025-01-01",
+        scope_type="GLOBAL",
+        scope_employee_id=None,
     )
     _insert_work_schedule_version(
-        conn, weekday=1, valid_from="2025-01-01",
-        scope_type="EMPLOYEE", scope_employee_id=employee_id,
+        conn,
+        weekday=1,
+        valid_from="2025-01-01",
+        scope_type="EMPLOYEE",
+        scope_employee_id=employee_id,
     )
-    result = repo.get_effective(weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id)
+    result = repo.get_effective(
+        weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id
+    )
     assert result is not None
     assert result.scope_type == ScopeType.EMPLOYEE
     assert result.scope_employee_id == employee_id
@@ -245,10 +253,15 @@ def test_get_effective_employee_scope_hat_vorrang_vor_global(conn, employee_id):
 def test_get_effective_faellt_auf_global_zurueck(conn, employee_id):
     repo = SQLiteWorkScheduleRepository(conn)
     _insert_work_schedule_version(
-        conn, weekday=1, valid_from="2025-01-01",
-        scope_type="GLOBAL", scope_employee_id=None,
+        conn,
+        weekday=1,
+        valid_from="2025-01-01",
+        scope_type="GLOBAL",
+        scope_employee_id=None,
     )
-    result = repo.get_effective(weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id)
+    result = repo.get_effective(
+        weekday=1, on_date=date(2025, 6, 1), employee_id=employee_id
+    )
     assert result is not None
     assert result.scope_type == ScopeType.GLOBAL
 

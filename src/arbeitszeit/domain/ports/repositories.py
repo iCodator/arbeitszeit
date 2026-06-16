@@ -41,6 +41,7 @@ class TimeBookingRepository(Protocol):
         # Compliance-Prüfungen (Pausen, Ruhezeit, Maximalstunden) setzen
         # chronologische Reihenfolge voraus.
         ...
+
     def list_open_for_employee(self, employee_id: int) -> list[TimeBooking]: ...
     def list_between(
         self, employee_id: int, from_dt: datetime, to_dt: datetime

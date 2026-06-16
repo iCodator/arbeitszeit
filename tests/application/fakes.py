@@ -55,14 +55,16 @@ class FakeDeviceEventRepository:
         occurred_at: datetime,
     ) -> int:
         new_id = self._next_id
-        self._records.append({
-            "id": new_id,
-            "event_type": event_type,
-            "terminal_id": terminal_id,
-            "rfid_uid_hash": rfid_uid_hash,
-            "payload_json": payload_json,
-            "occurred_at": occurred_at,
-        })
+        self._records.append(
+            {
+                "id": new_id,
+                "event_type": event_type,
+                "terminal_id": terminal_id,
+                "rfid_uid_hash": rfid_uid_hash,
+                "payload_json": payload_json,
+                "occurred_at": occurred_at,
+            }
+        )
         self._next_id += 1
         return new_id
 
@@ -84,7 +86,8 @@ class FakeEmployeeRepository:
     def get_active_by_personnel_no(self, personnel_no: str) -> Employee | None:
         return next(
             (
-                e for e in self._store.values()
+                e
+                for e in self._store.values()
                 if e.personnel_no == personnel_no and e.is_active
             ),
             None,
@@ -132,7 +135,8 @@ class FakeRfidCardRepository:
     def get_active_by_uid_hash(self, uid_hash: str) -> RfidCard | None:
         return next(
             (
-                c for c in self._store.values()
+                c
+                for c in self._store.values()
                 if c.uid_hash == uid_hash and c.status == CardStatus.ACTIVE
             ),
             None,
@@ -161,7 +165,8 @@ class FakeTimeBookingRepository:
     ) -> list[TimeBooking]:
         return sorted(
             (
-                b for b in self._store.values()
+                b
+                for b in self._store.values()
                 if b.employee_id == employee_id and b.booked_at.date() == day
             ),
             key=lambda b: b.booked_at,
@@ -169,7 +174,8 @@ class FakeTimeBookingRepository:
 
     def list_open_for_employee(self, employee_id: int) -> list[TimeBooking]:
         return [
-            b for b in self._store.values()
+            b
+            for b in self._store.values()
             if b.employee_id == employee_id and b.status == BookingStatus.OPEN
         ]
 
@@ -178,7 +184,8 @@ class FakeTimeBookingRepository:
     ) -> list[TimeBooking]:
         return sorted(
             (
-                b for b in self._store.values()
+                b
+                for b in self._store.values()
                 if b.employee_id == employee_id and from_dt <= b.booked_at <= to_dt
             ),
             key=lambda b: b.booked_at,
@@ -226,7 +233,8 @@ class FakeWorkScheduleRepository:
         if employee_id is not None:
             candidates = sorted(
                 (
-                    v for v in self._store.values()
+                    v
+                    for v in self._store.values()
                     if _matches(v)
                     and v.scope_type == ScopeType.EMPLOYEE
                     and v.scope_employee_id == employee_id
@@ -239,7 +247,8 @@ class FakeWorkScheduleRepository:
 
         candidates = sorted(
             (
-                v for v in self._store.values()
+                v
+                for v in self._store.values()
                 if _matches(v) and v.scope_type == ScopeType.GLOBAL
             ),
             key=lambda v: v.valid_from,
@@ -256,7 +265,8 @@ class FakeWorkScheduleRepository:
             ScopeType.EMPLOYEE if scope_employee_id is not None else ScopeType.GLOBAL
         )
         result = [
-            v for v in self._store.values()
+            v
+            for v in self._store.values()
             if v.scope_type == scope_type and v.scope_employee_id == scope_employee_id
         ]
         if weekday is not None:
@@ -277,7 +287,8 @@ class FakeReviewCaseRepository:
 
     def list_open_for_employee(self, employee_id: int) -> list[ReviewCase]:
         return [
-            c for c in self._store.values()
+            c
+            for c in self._store.values()
             if c.employee_id == employee_id
             and c.status in (ReviewCaseStatus.OPEN, ReviewCaseStatus.IN_REVIEW)
         ]
@@ -315,7 +326,8 @@ class FakeSupplementRepository:
 
     def list_pending(self) -> list[Supplement]:
         return [
-            s for s in self._store.values()
+            s
+            for s in self._store.values()
             if s.approval_status == ApprovalStatus.PENDING
         ]
 
