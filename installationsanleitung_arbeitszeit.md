@@ -94,6 +94,32 @@ gcc --version
 
 Wird eine Versionsnummer ausgegeben (z.B. `gcc (Ubuntu 13.x) 13.x.x`), ist der Compiler korrekt installiert. Erscheint stattdessen `command not found`, war die Installation nicht erfolgreich – prüfen Sie die Ausgabe von `apt` auf Fehlermeldungen.
 
+### 3.1 Diagnosewerkzeug für Eingabegeräte installieren (optional, aber empfohlen)
+
+Für die Ermittlung und Prüfung von USB-Numpad und RFID-Reader wird das Werkzeug `evtest` empfohlen. Es zeigt live die Events von Linux-Eingabegeräten unter `/dev/input/event*` an und hilft dabei, die korrekten Gerätedateien für den späteren Start der Terminal-UI zu identifizieren.
+
+Installation:
+
+```bash
+sudo apt install -y evtest
+```
+
+Beispielaufruf:
+
+```bash
+sudo evtest
+```
+
+`evtest` listet die verfügbaren Eingabegeräte auf und erlaubt anschließend die Auswahl eines konkreten Geräts. Beim Drücken der Numpad-Tasten bzw. beim Vorhalten einer RFID-Karte kann geprüft werden, ob das jeweilige Gerät korrekt erkannt wird und auf welchem `/dev/input/eventX`-Pfad es verfügbar ist.
+
+Alternativ können die Gerätedateien auch ohne `evtest` über die stabileren Symlinks unter `/dev/input/by-id/` ermittelt werden:
+
+```bash
+ls -la /dev/input/by-id/
+```
+
+Für den operativen Start der Anwendung sind anschließend die dort ermittelten Gerätepfade an die Parameter `--numpad` und `--rfid` zu übergeben.
+
 ---
 
 ## 4. Repository herunterladen
