@@ -41,11 +41,33 @@ Systempakete → Repository → Venv → pip install → init_db.py → setup.py
 
 Das Repository schreibt in `pyproject.toml` die Version `>=3.14,<3.15` vor. Stellen Sie sicher, dass genau diese Python-Version auf dem System vorhanden ist.
 
-> ⚠️ **Hinweis:** Im Projektkontext wird gelegentlich „Python 3.11" genannt. Maßgeblich für die Installation ist ausschließlich die Angabe in `pyproject.toml`. Prüfen Sie die installierte Version vor dem Fortfahren:
+> ⚠️ **Wichtiger Hinweis:** Python 3.14 ist in den Standard-Paketquellen aktueller Linux-Mint- und Lubuntu-LTS-Versionen **nicht enthalten**. Es muss manuell installiert werden – entweder über das `deadsnakes`-PPA oder über `pyenv`.
+
+**Option A – deadsnakes-PPA (einfacher):**
 
 ```bash
-python3 --version
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+sudo apt install -y python3.14 python3.14-venv python3.14-dev
 ```
+
+**Option B – pyenv (empfohlen für Entwickler):**
+
+Das Repository enthält eine Datei `.python-version` mit dem Wert `3.14`. Wenn `pyenv` installiert ist, erkennt es diese Datei automatisch und verwendet die passende Version.
+
+```bash
+pyenv install 3.14
+```
+
+**Prüfschritt – korrekte Version vorhanden?**
+
+```bash
+python3.14 --version
+```
+
+Wird `Python 3.14.x` ausgegeben, ist die Version korrekt installiert.
+
+> ⚠️ **Hinweis:** Im Projektkontext wird gelegentlich „Python 3.11" genannt. Maßgeblich für die Installation ist ausschließlich die Angabe in `pyproject.toml`. Prüfen Sie die installierte Version vor dem Fortfahren.
 
 ### 2.3 Git
 
@@ -158,6 +180,14 @@ Eine virtuelle Umgebung (kurz: „venv") ist ein abgeschlossener Python-Bereich,
 
 **Umgebung erstellen:**
 
+Wenn Python 3.14 über das deadsnakes-PPA installiert wurde, verwenden Sie explizit den Versionspfad:
+
+```bash
+python3.14 -m venv .venv
+```
+
+Wenn `pyenv` verwendet wird und die korrekte Version aktiv ist, genügt:
+
 ```bash
 python3 -m venv .venv
 ```
@@ -196,6 +226,7 @@ Zusätzlich als Entwicklungsabhängigkeiten (`[dev]`):
 - `pytest>=8.0`, `pytest-cov>=5.0` – Testausführung
 - `pypdf>=4.0` – PDF-Prüfung in Tests
 - `ruff>=0.6` – statische Code-Analyse
+- `import-linter>=2.0` – Prüfung der Architektur-Schichtgrenzen (Clean Architecture)
 
 **Erfolgskontrolle:**
 
@@ -221,12 +252,17 @@ python scripts/init_db.py
 
 Das Skript öffnet (bzw. erzeugt) die Datei `arbeitszeit.db` im aktuellen Verzeichnis, führt alle vorhandenen SQL-Migrationen aus und prüft anschließend, ob die Ersteinrichtung noch aussteht.
 
+Die Migrationsversionen werden als vierstellige Zahlen ausgegeben, entsprechend den Dateinamen im Verzeichnis `migrations/` (z.B. `0001_schema.sql` → Version `0001`).
+
 **Typische Ausgabe nach erfolgreicher Initialisierung:**
 
 ```
-Migration 001 angewendet.
-Migration 002 angewendet.
-...
+Migration 0001 angewendet.
+Migration 0002 angewendet.
+Migration 0003 angewendet.
+Migration 0004 angewendet.
+Migration 0005 angewendet.
+Migration 0006 angewendet.
 ⚠  Ersteinrichtung noch erforderlich:
    python scripts/setup.py --db arbeitszeit.db
 ```
@@ -323,9 +359,10 @@ python -m arbeitszeit.presentation.admin_cli.main \
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
     --db arbeitszeit.db \
-    --user-id 1 \
     users list
 ```
+
+> 💡 **Hinweis:** Der Parameter `--db` ist bei der Admin-CLI **immer Pflicht** – es gibt keinen Standardwert. Bei `users list` wird keine `--user-id` benötigt, da es sich um eine lesende Operation ohne Rollenprüfung handelt.
 
 Das Konto sollte mit Rolle `ADMIN` und Status `aktiv` erscheinen.
 
@@ -384,7 +421,15 @@ Die Ausgabe bestätigt die neue interne ID, z.B.: `Mitarbeiter angelegt (ID 1).`
 
 ### 12.2 RFID-Karte dem Mitarbeiter zuweisen
 
-Damit ein Mitarbeiter buchen kann, muss seine RFID-Karte in der Datenbank registriert werden. Der `uid-hash` ist der SHA-256-Hash der Roh-UID der Karte (wird vom System beim Einlesen berechnet und ist in der Hardwarekomponente `evdev_reader.py` implementiert – nicht eindeutig belegbar, wie dieser Hash initial ermittelt werden soll; ggf. Testlauf mit dem Terminal-UI durchführen und Protokoll auslesen).
+Damit ein Mitarbeiter buchen kann, muss seine RFID-Karte in der Datenbank registriert werden. Der `--uid-hash` ist der SHA-256-Hash der Roh-UID der Karte, der vom System beim Einlesen automatisch berechnet wird (implementiert in `arbeitszeit/infrastructure/hardware/evdev_reader.py`).
+
+**Empfohlener Weg zur Ermittlung des UID-Hashs:**
+
+Da der Hash nicht ohne weiteres vorab bekannt ist, empfiehlt sich folgender Ablauf:
+1. Terminal-UI starten (Schritt 14.1)
+2. RFID-Karte einlesen – die Karte wird als „nicht erkannt" zurückgewiesen, da noch nicht registriert
+3. Den dabei erzeugten Eintrag in der Tabelle `rfid_cards` (Spalte `uid_hash`) oder im `audit_log` / `system_events` einsehen, um den Hash zu ermitteln
+4. Den ermittelten Hash anschließend mit `cards assign` registrieren
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -461,7 +506,7 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 
 | Parameter | Bedeutung |
 |---|---|
-| `--db` | Pfad zur SQLite-Datenbankdatei |
+| `--db` | Pfad zur SQLite-Datenbankdatei (Pflicht, kein Standardwert) |
 | `--numpad` | Gerätedatei des USB-Numpads (z.B. `/dev/input/event3`) |
 | `--rfid` | Gerätedatei des RFID-Readers (z.B. `/dev/input/event4`) |
 | `--terminal-id` | Ganzzahlige ID dieses Terminals (z.B. `1`) |
@@ -488,7 +533,45 @@ python -m arbeitszeit.presentation.admin_cli.main \
 
 ---
 
-## 15. Typische Fehler und Lösungen
+## 15. Backup manuell anstoßen
+
+Das Backup-Skript sichert die SQLite-Datenbankdatei und kann optional Exportdateien (CSV/PDF) miteinbeziehen.
+
+**Minimaler Aufruf** (Backup-Verzeichnis als Parameter, Standard wäre `backups/`):
+
+```bash
+python scripts/backup.py --db arbeitszeit.db --backup-dir /var/backups/arbeitszeit
+```
+
+**Erweiterter Aufruf** mit Exportverzeichnis (Exportdateien werden in `backup-dir/exports/` kopiert):
+
+```bash
+python scripts/backup.py \
+    --db arbeitszeit.db \
+    --backup-dir /var/backups/arbeitszeit \
+    --export-dir /var/exports/arbeitszeit
+```
+
+**Parameter:**
+
+| Parameter | Bedeutung | Standard |
+|---|---|---|
+| `--db` | Pfad zur Datenbankdatei | `arbeitszeit.db` |
+| `--backup-dir` | Zielverzeichnis für Backups | `backups/` |
+| `--export-dir` | Exportverzeichnis (CSV/PDF); wird in `backup-dir/exports/` kopiert | keiner |
+
+Ein optionaler NAS-Sync wird über die system_config-Einträge `backup.nas_enabled` und `backup.nas_path` gesteuert (konfigurierbar über Admin-CLI).
+
+---
+
+## 16. Typische Fehler und Lösungen
+
+### Fehler: Python 3.14 nicht gefunden
+
+**Ursache:** Python 3.14 ist in den Standard-Paketquellen der verwendeten Linux-Distribution nicht enthalten.  
+**Lösung:** Schritt 2.2 dieser Anleitung befolgen (deadsnakes-PPA oder pyenv).
+
+---
 
 ### Fehler: `gcc: command not found` beim `pip install`
 
@@ -556,7 +639,7 @@ ls /dev/input/by-id/
 
 ---
 
-## 16. Kurzübersicht wichtiger Befehle
+## 17. Kurzübersicht wichtiger Befehle
 
 | Zweck | Befehl |
 |---|---|
@@ -571,7 +654,8 @@ ls /dev/input/by-id/
 | RFID-Karte zuweisen | `python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 cards assign --employee-id 1 --uid-hash <HASH>` |
 | Systemcheck | `python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id 1 system check` |
 | Terminal-UI starten | `python -m arbeitszeit.presentation.terminal_ui.main --db arbeitszeit.db --numpad /dev/input/eventX --rfid /dev/input/eventY --terminal-id 1` |
-| Backup manuell anstoßen | `python scripts/backup.py --db arbeitszeit.db --backup-dir /var/backups/arbeitszeit` |
+| Backup manuell (einfach) | `python scripts/backup.py --db arbeitszeit.db --backup-dir /var/backups/arbeitszeit` |
+| Backup manuell (mit Exports) | `python scripts/backup.py --db arbeitszeit.db --backup-dir /var/backups/arbeitszeit --export-dir /var/exports/arbeitszeit` |
 | Tests ausführen | `pytest` |
 | Nur Migrationstests | `pytest tests/test_migrations.py` |
 | Tests mit Coverage | `pytest --cov=arbeitszeit` |
