@@ -318,6 +318,76 @@ python -m arbeitszeit.presentation.admin_cli.main \
 
 **Quelle:** `installationsanleitung_arbeitszeit.md`, Abschnitt 15
 
+
+---
+
+## 3a. show_config.py – Systemkonfiguration anzeigen
+
+`scripts/show_config.py` liest alle Einträge der Tabelle `system_config` aus der SQLite-Datenbank und gibt sie in lesbarer Form auf der Konsole aus. Das Skript benötigt kein laufendes Terminal und erfordert keine Admin-Anmeldung – es liest die Datenbank direkt.
+
+> ⚠️ **Wichtig:** Das Skript ist ein reines Lesewerkzeug. Es verändert keine Daten.
+
+### Verwendung
+
+```bash
+# Nur aktuelle Werte je Schlüssel (Standardansicht)
+python scripts/show_config.py --db arbeitszeit.db
+
+# Alle Versionen aller Schlüssel anzeigen (Änderungshistorie)
+python scripts/show_config.py --db arbeitszeit.db --all-versions
+
+# Ausgabe als maschinenlesbare JSON-Datei
+python scripts/show_config.py --db arbeitszeit.db --json
+```
+
+### Parameter
+
+| Parameter | Pflicht | Bedeutung |
+|---|:---:|---|
+| `--db DB_PATH` | ✓ | Pfad zur SQLite-Datenbankdatei |
+| `--all-versions` | – | Zeigt alle Versionen jedes Schlüssels, nicht nur den neuesten Stand |
+| `--json` | – | Gibt das Ergebnis als JSON aus (für Skripte oder Protokollierung) |
+
+### Typische Ausgabe (Standardansicht)
+
+```
+Schlüssel              Wert                       Ver  Herkunft     Geändert am
+------------------------------------------------------------------------------
+backup.backup_dir      /var/backups/arbeitszeit     1  SETUP        2026-06-15T10:22
+export.export_dir      /var/exports/arbeitszeit     1  SETUP        2026-06-15T10:22
+------------------------------------------------------------------------------
+2 Eintrag/Einträge
+```
+
+Die Spalte **Ver** zeigt die Versionsnummer des Eintrags. Jede Änderung eines Schlüssels erzeugt eine neue Version – der jeweils höchste Wert ist der aktuelle Stand.
+
+### JSON-Ausgabe (Struktur)
+
+```json
+[
+  {
+    "key": "backup.backup_dir",
+    "value": "/var/backups/arbeitszeit",
+    "version": 1,
+    "change_origin": "SETUP",
+    "changed_at": "2026-06-15T10:22:00",
+    "reason": null
+  }
+]
+```
+
+Das Feld `change_origin` gibt an, womit der Wert gesetzt wurde (z. B. `SETUP` durch `scripts/setup.py`, `ADMIN` durch Admin-CLI). Das Feld `reason` enthält eine optionale Begründung.
+
+### Wann ist das Skript nützlich?
+
+- **Nach `scripts/setup.py`:** Prüfen, ob Backup- und Exportpfad korrekt gespeichert wurden
+- **Nach einer manuellen Konfigurationsänderung:** Änderung bestätigen
+- **Bei Supportfragen oder Fehlersuche:** aktuellen Konfigurationsstand als JSON dokumentieren
+- **Mit `--all-versions`:** nachvollziehen, wann und warum ein Konfigurationswert geändert wurde
+
+**Quelle:** `scripts/show_config.py`
+
+
 ---
 
 ## 4. Projektstruktur

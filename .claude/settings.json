@@ -1,9 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m ' *)",
-      "Bash(python -m pytest tests/integration/test_init_db.py -v)",
-      "Bash(python -m pytest tests/application/test_fake_unit_of_work.py -v)"
+      "Bash(git add -p)",
+      "Bash(git commit -m '*')",
+      "Bash(git diff --staged)",
+      "Bash(git log --oneline -20)",
+      "Bash(git status)",
+      "Bash(python -m pytest tests/ -v --tb=short)",
+      "Bash(python -m pytest tests/domain/ -v)",
+      "Bash(python -m pytest tests/application/ -v)",
+      "Bash(python -m pytest tests/integration/ -v)",
+      "Bash(python -m pytest tests/e2e/ -v)",
+      "Bash(python -m pytest tests/test_migrations.py -v)",
+      "Bash(python -m ruff check src/ tests/)",
+      "Bash(python -m ruff format src/ tests/ --check)",
+      "Bash(python -m mypy src/)",
+      "Bash(python -m lint-imports)",
+      "Bash(python -m pytest --cov=arbeitszeit --cov-report=term-missing tests/)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(pip install *)",
+      "Bash(git push --force*)"
     ]
   }
 }
