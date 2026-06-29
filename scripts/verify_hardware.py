@@ -29,14 +29,13 @@ import select
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 # ---------------------------------------------------------------------------
 # Optionaler evdev-Import — Fehlermeldung vor Abbruch
 # ---------------------------------------------------------------------------
 
 try:
-    import evdev
     from evdev import InputDevice, categorize, ecodes
     from evdev.events import KeyEvent
 
@@ -134,7 +133,7 @@ def _prompt_device(label: str, devices: list[dict[str, Any]]) -> str:
     print(f"\n  Verfügbare Geräte für {label}:")
     for i, d in enumerate(devices, 1):
         print(f"    [{i}]  {d['path']}  —  {d['name']}")
-    print(f"    [m]  Pfad manuell eingeben")
+    print("    [m]  Pfad manuell eingeben")
     while True:
         raw = input(f"\n  Auswahl für {label}: ").strip()
         if raw == "m":
@@ -144,7 +143,7 @@ def _prompt_device(label: str, devices: list[dict[str, Any]]) -> str:
         elif raw.isdigit():
             idx = int(raw) - 1
             if 0 <= idx < len(devices):
-                return devices[idx]["path"]
+                return str(devices[idx]["path"])
         print("  Ungültige Eingabe. Bitte Nummer oder 'm' eingeben.")
 
 
@@ -225,7 +224,7 @@ def test_numpad(numpad_path: str) -> bool:
             for event in dev.read():
                 if event.type != ecodes.EV_KEY:
                     continue
-                key_event = categorize(event)
+                key_event = cast(KeyEvent, categorize(event))
                 if key_event.keystate != key_event.key_down:
                     continue
                 keycode = key_event.keycode
@@ -296,7 +295,7 @@ def test_rfid(rfid_path: str) -> bool:
             for event in dev.read():
                 if event.type != ecodes.EV_KEY:
                     continue
-                key_event = categorize(event)
+                key_event = cast(KeyEvent, categorize(event))
                 keycode = key_event.keycode
                 if isinstance(keycode, tuple):
                     keycode = keycode[0]
@@ -329,7 +328,7 @@ def test_rfid(rfid_path: str) -> bool:
             return False
 
         uid_hash = _compute_uid_hash(uid_raw)
-        _ok(f"RFID-Karte erkannt:")
+        _ok("RFID-Karte erkannt:")
         _info(f"Rohe UID (Hex):  {uid_raw.upper()}")
         _info(f"Länge:           {len(uid_raw)} Zeichen ({len(uid_raw) * 4} Bit)")
         _info(f"SHA-256-Hash:    {uid_hash}  (wie in DB gespeichert)")
@@ -389,7 +388,8 @@ def main(argv: list[str] | None = None) -> int:
             "Beispiele:\n"
             "  python scripts/verify_hardware.py --list\n"
             "  python scripts/verify_hardware.py\n"
-            "  python scripts/verify_hardware.py --numpad /dev/input/event3 --rfid /dev/input/event4\n"
+            "  python scripts/verify_hardware.py"
+            " --numpad /dev/input/event3 --rfid /dev/input/event4\n"
             "  python scripts/verify_hardware.py --skip-interactive\n"
         ),
     )
