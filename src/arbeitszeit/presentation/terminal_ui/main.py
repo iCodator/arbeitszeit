@@ -19,6 +19,7 @@ from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
 from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader
 from arbeitszeit.infrastructure.hardware.ports import HardwareReader
+from arbeitszeit.infrastructure.notification import notify
 from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.infrastructure.time_monitor import (
     SystemTimeMonitor,
@@ -94,10 +95,15 @@ def run(
         rfid_path=Path(rfid_device),
     )
     if not result.overall_ok:
-        print("WARNUNG: Systemcheck hat Probleme festgestellt:", file=sys.stderr)
+        print("=" * 50)
+        print("SYSTEMWARNUNG — Betrieb eingeschränkt:")
         for check in result.checks:
             if not check.ok:
-                print(f"  [{check.name}] {check.detail}", file=sys.stderr)
+                print(f"  FEHLER: {check.name}: {check.detail}")
+        print("=" * 50)
+        # Kein sys.exit() — Buchungsbetrieb läuft weiter (Praxisbetrieb darf nicht blockieren)
+        fehler = "; ".join(c.detail for c in result.checks if not c.ok)
+        notify("Arbeitszeit — Systemfehler", fehler, urgency="critical")
 
     running = True
 

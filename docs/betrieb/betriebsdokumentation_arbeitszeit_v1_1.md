@@ -294,6 +294,35 @@ Prüfbereiche:
 
 Ergebnisse werden in `system_events` (event_type: SYSTEM_CHECK_*) protokolliert.
 
+### 7.1 Sichtbare Warnungen beim Systemstart
+
+Wenn der Systemcheck beim Start der Terminal-UI fehlschlägt, erscheint eine
+prominente Meldung am Terminal-Bildschirm:
+
+```text
+==================================================
+SYSTEMWARNUNG — Betrieb eingeschränkt:
+  FEHLER: <Prüfname>: <Fehlerbeschreibung>
+==================================================
+```
+
+Der Buchungsbetrieb läuft weiter — eine Warnung blockiert die Praxis nicht.
+Zusätzlich wird eine Desktop-Benachrichtigung (`notify-send`) ausgelöst,
+sofern `libnotify-bin` installiert ist (Lubuntu/Linux Mint: standardmäßig vorhanden).
+
+### 7.2 systemd-Journal (wenn als systemd-Unit betrieben)
+
+Wenn `arbeitszeit-terminal` als systemd-Unit läuft, landen Fehlermeldungen
+automatisch im systemd-Journal. Für die Betreiberin / den Admin:
+
+```bash
+# Warnungen und Fehler von heute
+journalctl -u arbeitszeit-terminal -p warning --since today
+
+# Live-Mitschnitt
+journalctl -u arbeitszeit-terminal -f
+```
+
 ---
 
 ## 8. Rollenkonzept
