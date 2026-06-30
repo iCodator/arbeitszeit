@@ -124,6 +124,32 @@ def _check_config_keys(conn: sqlite3.Connection) -> CheckResult:
 
 
 def _check_nas(conn: sqlite3.Connection) -> CheckResult:
+    # -------------------------------------------------------------------------
+    # Designentscheidung: Kein aktiver Netzwerk-Erreichbarkeitstest des NAS.
+    #
+    # Dieser Check prüft ausschließlich:
+    #   (a) Ist backup.nas_enabled in system_config auf true gesetzt?
+    #   (b) Ist backup.nas_path gesetzt und nicht leer?
+    #   (c) Existiert der konfigurierte Pfad im Dateisystem (Path.exists())?
+    #   (d) Ist der Pfad schreibbar (os.access(..., os.W_OK))?
+    #
+    # Es wird KEIN Netzwerk-Ping, TCP-Verbindungstest oder DNS-Auflösung
+    # durchgeführt. Das ist bewusst:
+    #
+    #   1. Das NAS wird als Dateisystem-Mount eingebunden (z.B. /mnt/nas/...).
+    #      Path.exists() + os.access() testen den Mount-Punkt direkt – ist der
+    #      Mount aktiv und schreibbar, ist das NAS erreichbar. Kein separater
+    #      Netzwerktest notwendig.
+    #
+    #   2. Ein Ping/TCP-Test würde bei vorübergehend nicht erreichbarem NAS
+    #      (Neustart, Wartung) SELFTEST_FAIL erzeugen, obwohl das System voll
+    #      funktionsfähig ist. Das wäre ein irreführendes Signal.
+    #
+    #   3. Netzwerkerreichbarkeit (DNS, SMB/NFS-Port) ist Aufgabe des
+    #      Betriebssystems und der systemd-Mount-Unit, nicht dieses Checks.
+    #
+    # Ausführliche Begründung: docs/SECURITY.md, Abschnitt 4.
+    # -------------------------------------------------------------------------
     row = conn.execute(
         "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'backup.nas_enabled' ORDER BY version DESC LIMIT 1"
