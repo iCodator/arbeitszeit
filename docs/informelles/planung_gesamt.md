@@ -83,6 +83,9 @@ Die Tabellenstruktur deckt die im Pflichtenheft geforderten fachlichen Kernstruk
 
 ### 11 – 4 Kern-Use-Cases
 
+- Architekturentscheidung dokumentiert in `docs/informelles/device_event_architekturentscheidung_v1.md`.
++ Architekturentscheidung dokumentiert in `docs/adr/device_event_architekturentscheidung_v1.md`.
+
 | Use-Case | Transaktion umfasst |
 | --- | --- |
 | `buchen()` | `device_events`, `time_bookings`, `booking_status_history`, `review_cases`, `audit_log` |
@@ -166,6 +169,9 @@ V4- und Regelwerk-konforme Statusmodellierung:
 ### Phase 3 – Application ✓ abgeschlossen
 
 #### Architekturentscheidungen
+
+- - Architekturentscheidung (Pfad A1): `docs/informelles/device_event_architekturentscheidung_v1.md`.
++ - Architekturentscheidung (Pfad A1): `docs/adr/device_event_architekturentscheidung_v1.md`.
 
 **BookingStatus-Semantik** — Status beschreibt die einzelne Buchung, nicht den Tagesstatus. Die definierten Zustände `OPEN`, `OK`, `WARN`, `NEEDS_REVIEW`, `CORRECTED` und `CLOSED_WITH_NOTE` entsprechen den verbindlichen Statusvorgaben aus Pflichtenheft und Regelwerk.
 
@@ -260,7 +266,7 @@ Die vorhandene Testdokumentation weist die Pflichtszenarien fachlich gut zu. Anl
 Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** und bewusst als offen oder extern gekennzeichnet, weil sie laut Referenzdokumenten nicht allein durch den implementierten Code als erledigt gelten dürfen:
 
 - Schriftlich verabschiedete Betriebsdokumentation zu Exportverzeichnis, Dateirechten, Aufbewahrung, Löschregeln, Backup und Restore. Technische Betriebsdokumentation erstellt: `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md` (2026-06-11); formale Verabschiedung außerhalb des Repos.
-- ~~Revisionsfeste Testmatrix~~ — erstellt: `docs/informelles/testmatrix_revision_v1.md` (2026-06-11).
+- ~~Revisionsfeste Testmatrix~~ — erstellt: `docs/betrieb/nachweise/testmatrix_revision_v1.md` (2026-06-11).
 - ~~Entscheidung und vollständige produktive Umsetzung des `device_events`-/`device_event_id`-Pfads~~ — implementiert (Commit `0f20931`) und dokumentiert (`device_event_architekturentscheidung_v1.md`).
 - Organisatorische Zuordnung von Rollen, Freigabeverantwortungen, Prüfintervallen und IT-Sicherheitsverantwortlichkeiten in der Praxis.
 - Datenschutz- und Backup-Unterlagen der Praxis für AV-Vertrag, Schlüsselverwaltung, Speicherorte, TOM, Rotationskonzept und Restore-Freigabe.
@@ -268,9 +274,9 @@ Die folgenden Punkte sind nach dem aktuellen Stand **nicht zu überspringen** un
 - Optionale Cloud-Backup-Nutzung nur mit vorgelagerter clientseitiger Verschlüsselung und sauber dokumentierter datenschutzrechtlicher Grundlage; eine operative Cloud-Backup-Implementierung ist in diesem Plan nicht beschrieben.
 - ~~`users reactivate`, `users change-role`, Bootstrap-Prozess~~ — implementiert (Phase 5 abgeschlossen).
 
-Evidenzgrenzen (was aus dem Repo belegbar ist und was nicht): `docs/informelles/audit_evidenzgrenzen_v1.md`.
+Evidenzgrenzen (was aus dem Repo belegbar ist und was nicht): `docs/informelles/session_abschluss_und_klarstellungen_2026-06-11.md`.
 
-Phasenübergreifende Nachtragsmatrix (vorgezogene/nachgezogene Artefakte, 44 Einträge): `docs/informelles/nachtragsmatrix_phasen_v1.md` (2026-06-11).
+Phasenübergreifende Nachtragsmatrix (vorgezogene/nachgezogene Artefakte, 44 Einträge): `docs/betrieb/nachweise/nachtragsmatrix_phasen_v1.md` (2026-06-11).
 
 ## Pflichtenheft v5 §16 Testpflicht-Abdeckung
 
@@ -300,4 +306,6 @@ Phasenübergreifende Nachtragsmatrix (vorgezogene/nachgezogene Artefakte, 44 Ein
 | device_events-Record bei abgewiesener Buchung (UnknownCard) | `tests/integration/test_device_event_booking.py::test_unknown_card_schreibt_device_event_aber_keine_buchung` | ✓ |
 | INSERT-Fehler device_events verhindert Buchung | `tests/integration/test_device_event_booking.py::test_fehler_im_device_event_insert_verhindert_buchung` | ✓ |
 
-Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/informelles/testmatrix_revision_v1.md`.
+Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. 
+- Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/informelles/testmatrix_revision_v1.md`.
++ Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/betrieb/nachweise/testmatrix_revision_v1.md`.
