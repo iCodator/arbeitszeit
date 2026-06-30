@@ -25,10 +25,8 @@ from reportlab.platypus import (
     TableStyle,
 )
 
+from arbeitszeit.application.queries import BookingRow, CorrectionRow, SupplementRow
 from arbeitszeit.infrastructure.export.report_queries import (
-    BookingRow,
-    CorrectionRow,
-    SupplementRow,
     get_employee_identity,
     list_bookings,
     list_corrections,

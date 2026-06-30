@@ -14,9 +14,11 @@ from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+from arbeitszeit.application.queries import (
+    BookingRow,
+)
 from arbeitszeit.domain.enums import BookingStatus, BookingType
 from arbeitszeit.infrastructure.export.report_queries import (
-    BookingRow,
     list_bookings,
     list_corrections,
     list_supplements,

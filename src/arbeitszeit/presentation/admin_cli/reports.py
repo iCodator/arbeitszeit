@@ -6,12 +6,9 @@ import sqlite3
 import sys
 from datetime import date
 
+from arbeitszeit.application.queries import BookingRow, CorrectionRow, ReviewCaseRow, SupplementRow
 from arbeitszeit.infrastructure.export import csv_exporter, pdf_report_service
 from arbeitszeit.infrastructure.export.report_queries import (
-    BookingRow,
-    CorrectionRow,
-    ReviewCaseRow,
-    SupplementRow,
     list_corrections,
     list_open_bookings,
     list_open_bookings_in_period,
