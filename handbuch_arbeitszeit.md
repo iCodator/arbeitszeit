@@ -1,8 +1,9 @@
 # Handbuch – Arbeitszeiterfassung `arbeitszeit`
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Stand:** Juni 2026  
-**Basis:** Repository `iCodator/arbeitszeit`
+**Basis:** Repository `iCodator/arbeitszeit`  
+**Änderungen gegenüber 1.1:** Fehlende Beispielaufrufe ergänzt (`employees deactivate`, `cards deactivate`, `cards replace`, `users change-role`, `users deactivate`, `users reactivate`); optionale Parameter `setup.py` dokumentiert; Umgebungsvariable `ADMIN_USER_ID` ergänzt; Projektstruktur vervollständigt; `scripts/verify_hardware.py`, `scripts/generate_audit_notes.py` und `run_audit.sh` aufgenommen.
 
 > ⚠️ **Wichtiger Hinweis:** Dieses Handbuch wurde anhand des tatsächlich überprüften Repository-Inhalts bereinigt. Aussagen, die aus den gelesenen Dateien nicht sicher belegbar waren, wurden entfernt, abgeschwächt oder ausdrücklich als nicht vollständig verifiziert gekennzeichnet.
 
@@ -77,7 +78,7 @@ Sicher belegt sind folgende Hardware-Komponenten im Projektkontext:
 
 Die Gerätedateien werden unter Linux über `/dev/input/event*` angesprochen.
 
-> ⚠️ Aussagen zu spezifischer Zielhardware wie „Raspberry Pi“ sind aus den hier überprüften Dateien nicht sicher belegbar und werden daher nicht als gesicherte Systemeigenschaft aufgeführt.
+> ⚠️ Aussagen zu spezifischer Zielhardware wie „Raspberry Pi" sind aus den hier überprüften Dateien nicht sicher belegbar und werden daher nicht als gesicherte Systemeigenschaft aufgeführt.
 
 ---
 
@@ -113,6 +114,8 @@ pip install -e .[dev]
 python scripts/init_db.py
 ```
 
+Der Datenbankpfad kann optional mit `--db` angegeben werden (Standard: `arbeitszeit.db`).
+
 Das Skript führt Migrationen aus. Die Migrationsversionen werden aus den Dateinamen im Verzeichnis `migrations/` abgeleitet und daher vierstellig ausgegeben.
 
 **Typische Ausgabe:**
@@ -130,21 +133,34 @@ Migration 0006 angewendet.
 
 ### Ersteinrichtung
 
-```bash
-python scripts/setup.py --db arbeitszeit.db
-```
-
-Das Skript setzt deployment-spezifische Konfigurationswerte in `system_config`, insbesondere:
+Das Skript `scripts/setup.py` setzt deployment-spezifische Konfigurationswerte in `system_config`, insbesondere:
 
 - `backup.backup_dir`
 - `export.export_dir`
+
+`scripts/setup.py` bricht ab, wenn die Datenbankdatei noch nicht existiert.
 
 Die Reihenfolge ist zwingend:
 
 1. `scripts/init_db.py`
 2. `scripts/setup.py`
 
-`scripts/setup.py` bricht ab, wenn die Datenbankdatei noch nicht existiert.
+**Interaktiver Aufruf** (das Skript fragt fehlende Pfade ab):
+
+```bash
+python scripts/setup.py --db arbeitszeit.db
+```
+
+**Nicht-interaktiver Aufruf** (für automatisierte Deployments):
+
+```bash
+python scripts/setup.py \
+    --db arbeitszeit.db \
+    --backup-dir /var/backups/arbeitszeit \
+    --export-dir /var/exports/arbeitszeit
+```
+
+Bereits konfigurierte Schlüssel werden beim erneuten Aufruf übersprungen (idempotent).
 
 ### Ersten ADMIN anlegen
 
@@ -165,7 +181,7 @@ Die Admin-CLI erlaubt für reguläre Benutzerkonten nur diese Rollen:
 - `REVIEWER`
 - `TECH`
 
-Beispiel:
+**Minimalbeispiel** (Pflichtparameter):
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -175,6 +191,13 @@ python -m arbeitszeit.presentation.admin_cli.main \
     --username pruefer01 \
     --role REVIEWER
 ```
+
+`users add` unterstützt zusätzlich diese optionalen Parameter:
+
+| Parameter | Bedeutung |
+|---|---|
+| `--employee-id <INT>` | Verknüpfter Mitarbeiter-Datensatz (optional) |
+| `--password <TEXT>` | Passwort im Klartext; wird gehasht gespeichert. Wird dieser Parameter weggelassen, generiert das System ein Passwort und zeigt es einmalig an. |
 
 ### Mitarbeiter anlegen
 
@@ -190,6 +213,17 @@ python -m arbeitszeit.presentation.admin_cli.main \
     --last-name Mustermann
 ```
 
+### Mitarbeiter deaktivieren
+
+`employees deactivate` erwartet die Mitarbeiter-ID als **positionales Argument** (kein `--id`-Flag):
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    employees deactivate 3
+```
+
 ### RFID-Karte zuweisen
 
 ```bash
@@ -202,6 +236,35 @@ python -m arbeitszeit.presentation.admin_cli.main \
 ```
 
 > ⚠️ Die Admin-CLI erwartet bereits einen vorhandenen `--uid-hash`. Der genaue technische Workflow zur erstmaligen Ermittlung dieses Hashwerts ist aus den hier überprüften Dateien nicht vollständig belegbar und sollte nicht genauer behauptet werden, als es die Codebasis hergibt.
+
+### RFID-Karte ersetzen
+
+`cards replace` deaktiviert die alte Karte und legt eine neue aktive Karte für denselben Mitarbeiter an:
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    cards replace \
+    --old-card-id 2 \
+    --uid-hash <NEUER_HASH>
+```
+
+| Parameter | Bedeutung |
+|---|---|
+| `--old-card-id <INT>` | Datenbank-ID der zu ersetzenden Karte (Pflicht) |
+| `--uid-hash <TEXT>` | Hash-Wert der neuen Karte (Pflicht) |
+
+### RFID-Karte deaktivieren
+
+`cards deactivate` erwartet die Karten-ID als **positionales Argument** (kein `--id`-Flag):
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    cards deactivate 2
+```
 
 ### Funktionstest
 
@@ -221,16 +284,35 @@ Aus dem Repository klar belegt ist folgende Hauptstruktur:
 arbeitszeit/
 ├── pyproject.toml
 ├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── run_audit.sh
+├── test_booking_loop.py
 ├── installationsanleitung_arbeitszeit.md
 ├── handbuch_arbeitszeit.md
 ├── migrations/
+│   ├── 0001_schema.sql
+│   ├── 0002_seed_defaults.sql
+│   ├── 0003_cleanup_booking_status.sql
+│   ├── 0004_supplement_reject_fields_and_review_note.sql
+│   ├── 0005_time_bookings_device_event_id.sql
+│   └── 0006_system_events_application_error.sql
 ├── scripts/
+│   ├── backup.py
+│   ├── generate_audit_notes.py
+│   ├── init_db.py
+│   ├── setup.py
+│   ├── show_config.py
+│   └── verify_hardware.py
+├── docs/
 ├── src/
 │   └── arbeitszeit/
 │       ├── application/
 │       ├── domain/
 │       ├── infrastructure/
 │       └── presentation/
+│           ├── admin_cli/
+│           └── terminal_ui/
 └── tests/
 ```
 
@@ -276,6 +358,17 @@ python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db <unterbefe
 `--db` ist bei der Admin-CLI verpflichtend.
 
 Für die meisten schreibenden Operationen ist zusätzlich `--user-id` erforderlich. Eine Ausnahme ist `users bootstrap`, da vor dem ersten Administratorkonto noch kein Admin existiert.
+
+**Alternative zu `--user-id`:** Die Benutzer-ID kann statt als Kommandozeilenargument auch über die Umgebungsvariable `ADMIN_USER_ID` übergeben werden. Das ist nützlich für Shell-Skripte und automatisierte Abläufe:
+
+```bash
+export ADMIN_USER_ID=1
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    users list
+```
+
+`--user-id` hat Vorrang vor `ADMIN_USER_ID`, wenn beide gesetzt sind.
 
 ---
 
@@ -330,7 +423,84 @@ Daraus ist belegt, dass NAS-Synchronisation konfigurierbar vorgesehen ist.
 
 ---
 
-## 8. Gelesene Admin-CLI-Befehle
+## 8. Hilfs- und Diagnoseskripte
+
+### Hardware-Smoke-Test (`scripts/verify_hardware.py`)
+
+Dieses Skript prüft USB-Numpad und RFID-Reader in drei Stufen: Gerätedatei-Zugriff, Numpad-Tastendruck und RFID-Karten-Scan. Es wird typischerweise einmalig bei Erstinbetriebnahme oder nach Hardware-Tausch aufgerufen, **bevor** der Terminal-UI-Dienst gestartet wird.
+
+**Verfügbare Gerätedateien auflisten:**
+
+```bash
+python scripts/verify_hardware.py --list
+```
+
+**Vollständiger Test mit direkter Gerätangabe:**
+
+```bash
+python scripts/verify_hardware.py \
+    --numpad /dev/input/event3 \
+    --rfid /dev/input/event4
+```
+
+**Interaktive Geräteauswahl** (kein Argument — Skript fragt nach):
+
+```bash
+python scripts/verify_hardware.py
+```
+
+**Nur Gerätezugriff prüfen, ohne Tastendruck- und Karten-Test:**
+
+```bash
+python scripts/verify_hardware.py \
+    --numpad /dev/input/event3 \
+    --rfid /dev/input/event4 \
+    --skip-interactive
+```
+
+Das Skript gibt im Erfolgsfall den ermittelten SHA-256-Hash der RFID-UID aus. Dieser Wert kann direkt als `--uid-hash` bei `cards assign` verwendet werden.
+
+| Parameter | Bedeutung |
+|---|---|
+| `--numpad <PFAD>` | Gerätedatei des USB-Numpads |
+| `--rfid <PFAD>` | Gerätedatei des RFID-Readers |
+| `--list` | Nur verfügbare Eingabegeräte auflisten, dann beenden |
+| `--skip-interactive` | Tastendruck- und Karten-Tests überspringen |
+
+> ⚠️ `--numpad` und `--rfid` müssen entweder beide angegeben oder beide weggelassen werden. Wird nur einer der beiden gesetzt, bricht das Skript mit einem Fehler ab.
+
+### Code-Audit (`run_audit.sh` und `scripts/generate_audit_notes.py`)
+
+`run_audit.sh` führt alle Analyse-Tools aus (Ruff, Mypy, Radon, import-linter, Bandit, pytest+Coverage) und legt die Rohdaten in `docs/audits/reports/<DATUM>/` ab.
+
+```bash
+bash run_audit.sh
+```
+
+`scripts/generate_audit_notes.py` liest diese Rohdaten und erzeugt eine strukturierte Markdown-Zusammenfassung (`audit-notes-<DATUM>.md`):
+
+```bash
+python scripts/generate_audit_notes.py
+```
+
+Alternativ mit explizitem Report-Verzeichnis und Ausgabedatei:
+
+```bash
+python scripts/generate_audit_notes.py \
+    --report-dir docs/audits/reports/2026-06-30 \
+    --output docs/audits/audit-notes-2026-06-30.md
+```
+
+| Parameter | Bedeutung | Standard |
+|---|---|---|
+| `--report-dir <PFAD>` | Verzeichnis mit den Rohdaten von `run_audit.sh` | `docs/audits/reports` |
+| `--output <PFAD>` | Ausgabedatei | `<report-dir>/audit-notes-<DATUM>.md` |
+
+> ⚠️ `run_audit.sh` benötigt zusätzlich installierte Tools (`mypy`, `radon`, `bandit`), die nicht in `pyproject.toml` als Pflichtabhängigkeiten geführt sind.
+
+---
+
+## 9. Gelesene Admin-CLI-Befehle
 
 Aus `src/arbeitszeit/presentation/admin_cli/main.py` sind folgende Befehlsgruppen eindeutig belegt:
 
@@ -377,9 +547,44 @@ Aus dem Dispatch in `main.py` sind unter anderem diese konkreten Befehle belegt:
 
 Diese Liste ist belastbar, weil sie direkt aus dem Dispatch der gelesenen `main.py` stammt.
 
+### Beispielaufrufe für Benutzerkonten-Verwaltung
+
+**Benutzerkonto deaktivieren:**
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    users deactivate \
+    --user-id 3
+```
+
+> ⚠️ Hier erscheint `--user-id` zweimal: das erste Mal (global, vor dem Unterbefehl) ist die ID des **aufrufenden** Admins; das zweite Mal (nach `users deactivate`) ist die ID des **Zielkontos**, das deaktiviert werden soll.
+
+**Benutzerkonto reaktivieren:**
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    users reactivate \
+    --user-id 3
+```
+
+**Rolle eines Benutzerkontos ändern:**
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db arbeitszeit.db \
+    --user-id 1 \
+    users change-role \
+    --user-id 3 \
+    --role REVIEWER
+```
+
 ---
 
-## 9. Datenbank und Migrationen
+## 10. Datenbank und Migrationen
 
 Sicher belegt ist das Vorhandensein dieser Migrationsdateien:
 
@@ -394,7 +599,7 @@ Die Migrationslogik in `src/arbeitszeit/infrastructure/db/migrations.py` verarbe
 
 ---
 
-## 10. Was sicher belegt ist
+## 11. Was sicher belegt ist
 
 Die folgenden Aussagen sind durch die tatsächlich gelesenen Dateien abgesichert:
 
@@ -405,15 +610,21 @@ Die folgenden Aussagen sind durch die tatsächlich gelesenen Dateien abgesichert
 - Bootstrap des ersten Administratorkontos
 - Zulässige Rollen für `users add`: `ADMIN`, `REVIEWER`, `TECH`
 - Mitarbeiterverwaltung über `employees add`
+- `employees deactivate` und `cards deactivate` erfordern **positionale** ID-Argumente
+- `cards replace` erfordert `--old-card-id` und `--uid-hash`
+- `users deactivate`, `users reactivate` und `users change-role` erfordern ein eigenes `--user-id` für das Zielkonto
 - Kartenzuweisung über `cards assign --uid-hash`
 - Terminal-UI mit Pflichtparametern `--db`, `--numpad`, `--rfid`, `--terminal-id`
-- Admin-CLI mit verpflichtendem `--db`
+- Admin-CLI mit verpflichtendem `--db`; Benutzer-ID alternativ über `ADMIN_USER_ID`
+- `setup.py` unterstützt nicht-interaktiven Aufruf mit `--backup-dir` und `--export-dir`
 - Vierstellige Migrationsversionen `0001` bis `0006`
 - NAS-bezogene Konfigurationsschlüssel im Backup-Skript
+- `scripts/verify_hardware.py` für Hardware-Smoke-Tests
+- `run_audit.sh` + `scripts/generate_audit_notes.py` für Code-Audit
 
 ---
 
-## 11. Was nicht überbehauptet werden sollte
+## 12. Was nicht überbehauptet werden sollte
 
 Die folgenden Punkte sollten in einer technischen Dokumentation nur dann detailliert dargestellt werden, wenn ihre Implementierung vollständig gelesen und verifiziert wurde:
 
@@ -425,7 +636,7 @@ Die folgenden Punkte sollten in einer technischen Dokumentation nur dann detaill
 
 ---
 
-## 12. Empfehlungen
+## 13. Empfehlungen
 
 Für eine vollständige, dauerhaft belastbare Dokumentation sollten als nächstes diese Teile gezielt separat geprüft werden:
 
@@ -437,4 +648,4 @@ Für eine vollständige, dauerhaft belastbare Dokumentation sollten als nächste
 
 ---
 
-*Bereinigte Fassung des Handbuchs auf Basis des überprüften Repository-Stands `iCodator/arbeitszeit`*
+*Bereinigte und korrigierte Fassung des Handbuchs auf Basis des überprüften Repository-Stands `iCodator/arbeitszeit`*
