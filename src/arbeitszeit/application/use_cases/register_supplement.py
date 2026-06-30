@@ -18,6 +18,11 @@ from arbeitszeit.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    ReviewCaseId,
+    SupplementId,
+)
 
 
 class RegisterSupplementUseCase:
@@ -52,7 +57,7 @@ class RegisterSupplementUseCase:
 
             supplement = self._uow.supplement_repo.add(
                 Supplement(
-                    id=0,
+                    id=SupplementId(0),
                     employee_id=cmd.employee_id,
                     related_booking_id=cmd.related_booking_id,
                     booking_type=cmd.booking_type,
@@ -71,7 +76,7 @@ class RegisterSupplementUseCase:
             now = datetime.now(timezone.utc)
             review_case = self._uow.review_case_repo.add(
                 ReviewCase(
-                    id=0,
+                    id=ReviewCaseId(0),
                     employee_id=cmd.employee_id,
                     case_type=ReviewCaseType.MANUAL_ENTRY_REVIEW,
                     severity=ReviewSeverity.INFO,
@@ -92,7 +97,7 @@ class RegisterSupplementUseCase:
 
             self._uow.audit_log_repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=audit_events.SUPPLEMENT_CREATED,
                     object_type="supplements",
                     object_id=supplement.id,

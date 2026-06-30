@@ -8,6 +8,7 @@ from pathlib import Path
 
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry
+from arbeitszeit.domain.value_objects import AuditLogEntryId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteAuditLogRepository
 
@@ -162,7 +163,7 @@ class SQLiteBackupService:
             repo = SQLiteAuditLogRepository(conn)
             repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=event_type,
                     object_type="backup_service",
                     object_id=0,

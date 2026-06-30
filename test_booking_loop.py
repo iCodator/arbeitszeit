@@ -24,13 +24,13 @@ from __future__ import annotations
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
-from unittest.mock import MagicMock
+from types import TracebackType
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 
-from arbeitszeit.application.results import BookResult
 from arbeitszeit.domain.entities import Employee, RfidCard
 from arbeitszeit.domain.enums import (
     BookingSource,
@@ -45,6 +45,7 @@ from arbeitszeit.domain.errors import (
 )
 from arbeitszeit.infrastructure.hardware.simulator import SimulatedHardwareReader
 from arbeitszeit.presentation.terminal_ui.booking_loop import format_feedback, process_booking
+from arbeitszeit.application.results import BookResult
 from tests.application.fakes import FakeUnitOfWork
 
 # ---------------------------------------------------------------------------
@@ -91,11 +92,7 @@ def _make_uow(
     return uow
 
 
-def _inject(
-    reader: SimulatedHardwareReader,
-    booking_type: BookingType,
-    occurred_at: datetime | None = None,
-) -> None:
+def _inject(reader: SimulatedHardwareReader, booking_type: BookingType, occurred_at: datetime | None = None) -> None:
     reader.inject(
         booking_type=booking_type,
         uid_hash=_UID_HASH,
@@ -103,9 +100,7 @@ def _inject(
     )
 
 
-def _make_reader(
-    booking_type: BookingType, occurred_at: datetime | None = None
-) -> SimulatedHardwareReader:
+def _make_reader(booking_type: BookingType, occurred_at: datetime | None = None) -> SimulatedHardwareReader:
     reader = SimulatedHardwareReader()
     _inject(reader, booking_type, occurred_at)
     return reader

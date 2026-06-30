@@ -27,6 +27,11 @@ from arbeitszeit.domain.services.compliance_checks import (
     check_max_hours,
     check_rest_period,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    ReviewCaseId,
+    TimeBookingId,
+)
 
 
 def _evaluate_booking(
@@ -82,7 +87,7 @@ class BookUseCase:
             if card is None:
                 self._uow.audit_log_repo.add(
                     AuditLogEntry(
-                        id=0,
+                        id=AuditLogEntryId(0),
                         event_type=audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
                         object_type="rfid_cards",
                         object_id=0,
@@ -101,7 +106,7 @@ class BookUseCase:
             if card.status != CardStatus.ACTIVE:
                 self._uow.audit_log_repo.add(
                     AuditLogEntry(
-                        id=0,
+                        id=AuditLogEntryId(0),
                         event_type=audit_events.BOOKING_REJECTED_INACTIVE_CARD,
                         object_type="rfid_cards",
                         object_id=card.id,
@@ -152,7 +157,7 @@ class BookUseCase:
             )
 
             placeholder = TimeBooking(
-                id=0,
+                id=TimeBookingId(0),
                 employee_id=employee.id,
                 booking_type=cmd.booking_type,
                 booked_at=cmd.booked_at,
@@ -170,7 +175,7 @@ class BookUseCase:
 
             booking = self._uow.time_booking_repo.add(
                 TimeBooking(
-                    id=0,
+                    id=TimeBookingId(0),
                     employee_id=employee.id,
                     booking_type=cmd.booking_type,
                     booked_at=cmd.booked_at,
@@ -184,12 +189,12 @@ class BookUseCase:
             )
 
             now = datetime.now(timezone.utc)
-            follow_up_case_ids: list[int] = []
+            follow_up_case_ids: list[ReviewCaseId] = []
 
             for flag in flags:
                 case = self._uow.review_case_repo.add(
                     ReviewCase(
-                        id=0,
+                        id=ReviewCaseId(0),
                         employee_id=employee.id,
                         case_type=flag.case_type,
                         severity=flag.severity,
@@ -211,7 +216,7 @@ class BookUseCase:
 
             self._uow.audit_log_repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=audit_events.TIME_BOOKED,
                     object_type="time_bookings",
                     object_id=booking.id,

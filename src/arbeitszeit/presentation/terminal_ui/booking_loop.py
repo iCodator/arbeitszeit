@@ -7,6 +7,7 @@ from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.results import BookResult
 from arbeitszeit.application.use_cases.book_time import BookUseCase
 from arbeitszeit.domain.enums import BookingSource, BookingStatus
+from arbeitszeit.domain.value_objects import TerminalId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 from arbeitszeit.infrastructure.hardware.ports import HardwareReader
@@ -47,7 +48,7 @@ def process_booking(
         )
         device_event_id = uow.device_event_repo.add(
             event_type="RFID_SCAN",
-            terminal_id=terminal_id,
+            terminal_id=TerminalId(terminal_id),
             rfid_uid_hash=request.uid_hash,
             payload_json=payload_json,
             occurred_at=request.occurred_at,
@@ -55,7 +56,7 @@ def process_booking(
 
         cmd = BookCommand(
             uid_hash=request.uid_hash,
-            terminal_id=terminal_id,
+            terminal_id=TerminalId(terminal_id),
             booking_type=request.booking_type,
             booked_at=request.occurred_at,
             device_event_id=device_event_id,

@@ -17,6 +17,10 @@ from arbeitszeit.domain.errors import (
     PermissionDeniedError,
     ValidationError,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    ReviewCaseId,
+)
 
 
 class RejectSupplementUseCase:
@@ -48,7 +52,7 @@ class RejectSupplementUseCase:
             now = datetime.now(timezone.utc)
             self._uow.supplement_repo.reject(supplement.id, cmd.rejected_by_user_id, now)
 
-            review_case_id: int | None = None
+            review_case_id: ReviewCaseId | None = None
             open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
             for case in open_cases:
                 if (
@@ -70,7 +74,7 @@ class RejectSupplementUseCase:
 
             self._uow.audit_log_repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=audit_events.SUPPLEMENT_REJECTED,
                     object_type="supplements",
                     object_id=supplement.id,

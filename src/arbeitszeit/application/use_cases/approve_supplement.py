@@ -29,6 +29,14 @@ from arbeitszeit.domain.services.compliance_checks import (
     check_max_hours,
     check_rest_period,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    EmployeeId,
+    ReviewCaseId,
+    SupplementId,
+    TimeBookingId,
+    UserAccountId,
+)
 
 
 def _evaluate_booking(
@@ -88,7 +96,7 @@ class ApproveSupplementUseCase:
             now = datetime.now(timezone.utc)
             self._uow.supplement_repo.approve(supplement.id, cmd.approving_user_id, now)
 
-            review_case_id: int | None = None
+            review_case_id: ReviewCaseId | None = None
             open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
             for case in open_cases:
                 if (
@@ -112,7 +120,7 @@ class ApproveSupplementUseCase:
             )
 
             placeholder = TimeBooking(
-                id=0,
+                id=TimeBookingId(0),
                 employee_id=supplement.employee_id,
                 booking_type=supplement.booking_type,
                 booked_at=supplement.event_at,
@@ -147,7 +155,7 @@ class ApproveSupplementUseCase:
 
             booking = self._uow.time_booking_repo.add(
                 TimeBooking(
-                    id=0,
+                    id=TimeBookingId(0),
                     employee_id=supplement.employee_id,
                     booking_type=supplement.booking_type,
                     booked_at=supplement.event_at,
@@ -169,7 +177,7 @@ class ApproveSupplementUseCase:
 
             self._uow.audit_log_repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=audit_events.SUPPLEMENT_APPROVED,
                     object_type="supplements",
                     object_id=supplement.id,
@@ -197,7 +205,7 @@ class ApproveSupplementUseCase:
                 follow_up_case_ids=tuple(follow_up_case_ids),
             )
 
-    def _check_permission(self, user_id: int) -> None:
+    def _check_permission(self, user_id: UserAccountId) -> None:
         approver = self._uow.user_account_repo.get_by_id(user_id)
         if (
             approver is None
@@ -210,18 +218,18 @@ class ApproveSupplementUseCase:
 
     def _create_follow_up_cases(
         self,
-        employee_id: int,
-        booking_id: int,
+        employee_id: EmployeeId,
+        booking_id: TimeBookingId,
         flags: list[ComplianceFlag],
-        approver_id: int,
+        approver_id: UserAccountId,
         now: datetime,
-        supplement_id: int,
-    ) -> list[int]:
-        case_ids: list[int] = []
+        supplement_id: SupplementId,
+    ) -> list[ReviewCaseId]:
+        case_ids: list[ReviewCaseId] = []
         for flag in flags:
             case = self._uow.review_case_repo.add(
                 ReviewCase(
-                    id=0,
+                    id=ReviewCaseId(0),
                     employee_id=employee_id,
                     case_type=flag.case_type,
                     severity=flag.severity,

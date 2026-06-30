@@ -12,6 +12,10 @@ from arbeitszeit.domain.errors import (
     PermissionDeniedError,
     ValidationError,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    WorkScheduleVersionId,
+)
 
 
 class ManageWorkScheduleUseCase:
@@ -55,13 +59,13 @@ class ManageWorkScheduleUseCase:
                     f"(Wochentag {cmd.weekday}). Rückwärts-Einfügen ist nicht erlaubt."
                 )
 
-            superseded_id: int | None = None
+            superseded_id: WorkScheduleVersionId | None = None
             if current is not None:
                 repo.close_version(current.id, cmd.valid_from - timedelta(days=1))
                 superseded_id = current.id
 
             new_version = WorkScheduleVersion(
-                id=0,
+                id=WorkScheduleVersionId(0),
                 scope_type=cmd.scope_type,
                 scope_employee_id=cmd.scope_employee_id,
                 weekday=cmd.weekday,
@@ -79,7 +83,7 @@ class ManageWorkScheduleUseCase:
 
             self._uow.audit_log_repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=audit_events.WORK_SCHEDULE_CHANGED,
                     object_type="work_schedule_versions",
                     object_id=saved.id,

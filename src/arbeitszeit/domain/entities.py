@@ -14,11 +14,24 @@ from arbeitszeit.domain.enums import (
     ScopeType,
     UserRole,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    BookingCorrectionId,
+    DeviceEventId,
+    EmployeeId,
+    ReviewCaseId,
+    RfidCardId,
+    SupplementId,
+    TerminalId,
+    TimeBookingId,
+    UserAccountId,
+    WorkScheduleVersionId,
+)
 
 
 @dataclass(frozen=True)
 class Employee:
-    id: int
+    id: EmployeeId
     personnel_no: str
     first_name: str
     last_name: str
@@ -31,8 +44,8 @@ class Employee:
 
 @dataclass(frozen=True)
 class UserAccount:
-    id: int
-    employee_id: int | None
+    id: UserAccountId
+    employee_id: EmployeeId | None
     username: str
     role: UserRole
     is_active: bool
@@ -44,13 +57,13 @@ class UserAccount:
 
 @dataclass(frozen=True)
 class RfidCard:
-    id: int
-    employee_id: int
+    id: RfidCardId
+    employee_id: EmployeeId
     uid_hash: str
     status: CardStatus
     valid_from: date
     valid_until: date | None
-    replaced_by_card_id: int | None
+    replaced_by_card_id: RfidCardId | None
 
     def __post_init__(self) -> None:
         if self.valid_until is not None and self.valid_until < self.valid_from:
@@ -59,30 +72,30 @@ class RfidCard:
 
 @dataclass(frozen=True)
 class TimeBooking:
-    id: int
-    employee_id: int
+    id: TimeBookingId
+    employee_id: EmployeeId
     booking_type: BookingType
     booked_at: datetime
     source: BookingSource
     status: BookingStatus
-    terminal_id: int | None
-    rfid_card_id: int | None
-    device_event_id: int | None
+    terminal_id: TerminalId | None
+    rfid_card_id: RfidCardId | None
+    device_event_id: DeviceEventId | None
     note: str | None
 
 
 @dataclass(frozen=True)
 class WorkScheduleVersion:
-    id: int
+    id: WorkScheduleVersionId
     scope_type: ScopeType
-    scope_employee_id: int | None
+    scope_employee_id: EmployeeId | None
     weekday: int
     start_time: time
     end_time: time
     valid_from: date
     valid_until: date | None
     change_origin: ChangeOrigin
-    changed_by_user_id: int | None
+    changed_by_user_id: UserAccountId | None
 
     def __post_init__(self) -> None:
         if self.scope_type == ScopeType.GLOBAL and self.scope_employee_id is not None:
@@ -101,16 +114,16 @@ class WorkScheduleVersion:
 
 @dataclass(frozen=True)
 class ReviewCase:
-    id: int
-    employee_id: int
+    id: ReviewCaseId
+    employee_id: EmployeeId
     case_type: ReviewCaseType
     severity: ReviewSeverity
     status: ReviewCaseStatus
     description: str
-    booking_id: int | None
+    booking_id: TimeBookingId | None
     created_at: datetime
     closed_at: datetime | None
-    closed_by_user_id: int | None
+    closed_by_user_id: UserAccountId | None
     note: str | None = None
 
     def __post_init__(self) -> None:
@@ -128,18 +141,18 @@ class ReviewCase:
 
 @dataclass(frozen=True)
 class Supplement:
-    id: int
-    employee_id: int
-    related_booking_id: int | None
+    id: SupplementId
+    employee_id: EmployeeId
+    related_booking_id: TimeBookingId | None
     booking_type: BookingType
     event_at: datetime
     recorded_at: datetime
     reason: str
-    recorded_by_user_id: int
+    recorded_by_user_id: UserAccountId
     approval_status: ApprovalStatus
-    approved_by_user_id: int | None
+    approved_by_user_id: UserAccountId | None
     approved_at: datetime | None
-    rejected_by_user_id: int | None = None
+    rejected_by_user_id: UserAccountId | None = None
     rejected_at: datetime | None = None
 
     def __post_init__(self) -> None:
@@ -176,9 +189,9 @@ class Supplement:
 
 @dataclass(frozen=True)
 class BookingCorrection:
-    id: int
-    original_booking_id: int
-    corrected_by_user_id: int
+    id: BookingCorrectionId
+    original_booking_id: TimeBookingId
+    corrected_by_user_id: UserAccountId
     reason: str
     old_booking_type: BookingType
     old_booked_at: datetime
@@ -196,7 +209,7 @@ class BookingCorrection:
 
 @dataclass(frozen=True)
 class AuditLogEntry:
-    id: int
+    id: AuditLogEntryId
     event_type: str
     # object_type Konvention:
     #   Entitätsereignisse: exakter Tabellenname in snake_case
@@ -205,8 +218,8 @@ class AuditLogEntry:
     #     (z. B. "backup_service").
     # Einheitliche snake_case-Schreibweise für alle Werte.
     object_type: str
-    object_id: int
-    user_id: int | None
-    employee_id: int | None
+    object_id: int  # polymorph: Row-ID aus verschiedenen Tabellen
+    user_id: UserAccountId | None
+    employee_id: EmployeeId | None
     event_at: datetime
     details_json: str

@@ -17,6 +17,11 @@ from arbeitszeit.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    BookingCorrectionId,
+    ReviewCaseId,
+)
 
 # Nur Prüffälle, die inhaltlich durch Korrektur der Buchung erledigt sind.
 # MANUAL_ENTRY_REVIEW (Nachtragsprozess), UNKNOWN_CARD_ATTEMPT, INACTIVE_CARD_ATTEMPT
@@ -65,7 +70,7 @@ class CorrectBookingUseCase:
 
             correction = self._uow.booking_correction_repo.add(
                 BookingCorrection(
-                    id=0,
+                    id=BookingCorrectionId(0),
                     original_booking_id=booking.id,
                     corrected_by_user_id=cmd.corrected_by_user_id,
                     reason=cmd.reason,
@@ -85,7 +90,7 @@ class CorrectBookingUseCase:
             )
 
             open_cases = self._uow.review_case_repo.list_open_for_employee(booking.employee_id)
-            review_case_id: int | None = None
+            review_case_id: ReviewCaseId | None = None
             for case in open_cases:
                 if case.booking_id == booking.id and case.case_type in _CORRECTABLE_CASE_TYPES:
                     self._uow.review_case_repo.resolve(
@@ -102,7 +107,7 @@ class CorrectBookingUseCase:
 
             self._uow.audit_log_repo.add(
                 AuditLogEntry(
-                    id=0,
+                    id=AuditLogEntryId(0),
                     event_type=audit_events.BOOKING_CORRECTED,
                     object_type="booking_corrections",
                     object_id=correction.id,

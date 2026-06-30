@@ -11,6 +11,7 @@ from arbeitszeit.application.use_cases.manage_work_schedule import (
 )
 from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
 from arbeitszeit.domain.errors import DomainError
+from arbeitszeit.domain.value_objects import UserAccountId
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 _WEEKDAY_NAMES = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"}
@@ -48,7 +49,7 @@ def cmd_schedule_set(
         end_time=_parse_time(args.end),
         valid_from=valid_from,
         change_origin=ChangeOrigin.ADMIN_UI,
-        changed_by_user_id=user_id,
+        changed_by_user_id=UserAccountId(user_id),
         reason=None,
     )
     try:

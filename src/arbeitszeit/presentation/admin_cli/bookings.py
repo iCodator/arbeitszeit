@@ -26,6 +26,12 @@ from arbeitszeit.application.use_cases.register_supplement import (
 from arbeitszeit.application.use_cases.reject_supplement import RejectSupplementUseCase
 from arbeitszeit.domain.enums import BookingType
 from arbeitszeit.domain.errors import DomainError
+from arbeitszeit.domain.value_objects import (
+    EmployeeId,
+    SupplementId,
+    TimeBookingId,
+    UserAccountId,
+)
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 
@@ -64,8 +70,8 @@ def cmd_bookings_correct(
     user_id: int,
 ) -> None:
     cmd = CreateCorrectionCommand(
-        original_booking_id=args.booking_id,
-        corrected_by_user_id=user_id,
+        original_booking_id=TimeBookingId(args.booking_id),
+        corrected_by_user_id=UserAccountId(user_id),
         reason=args.reason,
         new_booking_type=_parse_booking_type(args.type),
         new_booked_at=_parse_dt(args.at),
@@ -89,13 +95,15 @@ def cmd_bookings_supplement(
 ) -> None:
     now = datetime.now(timezone.utc)
     cmd = CreateSupplementCommand(
-        employee_id=args.employee_id,
-        related_booking_id=args.related_booking_id,
+        employee_id=EmployeeId(args.employee_id),
+        related_booking_id=(
+            TimeBookingId(args.related_booking_id) if args.related_booking_id is not None else None
+        ),
         booking_type=_parse_booking_type(args.type),
         event_at=_parse_dt(args.at),
         recorded_at=now,
         reason=args.reason,
-        recorded_by_user_id=user_id,
+        recorded_by_user_id=UserAccountId(user_id),
     )
     try:
         result = RegisterSupplementUseCase(_make_uow(conn, audit_conn)).execute(cmd)
@@ -115,8 +123,8 @@ def cmd_bookings_approve_supplement(
     user_id: int,
 ) -> None:
     cmd = ApproveSupplementCommand(
-        supplement_id=args.supplement_id,
-        approving_user_id=user_id,
+        supplement_id=SupplementId(args.supplement_id),
+        approving_user_id=UserAccountId(user_id),
     )
     try:
         result = ApproveSupplementUseCase(_make_uow(conn, audit_conn)).execute(cmd)
@@ -136,8 +144,8 @@ def cmd_bookings_reject_supplement(
     user_id: int,
 ) -> None:
     cmd = RejectSupplementCommand(
-        supplement_id=args.supplement_id,
-        rejected_by_user_id=user_id,
+        supplement_id=SupplementId(args.supplement_id),
+        rejected_by_user_id=UserAccountId(user_id),
         reason=args.reason,
     )
     try:
