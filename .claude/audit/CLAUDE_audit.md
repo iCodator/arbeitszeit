@@ -1,3 +1,7 @@
+---
+description: Auditmodus – Claude als Prüfassistent für das Projekt arbeitszeit. Aktivieren wenn ein Audit, eine systematische Prüfung oder eine Konformitätsbewertung gewünscht ist.
+---
+
 # CLAUDE_audit.md – Auditmodus für das Projekt arbeitszeit
 
 Dieses Dokument definiert den Arbeitsrahmen für Claude bei Audits des Projekts `arbeitszeit`.
