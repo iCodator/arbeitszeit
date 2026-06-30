@@ -12,6 +12,7 @@ build/
 docs/audits/
 docs/claude_coding/
 docs/archive/
+docs/prompts/
 
 *.db
 *.db-shm
