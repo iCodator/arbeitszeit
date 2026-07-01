@@ -487,12 +487,13 @@ eine neue Version und schließt die Vorgängerversion.
 
 | Befehl | Beschreibung | Rolle |
 | --- | --- | --- |
-| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD` | Globale Regelarbeitszeit setzen | `ADMIN` ¹ |
+| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD [--employee-id ID]` | Regelarbeitszeit setzen — global oder mitarbeiterspezifisch | `ADMIN` ¹ |
 | `schedule show` | Alle aktiven Versionen anzeigen (global + mitarbeiterspezifisch) | `ADMIN`, `REVIEWER` |
 
-¹ Die `ADMIN`-Prüfung für `schedule set` erfolgt im `ManageWorkScheduleUseCase`
-(Anwendungsschicht), nicht in der CLI selbst. `schedule show` prüft die Rolle
-hingegen direkt in der CLI (`_require_admin_or_reviewer`).
+¹ Ohne `--employee-id` wird eine globale Version (`ScopeType.GLOBAL`) gesetzt; mit
+`--employee-id` eine mitarbeiterspezifische Ausnahme (`ScopeType.EMPLOYEE`). Die
+`ADMIN`-Prüfung erfolgt im `ManageWorkScheduleUseCase` (Anwendungsschicht), nicht
+in der CLI. `schedule show` prüft die Rolle direkt in der CLI (`_require_admin_or_reviewer`).
 
 ---
 
@@ -507,9 +508,9 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 | Befehl | Beschreibung |
 | --- | --- |
 | `reports export-csv --from … --to … [--employee-id …]` | Zwei CSV-Dateien: Detailbuchungen + verdichtete Übersicht |
-| `reports export-pdf-day YYYY-MM-DD` | Tagesbericht als PDF |
-| `reports export-pdf-week <Jahr> <KW>` | Wochenbericht (ISO-Woche) als PDF |
-| `reports export-pdf-month <Jahr> <Monat>` | Monatsbericht als PDF |
+| `reports export-pdf-day --date YYYY-MM-DD` | Tagesbericht als PDF |
+| `reports export-pdf-week --year YYYY --week WW` | Wochenbericht (ISO-Woche) als PDF |
+| `reports export-pdf-month --year YYYY --month MM` | Monatsbericht als PDF |
 | `reports export-pdf-employee --employee-id … --from … --to …` | Mitarbeiterbericht als PDF |
 
 #### Pflichtauswertungen
@@ -532,8 +533,8 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 | `system backup` | Manuelles Backup der SQLite-Datenbank auslösen; bei aktivierter NAS-Synchronisation (`backup.nas_enabled`) wird das Backup auch auf den NAS-Pfad kopiert | `ADMIN`, `TECH` |
 
 Der Backup-Dienst liest Zielverzeichnis und NAS-Pfad aus `system_config`.
-Schlägt die NAS-Synchronisation fehl, wird nur eine Warnung ausgegeben —
-der Prozess endet nicht mit Fehler.
+Schlägt die NAS-Synchronisation fehl, endet der Prozess mit Exitcode 1 —
+das lokale Backup ist zu diesem Zeitpunkt bereits erfolgreich erstellt.
 
 ---
 
@@ -626,6 +627,16 @@ Logik. Die Use Cases konsumieren Commands als einzigen Eingabeparameter.
 | `ApproveSupplementCommand` | Nachtrag genehmigen |
 | `RejectSupplementCommand` | Nachtrag ablehnen (mit Begründung) |
 | `ChangeWorkScheduleCommand` | Regelarbeitszeit für Wochentag/Scope setzen |
+| `CreateEmployeeCommand` | Mitarbeiter anlegen (ADMIN) |
+| `DeactivateEmployeeCommand` | Mitarbeiter deaktivieren (ADMIN) |
+| `AssignRfidCardCommand` | RFID-Karte einem Mitarbeiter zuweisen (ADMIN) |
+| `ReplaceRfidCardCommand` | RFID-Karte ersetzen (ADMIN) |
+| `DeactivateRfidCardCommand` | RFID-Karte deaktivieren (ADMIN) |
+| `CreateUserAccountCommand` | Benutzerkonto anlegen (ADMIN) |
+| `DeactivateUserAccountCommand` | Benutzerkonto deaktivieren (ADMIN) |
+| `ReactivateUserAccountCommand` | Benutzerkonto reaktivieren (ADMIN) |
+| `ChangeUserRoleCommand` | Rolle eines Benutzerkontos ändern (ADMIN) |
+| `BootstrapAdminCommand` | Ersten Admin-Account anlegen (kein Actor erforderlich) |
 
 Alle Commands importieren ihre Value-Object-Typen (z. B. `EmployeeId`,
 `TerminalId`) aus `arbeitszeit.domain.value_objects`, um Typsicherheit
@@ -647,6 +658,14 @@ die Präsentationsschicht für Rückmeldungen oder Folgeverarbeitungen benötigt
 | `WorkScheduleChangeResult` | `new_version_id`, `superseded_version_id` |
 | `ApproveSupplementResult` | `supplement_id`, `booking_id`, `booking_status`, `follow_up_case_ids` |
 | `RejectSupplementResult` | `supplement_id`, `review_case_id` |
+| `CreateEmployeeResult` | `employee_id` |
+| `AssignRfidCardResult` | `card_id` |
+| `ReplaceRfidCardResult` | `new_card_id` |
+| `CreateUserAccountResult` | `user_id` |
+| `BootstrapAdminResult` | `user_id`, `username` |
+
+Void-Use-Cases (Deactivate/Reactivate/ChangeRole) geben `None` zurück — kein
+eigenes Result-Objekt, da die Präsentationsschicht keine Rückgabedaten benötigt.
 
 ---
 
@@ -843,15 +862,102 @@ dürfen diesen Use Case ausführen.
 
 ---
 
+#### 4.6.7 Mitarbeiterverwaltung (`manage_employees.py`)
+
+Beide Use Cases erfordern `ADMIN`-Rolle.
+
+**`CreateEmployeeUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Duplikat-Personalnummer prüfen → `ConflictError`
+3. `Employee`-Entität anlegen via `EmployeeRepository.add()`
+4. `commit()` → Audit-Log `EMPLOYEE_CREATED` schreiben
+5. `CreateEmployeeResult(employee_id)` zurückgeben
+
+**`DeactivateEmployeeUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Existenz prüfen → `NotFoundError`
+3. `EmployeeRepository.deactivate()` aufrufen
+4. `commit()` → Audit-Log `EMPLOYEE_DEACTIVATED` schreiben
+
+---
+
+#### 4.6.8 RFID-Kartenverwaltung (`manage_rfid_cards.py`)
+
+Alle drei Use Cases erfordern `ADMIN`-Rolle.
+
+**`AssignRfidCardUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Mitarbeiter-Existenz prüfen → `NotFoundError`
+3. UID-Duplikat prüfen → `ConflictError`
+4. Neue `RfidCard` mit Status `ACTIVE` anlegen
+5. `commit()` → Audit-Log `CARD_ASSIGNED` schreiben
+6. `AssignRfidCardResult(card_id)` zurückgeben
+
+**`ReplaceRfidCardUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Alte Karte laden → `NotFoundError`
+3. UID-Duplikat prüfen → `ConflictError`
+4. Neue `RfidCard` mit Status `ACTIVE` anlegen
+5. Alte Karte auf `REPLACED` setzen (`replaced_by_card_id`, `valid_until = today`)
+6. `commit()` → Audit-Log `CARD_REPLACED` schreiben
+7. `ReplaceRfidCardResult(new_card_id)` zurückgeben
+
+**`DeactivateRfidCardUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Karte laden → `NotFoundError`
+3. Status auf `INACTIVE` setzen
+4. `commit()` → Audit-Log `CARD_DEACTIVATED` schreiben
+
+---
+
+#### 4.6.9 Benutzerkontenverwaltung (`manage_user_accounts.py`)
+
+**`CreateUserAccountUseCase`** (ADMIN)
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Rolle prüfen: nur `ADMIN`, `REVIEWER`, `TECH` erlaubt → `ValidationError`
+3. Username-Duplikat prüfen → `ConflictError`
+4. Konto anlegen via `UserAccountRepository.add(account, password_hash)`
+5. `commit()` → Audit-Log `USER_ACCOUNT_CREATED` schreiben
+6. `CreateUserAccountResult(user_id)` zurückgeben
+
+**`DeactivateUserAccountUseCase`** / **`ReactivateUserAccountUseCase`** (ADMIN)
+
+Je: Berechtigungsprüfung → Existenzprüfung → Statusänderung → `commit()` →
+Audit-Log (`USER_ACCOUNT_DEACTIVATED` / `USER_ACCOUNT_REACTIVATED`).
+
+**`ChangeUserRoleUseCase`** (ADMIN)
+
+Prüft zusätzlich, dass die neue Rolle nicht `EMPLOYEE` ist (`ValidationError`).
+Audit-Log `USER_ACCOUNT_ROLE_CHANGED` enthält alte und neue Rolle.
+
+**`BootstrapAdminUseCase`** (kein Actor)
+
+Sonderfall: kein `acting_user_id` im Command. Prüft via `has_active_admin()`,
+ob bereits ein aktiver Admin existiert → `ConflictError`. Legt den ersten
+Admin-Account an; im Audit-Log wird `user_id = saved.id` (Self-Reference)
+verwendet. Gibt `BootstrapAdminResult(user_id, username)` zurück.
+
+---
+
 ### 4.7 Querschnittliche Entwurfsprinzipien
 
 #### Berechtigungsprüfung
 
-Alle manuellen Use Cases (Korrektur, Nachtrag, Regelzeitänderung) prüfen
-zu Beginn die Benutzerrolle und werfen `PermissionDeniedError`, bevor sie
-irgendwelche Datenbankzugriffe ausführen. Terminal-Buchungen (`BookUseCase`)
-benötigen keine Rollenprüfung — die RFID-Karte ist das Authentifikationsmittel
-des Mitarbeiters (Regelwerk v5 §16).
+Alle manuellen Use Cases prüfen zu Beginn die Benutzerrolle und werfen
+`PermissionDeniedError`, bevor sie irgendwelche Datenbankzugriffe ausführen:
+
+- `ADMIN` + `REVIEWER`: Korrektur, Nachtrag (erfassen/genehmigen/ablehnen)
+- Nur `ADMIN`: Regelzeitänderung, Mitarbeiterverwaltung, Kartenverwaltung,
+  Benutzerkontenverwaltung
+- Kein Actor: `BootstrapAdminUseCase` (Existenzprüfung ersetzt Rollencheck)
+- Kein Rollencheck: Terminal-Buchungen (`BookUseCase`) — die RFID-Karte ist
+  das Authentifikationsmittel des Mitarbeiters (Regelwerk v5 §16).
 
 #### Audit-Log-Konsistenz
 
@@ -1243,9 +1349,9 @@ ohne dass das Domain-Modell sie importiert – klassische Dependency Inversion.
 
 | Protokoll                   | Zuständigkeit                                         |
 |-----------------------------|-------------------------------------------------------|
-| `EmployeeRepository`        | Mitarbeiter lesen                                     |
-| `UserAccountRepository`     | Benutzerkonten lesen                                  |
-| `RfidCardRepository`        | RFID-Karten lesen (inkl. UID-Hash-Lookup)             |
+| `EmployeeRepository`        | Mitarbeiter lesen und schreiben                       |
+| `UserAccountRepository`     | Benutzerkonten lesen und schreiben                    |
+| `RfidCardRepository`        | RFID-Karten lesen und schreiben (inkl. UID-Hash-Lookup) |
 | `TimeBookingRepository`     | Buchungen schreiben, lesen, Status setzen             |
 | `WorkScheduleRepository`    | Regelarbeitszeiten verwalten (Versionen, Gültigkeit)  |
 | `ReviewCaseRepository`      | Prüffälle anlegen und abschließen                     |
@@ -1543,9 +1649,9 @@ wandelt `sqlite3.Row` in das Domänenobjekt um; alle Zeitstempel werden über
 | Repository-Klasse | Tabelle | Kernmethoden |
 |---|---|---|
 | `SQLiteTimeBookingRepository` | `time_bookings` | `add`, `get_by_id`, `list_for_employee_on_day`, `list_open_for_employee`, `list_between`, `set_status` |
-| `SQLiteEmployeeRepository` | `employees` | `get_by_id`, `get_active_by_personnel_no` |
-| `SQLiteRfidCardRepository` | `rfid_cards` | `get_by_uid_hash`, `get_active_by_uid_hash`, `get_by_id` |
-| `SQLiteUserAccountRepository` | `user_accounts` | `get_by_id`, `get_by_username`, `add` |
+| `SQLiteEmployeeRepository` | `employees` | `add`, `get_by_id`, `get_active_by_personnel_no`, `deactivate` |
+| `SQLiteRfidCardRepository` | `rfid_cards` | `add`, `get_by_uid_hash`, `get_active_by_uid_hash`, `get_by_id`, `set_status` |
+| `SQLiteUserAccountRepository` | `user_accounts` | `add(account, password_hash)`, `get_by_id`, `get_by_username`, `deactivate`, `reactivate`, `set_role`, `has_active_admin` |
 | `SQLiteWorkScheduleRepository` | `work_schedule_versions` | `add`, `close_version`, `get_effective` |
 | `SQLiteReviewCaseRepository` | `review_cases` | `add`, `list_open_for_employee`, `resolve` |
 | `SQLiteBookingCorrectionRepository` | `booking_corrections` | `add`, `list_for_booking` |
@@ -1738,7 +1844,10 @@ vollständig lesbar und schreibbar — kein Sperren, kein Downtime.
 **`sync_to_nas(nas_path)`**: Synchronisiert `backup_dir/` → NAS via `rsync --archive --delete`.
 
 - Schlägt die Synchronisation fehl, wird `BACKUP_SYNC_FAILED` mit Returncode,
-  Befehlszeile und stderr ins Audit-Log geschrieben; die Ausnahme wird weitergereicht.
+  Befehlszeile und stderr ins Audit-Log geschrieben; die Ausnahme wird
+  weitergereicht. `cmd_system_backup` in der Präsentationsschicht fängt diese
+  Ausnahme und endet mit Exitcode 1 (das lokale Backup ist zu diesem Zeitpunkt
+  bereits vollständig erstellt).
 - Erfolg wird mit `BACKUP_SYNCED_TO_NAS` protokolliert.
 
 **`restore_from(backup_path, restore_exports?)`**: Stellt die Datenbank aus einer

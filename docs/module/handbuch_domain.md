@@ -332,9 +332,9 @@ ohne dass das Domain-Modell sie importiert – klassische Dependency Inversion.
 
 | Protokoll                   | Zuständigkeit                                         |
 |-----------------------------|-------------------------------------------------------|
-| `EmployeeRepository`        | Mitarbeiter lesen                                     |
-| `UserAccountRepository`     | Benutzerkonten lesen                                  |
-| `RfidCardRepository`        | RFID-Karten lesen (inkl. UID-Hash-Lookup)             |
+| `EmployeeRepository`        | Mitarbeiter lesen und schreiben                       |
+| `UserAccountRepository`     | Benutzerkonten lesen und schreiben                    |
+| `RfidCardRepository`        | RFID-Karten lesen und schreiben (inkl. UID-Hash-Lookup) |
 | `TimeBookingRepository`     | Buchungen schreiben, lesen, Status setzen             |
 | `WorkScheduleRepository`    | Regelarbeitszeiten verwalten (Versionen, Gültigkeit)  |
 | `ReviewCaseRepository`      | Prüffälle anlegen und abschließen                     |

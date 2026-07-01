@@ -110,9 +110,9 @@ wandelt `sqlite3.Row` in das Domänenobjekt um; alle Zeitstempel werden über
 | Repository-Klasse | Tabelle | Kernmethoden |
 |---|---|---|
 | `SQLiteTimeBookingRepository` | `time_bookings` | `add`, `get_by_id`, `list_for_employee_on_day`, `list_open_for_employee`, `list_between`, `set_status` |
-| `SQLiteEmployeeRepository` | `employees` | `get_by_id`, `get_active_by_personnel_no` |
-| `SQLiteRfidCardRepository` | `rfid_cards` | `get_by_uid_hash`, `get_active_by_uid_hash`, `get_by_id` |
-| `SQLiteUserAccountRepository` | `user_accounts` | `get_by_id`, `get_by_username`, `add` |
+| `SQLiteEmployeeRepository` | `employees` | `add`, `get_by_id`, `get_active_by_personnel_no`, `deactivate` |
+| `SQLiteRfidCardRepository` | `rfid_cards` | `add`, `get_by_uid_hash`, `get_active_by_uid_hash`, `get_by_id`, `set_status` |
+| `SQLiteUserAccountRepository` | `user_accounts` | `add(account, password_hash)`, `get_by_id`, `get_by_username`, `deactivate`, `reactivate`, `set_role`, `has_active_admin` |
 | `SQLiteWorkScheduleRepository` | `work_schedule_versions` | `add`, `close_version`, `get_effective` |
 | `SQLiteReviewCaseRepository` | `review_cases` | `add`, `list_open_for_employee`, `resolve` |
 | `SQLiteBookingCorrectionRepository` | `booking_corrections` | `add`, `list_for_booking` |
@@ -305,7 +305,10 @@ vollständig lesbar und schreibbar — kein Sperren, kein Downtime.
 **`sync_to_nas(nas_path)`**: Synchronisiert `backup_dir/` → NAS via `rsync --archive --delete`.
 
 - Schlägt die Synchronisation fehl, wird `BACKUP_SYNC_FAILED` mit Returncode,
-  Befehlszeile und stderr ins Audit-Log geschrieben; die Ausnahme wird weitergereicht.
+  Befehlszeile und stderr ins Audit-Log geschrieben; die Ausnahme wird
+  weitergereicht. `cmd_system_backup` in der Präsentationsschicht fängt diese
+  Ausnahme und endet mit Exitcode 1 (das lokale Backup ist zu diesem Zeitpunkt
+  bereits vollständig erstellt).
 - Erfolg wird mit `BACKUP_SYNCED_TO_NAS` protokolliert.
 
 **`restore_from(backup_path, restore_exports?)`**: Stellt die Datenbank aus einer

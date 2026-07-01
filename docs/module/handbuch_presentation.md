@@ -179,12 +179,13 @@ eine neue Version und schließt die Vorgängerversion.
 
 | Befehl | Beschreibung | Rolle |
 | --- | --- | --- |
-| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD` | Globale Regelarbeitszeit setzen | `ADMIN` ¹ |
+| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD [--employee-id ID]` | Regelarbeitszeit setzen — global oder mitarbeiterspezifisch | `ADMIN` ¹ |
 | `schedule show` | Alle aktiven Versionen anzeigen (global + mitarbeiterspezifisch) | `ADMIN`, `REVIEWER` |
 
-¹ Die `ADMIN`-Prüfung für `schedule set` erfolgt im `ManageWorkScheduleUseCase`
-(Anwendungsschicht), nicht in der CLI selbst. `schedule show` prüft die Rolle
-hingegen direkt in der CLI (`_require_admin_or_reviewer`).
+¹ Ohne `--employee-id` wird eine globale Version (`ScopeType.GLOBAL`) gesetzt; mit
+`--employee-id` eine mitarbeiterspezifische Ausnahme (`ScopeType.EMPLOYEE`). Die
+`ADMIN`-Prüfung erfolgt im `ManageWorkScheduleUseCase` (Anwendungsschicht), nicht
+in der CLI. `schedule show` prüft die Rolle direkt in der CLI (`_require_admin_or_reviewer`).
 
 ---
 
@@ -199,9 +200,9 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 | Befehl | Beschreibung |
 | --- | --- |
 | `reports export-csv --from … --to … [--employee-id …]` | Zwei CSV-Dateien: Detailbuchungen + verdichtete Übersicht |
-| `reports export-pdf-day YYYY-MM-DD` | Tagesbericht als PDF |
-| `reports export-pdf-week <Jahr> <KW>` | Wochenbericht (ISO-Woche) als PDF |
-| `reports export-pdf-month <Jahr> <Monat>` | Monatsbericht als PDF |
+| `reports export-pdf-day --date YYYY-MM-DD` | Tagesbericht als PDF |
+| `reports export-pdf-week --year YYYY --week WW` | Wochenbericht (ISO-Woche) als PDF |
+| `reports export-pdf-month --year YYYY --month MM` | Monatsbericht als PDF |
 | `reports export-pdf-employee --employee-id … --from … --to …` | Mitarbeiterbericht als PDF |
 
 ### Pflichtauswertungen
@@ -224,8 +225,8 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 | `system backup` | Manuelles Backup der SQLite-Datenbank auslösen; bei aktivierter NAS-Synchronisation (`backup.nas_enabled`) wird das Backup auch auf den NAS-Pfad kopiert | `ADMIN`, `TECH` |
 
 Der Backup-Dienst liest Zielverzeichnis und NAS-Pfad aus `system_config`.
-Schlägt die NAS-Synchronisation fehl, wird nur eine Warnung ausgegeben —
-der Prozess endet nicht mit Fehler.
+Schlägt die NAS-Synchronisation fehl, endet der Prozess mit Exitcode 1 —
+das lokale Backup ist zu diesem Zeitpunkt bereits erfolgreich erstellt.
 
 ---
 

@@ -54,6 +54,16 @@ Logik. Die Use Cases konsumieren Commands als einzigen Eingabeparameter.
 | `ApproveSupplementCommand` | Nachtrag genehmigen |
 | `RejectSupplementCommand` | Nachtrag ablehnen (mit Begründung) |
 | `ChangeWorkScheduleCommand` | Regelarbeitszeit für Wochentag/Scope setzen |
+| `CreateEmployeeCommand` | Mitarbeiter anlegen (ADMIN) |
+| `DeactivateEmployeeCommand` | Mitarbeiter deaktivieren (ADMIN) |
+| `AssignRfidCardCommand` | RFID-Karte einem Mitarbeiter zuweisen (ADMIN) |
+| `ReplaceRfidCardCommand` | RFID-Karte ersetzen (ADMIN) |
+| `DeactivateRfidCardCommand` | RFID-Karte deaktivieren (ADMIN) |
+| `CreateUserAccountCommand` | Benutzerkonto anlegen (ADMIN) |
+| `DeactivateUserAccountCommand` | Benutzerkonto deaktivieren (ADMIN) |
+| `ReactivateUserAccountCommand` | Benutzerkonto reaktivieren (ADMIN) |
+| `ChangeUserRoleCommand` | Rolle eines Benutzerkontos ändern (ADMIN) |
+| `BootstrapAdminCommand` | Ersten Admin-Account anlegen (kein Actor erforderlich) |
 
 Alle Commands importieren ihre Value-Object-Typen (z. B. `EmployeeId`,
 `TerminalId`) aus `arbeitszeit.domain.value_objects`, um Typsicherheit
@@ -75,6 +85,14 @@ die Präsentationsschicht für Rückmeldungen oder Folgeverarbeitungen benötigt
 | `WorkScheduleChangeResult` | `new_version_id`, `superseded_version_id` |
 | `ApproveSupplementResult` | `supplement_id`, `booking_id`, `booking_status`, `follow_up_case_ids` |
 | `RejectSupplementResult` | `supplement_id`, `review_case_id` |
+| `CreateEmployeeResult` | `employee_id` |
+| `AssignRfidCardResult` | `card_id` |
+| `ReplaceRfidCardResult` | `new_card_id` |
+| `CreateUserAccountResult` | `user_id` |
+| `BootstrapAdminResult` | `user_id`, `username` |
+
+Void-Use-Cases (Deactivate/Reactivate/ChangeRole) geben `None` zurück — kein
+eigenes Result-Objekt, da die Präsentationsschicht keine Rückgabedaten benötigt.
 
 ---
 
@@ -271,15 +289,102 @@ dürfen diesen Use Case ausführen.
 
 ---
 
+### 4.6.7 Mitarbeiterverwaltung (`manage_employees.py`)
+
+Beide Use Cases erfordern `ADMIN`-Rolle.
+
+**`CreateEmployeeUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Duplikat-Personalnummer prüfen → `ConflictError`
+3. `Employee`-Entität anlegen via `EmployeeRepository.add()`
+4. `commit()` → Audit-Log `EMPLOYEE_CREATED` schreiben
+5. `CreateEmployeeResult(employee_id)` zurückgeben
+
+**`DeactivateEmployeeUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Existenz prüfen → `NotFoundError`
+3. `EmployeeRepository.deactivate()` aufrufen
+4. `commit()` → Audit-Log `EMPLOYEE_DEACTIVATED` schreiben
+
+---
+
+### 4.6.8 RFID-Kartenverwaltung (`manage_rfid_cards.py`)
+
+Alle drei Use Cases erfordern `ADMIN`-Rolle.
+
+**`AssignRfidCardUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Mitarbeiter-Existenz prüfen → `NotFoundError`
+3. UID-Duplikat prüfen → `ConflictError`
+4. Neue `RfidCard` mit Status `ACTIVE` anlegen
+5. `commit()` → Audit-Log `CARD_ASSIGNED` schreiben
+6. `AssignRfidCardResult(card_id)` zurückgeben
+
+**`ReplaceRfidCardUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Alte Karte laden → `NotFoundError`
+3. UID-Duplikat prüfen → `ConflictError`
+4. Neue `RfidCard` mit Status `ACTIVE` anlegen
+5. Alte Karte auf `REPLACED` setzen (`replaced_by_card_id`, `valid_until = today`)
+6. `commit()` → Audit-Log `CARD_REPLACED` schreiben
+7. `ReplaceRfidCardResult(new_card_id)` zurückgeben
+
+**`DeactivateRfidCardUseCase`**
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Karte laden → `NotFoundError`
+3. Status auf `INACTIVE` setzen
+4. `commit()` → Audit-Log `CARD_DEACTIVATED` schreiben
+
+---
+
+### 4.6.9 Benutzerkontenverwaltung (`manage_user_accounts.py`)
+
+**`CreateUserAccountUseCase`** (ADMIN)
+
+1. Berechtigungsprüfung (`ADMIN`)
+2. Rolle prüfen: nur `ADMIN`, `REVIEWER`, `TECH` erlaubt → `ValidationError`
+3. Username-Duplikat prüfen → `ConflictError`
+4. Konto anlegen via `UserAccountRepository.add(account, password_hash)`
+5. `commit()` → Audit-Log `USER_ACCOUNT_CREATED` schreiben
+6. `CreateUserAccountResult(user_id)` zurückgeben
+
+**`DeactivateUserAccountUseCase`** / **`ReactivateUserAccountUseCase`** (ADMIN)
+
+Je: Berechtigungsprüfung → Existenzprüfung → Statusänderung → `commit()` →
+Audit-Log (`USER_ACCOUNT_DEACTIVATED` / `USER_ACCOUNT_REACTIVATED`).
+
+**`ChangeUserRoleUseCase`** (ADMIN)
+
+Prüft zusätzlich, dass die neue Rolle nicht `EMPLOYEE` ist (`ValidationError`).
+Audit-Log `USER_ACCOUNT_ROLE_CHANGED` enthält alte und neue Rolle.
+
+**`BootstrapAdminUseCase`** (kein Actor)
+
+Sonderfall: kein `acting_user_id` im Command. Prüft via `has_active_admin()`,
+ob bereits ein aktiver Admin existiert → `ConflictError`. Legt den ersten
+Admin-Account an; im Audit-Log wird `user_id = saved.id` (Self-Reference)
+verwendet. Gibt `BootstrapAdminResult(user_id, username)` zurück.
+
+---
+
 ## 4.7 Querschnittliche Entwurfsprinzipien
 
 ### Berechtigungsprüfung
 
-Alle manuellen Use Cases (Korrektur, Nachtrag, Regelzeitänderung) prüfen
-zu Beginn die Benutzerrolle und werfen `PermissionDeniedError`, bevor sie
-irgendwelche Datenbankzugriffe ausführen. Terminal-Buchungen (`BookUseCase`)
-benötigen keine Rollenprüfung — die RFID-Karte ist das Authentifikationsmittel
-des Mitarbeiters (Regelwerk v5 §16).
+Alle manuellen Use Cases prüfen zu Beginn die Benutzerrolle und werfen
+`PermissionDeniedError`, bevor sie irgendwelche Datenbankzugriffe ausführen:
+
+- `ADMIN` + `REVIEWER`: Korrektur, Nachtrag (erfassen/genehmigen/ablehnen)
+- Nur `ADMIN`: Regelzeitänderung, Mitarbeiterverwaltung, Kartenverwaltung,
+  Benutzerkontenverwaltung
+- Kein Actor: `BootstrapAdminUseCase` (Existenzprüfung ersetzt Rollencheck)
+- Kein Rollencheck: Terminal-Buchungen (`BookUseCase`) — die RFID-Karte ist
+  das Authentifikationsmittel des Mitarbeiters (Regelwerk v5 §16).
 
 ### Audit-Log-Konsistenz
 
