@@ -9,23 +9,23 @@ Die Anlage macht nachvollziehbar, welche Inhalte des Pflichtenhefts unmittelbar 
 ## Zuordnungstabelle
 
 | Bereich im Pflichtenheft | Anforderung | Primäre Grundlage | Kammerkommunikation | Status für das Projekt |
-|---|---|---|---|---|
-| Ziel / Rechtsrahmen | Objektives, verlässliches und zugängliches Arbeitszeiterfassungssystem | EuGH C-55/18; BAG 1 ABR 22/21; ArbSchG § 3 Abs. 2 Nr. 1  | Ja, von BLZK und LZÄKB ausdrücklich so kommuniziert  | Rechtsverbindliche Grundanforderung |
-| Erfassung | Beginn und Ende der täglichen Arbeitszeit erfassen | BAG 1 ABR 22/21; ArbSchG § 3 Abs. 2 Nr. 1  | Ja  | Rechtsverbindliche Grundanforderung |
-| Erfassung | Überstunden erfassen | EuGH C-55/18; BAG 1 ABR 22/21  | Ja  | Rechtsverbindliche Grundanforderung |
-| Erfassung | Unterbrechungen und Pausen erfassen | ArbZG § 4  | Ja, in der Praxiskommunikation mit umfasst  | Rechtsverbindliche Grundanforderung |
-| Dokumentation | Keine pauschale Tageserfassung, sondern überprüfbare Einzelaufzeichnung | Aus EuGH/BAG-Anforderung an Objektivität und Verlässlichkeit ableitbar  | Ja, LZÄKB weist ausdrücklich darauf hin  | Rechtsnahe Konkretisierung |
-| Form der Erfassung | Papier oder elektronische Erfassung grundsätzlich möglich | Aktuelle Rechtslage ohne exklusives Technikformat  | Ja, so von BLZK und LZÄKB dargestellt  | Rahmenbedingung |
-| Prüflogik | Hinweis bei mehr als 6 Stunden ohne Pause | ArbZG § 4  | Indirekt, über Verweis auf Arbeitszeitrecht  | Gesetzlich getragen, technisch konkretisiert |
-| Prüflogik | Hinweis bei mehr als 9 Stunden ohne ausreichende Gesamtpause | ArbZG § 4  | Indirekt  | Gesetzlich getragen, technisch konkretisiert |
-| Prüflogik | Hinweis bei mehr als 8 oder 10 Stunden täglicher Arbeitszeit | ArbZG § 3  | Indirekt  | Gesetzlich getragen, technisch konkretisiert |
-| Prüflogik | Hinweis bei Unterschreitung der 11-stündigen Ruhezeit | ArbZG § 5  | Indirekt  | Gesetzlich getragen, technisch konkretisiert |
-| Aufbewahrung | Arbeitszeitnachweise mindestens 2 Jahre aufbewahren | ArbZG § 16  | Mittelbar, Kammern verweisen auf Aufbewahrungspflicht  | Rechtsverbindliche Grundanforderung |
-| Datenschutz | Verarbeitung nur erforderlicher Beschäftigtendaten | DSGVO Art. 5; BDSG § 26  | In Kammertexten nicht vertieft  | Rechtsverbindliche Grundanforderung |
-| Datenschutz | Schutz der Daten und Zugriffe | DSGVO Art. 32; BDSG § 26  | In Kammertexten nicht vertieft  | Rechtsverbindliche Grundanforderung |
-| Organisation | Rollen- und Rechtekonzept | Projektinterne Compliance- und Sicherheitsentscheidung  | Keine spezifische Kammerpflicht erkennbar  | Projektinterne Muss-Anforderung |
-| Nachvollziehbarkeit | Audit-Log, Korrektur- und Nachtragslogik | Projektinterne Revisions- und Prüfentscheidung  | Keine spezifische Kammerpflicht erkennbar  | Projektinterne Muss-Anforderung |
-| Technik | RFID-Reader, USB-Numpad, SQLite, NAS, PDF/CSV | Keine gesetzliche oder kammerrechtliche Spezialvorgabe  | Nein  | Reine technische Projektentscheidung |
+| --- | --- | --- | --- | --- |
+| Ziel / Rechtsrahmen | Objektives, verlässliches und zugängliches Arbeitszeiterfassungssystem | EuGH C-55/18; BAG 1 ABR 22/21; ArbSchG § 3 Abs. 2 Nr. 1 | Ja, von BLZK und LZÄKB ausdrücklich so kommuniziert | Rechtsverbindliche Grundanforderung |
+| Erfassung | Beginn und Ende der täglichen Arbeitszeit erfassen | BAG 1 ABR 22/21; ArbSchG § 3 Abs. 2 Nr. 1 | Ja | Rechtsverbindliche Grundanforderung |
+| Erfassung | Überstunden erfassen | EuGH C-55/18; BAG 1 ABR 22/21 | Ja | Rechtsverbindliche Grundanforderung |
+| Erfassung | Unterbrechungen und Pausen erfassen | ArbZG § 4 | Ja, in der Praxiskommunikation mit umfasst | Rechtsverbindliche Grundanforderung |
+| Dokumentation | Keine pauschale Tageserfassung, sondern überprüfbare Einzelaufzeichnung | Aus EuGH/BAG-Anforderung an Objektivität und Verlässlichkeit ableitbar | Ja, LZÄKB weist ausdrücklich darauf hin | Rechtsnahe Konkretisierung |
+| Form der Erfassung | Papier oder elektronische Erfassung grundsätzlich möglich | Aktuelle Rechtslage ohne exklusives Technikformat | Ja, so von BLZK und LZÄKB dargestellt | Rahmenbedingung |
+| Prüflogik | Hinweis bei mehr als 6 Stunden ohne Pause | ArbZG § 4 | Indirekt, über Verweis auf Arbeitszeitrecht | Gesetzlich getragen, technisch konkretisiert |
+| Prüflogik | Hinweis bei mehr als 9 Stunden ohne ausreichende Gesamtpause | ArbZG § 4 | Indirekt | Gesetzlich getragen, technisch konkretisiert |
+| Prüflogik | Hinweis bei mehr als 8 oder 10 Stunden täglicher Arbeitszeit | ArbZG § 3 | Indirekt | Gesetzlich getragen, technisch konkretisiert |
+| Prüflogik | Hinweis bei Unterschreitung der 11-stündigen Ruhezeit | ArbZG § 5 | Indirekt | Gesetzlich getragen, technisch konkretisiert |
+| Aufbewahrung | Arbeitszeitnachweise mindestens 2 Jahre aufbewahren | ArbZG § 16 | Mittelbar, Kammern verweisen auf Aufbewahrungspflicht | Rechtsverbindliche Grundanforderung |
+| Datenschutz | Verarbeitung nur erforderlicher Beschäftigtendaten | DSGVO Art. 5; BDSG § 26 | In Kammertexten nicht vertieft | Rechtsverbindliche Grundanforderung |
+| Datenschutz | Schutz der Daten und Zugriffe | DSGVO Art. 32; BDSG § 26 | In Kammertexten nicht vertieft | Rechtsverbindliche Grundanforderung |
+| Organisation | Rollen- und Rechtekonzept | Projektinterne Compliance- und Sicherheitsentscheidung | Keine spezifische Kammerpflicht erkennbar | Projektinterne Muss-Anforderung |
+| Nachvollziehbarkeit | Audit-Log, Korrektur- und Nachtragslogik | Projektinterne Revisions- und Prüfentscheidung | Keine spezifische Kammerpflicht erkennbar | Projektinterne Muss-Anforderung |
+| Technik | RFID-Reader, USB-Numpad, SQLite, NAS, PDF/CSV | Keine gesetzliche oder kammerrechtliche Spezialvorgabe | Nein | Reine technische Projektentscheidung |
 
 ## Bewertung der Herkunft der Anforderungen
 

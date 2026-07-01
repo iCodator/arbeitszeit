@@ -48,13 +48,13 @@ python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db employees 
 ### Globale Pflichtargumente
 
 | Argument | Beschreibung |
-|---|---|
+| --- | --- |
 | `--db PFAD` | Pfad zur SQLite-Datenbankdatei |
 
 ### Globale optionale Argumente
 
 | Argument | Beschreibung |
-|---|---|
+| --- | --- |
 | `--user-id ID` | Benutzer-ID des ausführenden Kontos (alternativ: `ADMIN_USER_ID`) |
 
 **Ausnahme `users bootstrap`:** Kein `--user-id` erforderlich — dieser Befehl
@@ -63,14 +63,14 @@ wird vor der Anlage des ersten Administrators ausgeführt.
 ### Exit-Codes
 
 | Code | Bedeutung |
-|---|---|
+| --- | --- |
 | `0` | Erfolg |
 | `1` | Fehler (fehlende Berechtigung, ungültige Eingabe, Datenbankfehler, NAS-Fehler) |
 
 ### Datum- und Uhrzeitformate
 
 | Format | Beispiel | Verwendung |
-|---|---|---|
+| --- | --- | --- |
 | `YYYY-MM-DD` | `2026-07-01` | Datumsargumente (`--from`, `--to`, `--date`, `--from_date`) |
 | `HH:MM` | `08:30` | Uhrzeitargumente (`--start`, `--end`) |
 | ISO-8601 Datetime | `2026-07-01T08:30:00` oder `2026-07-01T08:30:00Z` | `--at`-Argumente; fehlende Zeitzone → UTC |
@@ -80,7 +80,7 @@ wird vor der Anlage des ersten Administrators ausgeführt.
 ### Buchungstypen (`--type`)
 
 | Wert | Bedeutung |
-|---|---|
+| --- | --- |
 | `COME` | Kommen |
 | `GO` | Gehen |
 | `BREAK_START` | Pause Beginn |
@@ -133,7 +133,7 @@ admin --db <PFAD> --user-id <ID> employees add \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--personnel-no` | string | ja | Eindeutige Personalnummer |
 | `--first-name` | string | ja | Vorname |
 | `--last-name` | string | ja | Nachname |
@@ -153,7 +153,7 @@ admin --db <PFAD> --user-id <ID> employees deactivate <MITARBEITER-ID>
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | int | ja | Mitarbeiter-ID (positional) |
 
 **Rolle:** ADMIN  
@@ -179,7 +179,7 @@ admin --db <PFAD> --user-id <ID> cards assign \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--employee-id` | int | ja | ID des zugehörigen Mitarbeiters |
 | `--uid-hash` | string | ja | SHA-256-Hash der Karten-UID (siehe `scripts/verify_hardware.py`) |
 
@@ -201,7 +201,7 @@ admin --db <PFAD> --user-id <ID> cards replace \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--old-card-id` | int | ja | ID der zu ersetzenden Karte |
 | `--uid-hash` | string | ja | SHA-256-Hash der neuen Karte |
 
@@ -220,7 +220,7 @@ admin --db <PFAD> --user-id <ID> cards deactivate <KARTEN-ID>
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `id` | int | ja | Karten-ID (positional) |
 
 **Rolle:** ADMIN  
@@ -249,7 +249,7 @@ admin --db <PFAD> --user-id <ID> bookings correct \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--booking-id` | int | ja | ID der zu korrigierenden Buchung |
 | `--type` | string | ja | Neuer Buchungstyp (`COME`, `GO`, `BREAK_START`, `BREAK_END`) |
 | `--at` | ISO-8601 | ja | Neuer Buchungszeitpunkt |
@@ -276,7 +276,7 @@ admin --db <PFAD> --user-id <ID> bookings supplement \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--employee-id` | int | ja | Mitarbeiter-ID |
 | `--type` | string | ja | Buchungstyp |
 | `--at` | ISO-8601 | ja | Ereigniszeitpunkt |
@@ -299,7 +299,7 @@ admin --db <PFAD> --user-id <ID> bookings approve-supplement \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--supplement-id` | int | ja | ID des zu genehmigenden Nachtrags |
 
 **Rolle:** ADMIN, REVIEWER  
@@ -319,7 +319,7 @@ admin --db <PFAD> --user-id <ID> bookings reject-supplement \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--supplement-id` | int | ja | ID des abzulehnenden Nachtrags |
 | `--reason` | string | ja | Ablehnungsgrund |
 
@@ -351,7 +351,7 @@ admin --db <PFAD> --user-id <ID> schedule set \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--weekday` | int (1–7) | ja | Wochentag: 1=Mo, 2=Di, …, 7=So |
 | `--start` | HH:MM | ja | Beginn der Regelarbeitszeit |
 | `--end` | HH:MM | ja | Ende der Regelarbeitszeit |
@@ -425,7 +425,7 @@ admin --db <PFAD> --user-id <ID> reports export-csv \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
 | `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
 | `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
@@ -451,7 +451,7 @@ admin --db <PFAD> --user-id <ID> reports export-csv-review-cases \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
 | `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
 | `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
@@ -474,7 +474,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-day \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--date` | YYYY-MM-DD | ja | Kalendertag des Berichts |
 
 **Ausgabe:** `PDF: /var/exports/arbeitszeit/bericht_tag_2026-07-01_….pdf`
@@ -492,7 +492,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-week \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--year` | int | ja | Jahr |
 | `--week` | int | ja | ISO-Wochennummer |
 
@@ -511,7 +511,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-month \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--year` | int | ja | Jahr |
 | `--month` | int | ja | Monatsnummer |
 
@@ -531,7 +531,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-employee \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--employee-id` | int | ja | Mitarbeiter-ID |
 | `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
 | `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
@@ -551,7 +551,7 @@ admin --db <PFAD> --user-id <ID> reports open-bookings \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--from` | YYYY-MM-DD | nein | Beginn des Zeitraums |
 | `--to` | YYYY-MM-DD | nein | Ende des Zeitraums |
 | `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
@@ -584,7 +584,7 @@ admin --db <PFAD> --user-id <ID> reports warn-cases \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--from` | YYYY-MM-DD | ja | Beginn |
 | `--to` | YYYY-MM-DD | ja | Ende |
 | `--employee-id` | int | nein | Filter |
@@ -648,7 +648,7 @@ admin --db <PFAD> --user-id <ID> reports open-review-cases \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--from` | YYYY-MM-DD | nein | Beginn |
 | `--to` | YYYY-MM-DD | nein | Ende |
 | `--employee-id` | int | nein | Filter |
@@ -746,7 +746,7 @@ admin --db <PFAD> users bootstrap \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--username` | string | ja | Benutzername des ersten Administrators |
 | `--password` | string | nein | Passwort (wird automatisch generiert wenn leer) |
 
@@ -775,7 +775,7 @@ admin --db <PFAD> --user-id <ID> users add \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--username` | string | ja | Eindeutiger Benutzername |
 | `--role` | ADMIN\|REVIEWER\|TECH | ja | Rolle |
 | `--employee-id` | int | nein | Verknüpfter Mitarbeiter |
@@ -826,7 +826,7 @@ admin --db <PFAD> --user-id <ID> users deactivate \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--user-id` | int | ja | ID des zu deaktivierenden Kontos |
 
 **Rolle:** ADMIN  
@@ -845,7 +845,7 @@ admin --db <PFAD> --user-id <ID> users reactivate \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--user-id` | int | ja | ID des zu reaktivierenden Kontos |
 
 **Rolle:** ADMIN  
@@ -865,7 +865,7 @@ admin --db <PFAD> --user-id <ID> users change-role \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--user-id` | int | ja | ID des Benutzerkontos |
 | `--role` | ADMIN\|REVIEWER\|TECH | ja | Neue Rolle |
 
@@ -891,7 +891,7 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `--db` | Pfad | ja | SQLite-Datenbankdatei |
 | `--numpad` | Gerätepfad | ja | z.B. `/dev/input/event3` |
 | `--rfid` | Gerätepfad | ja | z.B. `/dev/input/event4` |
@@ -914,7 +914,7 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 ### Rückmeldungen
 
 | Situation | Ausgabe |
-|---|---|
+| --- | --- |
 | Buchung erfasst (Status OK oder OPEN) | `Buchung erfasst.` |
 | Buchung erfasst (Status WARN) | `Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.` |
 | Buchung erfasst (Status NEEDS_REVIEW) | `Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.` |
@@ -944,7 +944,7 @@ python scripts/init_db.py [--db <PFAD>]
 ```
 
 | Argument | Standard | Beschreibung |
-|---|---|---|
+| --- | --- | --- |
 | `--db` | `arbeitszeit.db` | Datenbankdatei |
 
 **Ausgabe:** Eine Zeile pro angewendeter Migration; Hinweis auf Ersteinrichtung
@@ -965,7 +965,7 @@ python scripts/setup.py \
 ```
 
 | Argument | Standard | Beschreibung |
-|---|---|---|
+| --- | --- | --- |
 | `--db` | `arbeitszeit.db` | Datenbankdatei |
 | `--backup-dir` | interaktiv | Verzeichnis für lokale Backups |
 | `--export-dir` | interaktiv | Verzeichnis für Exporte und PDFs |
@@ -984,7 +984,7 @@ python scripts/backup.py \
 ```
 
 | Argument | Standard | Beschreibung |
-|---|---|---|
+| --- | --- | --- |
 | `--db` | `arbeitszeit.db` | Quelldatenbank |
 | `--backup-dir` | `backups/` | Backup-Zielverzeichnis |
 | `--export-dir` | — | Exportverzeichnis (wird mitgesichert) |
@@ -1012,7 +1012,7 @@ python scripts/verify_hardware.py \
 ```
 
 | Argument | Beschreibung |
-|---|---|
+| --- | --- |
 | `--numpad` | Numpad-Gerätepfad (z.B. `/dev/input/event3`) |
 | `--rfid` | RFID-Lesegerätepfad (z.B. `/dev/input/event4`) |
 | `--list` | Nur Gerätedateien auflisten, dann beenden |
@@ -1040,7 +1040,7 @@ python scripts/show_config.py \
 ```
 
 | Argument | Beschreibung |
-|---|---|
+| --- | --- |
 | `--db` | Datenbankdatei (Pflicht) |
 | `--all-versions` | Alle Versionen anzeigen (nicht nur aktuelle) |
 | `--json` | JSON-Ausgabe statt Tabelle |
@@ -1060,7 +1060,7 @@ export.export_dir        /var/exports/arbeitszeit         1    MIGRATION   2026-
 ## Rollenübersicht
 
 | Befehl | Rolle | Prüfung |
-|---|---|---|
+| --- | --- | --- |
 | `employees list` | keine | — |
 | `employees add` | ADMIN | Use Case |
 | `employees deactivate` | ADMIN | Use Case |
