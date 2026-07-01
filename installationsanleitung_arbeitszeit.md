@@ -125,7 +125,7 @@ python3.14 --version
 ## Schritt 3: Zusätzliche Systempakete installieren
 
 Einige Teile von `arbeitszeit` (insbesondere die Anbindung an den
-RFID-Reser und das Numpad) benötigen zusätzliche Bausteine, die nicht in
+RFID-Leser und das Numpad) benötigen zusätzliche Bausteine, die nicht in
 Python selbst enthalten sind:
 
 ```bash
@@ -249,11 +249,11 @@ sollen:
 python scripts/setup.py --db arbeitszeit.db
 ```
 
-**Was passiert hier?** Das Programm stellt dir im Terminal einige
-Fragen (zum Beispiel nach dem gewünschten Sicherungsverzeichnis) und
-speichert deine Antworten in der Datenbank. Beantworte die Fragen der
-Reihe nach; falls du unsicher bist, kannst du bei vielen Fragen die
-vorgeschlagene Standardantwort einfach mit `Enter` bestätigen.
+**Was passiert hier?** Das Programm fragt dich nach dem
+Backup-Verzeichnis und dem Exportverzeichnis für Berichte. Gib jeweils
+einen absoluten Pfad ein (z. B. `/var/backups/arbeitszeit`) und bestätige
+mit `Enter`. Eine leere Eingabe wird nicht akzeptiert — das Programm
+wiederholt die Frage, bis du einen Pfad angegeben hast.
 
 Willst du diese Angaben lieber direkt beim Aufruf festlegen, statt
 Fragen zu beantworten, geht das auch so:
@@ -291,7 +291,7 @@ cat /proc/bus/input/devices
 ```
 
 Diese Ausgabe zeigt zu jedem angeschlossenen Gerät einen Namen (z. B.
-„HID Keyboard" für den RFID-Reser, der sich wie eine Tastatur verhält)
+„HID Keyboard" für den RFID-Leser, der sich wie eine Tastatur verhält)
 sowie den zugehörigen Gerätepfad unter `Handlers`.
 
 Damit dein Benutzerkonto diese Geräte lesen darf, muss es zur Gruppe
@@ -381,15 +381,24 @@ ist (`(.venv)` im Prompt), und führe aus:
 
 ```bash
 python scripts/verify_hardware.py \
+  --numpad /dev/input/eventX \
   --rfid /dev/input/eventY
 ```
 
-(`eventY` durch den in Schritt 9 ermittelten RFID-Gerätepfad ersetzen.)
-Das Script startet einen interaktiven Scan: Halte die Karte an den
-RFID-Reader. Das Script zeigt dann unter anderem:
+(`eventX` und `eventY` durch die in Schritt 9 ermittelten Gerätepfade
+ersetzen. **Beide Argumente sind Pflicht** — das Script bricht ab, wenn
+nur eines angegeben wird.)
+
+Das Script durchläuft drei Stufen:
+
+1. Gerätezugriff prüfen
+2. Numpad-Test: Drücke eine der Tasten 1–4 auf dem Numpad.
+3. RFID-Test: Halte die Karte an den RFID-Leser.
+
+Nach dem Karten-Scan zeigt das Script unter anderem:
 
 ```text
-SHA-256-Hash: abc123def456… (wie in DB gespeichert)
+SHA-256-Hash:    abc123def456…  (wie in DB gespeichert)
 ```
 
 Kopiere diesen Hash-Wert und setze ihn als `<HASH>` im obigen
