@@ -64,6 +64,7 @@ Die Struktur des Repositories legt einen Betrieb auf Linux-Systemen mit SQLite-D
 | [`migrations/`](migrations) | SQL-Migrationsdateien zur Schema- und Dateninitialisierung. |
 | [`tests/`](tests) | Teststruktur für Domain, Application, Integration, End-to-End und Migrationen. |
 | [`docs/`](docs) | Zusätzliche Dokumentation im Repository. |
+| [`docs/module/`](docs/module) | Kapitel-Quelldateien des Handbuchs (`handbuch_overview.md`, `handbuch_installation.md`, `handbuch_presentation.md`, `handbuch_application_layer.md`, `handbuch_domain.md`, `handbuch_infrastructure.md`, `handbuch_audit.md`), aus denen `handbuch_arbeitszeit.md` zusammengeführt wird. |
 
 Wichtige Einstiegspunkte sind insbesondere [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py), [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py), [`scripts/init_db.py`](scripts/init_db.py) und [`scripts/setup.py`](scripts/setup.py).
 
@@ -144,33 +145,33 @@ Für den produktiven Betrieb in einer Praxisumgebung sind neben Code und Tests
 insbesondere folgende Unterlagen relevant:
 
 - **Datenschutz / DSGVO**
-  - `docs/datenschutz/vvt_arbeitszeit_v1.md`  
+  - `docs/datenschutz/vvt_arbeitszeit_v1.md`
     Verzeichnis von Verarbeitungstätigkeiten nach Art. 30 DSGVO, inkl. Rechtsgrundlagen,
     TOM, Betroffenenrechte und DSFA-Einschätzung.
 
 - **Betrieb allgemein**
-  - `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`  
+  - `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`
     Betriebsdokumentation mit Systemübersicht, Rollen, Backup/Restore, Prüfkonzept und
     Grenzen des Repositorystands.
-  - `docs/betrieb/betriebsfreigabe_protokoll.md`  
+  - `docs/betrieb/betriebsfreigabe_protokoll.md`
     Vorlage für die formale Betriebsfreigabe / Systemabnahme (Tests, Mängel,
     Unterschriften, erneute Freigabe).
 
 - **Rollen und Verantwortlichkeiten**
-  - `docs/betrieb/rollenzuweisung.md`  
+  - `docs/betrieb/rollenzuweisung.md`
     Organisatorische Rollenzuweisung (ADMIN / REVIEWER / TECH) inkl. Einweisungs- und
     Pflegeanleitung.
 
 - **Hardware & Infrastruktur**
-  - `docs/betrieb/hardware_inbetriebnahme_protokoll.md`  
+  - `docs/betrieb/hardware_inbetriebnahme_protokoll.md`
     Inbetriebnahme- und Smoke-Test-Protokoll für das Zielterminal mit RFID-Reader,
     USB-Numpad und (optional) NAS.
 
 - **Backup & Wiederherstellung**
-  - `docs/betrieb/backup_zeitplan_und_automatisierung.md`  
+  - `docs/betrieb/backup_zeitplan_und_automatisierung.md`
     Backup-Zeitplan und Beispiele für Automatisierung (cron, systemd-timer) inkl.
     Verantwortlichkeiten und Aufbewahrungsstrategie.
-  - `docs/betrieb/restore_checkliste.md`  
+  - `docs/betrieb/restore_checkliste.md`
     Operative Checkliste für Restore-Fälle (Freigabe, Durchführung, Prüfung,
     Nachdokumentation).
 
@@ -185,4 +186,5 @@ aufbewahrt werden.
 - [`regelwerk_arbeitszeit_v5.md`](regelwerk_arbeitszeit_v5.md) – Regelwerk mit fachlichem Rahmen.
 - [`handbuch_rollen_cli_ergaenzung_v1_0.md`](handbuch_rollen_cli_ergaenzung_v1_0.md) – Ergänzende Dokumentation zur Rollen-CLI.
 - [`handbuch_arbeitszeit.html`](handbuch_arbeitszeit.html) – HTML-Handbuch im Repository.
+- [`docs/module/`](docs/module) – Kapitel-Quelldateien, aus denen `handbuch_arbeitszeit.md` zusammengeführt wird.
 - [`docs/`](docs) – weiterer Dokumentationsordner mit ergänzenden Unterlagen.

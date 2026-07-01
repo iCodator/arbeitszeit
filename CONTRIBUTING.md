@@ -20,16 +20,16 @@ Dieses Dokument richtet sich an:
 
 Das Projekt verwendet ein `src`-Layout mit einer Schichtenstruktur:
 
-- `src/arbeitszeit/domain/`  
+- `src/arbeitszeit/domain/`
   Fachmodell, Enums, Fehler, Audit-Ereignisse, Ports/Interfaces.
 
-- `src/arbeitszeit/application/`  
+- `src/arbeitszeit/application/`
   Use-Cases, Commands, Result-Objekte, Unit-of-Work-Abstraktionen.
 
-- `src/arbeitszeit/infrastructure/`  
+- `src/arbeitszeit/infrastructure/`
   Konkrete Implementierungen (SQLite, Hardware, Export, Backup, Systemcheck).
 
-- `src/arbeitszeit/presentation/`  
+- `src/arbeitszeit/presentation/`
   Terminal-UI und Admin-CLI, keine direkte Datenbank- oder Hardwarelogik.
 
 **Grundregeln:**
@@ -234,6 +234,12 @@ Prüfungen zu ArbZG (Höchstarbeitszeit, Pausen, Ruhezeiten):
 
 - `README.md` erklärt technischen Einstieg und Struktur.
 - `handbuch_arbeitszeit.md` / HTML-Version dokumentieren Betrieb und Bedienung.
+- `handbuch_arbeitszeit.md` wird aus den Kapitel-Quelldateien unter `docs/module/`
+  (`handbuch_overview.md`, `handbuch_installation.md`, `handbuch_presentation.md`,
+  `handbuch_application_layer.md`, `handbuch_domain.md`, `handbuch_infrastructure.md`,
+  `handbuch_audit.md`) zusammengeführt. Inhaltliche Änderungen erfolgen zuerst im
+  jeweiligen Kapitel-Modul unter `docs/module/` und werden anschließend in die
+  zusammengeführte Gesamtdatei `handbuch_arbeitszeit.md` übernommen.
 
 Bei Änderungen an Bedienabläufen, CLI-Optionen, Terminal-UI:
 
@@ -303,9 +309,9 @@ Dieses Projekt wird überwiegend allein gepflegt. Es wird daher ein bewusst einf
 
 - `main` enthält den jeweils stabilen Stand.
 - Für Änderungen, die größer sind als ein Kleinst-Fix, wird ein kurzer Branch angelegt:
-  - `feature/<kurze-beschreibung>` für neue Funktionen  
+  - `feature/<kurze-beschreibung>` für neue Funktionen
     z.B. `feature/nachtrags-workflow`
-  - `fix/<kurze-beschreibung>` für Fehlerkorrekturen  
+  - `fix/<kurze-beschreibung>` für Fehlerkorrekturen
     z.B. `fix/ruhezeit-pruefung`
 
 Typischer Ablauf:
