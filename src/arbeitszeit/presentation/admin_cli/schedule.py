@@ -21,7 +21,7 @@ def _parse_time(value: str) -> time:
     try:
         h, m = value.split(":")
         return time(int(h), int(m))
-    except ValueError, AttributeError:
+    except (ValueError, AttributeError):
         print(f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr)
         sys.exit(1)
 
