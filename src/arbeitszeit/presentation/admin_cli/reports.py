@@ -17,19 +17,10 @@ from arbeitszeit.infrastructure.export.report_queries import (
     list_supplements,
     list_warn_bookings,
 )
+from arbeitszeit.presentation.admin_cli._auth import require_admin_or_reviewer
 from arbeitszeit.presentation.admin_cli._intervals import (
     day_interval,
 )
-
-
-def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
-    if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
-        print(
-            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
 
 
 def _get_export_dir(conn: sqlite3.Connection) -> str:
@@ -113,7 +104,7 @@ def _print_review_cases_table(rows: list[ReviewCaseRow]) -> None:
 def cmd_reports_export_csv(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
@@ -129,7 +120,7 @@ def cmd_reports_export_csv(
 def cmd_reports_export_pdf_day(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
@@ -141,7 +132,7 @@ def cmd_reports_export_pdf_day(
 def cmd_reports_export_pdf_week(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
@@ -152,7 +143,7 @@ def cmd_reports_export_pdf_week(
 def cmd_reports_export_pdf_month(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
@@ -163,7 +154,7 @@ def cmd_reports_export_pdf_month(
 def cmd_reports_export_pdf_employee(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
     export_dir = Path(_get_export_dir(conn))
@@ -181,7 +172,7 @@ def cmd_reports_export_pdf_employee(
 def cmd_reports_open_bookings(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     employee_id = getattr(args, "employee_id", None)
     from_date = getattr(args, "from_date", None)
     to_date = getattr(args, "to_date", None)
@@ -199,7 +190,7 @@ def cmd_reports_open_bookings(
 def cmd_reports_warn_cases(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
@@ -211,7 +202,7 @@ def cmd_reports_warn_cases(
 def cmd_reports_corrections(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
@@ -223,7 +214,7 @@ def cmd_reports_corrections(
 def cmd_reports_supplements(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
@@ -235,7 +226,7 @@ def cmd_reports_supplements(
 def cmd_reports_open_review_cases(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     employee_id = getattr(args, "employee_id", None)
     from_date = getattr(args, "from_date", None)
     to_date = getattr(args, "to_date", None)

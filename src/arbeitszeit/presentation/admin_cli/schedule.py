@@ -13,6 +13,7 @@ from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
 from arbeitszeit.domain.errors import DomainError
 from arbeitszeit.domain.value_objects import EmployeeId, UserAccountId
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+from arbeitszeit.presentation.admin_cli._auth import require_admin_or_reviewer
 
 _WEEKDAY_NAMES = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"}
 
@@ -23,16 +24,6 @@ def _parse_time(value: str) -> time:
         return time(int(h), int(m))
     except (ValueError, AttributeError):
         print(f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr)
-        sys.exit(1)
-
-
-def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
-    if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
-        print(
-            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
-            file=sys.stderr,
-        )
         sys.exit(1)
 
 
@@ -92,7 +83,7 @@ def cmd_schedule_set(
 
 
 def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin_or_reviewer(conn, user_id)
+    require_admin_or_reviewer(conn, user_id)
     rows = conn.execute(
         "SELECT id, scope_type, scope_employee_id, weekday, start_time, end_time, "
         "valid_from, valid_until "

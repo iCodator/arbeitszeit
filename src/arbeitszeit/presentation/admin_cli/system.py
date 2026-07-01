@@ -8,16 +8,7 @@ from pathlib import Path
 
 from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
 from arbeitszeit.infrastructure.system_check import run_system_check
-
-
-def _require_admin_or_tech(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
-    if row is None or not row["active"] or row["role"] not in ("ADMIN", "TECH"):
-        print(
-            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder TECH-Rolle.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
+from arbeitszeit.presentation.admin_cli._auth import require_admin_or_tech
 
 
 def cmd_system_check(
@@ -26,7 +17,7 @@ def cmd_system_check(
     args: argparse.Namespace,
     user_id: int,
 ) -> None:
-    _require_admin_or_tech(conn, user_id)
+    require_admin_or_tech(conn, user_id)
     result = run_system_check(db_path)
     print("Systemcheck-Ergebnis:")
     print(f"  Gesamt: {'OK' if result.overall_ok else 'FEHLER'}")
@@ -43,7 +34,7 @@ def cmd_system_backup(
     args: argparse.Namespace,
     user_id: int,
 ) -> None:
-    _require_admin_or_tech(conn, user_id)
+    require_admin_or_tech(conn, user_id)
     backup_dir_row = conn.execute(
         "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'backup.backup_dir' ORDER BY version DESC LIMIT 1"
