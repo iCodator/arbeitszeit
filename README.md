@@ -23,13 +23,14 @@ Die Struktur des Repositories legt einen Betrieb auf Linux-Systemen mit SQLite-D
 | Terminalbetrieb | Terminal-Einstiegspunkt für den operativen Buchungsbetrieb mit Endlosschleife, Systemcheck und Hardware-Lesern über `src/arbeitszeit/presentation/terminal_ui/main.py`. | vorhanden |
 | Admin-CLI | Separate Admin-Oberfläche mit Modulen für Buchungen, Mitarbeitende, Berichte, Dienstplan, System und Benutzerkonten unter `src/arbeitszeit/presentation/admin_cli/`. | vorhanden |
 | Fachlogik | Fachobjekte, Fehler, Enums, Audit-Ereignisse und Domänen-Services unter `src/arbeitszeit/domain/`. | vorhanden |
-| Use-Cases | Anwendungsfälle für Buchen, Korrigieren, Nachträge sowie Genehmigen oder Ablehnen von Ergänzungen unter `src/arbeitszeit/application/use_cases/`. | vorhanden |
+| Use-Cases | Anwendungsfälle für Buchen, Korrigieren, Nachträge, Genehmigen/Ablehnen von Ergänzungen sowie Mitarbeiter-, Karten- und Benutzerkontenverwaltung unter `src/arbeitszeit/application/use_cases/`. | vorhanden |
 | Datenbank | SQLite-Anbindung, Repository-Schicht, Unit-of-Work und SQL-Migrationen unter `src/arbeitszeit/infrastructure/db/` und `migrations/`. | vorhanden |
 | Hardware | evdev-basierter Reader für Numpad und RFID-Reader sowie Simulator unter `src/arbeitszeit/infrastructure/hardware/`. | vorhanden |
 | Exporte | CSV-Export, PDF-Berichtserzeugung und Report-Abfragen unter `src/arbeitszeit/infrastructure/export/`. | vorhanden |
 | Backups | Backup-Service im Paket und separates Skript `scripts/backup.py`. | vorhanden |
+| Admin-GUI | Grafische Verwaltungsoberfläche (tkinter/ttk) unter `src/arbeitszeit/presentation/admin_gui/main.py` — alle Tabs für Mitarbeiter, Karten, Benutzer, Regelzeiten und System mit Tooltips, Bestätigungsdialogen und Hilfe-Menü. | vorhanden |
+| NAS-Backup | rsync-basierter NAS-Sync in `src/arbeitszeit/infrastructure/backup/backup_service.py`; Fehlschlag endet mit Exit 1, lokales Backup bleibt erhalten. | vorhanden |
 | Rechtliche Vollständigkeit im Produktivbetrieb | Das Zielbild wird in den Fach- und Projektdokumenten beschrieben, ist als Gesamteigenschaft des aktuellen Repostands aber nicht vollständig allein aus Codepfaden belegbar. | nicht eindeutig belegbar |
-| NAS-Backup | In der Projektdokumentation erwähnt, als konkrete NAS-spezifische Implementierung im Codebestand jedoch nicht eindeutig ausgewiesen. | nicht eindeutig belegbar |
 
 ## Technik und Rahmenbedingungen
 
@@ -60,13 +61,14 @@ Die Struktur des Repositories legt einen Betrieb auf Linux-Systemen mit SQLite-D
 | [`src/arbeitszeit/infrastructure/backup/`](src/arbeitszeit/infrastructure/backup) | Backup-Logik im Anwendungspaket. |
 | [`src/arbeitszeit/presentation/terminal_ui/`](src/arbeitszeit/presentation/terminal_ui) | Einstiegspunkt und Buchungsschleife für den Terminalbetrieb. |
 | [`src/arbeitszeit/presentation/admin_cli/`](src/arbeitszeit/presentation/admin_cli) | Administrative CLI-Module für Pflege, Auswertung und Systemfunktionen. |
+| [`src/arbeitszeit/presentation/admin_gui/`](src/arbeitszeit/presentation/admin_gui) | Grafische Verwaltungsoberfläche (tkinter/ttk) — Alternative zur Admin-CLI ohne Kommandozeilenkenntnisse. |
 | [`scripts/`](scripts) | Hilfsskripte für Setup, Datenbankinitialisierung und Backup. |
 | [`migrations/`](migrations) | SQL-Migrationsdateien zur Schema- und Dateninitialisierung. |
 | [`tests/`](tests) | Teststruktur für Domain, Application, Integration, End-to-End und Migrationen. |
 | [`docs/`](docs) | Zusätzliche Dokumentation im Repository. |
 | [`docs/module/`](docs/module) | Kapitel-Quelldateien des Handbuchs (`handbuch_overview.md`, `handbuch_installation.md`, `handbuch_presentation.md`, `handbuch_application_layer.md`, `handbuch_domain.md`, `handbuch_infrastructure.md`, `handbuch_audit.md`), aus denen `handbuch_arbeitszeit.md` zusammengeführt wird. |
 
-Wichtige Einstiegspunkte sind insbesondere [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py), [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py), [`scripts/init_db.py`](scripts/init_db.py) und [`scripts/setup.py`](scripts/setup.py).
+Wichtige Einstiegspunkte sind insbesondere [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py), [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py), [`src/arbeitszeit/presentation/admin_gui/main.py`](src/arbeitszeit/presentation/admin_gui/main.py), [`scripts/init_db.py`](scripts/init_db.py) und [`scripts/setup.py`](scripts/setup.py).
 
 ## Installation und lokales Setup
 
@@ -96,6 +98,7 @@ Ob zusätzlich `scripts/setup.py` oder weitere Installationsschritte nötig sind
 | Zweck | Befehl | Bedeutung |
 |---|---|---|
 | Terminalbetrieb starten | `python -m arbeitszeit.presentation.terminal_ui.main --db <pfad> --numpad <event-pfad> --rfid <event-pfad> --terminal-id <id>` | Startet die Endlosschleife für operative Buchungen mit Datenbank, Numpad, RFID-Reader und Terminal-ID. |
+| Admin-GUI starten | `python -m arbeitszeit.presentation.admin_gui.main [--db <pfad>] [--user-id <id>]` | Öffnet die grafische Verwaltungsoberfläche (tkinter). Ohne Argumente erscheint ein Verbindungsdialog. |
 | Admin-CLI starten | `python -m arbeitszeit.presentation.admin_cli.main --db <pfad>` | Startet die administrative Kommandozeilenoberfläche mit Datenbankpfad. |
 | Datenbank initialisieren | `python scripts/init_db.py` | Führt die vorgesehene Initialisierung der lokalen Datenbank aus. |
 | Setup ausführen | `python scripts/setup.py` | Führt projektbezogene Setup-Schritte aus, soweit im Skript implementiert. |
@@ -117,8 +120,10 @@ Ob zusätzlich `scripts/setup.py` oder weitere Installationsschritte nötig sind
 | [`scripts/setup.py`](scripts/setup.py) | Bündelt Setup-Aufgaben außerhalb des eigentlichen Paketstarts. | Beim vorbereitenden Einrichten eines Systems. |
 | [`scripts/backup.py`](scripts/backup.py) | Startet den Backup-Ablauf per Hilfsskript. | Für manuelle oder geplante Sicherungen. |
 | [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py) | Einstiegspunkt des operativen Terminalbetriebs. | Für den laufenden Buchungsbetrieb mit Hardware. |
-| [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py) | Einstiegspunkt der administrativen CLI. | Für Pflege, Auswertung und Systemverwaltung. |
-| [`src/arbeitszeit/infrastructure/system_check.py`](src/arbeitszeit/infrastructure/system_check.py) | Prüft systemnahe Voraussetzungen vor bzw. während des Betriebs. | Bei Inbetriebnahme, Diagnose und Fehlersuche. |
+| [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py) | Einstiegspunkt der administrativen CLI. | Für Pflege, Auswertung und Systemverwaltung über Kommandozeile. |
+| [`src/arbeitszeit/presentation/admin_gui/main.py`](src/arbeitszeit/presentation/admin_gui/main.py) | Einstiegspunkt der grafischen Verwaltungsoberfläche (tkinter/ttk). | Für Administration ohne Kommandozeilenkenntnisse. |
+| [`scripts/verify_hardware.py`](scripts/verify_hardware.py) | Interaktiver Hardware-Smoke-Test; gibt SHA-256-Hash einer gescannten RFID-Karte aus. | Bei Inbetriebnahme und Kartenzuweisung. |
+| [`src/arbeitszeit/infrastructure/system_check.py`](src/arbeitszeit/infrastructure/system_check.py) | Prüft sechs systemnahe Bereiche (DB, Config, NAS, FK, NTP, Geräte). | Bei Inbetriebnahme, Diagnose und Fehlersuche. |
 | [`src/arbeitszeit/infrastructure/time_monitor.py`](src/arbeitszeit/infrastructure/time_monitor.py) | Überwacht die Systemzeit und greift in den Buchungsablauf ein. | Wenn Zeitabweichungen oder Plausibilitätsprüfungen relevant sind. |
 
 ## Hardwarebezug
@@ -181,10 +186,10 @@ aufbewahrt werden.
 
 ## Weiterführende Dokumentation
 
-- [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) – separate Installationsanleitung.
+- [`handbuch_arbeitszeit.md`](handbuch_arbeitszeit.md) / [`handbuch_arbeitszeit.html`](handbuch_arbeitszeit.html) – vollständiges Handbuch (konsolidiert aus `docs/module/`).
+- [`befehlsreferenz_arbeitszeit.md`](befehlsreferenz_arbeitszeit.md) – Schnellreferenz aller Admin-CLI-Befehle, Terminal-UI und Hilfsskripte.
+- [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) / [`installationsanleitung_arbeitszeit.html`](installationsanleitung_arbeitszeit.html) – Installationsanleitung für Laien.
 - [`pflichtenheft_arbeitszeit_v5.md`](pflichtenheft_arbeitszeit_v5.md) – Pflichtenheft zum Projektkontext und Zielbild.
 - [`regelwerk_arbeitszeit_v5.md`](regelwerk_arbeitszeit_v5.md) – Regelwerk mit fachlichem Rahmen.
-- [`handbuch_rollen_cli_ergaenzung_v1_0.md`](handbuch_rollen_cli_ergaenzung_v1_0.md) – Ergänzende Dokumentation zur Rollen-CLI.
-- [`handbuch_arbeitszeit.html`](handbuch_arbeitszeit.html) – HTML-Handbuch im Repository.
 - [`docs/module/`](docs/module) – Kapitel-Quelldateien, aus denen `handbuch_arbeitszeit.md` zusammengeführt wird.
 - [`docs/`](docs) – weiterer Dokumentationsordner mit ergänzenden Unterlagen.

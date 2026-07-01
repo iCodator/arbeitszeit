@@ -30,7 +30,7 @@ Das Projekt verwendet ein `src`-Layout mit einer Schichtenstruktur:
   Konkrete Implementierungen (SQLite, Hardware, Export, Backup, Systemcheck).
 
 - `src/arbeitszeit/presentation/`
-  Terminal-UI und Admin-CLI, keine direkte Datenbank- oder Hardwarelogik.
+  Terminal-UI, Admin-CLI und Admin-GUI (tkinter), keine direkte Datenbank- oder Hardwarelogik.
 
 **Grundregeln:**
 
