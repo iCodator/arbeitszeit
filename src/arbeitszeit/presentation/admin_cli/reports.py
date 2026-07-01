@@ -22,6 +22,8 @@ from arbeitszeit.presentation.admin_cli._intervals import (
     day_interval,
 )
 
+_UNGEFILTERT_WARNSCHWELLE = 50
+
 
 def _get_export_dir(conn: sqlite3.Connection) -> str:
     row = conn.execute(
@@ -184,6 +186,12 @@ def cmd_reports_open_bookings(
     else:
         rows = list_open_bookings(conn, employee_id=employee_id)
         print("Offene Buchungen (Status OPEN) — alle:")
+        if len(rows) > _UNGEFILTERT_WARNSCHWELLE:
+            print(
+                f"Hinweis: {len(rows)} Einträge — für fokussierte Auswertungen "
+                "--from/--to verwenden.",
+                file=sys.stderr,
+            )
     _print_bookings_table(rows)
 
 
@@ -238,6 +246,12 @@ def cmd_reports_open_review_cases(
     else:
         rows = list_open_review_cases(conn, employee_id=employee_id)
         print("Offene Prüffälle — alle:")
+        if len(rows) > _UNGEFILTERT_WARNSCHWELLE:
+            print(
+                f"Hinweis: {len(rows)} Einträge — für fokussierte Auswertungen "
+                "--from/--to verwenden.",
+                file=sys.stderr,
+            )
     _print_review_cases_table(rows)
 
 
