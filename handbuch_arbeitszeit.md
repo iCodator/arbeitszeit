@@ -508,6 +508,7 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 | Befehl | Beschreibung |
 | --- | --- |
 | `reports export-csv --from … --to … [--employee-id …]` | Zwei CSV-Dateien: Detailbuchungen + verdichtete Übersicht |
+| `reports export-csv-review-cases --from … --to … [--employee-id …]` | Offene Prüffälle als CSV (Pflichtenheft §7.13) |
 | `reports export-pdf-day --date YYYY-MM-DD` | Tagesbericht als PDF |
 | `reports export-pdf-week --year YYYY --week WW` | Wochenbericht (ISO-Woche) als PDF |
 | `reports export-pdf-month --year YYYY --month MM` | Monatsbericht als PDF |
@@ -517,11 +518,14 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 
 | Befehl | Beschreibung |
 | --- | --- |
-| `reports open-bookings [--from … --to …] [--employee-id …]` | Buchungen mit Status `OPEN` |
+| `reports open-bookings [--from … --to …] [--employee-id …]` | Buchungen mit Status `OPEN` ¹ |
 | `reports warn-cases --from … --to … [--employee-id …]` | Buchungen mit Status `WARN` oder `NEEDS_REVIEW` |
 | `reports corrections --from … --to … [--employee-id …]` | Alle Korrekturen im Zeitraum |
 | `reports supplements --from … --to … [--employee-id …]` | Alle Nachträge im Zeitraum |
-| `reports open-review-cases [--from … --to …] [--employee-id …]` | Offene Prüffälle |
+| `reports open-review-cases [--from … --to …] [--employee-id …]` | Offene Prüffälle ¹ |
+
+¹ Werden mehr als 50 Einträge ohne `--from`/`--to`-Filter gefunden, erscheint
+ein Hinweis auf stderr, den Zeitraum einzugrenzen.
 
 ---
 
@@ -1876,7 +1880,7 @@ NAS (Neustart, Wartung) soll keinen `SELFTEST_FAIL` auslösen.
 #### Selbsttest — `system_check.py`
 
 `run_system_check(db_path, numpad_path?, rfid_path?)` prüft beim Systemstart
-fünf Bereiche und schreibt das Gesamtergebnis als `SELFTEST_OK` oder `SELFTEST_FAIL`
+sechs Bereiche und schreibt das Gesamtergebnis als `SELFTEST_OK` oder `SELFTEST_FAIL`
 in `system_events`:
 
 | Prüfbereich | Was wird geprüft |
@@ -1885,6 +1889,7 @@ in `system_events`:
 | `config_keys` | Sechs Pflicht-Konfigurationsschlüssel in `system_config` vorhanden |
 | `nas_reachability` | NAS-Pfad existiert und ist schreibbar (nur wenn `backup.nas_enabled=true`) |
 | `fk_consistency` | `PRAGMA foreign_key_check` meldet keine verwaisten Fremdschlüsselreferenzen |
+| `ntp_sync` | NTP aktiv (`NTP=yes`) und synchronisiert (`NTPSynchronized=yes`) via `timedatectl` |
 | `device_availability` | Numpad und RFID-Gerätepfade existieren und sind lesbar |
 
 Jeder Bereich liefert ein `CheckResult(name, ok, detail)`. Das `SystemCheckResult`
