@@ -86,9 +86,10 @@ def cmd_system_backup(
                     print("NAS-Synchronisation erfolgreich.")
                 except Exception as exc:
                     print(
-                        f"Warnung: NAS-Synchronisation fehlgeschlagen: {exc}",
+                        f"Fehler: NAS-Synchronisation fehlgeschlagen: {exc}",
                         file=sys.stderr,
                     )
+                    sys.exit(1)
 
 
 def register_subcommands(
