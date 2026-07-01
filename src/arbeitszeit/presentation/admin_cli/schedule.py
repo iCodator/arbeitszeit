@@ -1,4 +1,10 @@
-"""Admin-CLI: Regelarbeitszeit verwalten (ADMIN-Rolle für Schreiben)."""
+"""Admin-CLI: Regelarbeitszeit verwalten.
+
+schedule set: nur ADMIN; Rollenprüfung erfolgt in ManageWorkScheduleUseCase
+              (Anwendungsschicht), nicht hier.
+schedule show: ADMIN und REVIEWER; Rollenprüfung auf CLI-Ebene via
+               require_admin_or_reviewer() aus _auth.py.
+"""
 
 import argparse
 import sqlite3
