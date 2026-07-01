@@ -11,7 +11,7 @@ from arbeitszeit.application.use_cases.manage_work_schedule import (
 )
 from arbeitszeit.domain.enums import ChangeOrigin, ScopeType
 from arbeitszeit.domain.errors import DomainError
-from arbeitszeit.domain.value_objects import UserAccountId
+from arbeitszeit.domain.value_objects import EmployeeId, UserAccountId
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 _WEEKDAY_NAMES = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"}
@@ -23,6 +23,16 @@ def _parse_time(value: str) -> time:
         return time(int(h), int(m))
     except (ValueError, AttributeError):
         print(f"Fehler: Ungültiges Zeitformat {value!r} (erwartet HH:MM)", file=sys.stderr)
+        sys.exit(1)
+
+
+def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
+    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
+    if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
+        print(
+            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
@@ -41,9 +51,16 @@ def cmd_schedule_set(
         )
         sys.exit(1)
 
+    if args.employee_id is not None:
+        scope_type = ScopeType.EMPLOYEE
+        scope_employee_id = EmployeeId(args.employee_id)
+    else:
+        scope_type = ScopeType.GLOBAL
+        scope_employee_id = None
+
     cmd = ChangeWorkScheduleCommand(
-        scope_type=ScopeType.GLOBAL,
-        scope_employee_id=None,
+        scope_type=scope_type,
+        scope_employee_id=scope_employee_id,
         weekday=args.weekday,
         start_time=_parse_time(args.start),
         end_time=_parse_time(args.end),
@@ -57,11 +74,19 @@ def cmd_schedule_set(
     except DomainError as exc:
         print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
+
     day_name = _WEEKDAY_NAMES.get(args.weekday, str(args.weekday))
-    print(
-        f"Regelarbeitszeit gesetzt (Version {result.new_version_id}): "
-        f"{day_name} {args.start}–{args.end} ab {valid_from.isoformat()}."
-    )
+    if scope_type == ScopeType.EMPLOYEE:
+        print(
+            f"Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version {result.new_version_id}): "
+            f"Mitarbeiter {args.employee_id}, {day_name} {args.start}–{args.end} "
+            f"ab {valid_from.isoformat()}."
+        )
+    else:
+        print(
+            f"Globale Regelarbeitszeit gesetzt (Version {result.new_version_id}): "
+            f"{day_name} {args.start}–{args.end} ab {valid_from.isoformat()}."
+        )
     if result.superseded_version_id is not None:
         print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
 
@@ -108,16 +133,6 @@ def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_i
         print("\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).")
 
 
-def _require_admin_or_reviewer(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
-    if row is None or not row["active"] or row["role"] not in ("ADMIN", "REVIEWER"):
-        print(
-            "Fehler: Zugriff verweigert. Aktion erfordert ADMIN- oder REVIEWER-Rolle.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
-
 def register_subcommands(
     sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
@@ -131,5 +146,12 @@ def register_subcommands(
     set_cmd.add_argument("--start", required=True, metavar="HH:MM")
     set_cmd.add_argument("--end", required=True, metavar="HH:MM")
     set_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
+    set_cmd.add_argument(
+        "--employee-id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Mitarbeiter-ID für mitarbeiterspezifische Ausnahme (leer = globale Regel)",
+    )
 
     ssub.add_parser("show", help="Aktive Regelarbeitszeiten anzeigen")
