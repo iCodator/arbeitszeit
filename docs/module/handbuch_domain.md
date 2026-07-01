@@ -459,6 +459,11 @@ freie String-Literale für `event_type` verwenden.
 | `SUPPLEMENT_APPROVED`            | Nachtrag genehmigt                            |
 | `SUPPLEMENT_REJECTED`            | Nachtrag abgelehnt                            |
 | `WORK_SCHEDULE_CHANGED`          | Regelarbeitszeit geändert                     |
+| `EMPLOYEE_CREATED`               | Mitarbeiter angelegt                          |
+| `EMPLOYEE_DEACTIVATED`           | Mitarbeiter deaktiviert                       |
+| `CARD_ASSIGNED`                  | RFID-Karte einem Mitarbeiter zugewiesen       |
+| `CARD_REPLACED`                  | RFID-Karte ersetzt (alte Karte auf REPLACED)  |
+| `CARD_DEACTIVATED`               | RFID-Karte deaktiviert                        |
 | `USER_ACCOUNT_CREATED`           | Benutzerkonto angelegt                        |
 | `USER_ACCOUNT_DEACTIVATED`       | Benutzerkonto deaktiviert                     |
 | `USER_ACCOUNT_REACTIVATED`       | Benutzerkonto reaktiviert                     |

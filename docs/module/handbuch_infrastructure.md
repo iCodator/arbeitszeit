@@ -277,7 +277,7 @@ Vier Berichtsfunktionen erzeugen A4-PDFs via `reportlab` (Pflichtenheft §7.11):
 | `create_monthly_report(conn, year, month, export_dir)` | `bericht_monat_YYYY-MM_…Z.pdf` | Kalendermonat (alle Mitarbeiter) |
 | `create_employee_report(conn, employee_id, from_dt, to_dt, export_dir)` | `bericht_mitarbeiter_NNNN_…_…Z.pdf` | Freier Zeitraum (ein Mitarbeiter) |
 
-Jeder Bericht enthält vier inhaltliche Abschnitte:
+Jeder Bericht enthält fünf inhaltliche Abschnitte:
 1. **Buchungen** — Tabelle aller Buchungen im Zeitraum
 2. **Korrekturen** — Alter Zustand, neuer Zustand, Begründung, Zeitstempel
 3. **Nachträge** — Buchungsart, Ereigniszeitpunkt, Begründung, Freigabestatus

@@ -487,8 +487,12 @@ eine neue Version und schließt die Vorgängerversion.
 
 | Befehl | Beschreibung | Rolle |
 | --- | --- | --- |
-| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD` | Globale Regelarbeitszeit setzen | `ADMIN` |
+| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD` | Globale Regelarbeitszeit setzen | `ADMIN` ¹ |
 | `schedule show` | Alle aktiven Versionen anzeigen (global + mitarbeiterspezifisch) | `ADMIN`, `REVIEWER` |
+
+¹ Die `ADMIN`-Prüfung für `schedule set` erfolgt im `ManageWorkScheduleUseCase`
+(Anwendungsschicht), nicht in der CLI selbst. `schedule show` prüft die Rolle
+hingegen direkt in der CLI (`_require_admin_or_reviewer`).
 
 ---
 
@@ -851,11 +855,17 @@ des Mitarbeiters (Regelwerk v5 §16).
 
 #### Audit-Log-Konsistenz
 
-Das Audit-Log wird in **allen** Use Cases nach dem `commit()` geschrieben.
+**Erfolgspfade:** Das Audit-Log wird nach dem `commit()` geschrieben.
 Diese Reihenfolge ist eine bewusste Architekturentscheidung für SQLite im
 WAL-Modus: Erst nach dem Commit gibt die Hauptverbindung ihren `RESERVED`-Lock
 frei, sodass die Audit-Verbindung (separater Autocommit-Cursor) blockierungsfrei
 schreiben kann.
+
+**Ablehnungspfade (`BookUseCase`):** Die Ereignisse `BOOKING_REJECTED_UNKNOWN_CARD`
+und `BOOKING_REJECTED_INACTIVE_CARD` werden **ohne** vorherigen `commit()` direkt
+über die Autocommit-Audit-Verbindung geschrieben, weil diese Pfade die
+Haupttransaktion nie committen. Die Autocommit-Verbindung stellt Persistenz auch
+ohne UoW-Commit sicher.
 
 #### Unveränderlichkeit der DTOs
 
@@ -1360,6 +1370,11 @@ freie String-Literale für `event_type` verwenden.
 | `SUPPLEMENT_APPROVED`            | Nachtrag genehmigt                            |
 | `SUPPLEMENT_REJECTED`            | Nachtrag abgelehnt                            |
 | `WORK_SCHEDULE_CHANGED`          | Regelarbeitszeit geändert                     |
+| `EMPLOYEE_CREATED`               | Mitarbeiter angelegt                          |
+| `EMPLOYEE_DEACTIVATED`           | Mitarbeiter deaktiviert                       |
+| `CARD_ASSIGNED`                  | RFID-Karte einem Mitarbeiter zugewiesen       |
+| `CARD_REPLACED`                  | RFID-Karte ersetzt (alte Karte auf REPLACED)  |
+| `CARD_DEACTIVATED`               | RFID-Karte deaktiviert                        |
 | `USER_ACCOUNT_CREATED`           | Benutzerkonto angelegt                        |
 | `USER_ACCOUNT_DEACTIVATED`       | Benutzerkonto deaktiviert                     |
 | `USER_ACCOUNT_REACTIVATED`       | Benutzerkonto reaktiviert                     |
@@ -1695,7 +1710,7 @@ Vier Berichtsfunktionen erzeugen A4-PDFs via `reportlab` (Pflichtenheft §7.11):
 | `create_monthly_report(conn, year, month, export_dir)` | `bericht_monat_YYYY-MM_…Z.pdf` | Kalendermonat (alle Mitarbeiter) |
 | `create_employee_report(conn, employee_id, from_dt, to_dt, export_dir)` | `bericht_mitarbeiter_NNNN_…_…Z.pdf` | Freier Zeitraum (ein Mitarbeiter) |
 
-Jeder Bericht enthält vier inhaltliche Abschnitte:
+Jeder Bericht enthält fünf inhaltliche Abschnitte:
 1. **Buchungen** — Tabelle aller Buchungen im Zeitraum
 2. **Korrekturen** — Alter Zustand, neuer Zustand, Begründung, Zeitstempel
 3. **Nachträge** — Buchungsart, Ereigniszeitpunkt, Begründung, Freigabestatus

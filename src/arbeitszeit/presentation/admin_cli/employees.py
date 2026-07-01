@@ -10,6 +10,8 @@ import sqlite3
 import sys
 from datetime import date, datetime, timezone
 
+from arbeitszeit.domain import audit_events
+
 
 def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
     row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
@@ -73,7 +75,7 @@ def cmd_employees_add(conn: sqlite3.Connection, args: argparse.Namespace, user_i
         employee_id = row["id"]
         _audit(
             conn,
-            "EMPLOYEE_CREATED",
+            audit_events.EMPLOYEE_CREATED,
             "employees",
             employee_id,
             user_id,
@@ -107,7 +109,7 @@ def cmd_employees_deactivate(
         "UPDATE employees SET active = 0, updated_at = ? WHERE id = ?",
         (now, args.id),
     )
-    _audit(conn, "EMPLOYEE_DEACTIVATED", "employees", args.id, user_id, args.id, {})
+    _audit(conn, audit_events.EMPLOYEE_DEACTIVATED, "employees", args.id, user_id, args.id, {})
     conn.execute("COMMIT")
     print(f"Mitarbeiter {args.id} deaktiviert.")
 
@@ -133,7 +135,7 @@ def cmd_cards_assign(conn: sqlite3.Connection, args: argparse.Namespace, user_id
         card_id = row["id"]
         _audit(
             conn,
-            "CARD_ASSIGNED",
+            audit_events.CARD_ASSIGNED,
             "rfid_cards",
             card_id,
             user_id,
@@ -178,7 +180,7 @@ def cmd_cards_replace(conn: sqlite3.Connection, args: argparse.Namespace, user_i
         )
         _audit(
             conn,
-            "CARD_REPLACED",
+            audit_events.CARD_REPLACED,
             "rfid_cards",
             new_card_id,
             user_id,
@@ -209,7 +211,7 @@ def cmd_cards_deactivate(conn: sqlite3.Connection, args: argparse.Namespace, use
     conn.execute("UPDATE rfid_cards SET status = 'INACTIVE' WHERE id = ?", (args.id,))
     _audit(
         conn,
-        "CARD_DEACTIVATED",
+        audit_events.CARD_DEACTIVATED,
         "rfid_cards",
         args.id,
         user_id,

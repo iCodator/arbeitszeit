@@ -283,11 +283,17 @@ des Mitarbeiters (Regelwerk v5 §16).
 
 ### Audit-Log-Konsistenz
 
-Das Audit-Log wird in **allen** Use Cases nach dem `commit()` geschrieben.
+**Erfolgspfade:** Das Audit-Log wird nach dem `commit()` geschrieben.
 Diese Reihenfolge ist eine bewusste Architekturentscheidung für SQLite im
 WAL-Modus: Erst nach dem Commit gibt die Hauptverbindung ihren `RESERVED`-Lock
 frei, sodass die Audit-Verbindung (separater Autocommit-Cursor) blockierungsfrei
 schreiben kann.
+
+**Ablehnungspfade (`BookUseCase`):** Die Ereignisse `BOOKING_REJECTED_UNKNOWN_CARD`
+und `BOOKING_REJECTED_INACTIVE_CARD` werden **ohne** vorherigen `commit()` direkt
+über die Autocommit-Audit-Verbindung geschrieben, weil diese Pfade die
+Haupttransaktion nie committen. Die Autocommit-Verbindung stellt Persistenz auch
+ohne UoW-Commit sicher.
 
 ### Unveränderlichkeit der DTOs
 

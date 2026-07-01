@@ -179,8 +179,12 @@ eine neue Version und schließt die Vorgängerversion.
 
 | Befehl | Beschreibung | Rolle |
 | --- | --- | --- |
-| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD` | Globale Regelarbeitszeit setzen | `ADMIN` |
+| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD` | Globale Regelarbeitszeit setzen | `ADMIN` ¹ |
 | `schedule show` | Alle aktiven Versionen anzeigen (global + mitarbeiterspezifisch) | `ADMIN`, `REVIEWER` |
+
+¹ Die `ADMIN`-Prüfung für `schedule set` erfolgt im `ManageWorkScheduleUseCase`
+(Anwendungsschicht), nicht in der CLI selbst. `schedule show` prüft die Rolle
+hingegen direkt in der CLI (`_require_admin_or_reviewer`).
 
 ---
 
