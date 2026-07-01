@@ -83,8 +83,7 @@ Die Tabellenstruktur deckt die im Pflichtenheft geforderten fachlichen Kernstruk
 
 ### 11 – 4 Kern-Use-Cases
 
-- Architekturentscheidung dokumentiert in `docs/informelles/device_event_architekturentscheidung_v1.md`.
-+ Architekturentscheidung dokumentiert in `docs/adr/device_event_architekturentscheidung_v1.md`.
+- Architekturentscheidung dokumentiert in `docs/adr/device_event_architekturentscheidung_v1.md`.
 
 | Use-Case | Transaktion umfasst |
 | --- | --- |
@@ -93,7 +92,7 @@ Die Tabellenstruktur deckt die im Pflichtenheft geforderten fachlichen Kernstruk
 | `korrektur_anlegen()` | `booking_corrections`, `time_bookings`, `booking_status_history`, `review_cases`, `audit_log` |
 | `regelarbeitszeit_ändern()` | `work_schedule_versions` (alt schließen + neu), `audit_log` |
 
-Die Transaktionskette für `device_events` ist vollständig operativ: `booking_loop.py` erzeugt per `RFID_SCAN`-Record in `device_events` und reicht die ID via `BookCommand.device_event_id` in `time_bookings.device_event_id` durch. Architekturentscheidung dokumentiert in `docs/informelles/device_event_architekturentscheidung_v1.md`.
+Die Transaktionskette für `device_events` ist vollständig operativ: `booking_loop.py` erzeugt per `RFID_SCAN`-Record in `device_events` und reicht die ID via `BookCommand.device_event_id` in `time_bookings.device_event_id` durch. Architekturentscheidung dokumentiert in `docs/adr/device_event_architekturentscheidung_v1.md`.
 
 ---
 
@@ -170,8 +169,7 @@ V4- und Regelwerk-konforme Statusmodellierung:
 
 #### Architekturentscheidungen
 
-- - Architekturentscheidung (Pfad A1): `docs/informelles/device_event_architekturentscheidung_v1.md`.
-+ - Architekturentscheidung (Pfad A1): `docs/adr/device_event_architekturentscheidung_v1.md`.
+- Architekturentscheidung (Pfad A1): `docs/adr/device_event_architekturentscheidung_v1.md`.
 
 **BookingStatus-Semantik** — Status beschreibt die einzelne Buchung, nicht den Tagesstatus. Die definierten Zustände `OPEN`, `OK`, `WARN`, `NEEDS_REVIEW`, `CORRECTED` und `CLOSED_WITH_NOTE` entsprechen den verbindlichen Statusvorgaben aus Pflichtenheft und Regelwerk.
 
@@ -181,7 +179,7 @@ V4- und Regelwerk-konforme Statusmodellierung:
 - `booking_loop.py` erzeugt vor `BookUseCase`-Aufruf einen `RFID_SCAN`-Record in `device_events` (Autocommit).
 - Die neue `device_events.id` wird als `BookCommand.device_event_id` übergeben.
 - `BookUseCase` persistiert die ID in `time_bookings.device_event_id`.
-- Architekturentscheidung (Pfad A1): `docs/informelles/device_event_architekturentscheidung_v1.md`.
+- Architekturentscheidung (Pfad A1): `docs/adr/device_event_architekturentscheidung_v1.md`.
 
 **Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases gemäß Pflichtenheft v5 §5 und Regelwerk v5 §16.
 
