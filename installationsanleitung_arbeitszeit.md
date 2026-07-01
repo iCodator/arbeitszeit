@@ -375,11 +375,25 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --uid-hash <HASH>
 ```
 
-Den benötigten `<HASH>`-Wert für eine bestimmte Karte ermittelst du am
-einfachsten durch einen ersten Testscan der Karte am Terminal-Gerät (dazu
-mehr im nächsten Schritt) — das System zeigt dabei „Karte nicht
-erkannt" an und protokolliert den zugehörigen Wert intern, den ein
-Administrator anschließend zuordnen kann.
+Den benötigten `<HASH>`-Wert für eine bestimmte Karte ermittelst du mit
+dem Hardware-Testscript. Stelle sicher, dass die virtuelle Umgebung aktiv
+ist (`(.venv)` im Prompt), und führe aus:
+
+```bash
+python scripts/verify_hardware.py \
+  --rfid /dev/input/eventY
+```
+
+(`eventY` durch den in Schritt 9 ermittelten RFID-Gerätepfad ersetzen.)
+Das Script startet einen interaktiven Scan: Halte die Karte an den
+RFID-Reader. Das Script zeigt dann unter anderem:
+
+```text
+SHA-256-Hash: abc123def456… (wie in DB gespeichert)
+```
+
+Kopiere diesen Hash-Wert und setze ihn als `<HASH>` im obigen
+`cards assign`-Befehl ein.
 
 ## Schritt 12: Funktionstest durchführen
 
