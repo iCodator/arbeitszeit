@@ -433,8 +433,33 @@ admin --db <PFAD> --user-id <ID> reports export-csv \
 **Ausgabe:**
 
 ```
-Detail-CSV: /var/exports/arbeitszeit/detail_2026-07-01_2026-07-31.csv
-Verdichtet-CSV: /var/exports/arbeitszeit/condensed_2026-07-01_2026-07-31.csv
+Detail-CSV: /var/exports/arbeitszeit/export_detail_20260701_20260731_20260701T120000Z.csv
+Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_20260701T120000Z.csv
+```
+
+---
+
+#### `reports export-csv-review-cases`
+
+Exportiert offene Prüffälle im Zeitraum als CSV (Pflichtenheft §7.13).
+
+```bash
+admin --db <PFAD> --user-id <ID> reports export-csv-review-cases \
+  --from <YYYY-MM-DD> \
+  --to <YYYY-MM-DD> \
+  [--employee-id <MITARBEITER-ID>]
+```
+
+| Argument | Typ | Pflicht | Beschreibung |
+|---|---|---|---|
+| `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
+| `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
+| `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
+
+**Ausgabe:**
+
+```
+Prüffälle-CSV: /var/exports/arbeitszeit/export_prueffaelle_20260701_20260731_20260701T120000Z.csv
 ```
 
 ---
@@ -667,6 +692,7 @@ Systemcheck-Ergebnis:
   [OK  ] config_keys: Alle Pflichtschlüssel vorhanden
   [OK  ] nas_reachability: NAS erreichbar
   [OK  ] fk_consistency: Fremdschlüsselkonsistenz OK
+  [OK  ] ntp_sync: NTP aktiv und synchronisiert
   [OK  ] device_availability: Geräte verfügbar
 ```
 
@@ -889,13 +915,15 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 
 | Situation | Ausgabe |
 |---|---|
-| Buchung erfasst | `Buchung erfasst.` |
+| Buchung erfasst (Status OK oder OPEN) | `Buchung erfasst.` |
+| Buchung erfasst (Status WARN) | `Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.` |
+| Buchung erfasst (Status NEEDS_REVIEW) | `Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.` |
 | Karte unbekannt | `Karte nicht erkannt.` |
 | Karte deaktiviert | `Karte deaktiviert.` |
 | Mitarbeiter inaktiv | `Mitarbeiter inaktiv.` |
 | Falsche Buchungsreihenfolge | `Ungültige Buchungsreihenfolge.` |
 | Offene Phase | `Offene Phase — bitte zuerst abschließen.` |
-| Interner Fehler | `Interner Fehler — Betrieb wird fortgesetzt.` |
+| Interner Fehler | `Interner Fehler — Betrieb wird fortgesetzt.` (stderr) |
 
 ### Beenden
 
@@ -978,8 +1006,7 @@ SHA-256-Hash einer gescannten Karte aus — dieser Hash wird für
 
 ```bash
 python scripts/verify_hardware.py \
-  [--numpad <GERÄTEPFAD>] \
-  [--rfid <GERÄTEPFAD>] \
+  [--numpad <GERÄTEPFAD> --rfid <GERÄTEPFAD>] \
   [--list] \
   [--skip-interactive]
 ```
@@ -990,6 +1017,8 @@ python scripts/verify_hardware.py \
 | `--rfid` | RFID-Lesegerätepfad (z.B. `/dev/input/event4`) |
 | `--list` | Nur Gerätedateien auflisten, dann beenden |
 | `--skip-interactive` | Hardwaretests überspringen |
+
+**Wichtig:** `--numpad` und `--rfid` müssen immer **gemeinsam** angegeben werden — eines ohne das andere erzeugt einen Fehler. Werden beide weggelassen, startet eine interaktive Geräteauswahl.
 
 **Exit-Codes:** `0` = alle Tests bestanden, `1` = mindestens ein Test fehlgeschlagen,
 `2` = evdev nicht installiert
@@ -1045,6 +1074,7 @@ export.export_dir        /var/exports/arbeitszeit         1    MIGRATION   2026-
 | `schedule set` | ADMIN | Use Case |
 | `schedule show` | ADMIN, REVIEWER | CLI (`_auth.py`) |
 | `reports export-csv` | ADMIN, REVIEWER | CLI (`_auth.py`) |
+| `reports export-csv-review-cases` | ADMIN, REVIEWER | CLI (`_auth.py`) |
 | `reports export-pdf-day` | ADMIN, REVIEWER | CLI (`_auth.py`) |
 | `reports export-pdf-week` | ADMIN, REVIEWER | CLI (`_auth.py`) |
 | `reports export-pdf-month` | ADMIN, REVIEWER | CLI (`_auth.py`) |
