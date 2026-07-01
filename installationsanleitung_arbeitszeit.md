@@ -60,6 +60,8 @@ kopieren, wie er dort steht.
 
 - Einen Rechner mit **Linux Mint** oder **Lubuntu**, bereits installiert
   und einsatzbereit
+- **LUKS-Festplattenverschlüsselung aktiviert** — zwingend erforderlich
+  (Details und Prüfung: Schritt 0)
 - Eine Internetverbindung (nur für die Installation selbst benötigt)
 - Administratorrechte auf dem Rechner (also ein Benutzerkonto, mit dem
   `sudo`-Befehle funktionieren)
@@ -67,6 +69,66 @@ kopieren, wie er dort steht.
   30 bis 60 Minuten ein
 - Optional, aber für den Betrieb notwendig: ein RFID-Kartenlesegerät und
   ein USB-Numpad, beide über USB angeschlossen
+
+---
+
+## Schritt 0: LUKS-Festplattenverschlüsselung sicherstellen
+
+### Warum ist das zwingend?
+
+`arbeitszeit` verarbeitet personenbezogene Daten (Namen, Arbeitszeiten)
+von Mitarbeitenden. Die **DSGVO (Art. 32)** und das
+**BDSG** verpflichten zur Anwendung geeigneter technischer
+Schutzmaßnahmen. Ohne Festplattenverschlüsselung sind diese Daten bei
+Diebstahl oder Verlust des Rechners ungeschützt lesbar.
+
+**LUKS (Linux Unified Key Setup)** ist der Standardmechanismus zur
+Festplattenverschlüsselung unter Linux. Die Verschlüsselung muss
+**vor** der Installation von `arbeitszeit` aktiv sein — eine
+nachträgliche Einrichtung ist ohne Datenverlust nicht möglich.
+
+### Prüfen, ob LUKS bereits aktiv ist
+
+```bash
+lsblk -o NAME,TYPE,FSTYPE
+```
+
+In der Ausgabe nach Einträgen vom Typ `crypt` suchen:
+
+```text
+NAME          TYPE  FSTYPE
+sda           disk
+└─sda1        part  crypto_LUKS
+  └─dm-0      crypt ext4
+```
+
+Erscheint in der Spalte `TYPE` der Wert `crypt`, ist LUKS aktiv —
+du kannst mit Schritt 1 fortfahren.
+
+Erscheint **kein** Eintrag vom Typ `crypt`, ist die Festplatte
+**nicht** verschlüsselt. Das System muss **neu installiert** werden,
+bevor `arbeitszeit` eingerichtet werden darf (siehe nächster Abschnitt).
+
+### LUKS bei der Neuinstallation aktivieren
+
+Beim Installieren von Linux Mint oder Lubuntu:
+
+1. Im Installationsschritt „Installationsart" die Option
+   **„Festplatte löschen und Linux Mint installieren"**
+   (bzw. „… Lubuntu installieren") wählen.
+2. Den Haken setzen bei
+   **„Das neue System zur Sicherheit verschlüsseln"**
+   (bei Ubuntu/Lubuntu: „Encrypt the new … installation for security").
+3. Ein **starkes Verschlüsselungspasswort** festlegen und sicher
+   verwahren. Dieses Passwort wird bei jedem Systemstart abgefragt.
+   Geht es verloren, sind alle Daten auf dem Rechner unwiederbringlich
+   verloren.
+
+> **Hinweis:** Das Verschlüsselungspasswort für LUKS ist
+> **unabhängig** vom Benutzerpasswort des Betriebssystems. Beide
+> müssen sicher und getrennt aufbewahrt werden.
+
+---
 
 ## Schritt 1: System aktuell halten
 

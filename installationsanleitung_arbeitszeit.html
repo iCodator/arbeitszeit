@@ -239,6 +239,7 @@
       <li><a href="#ergebnis">Was du am Ende dieser Anleitung hast</a></li>
       <li><a href="#vorwissen">Was du vorher wissen solltest</a></li>
       <li><a href="#voraussetzungen">Was du vorher benötigst</a></li>
+      <li><a href="#schritt0">Schritt 0: LUKS-Festplattenverschlüsselung sicherstellen</a></li>
       <li><a href="#schritt1">Schritt 1: System aktuell halten</a></li>
       <li><a href="#schritt2">Schritt 2: Python installieren</a></li>
       <li><a href="#schritt3">Schritt 3: Zusätzliche Systempakete installieren</a></li>
@@ -317,11 +318,74 @@
 
   <ul>
     <li>Einen Rechner mit <strong>Linux Mint</strong> oder <strong>Lubuntu</strong>, bereits installiert und einsatzbereit</li>
+    <li><strong>LUKS-Festplattenverschlüsselung aktiviert</strong> — zwingend erforderlich (Prüfung und Einrichtung: Schritt 0)</li>
     <li>Eine Internetverbindung (nur für die Installation selbst benötigt)</li>
     <li>Administratorrechte auf dem Rechner (also ein Benutzerkonto, mit dem <code>sudo</code>-Befehle funktionieren)</li>
     <li>Ausreichend Zeit — plane für die komplette Ersteinrichtung etwa 30 bis 60 Minuten ein</li>
     <li>Optional, aber für den Betrieb notwendig: ein RFID-Kartenlesegerät und ein USB-Numpad, beide über USB angeschlossen</li>
   </ul>
+
+  <hr>
+
+  <!-- ================================================ -->
+  <h2 class="schritt" id="schritt0">Schritt 0: LUKS-Festplattenverschlüsselung sicherstellen</h2>
+
+  <h3>Warum ist das zwingend?</h3>
+
+  <p><code>arbeitszeit</code> verarbeitet personenbezogene Daten (Namen, Arbeitszeiten)
+  von Mitarbeitenden. Die <strong>DSGVO (Art.&nbsp;32)</strong> und das
+  <strong>BDSG</strong> verpflichten zur Anwendung geeigneter technischer
+  Schutzmaßnahmen. Ohne Festplattenverschlüsselung sind diese Daten bei
+  Diebstahl oder Verlust des Rechners ungeschützt lesbar.</p>
+
+  <p><strong>LUKS (Linux Unified Key Setup)</strong> ist der Standardmechanismus zur
+  Festplattenverschlüsselung unter Linux. Die Verschlüsselung muss
+  <strong>vor</strong> der Installation von <code>arbeitszeit</code> aktiv sein —
+  eine nachträgliche Einrichtung ist ohne Datenverlust nicht möglich.</p>
+
+  <h3>Prüfen, ob LUKS bereits aktiv ist</h3>
+
+  <pre><code>lsblk -o NAME,TYPE,FSTYPE</code></pre>
+
+  <p>In der Ausgabe nach Einträgen vom Typ <code>crypt</code> suchen:</p>
+
+  <pre class="ausgabe"><code>NAME          TYPE  FSTYPE
+sda           disk
+└─sda1        part  crypto_LUKS
+  └─dm-0      crypt ext4</code></pre>
+
+  <p>Erscheint in der Spalte <code>TYPE</code> der Wert <code>crypt</code>, ist LUKS aktiv —
+  du kannst mit Schritt 1 fortfahren.</p>
+
+  <div class="wichtig">
+    <strong>LUKS nicht aktiv?</strong> Erscheint <strong>kein</strong> Eintrag vom Typ
+    <code>crypt</code>, ist die Festplatte nicht verschlüsselt. Das System muss
+    <strong>neu installiert</strong> werden, bevor <code>arbeitszeit</code> eingerichtet
+    werden darf. Alle bestehenden Daten auf dem Rechner gehen dabei verloren —
+    sichere sie vorher an einem anderen Ort.
+  </div>
+
+  <h3>LUKS bei der Neuinstallation aktivieren</h3>
+
+  <p>Beim Installieren von Linux Mint oder Lubuntu:</p>
+
+  <ol>
+    <li>Im Installationsschritt „Installationsart" die Option
+        <strong>„Festplatte löschen und Linux Mint installieren"</strong>
+        (bzw. „… Lubuntu installieren") wählen.</li>
+    <li>Den Haken setzen bei
+        <strong>„Das neue System zur Sicherheit verschlüsseln"</strong>
+        (bei Ubuntu/Lubuntu: „Encrypt the new … installation for security").</li>
+    <li>Ein <strong>starkes Verschlüsselungspasswort</strong> festlegen und sicher verwahren.
+        Dieses Passwort wird bei jedem Systemstart abgefragt.</li>
+  </ol>
+
+  <div class="wichtig">
+    <strong>Sehr wichtig:</strong> Das Verschlüsselungspasswort für LUKS ist
+    <strong>unabhängig</strong> vom Benutzerpasswort des Betriebssystems. Beide müssen
+    sicher und getrennt aufbewahrt werden. Geht das LUKS-Passwort verloren,
+    sind alle Daten auf dem Rechner <strong>unwiederbringlich verloren</strong>.
+  </div>
 
   <hr>
 
