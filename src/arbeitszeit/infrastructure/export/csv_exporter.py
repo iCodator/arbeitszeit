@@ -21,6 +21,7 @@ from arbeitszeit.domain.enums import BookingStatus, BookingType
 from arbeitszeit.infrastructure.export.report_queries import (
     list_bookings,
     list_corrections,
+    list_open_review_cases_in_period,
     list_supplements,
 )
 
@@ -282,6 +283,66 @@ def export_condensed(
                     **stats,
                     "korrekturen": corr_count.get((emp_id, day_date), 0),
                     "nachtraege": supp_count.get((emp_id, day_date), 0),
+                }
+            )
+
+    return path
+
+
+# ---------------------------------------------------------------------------
+# Prüffälle-Export (Pflichtenheft v5 §7.13)
+# ---------------------------------------------------------------------------
+
+_REVIEW_CASE_FIELDS = [
+    "prueffall_id",
+    "mitarbeiter_nr",
+    "mitarbeiter_name",
+    "typ",
+    "schwere",
+    "status",
+    "beschreibung",
+    "buchungs_id",
+    "erkannt_am",
+    "hinweis",
+]
+
+
+def export_review_cases(
+    conn: sqlite3.Connection,
+    from_dt: datetime,
+    to_dt: datetime,
+    export_dir: Path,
+    employee_id: int | None = None,
+    now: datetime | None = None,
+) -> Path:
+    """Exportiert offene Prüffälle im Zeitraum als CSV.
+
+    Eine Zeile pro Prüffall. Erfüllt §7.13: Pflichtauswertungen müssen
+    exportierbar sein.
+    """
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    rows = list_open_review_cases_in_period(conn, from_dt, to_dt, employee_id=employee_id)
+    filename = _make_filename("export_prueffaelle", from_dt, to_dt, now)
+    path = export_dir / filename
+
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=_REVIEW_CASE_FIELDS)
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(
+                {
+                    "prueffall_id": r.case_id,
+                    "mitarbeiter_nr": r.personnel_no,
+                    "mitarbeiter_name": r.employee_name,
+                    "typ": r.case_type.value,
+                    "schwere": r.severity.value,
+                    "status": r.status.value,
+                    "beschreibung": r.description,
+                    "buchungs_id": r.booking_id if r.booking_id is not None else "",
+                    "erkannt_am": r.detected_at.isoformat(),
+                    "hinweis": r.note or "",
                 }
             )
 

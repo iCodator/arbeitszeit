@@ -125,6 +125,7 @@ def _dispatch(
         ("schedule", "set"): lambda: schedule.cmd_schedule_set(conn, audit_conn, args, user_id),
         ("schedule", "show"): lambda: schedule.cmd_schedule_show(conn, args, user_id),
         ("reports", "export-csv"): lambda: reports.cmd_reports_export_csv(conn, args, user_id),
+        ("reports", "export-csv-review-cases"): lambda: reports.cmd_reports_export_csv_review_cases(conn, args, user_id),
         ("reports", "export-pdf-day"): lambda: reports.cmd_reports_export_pdf_day(
             conn, args, user_id
         ),

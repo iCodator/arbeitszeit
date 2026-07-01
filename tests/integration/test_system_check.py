@@ -94,6 +94,7 @@ def test_selftest_details_enthalten_alle_pruefbereiche(tmp_path):
     assert "config_keys" in names
     assert "nas_reachability" in names
     assert "fk_consistency" in names
+    assert "ntp_sync" in names
     assert "device_availability" in names
 
 

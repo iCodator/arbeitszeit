@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import subprocess
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -63,6 +64,7 @@ def run_system_check(
         finally:
             conn.close()
 
+    checks.append(_check_ntp())
     checks.append(_check_devices(numpad_path, rfid_path))
 
     result = SystemCheckResult(checks=tuple(checks))
@@ -159,7 +161,7 @@ def _check_nas(conn: sqlite3.Connection) -> CheckResult:
 
     try:
         nas_enabled = json.loads(row[0])
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         nas_enabled = False
 
     if not nas_enabled:
@@ -178,7 +180,7 @@ def _check_nas(conn: sqlite3.Connection) -> CheckResult:
 
     try:
         nas_path_str = json.loads(row[0])
-    except ValueError, TypeError:
+    except (ValueError, TypeError):
         nas_path_str = None
 
     if not nas_path_str:
@@ -213,6 +215,45 @@ def _check_fk_consistency(conn: sqlite3.Connection) -> CheckResult:
             detail=f"{len(violations)} verwaiste Fremdschlüssel-Referenz(en)",
         )
     return CheckResult(name="fk_consistency", ok=True, detail="OK")
+
+
+def _check_ntp() -> CheckResult:
+    """Prüft via timedatectl, ob NTP aktiv und synchronisiert ist (§9.3)."""
+    try:
+        proc = subprocess.run(
+            ["timedatectl", "show", "--property=NTP", "--property=NTPSynchronized", "--no-pager"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+        props = dict(
+            line.split("=", 1)
+            for line in proc.stdout.splitlines()
+            if "=" in line
+        )
+        ntp_active = props.get("NTP", "no").lower() == "yes"
+        ntp_synced = props.get("NTPSynchronized", "no").lower() == "yes"
+        if not ntp_active:
+            return CheckResult(name="ntp_sync", ok=False, detail="NTP nicht aktiv (NTP=no)")
+        if not ntp_synced:
+            return CheckResult(
+                name="ntp_sync", ok=False,
+                detail="NTP aktiv, aber nicht synchronisiert (NTPSynchronized=no)"
+            )
+        return CheckResult(name="ntp_sync", ok=True, detail="NTP aktiv und synchronisiert")
+    except FileNotFoundError:
+        return CheckResult(
+            name="ntp_sync", ok=False,
+            detail="timedatectl nicht gefunden — NTP-Status unbekannt"
+        )
+    except subprocess.TimeoutExpired:
+        return CheckResult(
+            name="ntp_sync", ok=False,
+            detail="timedatectl Timeout — NTP-Status unbekannt"
+        )
+    except Exception as exc:
+        return CheckResult(name="ntp_sync", ok=False, detail=f"NTP-Prüfung fehlgeschlagen: {exc}")
 
 
 def _check_devices(

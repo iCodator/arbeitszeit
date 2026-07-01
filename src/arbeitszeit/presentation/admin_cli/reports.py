@@ -119,6 +119,20 @@ def cmd_reports_export_csv(
     print(f"Verdichtet-CSV: {condensed_path}")
 
 
+def cmd_reports_export_csv_review_cases(
+    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    require_admin_or_reviewer(conn, user_id)
+    from pathlib import Path
+
+    export_dir = Path(_get_export_dir(conn))
+    from_dt, _ = day_interval(_parse_date(args.from_date))
+    _, to_dt = day_interval(_parse_date(args.to_date))
+    employee_id = getattr(args, "employee_id", None)
+    path = csv_exporter.export_review_cases(conn, from_dt, to_dt, export_dir, employee_id)
+    print(f"Prüffälle-CSV: {path}")
+
+
 def cmd_reports_export_pdf_day(
     conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
@@ -266,6 +280,11 @@ def register_subcommands(
     csv_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
     csv_cmd.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
     csv_cmd.add_argument("--employee-id", type=int, default=None)
+
+    rc_csv = rsub.add_parser("export-csv-review-cases", help="Offene Prüffälle als CSV exportieren")
+    rc_csv.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
+    rc_csv.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    rc_csv.add_argument("--employee-id", type=int, default=None)
 
     pdf_day = rsub.add_parser("export-pdf-day", help="Tagesbericht als PDF")
     pdf_day.add_argument("--date", required=True, metavar="YYYY-MM-DD")
