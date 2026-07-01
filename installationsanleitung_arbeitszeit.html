@@ -253,6 +253,7 @@
       <li><a href="#schritt11">Schritt 11: Mitarbeitende und Karten anlegen</a></li>
       <li><a href="#schritt12">Schritt 12: Funktionstest durchführen</a></li>
       <li><a href="#schritt13">Schritt 13: Terminal-Betrieb starten</a></li>
+      <li><a href="#schritt14">Schritt 14: Grafische Verwaltungsoberfläche (Admin-GUI) starten</a></li>
       <li><a href="#probleme">Häufige Probleme und Lösungen</a></li>
       <li><a href="#glossar">Kurzglossar für Einsteiger</a></li>
       <li><a href="#weitere-info">Wo finde ich weitere Informationen?</a></li>
@@ -426,11 +427,12 @@ sudo apt upgrade -y</code></pre>
   gefunden), muss Python 3.14 noch installiert werden:</p>
 
   <pre><code>sudo apt update
-sudo apt install -y python3.14 python3.14-venv python3-pip</code></pre>
+sudo apt install -y python3.14 python3.14-venv python3.14-tk python3-pip</code></pre>
 
-  <p><strong>Was passiert hier?</strong> Es werden drei Programmteile installiert:
+  <p><strong>Was passiert hier?</strong> Es werden vier Programmteile installiert:
   Python selbst, ein Werkzeug zum Anlegen isolierter „virtueller
-  Umgebungen" (dazu gleich mehr) und der Python-Paketmanager <code>pip</code>, mit
+  Umgebungen" (dazu gleich mehr), das Grafik-Modul <code>tkinter</code> für die
+  grafische Verwaltungsoberfläche und der Python-Paketmanager <code>pip</code>, mit
   dem später zusätzliche Software-Bausteine installiert werden.</p>
 
   <p>Anschließend die Version erneut prüfen:</p>
@@ -745,6 +747,79 @@ Migration 0006 angewendet.</code></pre>
   <hr>
 
   <!-- ================================================ -->
+  <h2 class="schritt" id="schritt14">Schritt 14: Grafische Verwaltungsoberfläche (Admin-GUI) starten</h2>
+
+  <p>Neben der Admin-CLI steht eine <strong>grafische Verwaltungsoberfläche</strong> zur
+  Verfügung. Sie zeigt dieselben Funktionen in Fensterform und eignet sich
+  besonders für Personen, die lieber mit der Maus als mit Textbefehlen
+  arbeiten.</p>
+
+  <h3>Voraussetzung prüfen</h3>
+
+  <p>Das Grafik-Modul <code>python3.14-tk</code> wurde bereits in Schritt 2 installiert.
+  Prüfe, ob es verfügbar ist:</p>
+
+  <pre><code>python3.14 -c "import tkinter; print('tkinter OK')"</code></pre>
+
+  <p>Erscheint <code>tkinter OK</code>, kann die GUI gestartet werden. Erscheint
+  stattdessen eine Fehlermeldung (<code>No module named '_tkinter'</code>), lies bitte
+  den Abschnitt „Häufige Probleme" am Ende dieser Anleitung.</p>
+
+  <h3>GUI starten</h3>
+
+  <p>Stelle sicher, dass die virtuelle Umgebung aktiv ist (<code>(.venv)</code> im
+  Prompt), und führe aus:</p>
+
+  <pre><code>python -m arbeitszeit.presentation.admin_gui.main</code></pre>
+
+  <p>Es öffnet sich ein Fenster mit einem Verbindungsdialog. Trage dort den
+  Datenbankpfad und deine Benutzer-ID ein und klicke auf <strong>Verbinden</strong>.</p>
+
+  <p>Alternativ kannst du beide Angaben direkt beim Aufruf übergeben:</p>
+
+  <pre><code>python -m arbeitszeit.presentation.admin_gui.main \
+  --db arbeitszeit.db \
+  --user-id 1</code></pre>
+
+  <h3>Bedienung</h3>
+
+  <p>Die GUI ist in fünf Reiter (Tabs) unterteilt:</p>
+
+  <table>
+    <thead>
+      <tr><th>Reiter</th><th>Funktion</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>👥 Mitarbeiter</td><td>Mitarbeitende anlegen und deaktivieren</td></tr>
+      <tr><td>💳 Karten</td><td>RFID-Karten zuweisen, ersetzen und deaktivieren</td></tr>
+      <tr><td>👤 Benutzer</td><td>Benutzerkonten anlegen, deaktivieren, reaktivieren, Rolle ändern; Bootstrap für ersten Administrator</td></tr>
+      <tr><td>📅 Regelzeiten</td><td>Aktive Regelarbeitszeiten anzeigen</td></tr>
+      <tr><td>⚙ System</td><td>Systemcheck auslösen und Backup erstellen</td></tr>
+    </tbody>
+  </table>
+
+  <div class="hinweis">
+    <strong>Hilfstext zu jedem Element:</strong> Bewege den Mauszeiger über eine
+    Schaltfläche oder ein Eingabefeld und halte ihn kurz still — es erscheint
+    automatisch ein ausführlicher Erklärungstext.
+  </div>
+
+  <p><strong>Tastaturkürzel:</strong> Drücke <code>F1</code> für die Kurzanleitung oder öffne das
+  Menü <em>Hilfe → Tastenkürzel</em> für eine vollständige Übersicht.</p>
+
+  <p><strong>Wie beende ich die GUI?</strong> Schließe das Fenster wie jedes andere
+  Programm (roter Schließen-Knopf oder <code>Alt</code>&nbsp;+&nbsp;<code>F4</code>).</p>
+
+  <div class="hinweis">
+    <strong>Hinweis:</strong> Buchungskorrekturen, Nachträge und Berichte sind derzeit
+    nur über die Admin-CLI verfügbar (siehe <code>befehlsreferenz_arbeitszeit.md</code>).
+    Die GUI deckt die täglichen Verwaltungsaufgaben ab — für erweiterte
+    Auswertungen nutze die CLI.
+  </div>
+
+  <hr>
+
+  <!-- ================================================ -->
   <h2 id="probleme">Häufige Probleme und Lösungen</h2>
 
   <table>
@@ -786,6 +861,16 @@ Migration 0006 angewendet.</code></pre>
         <td>Installation unvollständig oder fehlerhaft</td>
         <td>Schritte 2 bis 6 erneut prüfen, bei Bedarf Hilfe holen</td>
       </tr>
+      <tr>
+        <td>GUI startet nicht / <code>No module named '_tkinter'</code></td>
+        <td><code>python3.14-tk</code> ist nicht installiert</td>
+        <td><code>sudo apt install python3.14-tk</code> ausführen, danach GUI erneut starten</td>
+      </tr>
+      <tr>
+        <td>GUI-Fenster öffnet sich, aber ist leer</td>
+        <td>Virtuelle Umgebung war beim GUI-Start nicht aktiv</td>
+        <td><code>source .venv/bin/activate</code> ausführen, dann GUI neu starten</td>
+      </tr>
     </tbody>
   </table>
 
@@ -813,6 +898,12 @@ Migration 0006 angewendet.</code></pre>
 
     <dt>Admin-CLI</dt>
     <dd>Die Verwaltungsoberfläche für Administratorinnen und Administratoren, bedienbar über Textbefehle.</dd>
+
+    <dt>Admin-GUI</dt>
+    <dd>Die grafische Verwaltungsoberfläche — dieselben Funktionen wie die Admin-CLI, aber mit Fenstern, Schaltflächen und Hilfstexten statt Textbefehlen.</dd>
+
+    <dt>tkinter</dt>
+    <dd>Das in Python eingebaute Grafik-Modul, das die Admin-GUI antreibt. Auf Linux wird es als separates Paket (<code>python3.14-tk</code>) bereitgestellt.</dd>
 
     <dt>Terminal-UI</dt>
     <dd>Der dauerhaft laufende Prozess, über den Mitarbeitende ihre Arbeitszeiten buchen.</dd>
