@@ -110,7 +110,7 @@ admin --db <PFAD> employees list
 **Rolle:** keine  
 **Ausgabe:**
 
-```
+```text
   ID  Nr            Name                            Status
 ------------------------------------------------------------
    1  M001          Maria Mustermann                aktiv
@@ -361,14 +361,14 @@ admin --db <PFAD> --user-id <ID> schedule set \
 **Rolle:** ADMIN (Prüfung in `ManageWorkScheduleUseCase`)  
 **Ausgabe (global):**
 
-```
+```text
 Globale Regelarbeitszeit gesetzt (Version 3): Mo 08:00–17:00 ab 2026-08-01.
 Vorgängerversion 1 geschlossen.
 ```
 
 **Ausgabe (mitarbeiterspezifisch):**
 
-```
+```text
 Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version 4): Mitarbeiter 2, Mo 09:00–16:00 ab 2026-08-01.
 ```
 
@@ -387,7 +387,7 @@ admin --db <PFAD> --user-id <ID> schedule show
 **Rolle:** ADMIN, REVIEWER (Prüfung in CLI via `require_admin_or_reviewer`)  
 **Ausgabe:**
 
-```
+```text
 Globale Regelarbeitszeit (gültige Versionen):
     ID  Tag  Von    Bis    Gültig ab
    -----------------------------------
@@ -432,7 +432,7 @@ admin --db <PFAD> --user-id <ID> reports export-csv \
 
 **Ausgabe:**
 
-```
+```text
 Detail-CSV: /var/exports/arbeitszeit/export_detail_20260701_20260731_20260701T120000Z.csv
 Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_20260701T120000Z.csv
 ```
@@ -458,7 +458,7 @@ admin --db <PFAD> --user-id <ID> reports export-csv-review-cases \
 
 **Ausgabe:**
 
-```
+```text
 Prüffälle-CSV: /var/exports/arbeitszeit/export_prueffaelle_20260701_20260731_20260701T120000Z.csv
 ```
 
@@ -561,7 +561,7 @@ ein Hinweis auf stderr, `--from`/`--to` zu verwenden.
 
 **Ausgabe:**
 
-```
+```text
 Offene Buchungen (Status OPEN) — alle:
     ID  Mitarbeiter               Art           Zeitpunkt                Status
 ---------------------------------------------------------------------------------
@@ -606,7 +606,7 @@ admin --db <PFAD> --user-id <ID> reports corrections \
 
 **Ausgabe:**
 
-```
+```text
 Buchungskorrekturen:
 [12] Maria Mustermann (M001): COME @ 2026-07-01T08:00:00Z → COME @ 2026-07-01T08:05:00Z (Grund: Zeitstempel korrigiert)
 
@@ -628,7 +628,7 @@ admin --db <PFAD> --user-id <ID> reports supplements \
 
 **Ausgabe:**
 
-```
+```text
 Nachträge:
 [8] Maria Mustermann (M001): GO @ 2026-07-01T17:00:00Z (APPROVED) — Vergessen zu stempeln
 
@@ -657,7 +657,7 @@ admin --db <PFAD> --user-id <ID> reports open-review-cases \
 
 **Ausgabe:**
 
-```
+```text
 Offene Prüffälle — alle:
 [3] Maria Mustermann (M001): POSSIBLE_BREAK_VIOLATION (WARN) — Mögliche Pausenverletzung §4 ArbZG
 
@@ -684,7 +684,7 @@ admin --db <PFAD> --user-id <ID> system check
 **Exit-Code:** `0` = alles OK, `1` = mindestens ein Check fehlgeschlagen  
 **Ausgabe:**
 
-```
+```text
 Systemcheck-Ergebnis:
   Gesamt: OK
 
@@ -709,14 +709,14 @@ admin --db <PFAD> --user-id <ID> system backup
 **Rolle:** ADMIN, TECH (Prüfung in CLI via `require_admin_or_tech`)  
 **Ausgabe (Erfolg, NAS aktiv):**
 
-```
+```text
 Backup erstellt: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db
 NAS-Synchronisation erfolgreich.
 ```
 
 **Ausgabe (Erfolg, kein NAS):**
 
-```
+```text
 Backup erstellt: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db
 ```
 
@@ -753,7 +753,7 @@ admin --db <PFAD> users bootstrap \
 **Rolle:** keine (`--user-id` nicht erforderlich)  
 **Ausgabe:**
 
-```
+```text
 Erstes Administratorkonto angelegt (ID 1).
 Generiertes Passwort (einmalig sichtbar): xKj8!mP2nqR5
 ```
@@ -784,7 +784,7 @@ admin --db <PFAD> --user-id <ID> users add \
 **Rolle:** ADMIN  
 **Ausgabe:**
 
-```
+```text
 Benutzerkonto angelegt (ID 2).
 Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w
 ```
@@ -804,7 +804,7 @@ admin --db <PFAD> users list
 **Rolle:** keine  
 **Ausgabe:**
 
-```
+```text
   ID  Benutzername          Rolle       Status
 ----------------------------------------------------
    1  admin                 ADMIN       aktiv
@@ -991,7 +991,7 @@ python scripts/backup.py \
 
 **Ausgabe:**
 
-```
+```text
 Backup: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db  (2097152 Bytes)
 NAS-Sync: /mnt/nas/backups/arbeitszeit | deaktiviert
 ```
@@ -1047,7 +1047,7 @@ python scripts/show_config.py \
 
 **Ausgabe (Tabelle):**
 
-```
+```text
 Schlüssel                Wert                             Ver  Herkunft    Geändert am
 ────────────────────────────────────────────────────────────────────────────────────────
 backup.backup_dir        /var/backups/arbeitszeit         1    MIGRATION   2026-07-01T12:00
