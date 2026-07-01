@@ -1,4 +1,4 @@
-"""Admin-CLI: Buchungskorrekturen und Nachträge (ADMIN/REVIEWER-Rolle).
+"""Admin-CLI: Buchungskorrekturen und Nachträge.
 
 Alle Schreiboperationen laufen über Use Cases aus der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und
