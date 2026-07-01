@@ -25,6 +25,7 @@ from arbeitszeit.domain.enums import (
     ChangeOrigin,
     ReviewCaseStatus,
     ScopeType,
+    UserRole,
 )
 from arbeitszeit.domain.ports.repositories import (
     AuditLogRepository,
@@ -89,13 +90,17 @@ class FakeEmployeeRepository:
             None,
         )
 
+    def deactivate(self, employee_id: int) -> None:
+        existing = self._store[employee_id]
+        self._store[employee_id] = dataclasses.replace(existing, is_active=False)
+
 
 class FakeUserAccountRepository:
     def __init__(self) -> None:
         self._store: dict[int, UserAccount] = {}
         self._next_id = 1
 
-    def add(self, account: UserAccount) -> UserAccount:
+    def add(self, account: UserAccount, password_hash: str = "") -> UserAccount:
         new = dataclasses.replace(account, id=self._next_id)
         self._store[new.id] = new
         self._next_id += 1
@@ -108,6 +113,23 @@ class FakeUserAccountRepository:
         return next(
             (a for a in self._store.values() if a.username == username),
             None,
+        )
+
+    def deactivate(self, user_id: int) -> None:
+        existing = self._store[user_id]
+        self._store[user_id] = dataclasses.replace(existing, is_active=False)
+
+    def reactivate(self, user_id: int) -> None:
+        existing = self._store[user_id]
+        self._store[user_id] = dataclasses.replace(existing, is_active=True)
+
+    def set_role(self, user_id: int, role: UserRole) -> None:
+        existing = self._store[user_id]
+        self._store[user_id] = dataclasses.replace(existing, role=role)
+
+    def has_active_admin(self) -> bool:
+        return any(
+            a.role == UserRole.ADMIN and a.is_active for a in self._store.values()
         )
 
 
@@ -140,6 +162,21 @@ class FakeRfidCardRepository:
 
     def get_by_id(self, card_id: int) -> RfidCard | None:
         return self._store.get(card_id)
+
+    def set_status(
+        self,
+        card_id: int,
+        status: CardStatus,
+        replaced_by_card_id: int | None = None,
+        valid_until: date | None = None,
+    ) -> None:
+        existing = self._store[card_id]
+        self._store[card_id] = dataclasses.replace(
+            existing,
+            status=status,
+            replaced_by_card_id=replaced_by_card_id,
+            valid_until=valid_until,
+        )
 
 
 class FakeTimeBookingRepository:

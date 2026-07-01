@@ -1,101 +1,76 @@
 """Admin-CLI: Benutzerkontenverwaltung für ADMIN, REVIEWER und TECH.
 
-Schreibende Operationen erfordern ADMIN-Rolle.
-Lesende Operationen (list) sind ohne Rolleneinschränkung nutzbar.
+Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
+Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
 import argparse
 import binascii
 import hashlib
-import json
 import os
 import secrets
 import sqlite3
 import sys
-from datetime import datetime, timezone
 
-from arbeitszeit.domain import audit_events
+from arbeitszeit.application.commands import (
+    BootstrapAdminCommand,
+    ChangeUserRoleCommand,
+    CreateUserAccountCommand,
+    DeactivateUserAccountCommand,
+    ReactivateUserAccountCommand,
+)
+from arbeitszeit.application.use_cases.manage_user_accounts import (
+    BootstrapAdminUseCase,
+    ChangeUserRoleUseCase,
+    CreateUserAccountUseCase,
+    DeactivateUserAccountUseCase,
+    ReactivateUserAccountUseCase,
+)
+from arbeitszeit.domain.enums import UserRole
+from arbeitszeit.domain.errors import DomainError
+from arbeitszeit.domain.value_objects import UserAccountId
+from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
-_ALLOWED_ROLES = ("ADMIN", "REVIEWER", "TECH")
 
-
-def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
-    if row is None or not row["active"] or row["role"] != "ADMIN":
-        print("Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr)
-        sys.exit(1)
-
-
-def _audit(
-    conn: sqlite3.Connection,
-    event_type: str,
-    object_id: int,
-    user_id: int,
-    details: dict[str, object] | None = None,
-) -> None:
-    conn.execute(
-        "INSERT INTO audit_log "
-        "(event_type, object_type, object_id, user_id, employee_id, event_at, details_json) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (
-            event_type,
-            "user_accounts",
-            object_id,
-            user_id,
-            None,
-            datetime.now(timezone.utc).isoformat(),
-            json.dumps(details or {}, ensure_ascii=False, sort_keys=True),
-        ),
-    )
+def _make_uow(conn: sqlite3.Connection, audit_conn: sqlite3.Connection) -> SQLiteUnitOfWork:
+    return SQLiteUnitOfWork(conn, audit_conn)
 
 
 def _hash_password(password: str) -> str:
     # PBKDF2-HMAC-SHA256, 260.000 Iterationen, 16-Byte-Zufallssalt.
-    # Ausgabeformat: hex(salt):hex(dk) — salt und Schlüssel getrennt lesbar.
-    # Technische Maßnahme gemäß DSGVO Art. 32 (angemessener Schutz personenbezogener
-    # Authentifikationsdaten) für eine lokale Einzelplatzanwendung.
+    # Ausgabeformat: hex(salt):hex(dk)
+    # Technische Maßnahme gemäß DSGVO Art. 32.
     salt = os.urandom(16)
     dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 260_000)
     return binascii.hexlify(salt).decode() + ":" + binascii.hexlify(dk).decode()
 
 
-def cmd_users_add(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    role = args.role.upper()
-    if role not in _ALLOWED_ROLES:
-        print(
-            f"Fehler: Ungültige Rolle '{role}'. Erlaubt: {', '.join(_ALLOWED_ROLES)}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-
+def cmd_users_add(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
     password = args.password or secrets.token_urlsafe(12)
     password_hash = _hash_password(password)
-    now = datetime.now(timezone.utc).isoformat()
 
     try:
-        conn.execute("BEGIN")
-        row = conn.execute(
-            "INSERT INTO user_accounts "
-            "(username, password_hash, role, employee_id, active, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, 1, ?, ?) RETURNING id",
-            (args.username, password_hash, role, args.employee_id, now, now),
-        ).fetchone()
-        new_id = row["id"]
-        _audit(
-            conn,
-            audit_events.USER_ACCOUNT_CREATED,
-            new_id,
-            user_id,
-            {"username": args.username, "role": role},
-        )
-        conn.execute("COMMIT")
-    except sqlite3.IntegrityError as exc:
-        conn.execute("ROLLBACK")
-        print(f"Fehler: Benutzername bereits vergeben. ({exc})", file=sys.stderr)
+        role = UserRole(args.role.upper())
+    except ValueError:
+        print(f"Fehler: Ungültige Rolle '{args.role}'.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Benutzerkonto angelegt (ID {new_id}).")
+    cmd = CreateUserAccountCommand(
+        acting_user_id=UserAccountId(user_id),
+        username=args.username,
+        password_hash=password_hash,
+        role=role,
+        employee_id=args.employee_id,
+    )
+    try:
+        result = CreateUserAccountUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Benutzerkonto angelegt (ID {result.user_id}).")
     if not args.password:
         print(f"Generiertes Passwort (einmalig sichtbar): {password}")
 
@@ -115,143 +90,72 @@ def cmd_users_list(conn: sqlite3.Connection, args: argparse.Namespace) -> None:
         print(f"{row['id']:>4}  {row['username']:20}  {row['role']:10}  {status}")
 
 
-def cmd_users_deactivate(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    row = conn.execute(
-        "SELECT id, username, active FROM user_accounts WHERE id = ?",
-        (args.deactivate_user_id,),
-    ).fetchone()
-    if row is None:
-        print(
-            f"Fehler: Benutzerkonto {args.deactivate_user_id} nicht gefunden.",
-            file=sys.stderr,
-        )
+def cmd_users_deactivate(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    cmd = DeactivateUserAccountCommand(
+        acting_user_id=UserAccountId(user_id),
+        target_user_id=UserAccountId(args.deactivate_user_id),
+    )
+    try:
+        DeactivateUserAccountUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
-    if not row["active"]:
-        print(f"Hinweis: Benutzerkonto '{row['username']}' ist bereits inaktiv.")
-        return
-    conn.execute("BEGIN")
-    conn.execute(
-        "UPDATE user_accounts SET active = 0, updated_at = ? WHERE id = ?",
-        (datetime.now(timezone.utc).isoformat(), args.deactivate_user_id),
-    )
-    _audit(
-        conn,
-        audit_events.USER_ACCOUNT_DEACTIVATED,
-        args.deactivate_user_id,
-        user_id,
-        {"username": row["username"]},
-    )
-    conn.execute("COMMIT")
-    print(f"Benutzerkonto '{row['username']}' deaktiviert.")
+    print(f"Benutzerkonto {args.deactivate_user_id} deaktiviert.")
 
 
-def cmd_users_reactivate(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    row = conn.execute(
-        "SELECT id, username, active FROM user_accounts WHERE id = ?",
-        (args.reactivate_user_id,),
-    ).fetchone()
-    if row is None:
-        print(
-            f"Fehler: Benutzerkonto {args.reactivate_user_id} nicht gefunden.",
-            file=sys.stderr,
-        )
+def cmd_users_reactivate(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    cmd = ReactivateUserAccountCommand(
+        acting_user_id=UserAccountId(user_id),
+        target_user_id=UserAccountId(args.reactivate_user_id),
+    )
+    try:
+        ReactivateUserAccountUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
-    if row["active"]:
-        print(f"Hinweis: Benutzerkonto '{row['username']}' ist bereits aktiv.")
-        return
-    conn.execute("BEGIN")
-    conn.execute(
-        "UPDATE user_accounts SET active = 1, updated_at = ? WHERE id = ?",
-        (datetime.now(timezone.utc).isoformat(), args.reactivate_user_id),
-    )
-    _audit(
-        conn,
-        audit_events.USER_ACCOUNT_REACTIVATED,
-        args.reactivate_user_id,
-        user_id,
-        {"username": row["username"]},
-    )
-    conn.execute("COMMIT")
-    print(f"Benutzerkonto '{row['username']}' reaktiviert.")
+    print(f"Benutzerkonto {args.reactivate_user_id} reaktiviert.")
 
 
-def cmd_users_change_role(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    row = conn.execute(
-        "SELECT id, username, role FROM user_accounts WHERE id = ?",
-        (args.target_user_id,),
-    ).fetchone()
-    if row is None:
-        print(
-            f"Fehler: Benutzerkonto {args.target_user_id} nicht gefunden.",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    new_role = args.role.upper()
-    if new_role not in _ALLOWED_ROLES:
-        print(
-            f"Fehler: Ungültige Rolle '{new_role}'. Erlaubt: {', '.join(_ALLOWED_ROLES)}",
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    old_role = row["role"]
-    conn.execute("BEGIN")
-    conn.execute(
-        "UPDATE user_accounts SET role = ?, updated_at = ? WHERE id = ?",
-        (new_role, datetime.now(timezone.utc).isoformat(), args.target_user_id),
-    )
-    _audit(
-        conn,
-        audit_events.USER_ACCOUNT_ROLE_CHANGED,
-        args.target_user_id,
-        user_id,
-        {"username": row["username"], "old_role": old_role, "new_role": new_role},
-    )
-    conn.execute("COMMIT")
-    print(f"Rolle von '{row['username']}' geändert: {old_role} → {new_role}.")
-
-
-def cmd_users_bootstrap(conn: sqlite3.Connection, args: argparse.Namespace) -> None:
-    count = conn.execute(
-        "SELECT COUNT(*) FROM user_accounts WHERE role = 'ADMIN' AND active = 1"
-    ).fetchone()[0]
-    if count > 0:
-        print(
-            "Fehler: Es existiert bereits ein aktives Administratorkonto. "
-            "Bootstrap nicht möglich.",
-            file=sys.stderr,
-        )
+def cmd_users_change_role(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    try:
+        new_role = UserRole(args.role.upper())
+    except ValueError:
+        print(f"Fehler: Ungültige Rolle '{args.role}'.", file=sys.stderr)
         sys.exit(1)
 
+    cmd = ChangeUserRoleCommand(
+        acting_user_id=UserAccountId(user_id),
+        target_user_id=UserAccountId(args.target_user_id),
+        new_role=new_role,
+    )
+    try:
+        ChangeUserRoleUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Rolle von Benutzerkonto {args.target_user_id} geändert.")
+
+
+def cmd_users_bootstrap(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace
+) -> None:
     password = args.password or secrets.token_urlsafe(12)
     password_hash = _hash_password(password)
-    now = datetime.now(timezone.utc).isoformat()
 
+    cmd = BootstrapAdminCommand(username=args.username, password_hash=password_hash)
     try:
-        conn.execute("BEGIN")
-        row = conn.execute(
-            "INSERT INTO user_accounts "
-            "(username, password_hash, role, employee_id, active, created_at, updated_at) "
-            "VALUES (?, ?, 'ADMIN', NULL, 1, ?, ?) RETURNING id",
-            (args.username, password_hash, now, now),
-        ).fetchone()
-        new_id = row["id"]
-        _audit(
-            conn,
-            audit_events.USER_ACCOUNT_CREATED,
-            new_id,
-            new_id,
-            {"username": args.username, "role": "ADMIN", "bootstrap": True},
-        )
-        conn.execute("COMMIT")
-    except sqlite3.IntegrityError as exc:
-        conn.execute("ROLLBACK")
-        print(f"Fehler: Benutzername bereits vergeben. ({exc})", file=sys.stderr)
+        result = BootstrapAdminUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Erstes Administratorkonto angelegt (ID {new_id}).")
+    print(f"Erstes Administratorkonto angelegt (ID {result.user_id}).")
     if not args.password:
         print(f"Generiertes Passwort (einmalig sichtbar): {password}")
 
@@ -271,12 +175,7 @@ def register_subcommands(
         choices=["ADMIN", "REVIEWER", "TECH"],
         help="Rolle: ADMIN, REVIEWER oder TECH",
     )
-    add.add_argument(
-        "--employee-id",
-        type=int,
-        default=None,
-        help="Verknüpfter Mitarbeiter (optional)",
-    )
+    add.add_argument("--employee-id", type=int, default=None, help="Verknüpfter Mitarbeiter (optional)")
     add.add_argument(
         "--password",
         default=None,
@@ -288,39 +187,16 @@ def register_subcommands(
 
     # deactivate
     deact = users_sub.add_parser("deactivate", help="Benutzerkonto deaktivieren")
-    deact.add_argument(
-        "--user-id",
-        dest="deactivate_user_id",
-        type=int,
-        required=True,
-        help="ID des zu deaktivierenden Kontos",
-    )
+    deact.add_argument("--user-id", dest="deactivate_user_id", type=int, required=True)
 
     # reactivate
     react = users_sub.add_parser("reactivate", help="Benutzerkonto reaktivieren")
-    react.add_argument(
-        "--user-id",
-        dest="reactivate_user_id",
-        type=int,
-        required=True,
-        help="ID des zu reaktivierenden Kontos",
-    )
+    react.add_argument("--user-id", dest="reactivate_user_id", type=int, required=True)
 
     # change-role
     change = users_sub.add_parser("change-role", help="Rolle eines Benutzerkontos ändern")
-    change.add_argument(
-        "--user-id",
-        dest="target_user_id",
-        type=int,
-        required=True,
-        help="ID des Benutzerkontos",
-    )
-    change.add_argument(
-        "--role",
-        required=True,
-        choices=["ADMIN", "REVIEWER", "TECH"],
-        help="Neue Rolle",
-    )
+    change.add_argument("--user-id", dest="target_user_id", type=int, required=True)
+    change.add_argument("--role", required=True, choices=["ADMIN", "REVIEWER", "TECH"])
 
     # bootstrap
     boot = users_sub.add_parser(
@@ -328,8 +204,4 @@ def register_subcommands(
         help="Erstes Administratorkonto anlegen (nur wenn kein Admin existiert)",
     )
     boot.add_argument("--username", required=True, help="Benutzername des ersten Administrators")
-    boot.add_argument(
-        "--password",
-        default=None,
-        help="Passwort (leer lassen für automatisch generiertes)",
-    )
+    boot.add_argument("--password", default=None, help="Passwort (leer lassen für automatisch generiertes)")

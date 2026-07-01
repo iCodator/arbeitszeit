@@ -3,9 +3,12 @@ from dataclasses import dataclass
 from arbeitszeit.domain.enums import BookingStatus
 from arbeitszeit.domain.value_objects import (
     BookingCorrectionId,
+    EmployeeId,
     ReviewCaseId,
+    RfidCardId,
     SupplementId,
     TimeBookingId,
+    UserAccountId,
     WorkScheduleVersionId,
 )
 
@@ -48,3 +51,29 @@ class ApproveSupplementResult:
 class RejectSupplementResult:
     supplement_id: SupplementId
     review_case_id: ReviewCaseId | None
+
+
+@dataclass(frozen=True, slots=True)
+class CreateEmployeeResult:
+    employee_id: EmployeeId
+
+
+@dataclass(frozen=True, slots=True)
+class AssignRfidCardResult:
+    card_id: RfidCardId
+
+
+@dataclass(frozen=True, slots=True)
+class ReplaceRfidCardResult:
+    new_card_id: RfidCardId
+
+
+@dataclass(frozen=True, slots=True)
+class CreateUserAccountResult:
+    user_id: UserAccountId
+
+
+@dataclass(frozen=True, slots=True)
+class BootstrapAdminResult:
+    user_id: UserAccountId
+    username: str

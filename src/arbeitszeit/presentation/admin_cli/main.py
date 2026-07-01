@@ -71,7 +71,11 @@ def run(argv: list[str] | None = None) -> None:
         conn = open_connection(args.db)
         try:
             run_migrations(conn)
-            user_accounts.cmd_users_bootstrap(conn, args)
+            audit_conn = open_connection(args.db)
+            try:
+                user_accounts.cmd_users_bootstrap(conn, audit_conn, args)
+            finally:
+                audit_conn.close()
         finally:
             conn.close()
         return
@@ -99,13 +103,13 @@ def _dispatch(
 ) -> None:
     table: dict[tuple[str, str], Callable[[], None]] = {
         ("employees", "list"): lambda: employees.cmd_employees_list(conn, args),
-        ("employees", "add"): lambda: employees.cmd_employees_add(conn, args, user_id),
+        ("employees", "add"): lambda: employees.cmd_employees_add(conn, audit_conn, args, user_id),
         ("employees", "deactivate"): lambda: employees.cmd_employees_deactivate(
-            conn, args, user_id
+            conn, audit_conn, args, user_id
         ),
-        ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, args, user_id),
-        ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, args, user_id),
-        ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(conn, args, user_id),
+        ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, audit_conn, args, user_id),
+        ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, audit_conn, args, user_id),
+        ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(conn, audit_conn, args, user_id),
         ("bookings", "correct"): lambda: bookings.cmd_bookings_correct(
             conn, audit_conn, args, user_id
         ),
@@ -144,12 +148,12 @@ def _dispatch(
         ),
         ("system", "check"): lambda: system.cmd_system_check(db_path, conn, args, user_id),
         ("system", "backup"): lambda: system.cmd_system_backup(db_path, conn, args, user_id),
-        ("users", "add"): lambda: user_accounts.cmd_users_add(conn, args, user_id),
+        ("users", "add"): lambda: user_accounts.cmd_users_add(conn, audit_conn, args, user_id),
         ("users", "list"): lambda: user_accounts.cmd_users_list(conn, args),
-        ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, args, user_id),
-        ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, args, user_id),
-        ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, args, user_id),
-        ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, args),
+        ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, audit_conn, args, user_id),
+        ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, audit_conn, args, user_id),
+        ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, audit_conn, args, user_id),
+        ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, audit_conn, args),
     }
     domain: str = args.domain
     cmd: str | None = getattr(args, f"{domain}_cmd", None)

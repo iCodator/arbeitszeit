@@ -1,48 +1,36 @@
-"""Admin-CLI: Mitarbeiter- und Kartenverwaltung (direktes SQL, ADMIN-Rolle).
+"""Admin-CLI: Mitarbeiter- und Kartenverwaltung (ADMIN-Rolle).
 
-Schreibende Operationen sind ausschließlich Benutzern mit ADMIN-Rolle erlaubt.
-Lesende Operationen (list) sind ohne Rolleneinschränkung nutzbar.
+Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
+Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
 import argparse
-import json
 import sqlite3
 import sys
-from datetime import date, datetime, timezone
 
-from arbeitszeit.domain import audit_events
+from arbeitszeit.application.commands import (
+    AssignRfidCardCommand,
+    CreateEmployeeCommand,
+    DeactivateEmployeeCommand,
+    DeactivateRfidCardCommand,
+    ReplaceRfidCardCommand,
+)
+from arbeitszeit.application.use_cases.manage_employees import (
+    CreateEmployeeUseCase,
+    DeactivateEmployeeUseCase,
+)
+from arbeitszeit.application.use_cases.manage_rfid_cards import (
+    AssignRfidCardUseCase,
+    DeactivateRfidCardUseCase,
+    ReplaceRfidCardUseCase,
+)
+from arbeitszeit.domain.errors import DomainError
+from arbeitszeit.domain.value_objects import EmployeeId, RfidCardId, UserAccountId
+from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 
 
-def _require_admin(conn: sqlite3.Connection, user_id: int) -> None:
-    row = conn.execute("SELECT role, active FROM user_accounts WHERE id = ?", (user_id,)).fetchone()
-    if row is None or not row["active"] or row["role"] != "ADMIN":
-        print("Fehler: Zugriff verweigert. Aktion erfordert ADMIN-Rolle.", file=sys.stderr)
-        sys.exit(1)
-
-
-def _audit(
-    conn: sqlite3.Connection,
-    event_type: str,
-    object_type: str,
-    object_id: int,
-    user_id: int,
-    employee_id: int | None = None,
-    details: dict[str, object] | None = None,
-) -> None:
-    conn.execute(
-        "INSERT INTO audit_log "
-        "(event_type, object_type, object_id, user_id, employee_id, event_at, details_json) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)",
-        (
-            event_type,
-            object_type,
-            object_id,
-            user_id,
-            employee_id,
-            datetime.now(timezone.utc).isoformat(),
-            json.dumps(details or {}, ensure_ascii=False, sort_keys=True),
-        ),
-    )
+def _make_uow(conn: sqlite3.Connection, audit_conn: sqlite3.Connection) -> SQLiteUnitOfWork:
+    return SQLiteUnitOfWork(conn, audit_conn)
 
 
 def cmd_employees_list(conn: sqlite3.Connection, args: argparse.Namespace) -> None:
@@ -61,164 +49,82 @@ def cmd_employees_list(conn: sqlite3.Connection, args: argparse.Namespace) -> No
         print(f"{row['id']:>4}  {row['personnel_no']:10}  {name:30}  {status}")
 
 
-def cmd_employees_add(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    now = datetime.now(timezone.utc).isoformat()
+def cmd_employees_add(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    cmd = CreateEmployeeCommand(
+        acting_user_id=UserAccountId(user_id),
+        personnel_no=args.personnel_no,
+        first_name=args.first_name,
+        last_name=args.last_name,
+    )
     try:
-        conn.execute("BEGIN")
-        row = conn.execute(
-            "INSERT INTO employees "
-            "(personnel_no, first_name, last_name, active, created_at, updated_at) "
-            "VALUES (?, ?, ?, 1, ?, ?) RETURNING id",
-            (args.personnel_no, args.first_name, args.last_name, now, now),
-        ).fetchone()
-        employee_id = row["id"]
-        _audit(
-            conn,
-            audit_events.EMPLOYEE_CREATED,
-            "employees",
-            employee_id,
-            user_id,
-            employee_id,
-            {
-                "personnel_no": args.personnel_no,
-                "first_name": args.first_name,
-                "last_name": args.last_name,
-            },
-        )
-        conn.execute("COMMIT")
-    except sqlite3.IntegrityError as exc:
-        conn.execute("ROLLBACK")
-        print(f"Fehler: Personalnummer bereits vergeben. ({exc})", file=sys.stderr)
+        result = CreateEmployeeUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
         sys.exit(1)
-    print(f"Mitarbeiter angelegt (ID {employee_id}).")
+    print(f"Mitarbeiter angelegt (ID {result.employee_id}).")
 
 
 def cmd_employees_deactivate(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
-    _require_admin(conn, user_id)
-    conn.execute("BEGIN")
-    row = conn.execute("SELECT id, active FROM employees WHERE id = ?", (args.id,)).fetchone()
-    if row is None:
-        conn.execute("ROLLBACK")
-        print(f"Fehler: Mitarbeiter {args.id} nicht gefunden.", file=sys.stderr)
-        sys.exit(1)
-    now = datetime.now(timezone.utc).isoformat()
-    conn.execute(
-        "UPDATE employees SET active = 0, updated_at = ? WHERE id = ?",
-        (now, args.id),
+    cmd = DeactivateEmployeeCommand(
+        acting_user_id=UserAccountId(user_id),
+        employee_id=EmployeeId(args.id),
     )
-    _audit(conn, audit_events.EMPLOYEE_DEACTIVATED, "employees", args.id, user_id, args.id, {})
-    conn.execute("COMMIT")
+    try:
+        DeactivateEmployeeUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
     print(f"Mitarbeiter {args.id} deaktiviert.")
 
 
-def cmd_cards_assign(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    emp = conn.execute(
-        "SELECT id, active FROM employees WHERE id = ?", (args.employee_id,)
-    ).fetchone()
-    if emp is None:
-        print(f"Fehler: Mitarbeiter {args.employee_id} nicht gefunden.", file=sys.stderr)
-        sys.exit(1)
-    now = datetime.now(timezone.utc).isoformat()
-    today = date.today().isoformat()
-    try:
-        conn.execute("BEGIN")
-        row = conn.execute(
-            "INSERT INTO rfid_cards "
-            "(uid_hash, employee_id, status, valid_from, created_at) "
-            "VALUES (?, ?, 'ACTIVE', ?, ?) RETURNING id",
-            (args.uid_hash, args.employee_id, today, now),
-        ).fetchone()
-        card_id = row["id"]
-        _audit(
-            conn,
-            audit_events.CARD_ASSIGNED,
-            "rfid_cards",
-            card_id,
-            user_id,
-            args.employee_id,
-            {
-                "uid_hash": args.uid_hash,
-                "employee_id": args.employee_id,
-            },
-        )
-        conn.execute("COMMIT")
-    except sqlite3.IntegrityError as exc:
-        conn.execute("ROLLBACK")
-        print(f"Fehler: UID-Hash bereits vergeben. ({exc})", file=sys.stderr)
-        sys.exit(1)
-    print(f"Karte zugewiesen (ID {card_id}).")
-
-
-def cmd_cards_replace(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    old_card = conn.execute(
-        "SELECT id, employee_id, status FROM rfid_cards WHERE id = ?",
-        (args.old_card_id,),
-    ).fetchone()
-    if old_card is None:
-        print(f"Fehler: Karte {args.old_card_id} nicht gefunden.", file=sys.stderr)
-        sys.exit(1)
-    now = datetime.now(timezone.utc).isoformat()
-    today = date.today().isoformat()
-    try:
-        conn.execute("BEGIN")
-        new_row = conn.execute(
-            "INSERT INTO rfid_cards "
-            "(uid_hash, employee_id, status, valid_from, created_at) "
-            "VALUES (?, ?, 'ACTIVE', ?, ?) RETURNING id",
-            (args.uid_hash, old_card["employee_id"], today, now),
-        ).fetchone()
-        new_card_id = new_row["id"]
-        conn.execute(
-            "UPDATE rfid_cards SET status = 'REPLACED', valid_until = ?, "
-            "replaced_by_card_id = ? WHERE id = ?",
-            (today, new_card_id, args.old_card_id),
-        )
-        _audit(
-            conn,
-            audit_events.CARD_REPLACED,
-            "rfid_cards",
-            new_card_id,
-            user_id,
-            old_card["employee_id"],
-            {
-                "old_card_id": args.old_card_id,
-                "new_card_id": new_card_id,
-                "uid_hash": args.uid_hash,
-            },
-        )
-        conn.execute("COMMIT")
-    except sqlite3.IntegrityError as exc:
-        conn.execute("ROLLBACK")
-        print(f"Fehler: UID-Hash bereits vergeben. ({exc})", file=sys.stderr)
-        sys.exit(1)
-    print(f"Karte ersetzt: alt={args.old_card_id}, neu={new_card_id}.")
-
-
-def cmd_cards_deactivate(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
-    _require_admin(conn, user_id)
-    card = conn.execute(
-        "SELECT id, employee_id FROM rfid_cards WHERE id = ?", (args.id,)
-    ).fetchone()
-    if card is None:
-        print(f"Fehler: Karte {args.id} nicht gefunden.", file=sys.stderr)
-        sys.exit(1)
-    conn.execute("BEGIN")
-    conn.execute("UPDATE rfid_cards SET status = 'INACTIVE' WHERE id = ?", (args.id,))
-    _audit(
-        conn,
-        audit_events.CARD_DEACTIVATED,
-        "rfid_cards",
-        args.id,
-        user_id,
-        card["employee_id"],
-        {},
+def cmd_cards_assign(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    cmd = AssignRfidCardCommand(
+        acting_user_id=UserAccountId(user_id),
+        employee_id=EmployeeId(args.employee_id),
+        uid_hash=args.uid_hash,
     )
-    conn.execute("COMMIT")
+    try:
+        result = AssignRfidCardUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Karte zugewiesen (ID {result.card_id}).")
+
+
+def cmd_cards_replace(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    cmd = ReplaceRfidCardCommand(
+        acting_user_id=UserAccountId(user_id),
+        old_card_id=RfidCardId(args.old_card_id),
+        uid_hash=args.uid_hash,
+    )
+    try:
+        result = ReplaceRfidCardUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
+    print(f"Karte ersetzt: alt={args.old_card_id}, neu={result.new_card_id}.")
+
+
+def cmd_cards_deactivate(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    cmd = DeactivateRfidCardCommand(
+        acting_user_id=UserAccountId(user_id),
+        card_id=RfidCardId(args.id),
+    )
+    try:
+        DeactivateRfidCardUseCase(_make_uow(conn, audit_conn)).execute(cmd)
+    except DomainError as exc:
+        print(f"Fehler: {exc.message}", file=sys.stderr)
+        sys.exit(1)
     print(f"Karte {args.id} deaktiviert.")
 
 
@@ -240,15 +146,15 @@ def register_subcommands(
     deact.add_argument("id", type=int)
 
     # --- cards ---
-    cards = sub.add_parser("cards", help="Kartenverwaltung")
+    cards = sub.add_parser("cards", help="RFID-Kartenverwaltung")
     cards_sub = cards.add_subparsers(dest="cards_cmd", required=True)
 
-    assign = cards_sub.add_parser("assign", help="Karte einem Mitarbeiter zuweisen")
-    assign.add_argument("--employee-id", required=True, type=int)
+    assign = cards_sub.add_parser("assign", help="Neue RFID-Karte einem Mitarbeiter zuweisen")
+    assign.add_argument("--employee-id", type=int, required=True)
     assign.add_argument("--uid-hash", required=True)
 
-    replace = cards_sub.add_parser("replace", help="Karte ersetzen")
-    replace.add_argument("--old-card-id", required=True, type=int)
+    replace = cards_sub.add_parser("replace", help="Verlorene/defekte Karte ersetzen")
+    replace.add_argument("--old-card-id", type=int, required=True)
     replace.add_argument("--uid-hash", required=True)
 
     deact_card = cards_sub.add_parser("deactivate", help="Karte deaktivieren")
