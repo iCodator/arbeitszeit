@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Installationsanleitung arbeitszeit</title>
+<style>
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  line-height: 1.65;
+  color: #1a1a1a;
+  background: #ffffff;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  scroll-margin-top: 1rem;
+}
+h1 { font-size: 2.1em; border-bottom: 3px solid #2563eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.6em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25em; color: #1d4ed8; }
+h3 { font-size: 1.3em; color: #1e3a8a; }
+h4 { font-size: 1.1em; color: #334155; }
+p { margin: 0.8em 0; }
+code {
+  background: #f1f5f9;
+  color: #b91c1c;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.92em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 1em 1.2em;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.88em;
+  line-height: 1.5;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.2em 0;
+  font-size: 0.93em;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+tr:nth-child(even) { background: #f8fafc; }
+blockquote {
+  border-left: 4px solid #2563eb;
+  margin: 1em 0;
+  padding: 0.4em 1em;
+  color: #475569;
+  background: #f8fafc;
+}
+ul, ol { margin: 0.6em 0; padding-left: 1.6em; }
+li { margin: 0.25em 0; }
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid #e2e8f0; margin: 2.5em 0; }
+strong { color: #0f172a; }
+.meta { color: #64748b; font-size: 0.95em; }
+::selection { background: #bfdbfe; }
+
+</style>
+</head>
+<body>
+<h1 id="installationsanleitung-arbeitszeit">Installationsanleitung <code>arbeitszeit</code></h1>
+<p><strong>Version:</strong> 1.0<br />
+<strong>Stand:</strong> Juli 2026<br />
+<strong>Zielgruppe:</strong> Laien ohne Linux- oder Programmiererfahrung<br />
+<strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine Zahnarztpraxis</p>
+<h2 id="fur-wen-ist-diese-anleitung">Für wen ist diese Anleitung?</h2>
+<p>Diese Anleitung richtet sich an Personen, die das System <code>arbeitszeit</code> auf<br />
+einem Rechner in der Praxis <strong>installieren</strong> sollen, aber keine oder nur<br />
+wenig Erfahrung mit Linux, der Kommandozeile oder Programmierung haben.<br />
+Jeder Schritt wird einzeln erklärt, inklusive dem, was der jeweilige Befehl<br />
+bewirkt und woran man erkennt, dass er erfolgreich war.</p>
+<p>Wenn an einer Stelle etwas nicht funktioniert, ist das kein Grund zur Sorge:<br />
+Am Ende dieser Anleitung findest du einen Abschnitt mit den häufigsten<br />
+Fehlern und ihren Lösungen.</p>
+<h2 id="was-du-am-ende-dieser-anleitung-hast">Was du am Ende dieser Anleitung hast</h2>
+<p>Nach dem vollständigen Durchlaufen dieser Anleitung ist auf dem Rechner<br />
+ein lauffähiges Zeiterfassungssystem eingerichtet, mit dem Mitarbeitende<br />
+per RFID-Karte und Numpad ihre Arbeitszeiten buchen können, und mit dem<br />
+eine verantwortliche Person (Administrator) Mitarbeiterdaten, Karten,<br />
+Berichte und Sicherungen verwalten kann.</p>
+<h2 id="was-du-vorher-wissen-solltest">Was du vorher wissen solltest</h2>
+<h3 id="was-ist-die-kommandozeile-terminal">Was ist die Kommandozeile (Terminal)?</h3>
+<p>Die Kommandozeile (auch „Terminal" genannt) ist ein Fenster, in das man<br />
+Textbefehle eintippt, statt mit der Maus zu klicken. Das mag zunächst<br />
+ungewohnt wirken, ist aber bei diesem System notwendig, weil es bewusst<br />
+schlank und ohne grafische Oberfläche gebaut wurde. Jeder Befehl in dieser<br />
+Anleitung wird in einem grauen Kasten dargestellt und kann durch Markieren<br />
+und Kopieren übernommen werden.</p>
+<p>Das Terminal öffnest du unter Linux Mint oder Lubuntu meist über die<br />
+Tastenkombination <code>Strg</code> + <code>Alt</code> + <code>T</code>, alternativ über das Anwendungsmenü<br />
+(Suche nach „Terminal").</p>
+<h3 id="was-bedeutet-sudo">Was bedeutet <code>sudo</code>?</h3>
+<p><code>sudo</code> steht für „Superuser do" und erlaubt es, einen Befehl mit<br />
+erweiterten Rechten (wie ein Administrator unter Windows) auszuführen.<br />
+Nach der Eingabe eines Befehls mit <code>sudo</code> wirst du nach deinem<br />
+Benutzerpasswort gefragt. Beim Tippen des Passworts erscheinen aus<br />
+Sicherheitsgründen keine Zeichen auf dem Bildschirm — das ist normal.</p>
+<h3 id="zeilen-mit-oder">Zeilen mit <code>$</code> oder <code>#</code></h3>
+<p>In manchen Anleitungen im Internet stehen vor Befehlen Zeichen wie <code>$</code><br />
+oder <code>#</code>. Diese Zeichen gehören <strong>nicht</strong> zum Befehl und dürfen nicht<br />
+mitkopiert werden. In dieser Anleitung wurden solche Zeichen bewusst<br />
+weggelassen — du kannst jeden Befehl in den grauen Kästen exakt so<br />
+kopieren, wie er dort steht.</p>
+<h2 id="was-du-vorher-benotigst">Was du vorher benötigst</h2>
+<ul>
+<li>Einen Rechner mit <strong>Linux Mint</strong> oder <strong>Lubuntu</strong>, bereits installiert<br />
+  und einsatzbereit</li>
+<li>Eine Internetverbindung (nur für die Installation selbst benötigt)</li>
+<li>Administratorrechte auf dem Rechner (also ein Benutzerkonto, mit dem<br />
+<code>sudo</code>-Befehle funktionieren)</li>
+<li>Ausreichend Zeit — plane für die komplette Ersteinrichtung etwa<br />
+  30 bis 60 Minuten ein</li>
+<li>Optional, aber für den Betrieb notwendig: ein RFID-Kartenlesegerät und<br />
+  ein USB-Numpad, beide über USB angeschlossen</li>
+</ul>
+<h2 id="schritt-1-system-aktuell-halten">Schritt 1: System aktuell halten</h2>
+<p>Bevor irgendetwas installiert wird, sollte das Betriebssystem auf den<br />
+neuesten Stand gebracht werden. Öffne dazu das Terminal und gib ein:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>-y
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> Der erste Befehl prüft, welche Softwarepakete<br />
+aktualisiert werden können. Der zweite Befehl installiert diese<br />
+Aktualisierungen tatsächlich. Das <code>-y</code> sorgt dafür, dass Rückfragen<br />
+automatisch mit „Ja" beantwortet werden, damit der Vorgang nicht<br />
+unterbrochen wird.</p>
+<p>Dieser Schritt kann je nach Internetverbindung und Systemzustand einige<br />
+Minuten dauern. Warte, bis die Eingabeaufforderung wieder erscheint und<br />
+du erneut einen Befehl eintippen kannst.</p>
+<h2 id="schritt-2-python-installieren">Schritt 2: Python installieren</h2>
+<p>Das System <code>arbeitszeit</code> benötigt eine ganz bestimmte Version der<br />
+Programmiersprache Python, nämlich <strong>Python 3.14</strong>. Viele<br />
+Linux-Installationen bringen eine ältere Version mit, deshalb muss<br />
+Python 3.14 gegebenenfalls zusätzlich installiert werden.</p>
+<p>Prüfen, ob Python 3.14 bereits vorhanden ist:</p>
+<div class="codehilite"><pre><span></span><code>python3.14<span class="w"> </span>--version
+</code></pre></div>
+
+<p>Falls als Antwort etwas wie <code>Python 3.14.x</code> erscheint, ist dieser Schritt<br />
+bereits erledigt und du kannst zu Schritt 3 weitergehen. Erscheint<br />
+stattdessen eine Fehlermeldung wie <code>command not found</code> (Befehl nicht<br />
+gefunden), muss Python 3.14 noch installiert werden:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>python3.14<span class="w"> </span>python3.14-venv<span class="w"> </span>python3-pip
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> Es werden drei Programmteile installiert:<br />
+Python selbst, ein Werkzeug zum Anlegen isolierter „virtueller<br />
+Umgebungen" (dazu gleich mehr) und der Python-Paketmanager <code>pip</code>, mit<br />
+dem später zusätzliche Software-Bausteine installiert werden.</p>
+<p>Anschließend die Version erneut prüfen:</p>
+<div class="codehilite"><pre><span></span><code>python3.14<span class="w"> </span>--version
+</code></pre></div>
+
+<h2 id="schritt-3-zusatzliche-systempakete-installieren">Schritt 3: Zusätzliche Systempakete installieren</h2>
+<p>Einige Teile von <code>arbeitszeit</code> (insbesondere die Anbindung an den<br />
+RFID-Reser und das Numpad) benötigen zusätzliche Bausteine, die nicht in<br />
+Python selbst enthalten sind:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>build-essential<span class="w"> </span>linux-headers-<span class="k">$(</span>uname<span class="w"> </span>-r<span class="k">)</span><span class="w"> </span>python3-dev<span class="w"> </span>git
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> Dieser Befehl installiert Werkzeuge zum<br />
+Übersetzen von Programmcode (<code>build-essential</code>), Systemheader für den<br />
+laufenden Kernel (<code>linux-headers</code>), Entwicklungsdateien für Python<br />
+(<code>python3-dev</code>) sowie das Versionsverwaltungsprogramm <code>git</code>, mit dem im<br />
+nächsten Schritt der Programmcode heruntergeladen wird.</p>
+<h2 id="schritt-4-programmcode-herunterladen">Schritt 4: Programmcode herunterladen</h2>
+<p>Wechsle zunächst in ein Verzeichnis, in dem das Projekt abgelegt werden<br />
+soll, zum Beispiel dein Home-Verzeichnis:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>~
+</code></pre></div>
+
+<p>Lade nun den Programmcode herunter:</p>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/iCodator/arbeitszeit.git
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> Der Befehl <code>git clone</code> lädt eine vollständige<br />
+Kopie des Projekts aus dem Internet auf deinen Rechner herunter. Danach<br />
+existiert bei dir ein neuer Ordner namens <code>arbeitszeit</code>.</p>
+<p>Wechsle in diesen neuen Ordner:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>arbeitszeit
+</code></pre></div>
+
+<p>Ab jetzt musst du dich in diesem Ordner befinden, damit die folgenden<br />
+Befehle funktionieren. Falls du das Terminal zwischendurch schließt,<br />
+musst du diesen <code>cd arbeitszeit</code>-Schritt (ggf. mit vollständigem Pfad,<br />
+z. B. <code>cd ~/arbeitszeit</code>) wiederholen.</p>
+<h2 id="schritt-5-virtuelle-umgebung-einrichten">Schritt 5: Virtuelle Umgebung einrichten</h2>
+<p>Eine „virtuelle Umgebung" ist ein abgeschlossener Bereich, in dem<br />
+zusätzliche Python-Bausteine installiert werden, ohne das restliche<br />
+System zu verändern. Das schützt sowohl <code>arbeitszeit</code> als auch andere<br />
+Programme auf dem Rechner vor Konflikten.</p>
+<p>Virtuelle Umgebung anlegen:</p>
+<div class="codehilite"><pre><span></span><code>python3.14<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+</code></pre></div>
+
+<p>Virtuelle Umgebung aktivieren:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</code></pre></div>
+
+<p><strong>Woran erkennst du den Erfolg?</strong> Nach dem Aktivieren erscheint vor der<br />
+Eingabeaufforderung im Terminal die Kennzeichnung <code>(.venv)</code>. Das zeigt<br />
+dir, dass du dich jetzt „innerhalb" der virtuellen Umgebung befindest.</p>
+<p><strong>Wichtiger Hinweis:</strong> Diese Aktivierung gilt nur für das aktuell<br />
+geöffnete Terminal-Fenster. Öffnest du ein neues Fenster oder startest<br />
+den Rechner neu, musst du Schritt 5 (nur den Aktivierungsbefehl, nicht<br />
+das Anlegen) erneut ausführen, bevor du mit <code>arbeitszeit</code> arbeitest.</p>
+<h2 id="schritt-6-abhangigkeiten-installieren">Schritt 6: Abhängigkeiten installieren</h2>
+<p>Jetzt werden die zusätzlichen Software-Bausteine installiert, die<br />
+<code>arbeitszeit</code> zum Laufen benötigt (zum Beispiel für die<br />
+Hardware-Anbindung und die PDF-Erzeugung):</p>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> <code>pip</code> liest die Datei <code>pyproject.toml</code> im<br />
+Projektordner und installiert alle dort aufgeführten Software-Bausteine<br />
+automatisch. Das kann je nach Rechner und Internetverbindung einige<br />
+Minuten dauern. Am Ende sollte eine Meldung erscheinen, die mit<br />
+<code>Successfully installed</code> beginnt.</p>
+<h2 id="schritt-7-datenbank-anlegen">Schritt 7: Datenbank anlegen</h2>
+<p><code>arbeitszeit</code> speichert alle Daten in einer lokalen Datenbankdatei<br />
+(keine Cloud, keine externen Server). Diese Datenbank muss beim<br />
+allerersten Start einmalig angelegt werden:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/init_db.py
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> Es wird eine neue Datei namens <code>arbeitszeit.db</code><br />
+im aktuellen Ordner erzeugt und mit der benötigten Struktur (Tabellen)<br />
+gefüllt. Am Bildschirm siehst du eine Liste angewendeter Migrationen,<br />
+zum Beispiel:</p>
+<div class="codehilite"><pre><span></span><code>Migration 0001 angewendet.
+Migration 0002 angewendet.
+Migration 0003 angewendet.
+Migration 0004 angewendet.
+Migration 0005 angewendet.
+Migration 0006 angewendet.
+</code></pre></div>
+
+<p>Am Ende erscheint zusätzlich ein Hinweis, dass eine Ersteinrichtung noch<br />
+erforderlich ist — das ist der nächste Schritt.</p>
+<h2 id="schritt-8-ersteinrichtung-durchfuhren">Schritt 8: Ersteinrichtung durchführen</h2>
+<p>Nach dem Anlegen der Datenbank müssen noch grundlegende Einstellungen<br />
+festgelegt werden, etwa wo Berichte und Sicherungen abgelegt werden<br />
+sollen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/setup.py<span class="w"> </span>--db<span class="w"> </span>arbeitszeit.db
+</code></pre></div>
+
+<p><strong>Was passiert hier?</strong> Das Programm stellt dir im Terminal einige<br />
+Fragen (zum Beispiel nach dem gewünschten Sicherungsverzeichnis) und<br />
+speichert deine Antworten in der Datenbank. Beantworte die Fragen der<br />
+Reihe nach; falls du unsicher bist, kannst du bei vielen Fragen die<br />
+vorgeschlagene Standardantwort einfach mit <code>Enter</code> bestätigen.</p>
+<p>Willst du diese Angaben lieber direkt beim Aufruf festlegen, statt<br />
+Fragen zu beantworten, geht das auch so:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/setup.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--backup-dir<span class="w"> </span>/var/backups/arbeitszeit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--export-dir<span class="w"> </span>/var/exports/arbeitszeit
+</code></pre></div>
+
+<p>Dieser Schritt kann bei Bedarf mehrfach ausgeführt werden — bereits<br />
+festgelegte Einstellungen werden dabei nicht doppelt abgefragt.</p>
+<h2 id="schritt-9-zugriff-auf-rfid-reader-und-numpad-einrichten">Schritt 9: Zugriff auf RFID-Reader und Numpad einrichten</h2>
+<p>RFID-Reader und Numpad sind unter Linux normale USB-Eingabegeräte. Damit<br />
+<code>arbeitszeit</code> diese Geräte auslesen darf, benötigt das Programm<br />
+Leserechte auf die entsprechenden Gerätedateien im Ordner<br />
+<code>/dev/input/</code>.</p>
+<p>Prüfe zunächst, welche Geräte angeschlossen sind:</p>
+<div class="codehilite"><pre><span></span><code>ls<span class="w"> </span>-l<span class="w"> </span>/dev/input/event*
+</code></pre></div>
+
+<p><strong>Was siehst du hier?</strong> Eine Liste von Gerätedateien mit Namen wie<br />
+<code>event0</code>, <code>event1</code> und so weiter. Welche davon zu RFID-Reader und<br />
+Numpad gehören, lässt sich am einfachsten mit folgendem Befehl<br />
+herausfinden:</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>/proc/bus/input/devices
+</code></pre></div>
+
+<p>Diese Ausgabe zeigt zu jedem angeschlossenen Gerät einen Namen (z. B.<br />
+„HID Keyboard" für den RFID-Reser, der sich wie eine Tastatur verhält)<br />
+sowie den zugehörigen Gerätepfad unter <code>Handlers</code>.</p>
+<p>Damit dein Benutzerkonto diese Geräte lesen darf, muss es zur Gruppe<br />
+<code>input</code> hinzugefügt werden:</p>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>usermod<span class="w"> </span>-aG<span class="w"> </span>input<span class="w"> </span><span class="nv">$USER</span>
+</code></pre></div>
+
+<p><strong>Wichtig:</strong> Nach diesem Befehl musst du dich einmal ab- und wieder<br />
+anmelden (oder den Rechner neu starten), damit die Gruppenmitgliedschaft<br />
+wirksam wird. Ohne diesen Neustart der Sitzung funktioniert der<br />
+Hardwarezugriff nicht, auch wenn der Befehl selbst keine Fehlermeldung<br />
+zeigt.</p>
+<h2 id="schritt-10-ersten-administrator-anlegen">Schritt 10: Ersten Administrator anlegen</h2>
+<p>Bevor das System genutzt werden kann, muss ein erstes<br />
+Administrator-Benutzerkonto angelegt werden. Dieses Konto darf später<br />
+alle Verwaltungsaufgaben durchführen.</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>users<span class="w"> </span>bootstrap<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--username<span class="w"> </span>adminname
+</code></pre></div>
+
+<p>Ersetze <code>adminname</code> durch einen Benutzernamen deiner Wahl (zum Beispiel<br />
+den Namen der Praxisleitung). Wird kein Passwort mit angegeben, erzeugt<br />
+das System automatisch ein sicheres Passwort und zeigt es <strong>einmalig</strong><br />
+im Terminal an.</p>
+<p><strong>Sehr wichtig:</strong> Notiere dieses angezeigte Passwort sofort an einem<br />
+sicheren Ort (zum Beispiel in einem Passwort-Manager oder einem<br />
+verschlossenen Umschlag). Es wird aus Sicherheitsgründen nirgends<br />
+gespeichert und kann später nicht erneut angezeigt werden.</p>
+<h2 id="schritt-11-mitarbeitende-und-karten-anlegen">Schritt 11: Mitarbeitende und Karten anlegen</h2>
+<p>Nachdem das Administrator-Konto existiert, können weitere Konten,<br />
+Mitarbeitende und RFID-Karten eingerichtet werden. Die Zahl <code>1</code> in den<br />
+folgenden Befehlen steht für die Benutzer-ID des gerade angelegten<br />
+Administrators (bei der ersten Einrichtung normalerweise <code>1</code>).</p>
+<p>Weiteres Benutzerkonto anlegen (zum Beispiel für die Berichtsprüfung):</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>users<span class="w"> </span>add<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--username<span class="w"> </span>pruefer01<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span>REVIEWER
+</code></pre></div>
+
+<p>Mitarbeiter anlegen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>employees<span class="w"> </span>add<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--personnel-no<span class="w"> </span>M001<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--first-name<span class="w"> </span>Maria<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--last-name<span class="w"> </span>Mustermann
+</code></pre></div>
+
+<p>Ersetze <code>M001</code>, <code>Maria</code> und <code>Mustermann</code> durch die tatsächliche<br />
+Personalnummer und den Namen der jeweiligen Person. Dieser Befehl muss<br />
+für jede Mitarbeiterin und jeden Mitarbeiter einzeln wiederholt werden.</p>
+<p>RFID-Karte einer Mitarbeiterin bzw. einem Mitarbeiter zuweisen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cards<span class="w"> </span>assign<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--employee-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--uid-hash<span class="w"> </span>&lt;HASH&gt;
+</code></pre></div>
+
+<p>Den benötigten <code>&lt;HASH&gt;</code>-Wert für eine bestimmte Karte ermittelst du am<br />
+einfachsten durch einen ersten Testscan der Karte am Terminal-Gerät (dazu<br />
+mehr im nächsten Schritt) — das System zeigt dabei „Karte nicht<br />
+erkannt" an und protokolliert den zugehörigen Wert intern, den ein<br />
+Administrator anschließend zuordnen kann.</p>
+<h2 id="schritt-12-funktionstest-durchfuhren">Schritt 12: Funktionstest durchführen</h2>
+<p>Um sicherzugehen, dass die Installation vollständig und korrekt<br />
+abgeschlossen ist, kannst du die automatisierten Tests des Projekts<br />
+ausführen:</p>
+<div class="codehilite"><pre><span></span><code>pytest
+</code></pre></div>
+
+<p><strong>Woran erkennst du Erfolg?</strong> Am Ende der Ausgabe steht eine<br />
+Zusammenfassung wie <code>X passed</code> (grün dargestellt). Steht dort<br />
+stattdessen <code>failed</code> (rot), ist etwas bei der Installation<br />
+schiefgelaufen — wende dich in diesem Fall an die im Abschnitt<br />
+„Häufige Probleme" beschriebenen Lösungen oder an die technisch<br />
+verantwortliche Person.</p>
+<p>Gezielt nur die Datenbank-Migrationen testen:</p>
+<div class="codehilite"><pre><span></span><code>pytest<span class="w"> </span>tests/test_migrations.py
+</code></pre></div>
+
+<h2 id="schritt-13-terminal-betrieb-starten">Schritt 13: Terminal-Betrieb starten</h2>
+<p>Für den täglichen Buchungsbetrieb wird ein eigener Prozess gestartet,<br />
+der dauerhaft im Hintergrund läuft und auf Numpad- und<br />
+RFID-Eingaben wartet:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.terminal_ui.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--numpad<span class="w"> </span>/dev/input/eventX<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--rfid<span class="w"> </span>/dev/input/eventY<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--terminal-id<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+
+<p>Ersetze <code>eventX</code> und <code>eventY</code> durch die in Schritt 9 ermittelten<br />
+tatsächlichen Gerätepfade für Numpad und RFID-Reader.</p>
+<p><strong>Wie beende ich den Terminal-Betrieb?</strong> Mit der Tastenkombination<br />
+<code>Strg</code> + <code>C</code> im entsprechenden Terminal-Fenster. Das Programm beendet<br />
+sich dabei sauber, ohne Daten zu verlieren.</p>
+<p>Für den echten Praxisbetrieb sollte dieser Befehl automatisch beim<br />
+Systemstart ausgeführt werden (zum Beispiel über einen systemd-Dienst).<br />
+Die Einrichtung eines solchen automatischen Starts ist nicht Teil dieser<br />
+Installationsanleitung und sollte gemeinsam mit der technisch<br />
+verantwortlichen Person erfolgen.</p>
+<h2 id="haufige-probleme-und-losungen">Häufige Probleme und Lösungen</h2>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Mögliche Ursache</th>
+<th>Lösung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>command not found: python3.14</code></td>
+<td>Python 3.14 ist nicht installiert</td>
+<td>Schritt 2 wiederholen</td>
+</tr>
+<tr>
+<td><code>Permission denied</code> beim Start der Terminal-UI</td>
+<td>Benutzerkonto ist nicht Mitglied der Gruppe <code>input</code></td>
+<td>Schritt 9 wiederholen, danach abmelden und neu anmelden</td>
+</tr>
+<tr>
+<td>Virtuelle Umgebung zeigt kein <code>(.venv)</code> an</td>
+<td>Aktivierungsbefehl aus Schritt 5 wurde nicht (erneut) ausgeführt</td>
+<td><code>source .venv/bin/activate</code> im Projektordner ausführen</td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError</code> bei Programmstart</td>
+<td>Abhängigkeiten wurden nicht installiert oder virtuelle Umgebung ist nicht aktiv</td>
+<td>Schritt 5 und Schritt 6 erneut durchgehen</td>
+</tr>
+<tr>
+<td>Karte wird nicht erkannt</td>
+<td>Karte ist noch keinem Mitarbeiter zugewiesen</td>
+<td>Schritt 11 (Kartenzuweisung) durchführen</td>
+</tr>
+<tr>
+<td><code>pytest</code> zeigt <code>failed</code> an</td>
+<td>Installation unvollständig oder fehlerhaft</td>
+<td>Schritte 2 bis 6 erneut prüfen, bei Bedarf Hilfe holen</td>
+</tr>
+</tbody>
+</table>
+<h2 id="kurzglossar-fur-einsteiger">Kurzglossar für Einsteiger</h2>
+<ul>
+<li><strong>Terminal / Kommandozeile:</strong> Fenster zur Texteingabe von Befehlen,<br />
+  Alternative zur Maussteuerung.</li>
+<li><strong><code>sudo</code>:</strong> Ausführung eines Befehls mit Administratorrechten.</li>
+<li><strong>Repository:</strong> Der komplette Programmcode-Ordner eines Projekts.</li>
+<li><strong>Virtuelle Umgebung:</strong> Ein abgeschlossener Bereich für<br />
+  Python-Software, der das restliche System nicht beeinflusst.</li>
+<li><strong>Migration:</strong> Ein automatisierter Schritt, der die Struktur der<br />
+  Datenbank anlegt oder erweitert.</li>
+<li><strong>RFID:</strong> Funktechnik zur kontaktlosen Identifikation, hier über eine<br />
+  Mitarbeiterkarte.</li>
+<li><strong>Admin-CLI:</strong> Die Verwaltungsoberfläche für Administratorinnen und<br />
+  Administratoren, bedienbar über Textbefehle.</li>
+<li><strong>Terminal-UI:</strong> Der dauerhaft laufende Prozess, über den<br />
+  Mitarbeitende ihre Arbeitszeiten buchen.</li>
+</ul>
+<h2 id="wo-finde-ich-weitere-informationen">Wo finde ich weitere Informationen?</h2>
+<p>Nach erfolgreicher Installation liefert das ausführliche<br />
+<code>handbuch_arbeitszeit.md</code> (bzw. dessen HTML-Version) eine vollständige<br />
+Beschreibung aller Bedienfunktionen, insbesondere der Admin-CLI-Befehle<br />
+für Mitarbeiterverwaltung, Berichte, Systemprüfung und Backups.</p>
+</body>
+</html>

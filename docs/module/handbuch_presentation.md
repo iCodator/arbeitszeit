@@ -1,4 +1,9 @@
-# Präsentationsschicht (`src/arbeitszeit/presentation`)
+# Handbuch `arbeitszeit` – Präsentationsschicht (`src/arbeitszeit/presentation`)
+
+**Kapitel:** 3
+**Version:** 1.0
+**Stand:** Juli 2026
+**Quelldatei:** `docs/module/handbuch_presentation.md`
 
 ## Überblick und Aufbau
 

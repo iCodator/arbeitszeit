@@ -1,8 +1,9 @@
 # Handbuch `arbeitszeit` – Übersicht
 
+**Kapitel:** 1
 **Version:** 1.0
 **Stand:** Juli 2026
-**Basis:** `handbuch_arbeitszeit.md`
+**Quelldatei:** `docs/module/handbuch_overview.md`
 
 ## Zweck
 

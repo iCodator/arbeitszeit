@@ -1,6 +1,10 @@
-# Kapitel 4: Die Anwendungsschicht (`application`)
+# Handbuch `arbeitszeit` – Die Anwendungsschicht (`application`)
 
-> **Quelle:** `src/arbeitszeit/application/` im Repository `iCodator/arbeitszeit`
+**Kapitel:** 4
+**Version:** 1.0
+**Stand:** Juli 2026
+**Quelldatei:** `docs/module/handbuch_application_layer.md`
+**Quelle:** `src/arbeitszeit/application/` im Repository `iCodator/arbeitszeit`
 
 Die Anwendungsschicht ist das Herzstück der fachlichen Steuerung. Sie vermittelt
 zwischen der Präsentationsschicht (UI, Terminal-Handler) und der Domänenschicht
@@ -17,7 +21,7 @@ Schreibende Operationen werden über *Commands* und *Use Cases* gesteuert,
 lesende Operationen über *Query-DTOs*. Beide Seiten sind strikt getrennt,
 sodass sie unabhängig voneinander weiterentwickelt und getestet werden können.
 
-```
+```text
 src/arbeitszeit/application/
 ├── __init__.py            # leer — kein impliziter Re-Export
 ├── commands.py            # Eingabe-DTOs für alle schreibenden Operationen
@@ -317,3 +321,13 @@ Alle Commands und Results sind `@dataclass(frozen=True, slots=True)`.
   betroffenen Use Cases aufrufen.
 - **Reihenfolge beim Audit-Log nie ändern:** Der Commit muss vor dem
   Audit-Log-Schreibvorgang erfolgen (SQLite-WAL-Lock-Invariante, s. o.).
+
+---
+
+## 4.9 Hinweis zu admin-CLI-Befehlen
+
+Eine vollständige Liste der über die Admin-CLI aufrufbaren Befehlsgruppen
+(`employees`, `cards`, `bookings`, `schedule`, `reports`, `system`, `users`)
+und der einzelnen Befehle ist nicht Bestandteil dieses Kapitels, da sie zur
+Präsentationsschicht gehört. Diese Zuordnung wird in `handbuch_presentation.md`
+dokumentiert, um Doppelpflege zu vermeiden.

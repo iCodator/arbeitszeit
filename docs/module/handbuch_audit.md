@@ -1,8 +1,9 @@
 # Handbuch `arbeitszeit` – Audit und Prüfstatus
 
+**Kapitel:** 7
 **Version:** 1.0
 **Stand:** Juli 2026
-**Basis:** `handbuch_arbeitszeit.md`
+**Quelldatei:** `docs/module/handbuch_audit.md`
 
 ## Sicher belegt
 

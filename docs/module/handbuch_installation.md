@@ -1,8 +1,9 @@
 # Handbuch `arbeitszeit` – Installation
 
+**Kapitel:** 2
 **Version:** 1.0
 **Stand:** Juli 2026
-**Basis:** `handbuch_arbeitszeit.md`
+**Quelldatei:** `docs/module/handbuch_installation.md`
 
 ## Systemvoraussetzungen
 
@@ -125,7 +126,10 @@ python scripts/setup.py --db arbeitszeit.db
 Nicht-interaktiver Aufruf:
 
 ```bash
-python scripts/setup.py   --db arbeitszeit.db   --backup-dir /var/backups/arbeitszeit   --export-dir /var/exports/arbeitszeit
+python scripts/setup.py \
+  --db arbeitszeit.db \
+  --backup-dir /var/backups/arbeitszeit \
+  --export-dir /var/exports/arbeitszeit
 ```
 
 Bereits konfigurierte Schlüssel werden beim erneuten Aufruf übersprungen.
@@ -135,25 +139,44 @@ Bereits konfigurierte Schlüssel werden beim erneuten Aufruf übersprungen.
 Ersten ADMIN anlegen:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main   --db arbeitszeit.db   users bootstrap   --username adminname
+python -m arbeitszeit.presentation.admin_cli.main \
+  --db arbeitszeit.db \
+  users bootstrap \
+  --username adminname
 ```
 
 Weiteres Benutzerkonto anlegen:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main   --db arbeitszeit.db   --user-id 1   users add   --username pruefer01   --role REVIEWER
+python -m arbeitszeit.presentation.admin_cli.main \
+  --db arbeitszeit.db \
+  --user-id 1 \
+  users add \
+  --username pruefer01 \
+  --role REVIEWER
 ```
 
 Mitarbeiter anlegen:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main   --db arbeitszeit.db   --user-id 1   employees add   --personnel-no M001   --first-name Maria   --last-name Mustermann
+python -m arbeitszeit.presentation.admin_cli.main \
+  --db arbeitszeit.db \
+  --user-id 1 \
+  employees add \
+  --personnel-no M001 \
+  --first-name Maria \
+  --last-name Mustermann
 ```
 
 RFID-Karte zuweisen:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main   --db arbeitszeit.db   --user-id 1   cards assign   --employee-id 1   --uid-hash <HASH>
+python -m arbeitszeit.presentation.admin_cli.main \
+  --db arbeitszeit.db \
+  --user-id 1 \
+  cards assign \
+  --employee-id 1 \
+  --uid-hash <HASH>
 ```
 
 ## Funktionstest

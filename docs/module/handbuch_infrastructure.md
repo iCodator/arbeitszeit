@@ -1,4 +1,9 @@
-# Kapitel: Infrastrukturschicht (`src/arbeitszeit/infrastructure`)
+# Handbuch `arbeitszeit` – Infrastrukturschicht (`src/arbeitszeit/infrastructure`)
+
+**Kapitel:** 6
+**Version:** 1.0
+**Stand:** Juli 2026
+**Quelldatei:** `docs/module/handbuch_infrastructure.md`
 
 ## Überblick und Zweck
 
@@ -14,7 +19,7 @@ Direct-SQL-Abfragen außerhalb von `infrastructure` sind architektonisch verbote
 
 ### Verzeichnisstruktur
 
-```
+```text
 src/arbeitszeit/infrastructure/
 ├── __init__.py
 ├── notification.py          # Desktop-Benachrichtigung
@@ -50,7 +55,7 @@ Die Funktion setzt vier SQLite-PRAGMAs, die für den Betrieb zwingend erforderli
 | PRAGMA | Wert | Begründung |
 |---|---|---|
 | `isolation_level` | `None` | Manuelle Transaktionskontrolle (kein Autocommit-Fallback) |
-| `journal_mode` | `WAL` | Gleichzeitige Lese-/Schreibzugriffe (audit\_conn + Haupt-Transaktion) |
+| `journal_mode` | `WAL` | Gleichzeitige Lese-/Schreibzugriffe (audit_conn + Haupt-Transaktion) |
 | `foreign_keys` | `ON` | Referenzielle Integrität auf Datenbankebene |
 | `busy_timeout` | `5000 ms` | 5 Sekunden Wartezeit bei Lock-Konflikt statt sofortigem Fehler |
 
@@ -220,7 +225,7 @@ sind architektonisch verboten (Regelwerk §11).
 | `list_open_bookings_in_period(conn, from_dt, to_dt, employee_id?)` | Offene Buchungen im Zeitraum (§7.12) |
 | `list_corrections(conn, from_dt, to_dt, employee_id?)` | Korrekturen nach `corrected_at` |
 | `list_supplements(conn, from_dt, to_dt, employee_id?)` | Nachträge nach `event_at` |
-| `list_open_review_cases(conn, employee_id?)` | Offene Prüffälle (OPEN + IN\_REVIEW, kein Zeitraum) |
+| `list_open_review_cases(conn, employee_id?)` | Offene Prüffälle (OPEN + IN_REVIEW, kein Zeitraum) |
 | `list_open_review_cases_in_period(conn, from_dt, to_dt, employee_id?)` | Offene Prüffälle im Zeitraum (§7.12) |
 | `list_review_cases_for_booking(conn, booking_id)` | Alle Prüffälle zu einer bestimmten Buchung |
 | `get_employee_identity(conn, employee_id)` | `(personnel_no, employee_name)` — Fallback bei fehlendem Datensatz |
@@ -253,7 +258,7 @@ Die Tagesstatistik `_day_stats()` arbeitet als Zustandsmaschine:
 
 **Dateinamenschema:**
 
-```
+```text
 export_detail_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv
 export_verdichtet_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv
 ```
@@ -348,7 +353,7 @@ aggregiert alle Checks; `overall_ok` ist `True` genau dann, wenn alle Checks bes
 `SystemTimeMonitor` erkennt Uhrzeitänderungen durch Gegenüberstellung von
 Wall-Clock (`datetime.now(timezone.utc)`) und monotoner Uhr (`time.monotonic()`):
 
-```
+```text
 diff = actual_wall_ts - (last_wall_ts + mono_elapsed)
 ```
 
@@ -382,7 +387,7 @@ Beide Clock-Funktionen sind per Dependency-Injection ersetzbar (`_wall_clock`,
 
 ### Abhängigkeitsrichtung
 
-```
+```text
 Application/Domain
        ↓
   infrastructure/

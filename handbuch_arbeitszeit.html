@@ -1,0 +1,2870 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Handbuch arbeitszeit</title>
+<style>
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  line-height: 1.65;
+  color: #1a1a1a;
+  background: #ffffff;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  scroll-margin-top: 1rem;
+}
+h1 { font-size: 2.1em; border-bottom: 3px solid #2563eb; padding-bottom: 0.3em; }
+h2 { font-size: 1.6em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25em; color: #1d4ed8; }
+h3 { font-size: 1.3em; color: #1e3a8a; }
+h4 { font-size: 1.1em; color: #334155; }
+p { margin: 0.8em 0; }
+code {
+  background: #f1f5f9;
+  color: #b91c1c;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.92em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 1em 1.2em;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 0.88em;
+  line-height: 1.5;
+}
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.2em 0;
+  font-size: 0.93em;
+}
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 0.5em 0.8em;
+  text-align: left;
+}
+th {
+  background: #f1f5f9;
+  font-weight: 600;
+}
+tr:nth-child(even) { background: #f8fafc; }
+blockquote {
+  border-left: 4px solid #2563eb;
+  margin: 1em 0;
+  padding: 0.4em 1em;
+  color: #475569;
+  background: #f8fafc;
+}
+ul, ol { margin: 0.6em 0; padding-left: 1.6em; }
+li { margin: 0.25em 0; }
+a { color: #2563eb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+hr { border: none; border-top: 1px solid #e2e8f0; margin: 2.5em 0; }
+strong { color: #0f172a; }
+.meta { color: #64748b; font-size: 0.95em; }
+::selection { background: #bfdbfe; }
+
+</style>
+</head>
+<body>
+<h1 id="handbuch-arbeitszeit">Handbuch <code>arbeitszeit</code></h1>
+<p><strong>Version:</strong> 1.0<br />
+<strong>Stand:</strong> Juli 2026<br />
+<strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine Zahnarztpraxis</p>
+<p>Dieses Handbuch fasst alle sieben Kapiteldateien des Projekts <code>arbeitszeit</code> in<br />
+einem einzigen, durchgängig lesbaren Dokument zusammen. Jedes Kapitel ist<br />
+vollständig und unverändert aus der jeweiligen Quelldatei übernommen; es<br />
+wurde lediglich die Überschriftenhierarchie um eine Ebene verschoben, damit<br />
+sich alle Kapitel konsistent unter den Kapitel-Überschriften einordnen.</p>
+<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis</h2>
+<ul>
+<li><a href="#kapitel-1-ubersicht">Kapitel 1: Übersicht</a></li>
+<li><a href="#zweck">Zweck</a></li>
+<li><a href="#projektstruktur">Projektstruktur</a></li>
+<li><a href="#schichten">Schichten</a></li>
+<li><a href="#kapitel-2-installation">Kapitel 2: Installation</a></li>
+<li><a href="#systemvoraussetzungen">Systemvoraussetzungen</a></li>
+<li><a href="#installation">Installation</a></li>
+<li><a href="#ersteinrichtung">Ersteinrichtung</a></li>
+<li><a href="#erste-konten-und-stammdaten">Erste Konten und Stammdaten</a></li>
+<li><a href="#funktionstest">Funktionstest</a></li>
+<li><a href="#kapitel-3-prasentationsschicht">Kapitel 3: Präsentationsschicht</a></li>
+<li><a href="#uberblick-und-aufbau">Überblick und Aufbau</a></li>
+<li><a href="#terminal-ui-terminal_ui">Terminal-UI (<code>terminal_ui/</code>)</a></li>
+<li><a href="#admin-cli-admin_cli">Admin-CLI (<code>admin_cli/</code>)</a></li>
+<li><a href="#domain-employees-und-cards">Domain: <code>employees</code> und <code>cards</code></a></li>
+<li><a href="#domain-bookings">Domain: <code>bookings</code></a></li>
+<li><a href="#domain-schedule">Domain: <code>schedule</code></a></li>
+<li><a href="#domain-reports">Domain: <code>reports</code></a></li>
+<li><a href="#domain-system">Domain: <code>system</code></a></li>
+<li><a href="#domain-users">Domain: <code>users</code></a></li>
+<li><a href="#zeitraum-hilfsfunktionen-_intervalspy">Zeitraum-Hilfsfunktionen (<code>_intervals.py</code>)</a></li>
+<li><a href="#kapitel-4-anwendungsschicht">Kapitel 4: Anwendungsschicht</a></li>
+<li><a href="#41-uberblick-und-einordnung">4.1 Überblick und Einordnung</a></li>
+<li><a href="#42-commands-eingabe-dtos-commandspy">4.2 Commands — Eingabe-DTOs (<code>commands.py</code>)</a></li>
+<li><a href="#43-results-ausgabe-dtos-schreibender-operationen-resultspy">4.3 Results — Ausgabe-DTOs schreibender Operationen (<code>results.py</code>)</a></li>
+<li><a href="#44-queries-lesende-abfrage-dtos-queriespy">4.4 Queries — Lesende Abfrage-DTOs (<code>queries.py</code>)</a></li>
+<li><a href="#45-unit-of-work-transaktionsprotokoll-unit_of_workpy">4.5 Unit of Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</a></li>
+<li><a href="#46-use-cases-im-detail">4.6 Use Cases im Detail</a></li>
+<li><a href="#47-querschnittliche-entwurfsprinzipien">4.7 Querschnittliche Entwurfsprinzipien</a></li>
+<li><a href="#48-erweiterungshinweise">4.8 Erweiterungshinweise</a></li>
+<li><a href="#49-hinweis-zu-admin-cli-befehlen">4.9 Hinweis zu admin-CLI-Befehlen</a></li>
+<li><a href="#kapitel-5-domain-modell">Kapitel 5: Domain-Modell</a></li>
+<li><a href="#uberblick-und-designprinzip">Überblick und Designprinzip</a></li>
+<li><a href="#value-objects-starke-id-typen">Value Objects – Starke ID-Typen</a></li>
+<li><a href="#enumerationen">Enumerationen</a></li>
+<li><a href="#entitaten">Entitäten</a></li>
+<li><a href="#domanenfehler">Domänenfehler</a></li>
+<li><a href="#repository-protokolle-ports">Repository-Protokolle (Ports)</a></li>
+<li><a href="#domain-services">Domain Services</a></li>
+<li><a href="#audit-event-katalog">Audit-Event-Katalog</a></li>
+<li><a href="#zusammenspiel-der-domain-schicht">Zusammenspiel der Domain-Schicht</a></li>
+<li><a href="#kapitel-6-infrastrukturschicht">Kapitel 6: Infrastrukturschicht</a></li>
+<li><a href="#uberblick-und-zweck">Überblick und Zweck</a></li>
+<li><a href="#datenbankzugriff-db">Datenbankzugriff (<code>db/</code>)</a></li>
+<li><a href="#hardware-abstraktion-hardware">Hardware-Abstraktion (<code>hardware/</code>)</a></li>
+<li><a href="#export-export">Export (<code>export/</code>)</a></li>
+<li><a href="#backup-backupbackup_servicepy">Backup (<code>backup/backup_service.py</code>)</a></li>
+<li><a href="#systemuberwachung">Systemüberwachung</a></li>
+<li><a href="#querverbindungen-und-architekturprinzipien">Querverbindungen und Architekturprinzipien</a></li>
+<li><a href="#kapitel-7-audit-und-prufstatus">Kapitel 7: Audit und Prüfstatus</a></li>
+<li><a href="#sicher-belegt">Sicher belegt</a></li>
+<li><a href="#nicht-uberbehaupten">Nicht überbehaupten</a></li>
+<li><a href="#empfohlene-nachste-prufungen">Empfohlene nächste Prüfungen</a></li>
+</ul>
+<h2 id="kapitel-1-ubersicht">Kapitel 1: Übersicht</h2>
+<p><strong>Quelle:</strong> <code>handbuch_overview.md</code></p>
+<h3 id="zweck">Zweck</h3>
+<p><code>arbeitszeit</code> ist ein lokal betriebenes Zeiterfassungssystem für eine<br />
+Zahnarztpraxis. Die Anwendung verwendet SQLite als einzige Datenbank und trennt<br />
+Fachlogik, Infrastruktur und Benutzeroberflächen klar voneinander.</p>
+<p>Aus dem Repository eindeutig belegt sind ein Terminalmodus für den operativen<br />
+Buchungsbetrieb sowie eine Admin-CLI für Verwaltungsaufgaben.</p>
+<h3 id="projektstruktur">Projektstruktur</h3>
+<p>Aus dem Repository klar belegt ist folgende Hauptstruktur:</p>
+<div class="codehilite"><pre><span></span><code>arbeitszeit/
+├── pyproject.toml
+├── README.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── run_audit.sh
+├── test_booking_loop.py
+├── installationsanleitung_arbeitszeit.md
+├── handbuch_arbeitszeit.md
+├── migrations/
+├── scripts/
+├── docs/
+├── src/
+│   └── arbeitszeit/
+│       ├── application/
+│       ├── domain/
+│       ├── infrastructure/
+│       └── presentation/
+│           ├── admin_cli/
+│           └── terminal_ui/
+└── tests/
+</code></pre></div>
+
+<h3 id="schichten">Schichten</h3>
+<p>In <code>pyproject.toml</code> ist eine Architekturprüfung mit <code>import-linter</code><br />
+hinterlegt. Daraus geht hervor, dass das Projekt diese Schichten trennt:</p>
+<ul>
+<li><code>arbeitszeit.presentation</code></li>
+<li><code>arbeitszeit.infrastructure</code></li>
+<li><code>arbeitszeit.application</code></li>
+<li><code>arbeitszeit.domain</code></li>
+</ul>
+<p>Diese Struktur entspricht einer Clean-Architecture-orientierten Trennung.</p>
+<hr />
+<h2 id="kapitel-2-installation">Kapitel 2: Installation</h2>
+<p><strong>Quelle:</strong> <code>handbuch_installation.md</code></p>
+<h3 id="systemvoraussetzungen">Systemvoraussetzungen</h3>
+<h4 id="betriebssystem">Betriebssystem</h4>
+<p>Die Projektunterlagen und die Installationsdokumentation beziehen sich auf<br />
+Linux Mint und Lubuntu.</p>
+<h4 id="python-version">Python-Version</h4>
+<p>Die verbindliche Python-Anforderung steht in <code>pyproject.toml</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;&gt;=3.14,&lt;3.15&quot;</span>
+</code></pre></div>
+
+<p>Damit ist für die Installation Python 3.14 erforderlich.</p>
+<p>Prüfung der installierten Version:</p>
+<div class="codehilite"><pre><span></span><code>python3.14<span class="w"> </span>--version
+</code></pre></div>
+
+<p><code>python3 --version</code> allein ist nicht ausreichend, wenn auf dem System eine<br />
+andere Python-Hauptversion als 3.14 als Standard eingerichtet ist.</p>
+<h4 id="python-abhangigkeiten">Python-Abhängigkeiten</h4>
+<p>Laufzeitabhängigkeiten:</p>
+<table>
+<thead>
+<tr>
+<th>Paket</th>
+<th>Mindestversion</th>
+<th>Zweck</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evdev</code></td>
+<td><code>&gt;=1.7</code></td>
+<td>Zugriff auf Linux-Eingabegeräte</td>
+</tr>
+<tr>
+<td><code>reportlab</code></td>
+<td><code>&gt;=4.0</code></td>
+<td>PDF-Erzeugung</td>
+</tr>
+</tbody>
+</table>
+<p>Entwicklungsabhängigkeiten:</p>
+<table>
+<thead>
+<tr>
+<th>Paket</th>
+<th>Mindestversion</th>
+<th>Zweck</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pytest</code></td>
+<td><code>&gt;=8.0</code></td>
+<td>Testausführung</td>
+</tr>
+<tr>
+<td><code>pytest-cov</code></td>
+<td><code>&gt;=5.0</code></td>
+<td>Coverage</td>
+</tr>
+<tr>
+<td><code>pypdf</code></td>
+<td><code>&gt;=4.0</code></td>
+<td>PDF-Prüfung in Tests</td>
+</tr>
+<tr>
+<td><code>ruff</code></td>
+<td><code>&gt;=0.6</code></td>
+<td>Linting</td>
+</tr>
+<tr>
+<td><code>import-linter</code></td>
+<td><code>&gt;=2.0</code></td>
+<td>Architekturprüfung</td>
+</tr>
+</tbody>
+</table>
+<h4 id="zusatzliche-systempakete">Zusätzliche Systempakete</h4>
+<div class="codehilite"><pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>build-essential<span class="w"> </span>linux-headers-<span class="k">$(</span>uname<span class="w"> </span>-r<span class="k">)</span><span class="w"> </span>python3-dev
+</code></pre></div>
+
+<h4 id="hardware">Hardware</h4>
+<p>Sicher belegt sind folgende Hardware-Komponenten im Projektkontext:</p>
+<ul>
+<li>RFID-Reader als USB-HID-Gerät</li>
+<li>USB-Numpad als Eingabegerät</li>
+</ul>
+<p>Die Gerätedateien werden unter Linux über <code>/dev/input/event*</code> angesprochen.</p>
+<h3 id="installation">Installation</h3>
+<p>Repository klonen:</p>
+<div class="codehilite"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/iCodator/arbeitszeit.git
+<span class="nb">cd</span><span class="w"> </span>arbeitszeit
+</code></pre></div>
+
+<p>Virtuelle Umgebung erstellen:</p>
+<div class="codehilite"><pre><span></span><code>python3.14<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+<span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</code></pre></div>
+
+<p>Abhängigkeiten installieren:</p>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+</code></pre></div>
+
+<p>Datenbank initialisieren:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/init_db.py
+</code></pre></div>
+
+<p>Der Datenbankpfad kann optional mit <code>--db</code> angegeben werden. Standard ist<br />
+<code>arbeitszeit.db</code>.</p>
+<p>Typische Ausgabe:</p>
+<div class="codehilite"><pre><span></span><code>Migration 0001 angewendet.
+Migration 0002 angewendet.
+Migration 0003 angewendet.
+Migration 0004 angewendet.
+Migration 0005 angewendet.
+Migration 0006 angewendet.
+⚠  Ersteinrichtung noch erforderlich:
+   python scripts/setup.py --db arbeitszeit.db
+</code></pre></div>
+
+<h3 id="ersteinrichtung">Ersteinrichtung</h3>
+<p>Die Reihenfolge ist zwingend:</p>
+<ol>
+<li><code>scripts/init_db.py</code></li>
+<li><code>scripts/setup.py</code></li>
+</ol>
+<p>Interaktiver Aufruf:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/setup.py<span class="w"> </span>--db<span class="w"> </span>arbeitszeit.db
+</code></pre></div>
+
+<p>Nicht-interaktiver Aufruf:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>scripts/setup.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--backup-dir<span class="w"> </span>/var/backups/arbeitszeit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--export-dir<span class="w"> </span>/var/exports/arbeitszeit
+</code></pre></div>
+
+<p>Bereits konfigurierte Schlüssel werden beim erneuten Aufruf übersprungen.</p>
+<h3 id="erste-konten-und-stammdaten">Erste Konten und Stammdaten</h3>
+<p>Ersten ADMIN anlegen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>users<span class="w"> </span>bootstrap<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--username<span class="w"> </span>adminname
+</code></pre></div>
+
+<p>Weiteres Benutzerkonto anlegen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>users<span class="w"> </span>add<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--username<span class="w"> </span>pruefer01<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--role<span class="w"> </span>REVIEWER
+</code></pre></div>
+
+<p>Mitarbeiter anlegen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>employees<span class="w"> </span>add<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--personnel-no<span class="w"> </span>M001<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--first-name<span class="w"> </span>Maria<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--last-name<span class="w"> </span>Mustermann
+</code></pre></div>
+
+<p>RFID-Karte zuweisen:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.admin_cli.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>arbeitszeit.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cards<span class="w"> </span>assign<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--employee-id<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--uid-hash<span class="w"> </span>&lt;HASH&gt;
+</code></pre></div>
+
+<h3 id="funktionstest">Funktionstest</h3>
+<div class="codehilite"><pre><span></span><code>pytest
+pytest<span class="w"> </span>tests/test_migrations.py
+pytest<span class="w"> </span>--cov<span class="o">=</span>arbeitszeit
+</code></pre></div>
+
+<hr />
+<h2 id="kapitel-3-prasentationsschicht">Kapitel 3: Präsentationsschicht</h2>
+<p><strong>Quelle:</strong> <code>handbuch_presentation.md</code></p>
+<h3 id="uberblick-und-aufbau">Überblick und Aufbau</h3>
+<p>Die Präsentationsschicht ist die äußerste Schale des Systems und bildet<br />
+die einzige Schnittstelle zwischen Benutzer (oder Administrator) und der<br />
+darunterliegenden Fach- und Anwendungslogik. Sie enthält keine<br />
+Geschäftslogik, sondern übersetzt ausschließlich Benutzereingaben in<br />
+Kommandos der Anwendungsschicht und gibt Ergebnisse als lesbare Texte<br />
+aus. Das Paket gliedert sich in zwei eigenständige Untermodule:</p>
+<ul>
+<li><code>presentation/terminal_ui/</code> – operativer Buchungsbetrieb (Endlosschleife, RFID + Numpad)</li>
+<li><code>presentation/admin_cli/</code> – administrative Verwaltung (Kommandozeile, rollenbasiert)</li>
+</ul>
+<hr />
+<h3 id="terminal-ui-terminal_ui">Terminal-UI (<code>terminal_ui/</code>)</h3>
+<h4 id="zweck-und-betriebsmodus">Zweck und Betriebsmodus</h4>
+<p>Die Terminal-UI ist der im laufenden Praxisbetrieb aktive Prozess. Sie<br />
+startet beim Systemstart als Endlosschleife und wartet kontinuierlich auf<br />
+Hardware-Eingaben: zuerst Auswahl der Buchungsart über das Numpad, dann<br />
+RFID-Kartenscan. Der Prozess reagiert auf <code>SIGTERM</code> und <code>SIGINT</code><br />
+(Strg+C) mit einem sauberen Graceful Shutdown.</p>
+<h4 id="startparameter">Startparameter</h4>
+<p>Die Terminal-UI wird mit vier Pflichtargumenten gestartet:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>arbeitszeit.presentation.terminal_ui.main<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--db<span class="w"> </span>/pfad/zur/datenbank.db<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--numpad<span class="w"> </span>/dev/input/eventX<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--rfid<span class="w"> </span>/dev/input/eventY<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--terminal-id<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+
+<h4 id="startverhalten-und-systemcheck">Startverhalten und Systemcheck</h4>
+<p>Vor dem Eintritt in die Buchungsschleife führt <code>run()</code> automatisch einen<br />
+Systemcheck durch. Schlägt der Check fehl, wird eine<br />
+Desktop-Benachrichtigung ausgelöst (<code>notify(…, urgency="critical")</code>),<br />
+aber der Buchungsbetrieb wird <strong>nicht</strong> abgebrochen — die Praxis soll<br />
+arbeitsfähig bleiben. Fehlerdetails werden in der Tabelle<br />
+<code>system_events</code> gespeichert.</p>
+<h4 id="buchungszyklus-booking_looppy">Buchungszyklus (<code>booking_loop.py</code>)</h4>
+<p>Jeder Buchungszyklus läuft in drei Schritten ab:</p>
+<ol>
+<li><strong>Numpad-Eingabe:</strong> Der Mitarbeiter wählt die Buchungsart (Kommen,<br />
+   Gehen, Pause-Start, Pause-Ende) über das USB-Numpad.</li>
+<li><strong>RFID-Scan:</strong> Das System wartet auf den Kartenscan. Das Timeout ist<br />
+   konfigurierbar über <code>booking.grace_seconds_after_numpad_select</code> in<br />
+<code>system_config</code> (Standardwert: 5 Sekunden).</li>
+<li><strong>Buchungsverarbeitung:</strong> Das Geräteereignis (<code>RFID_SCAN</code>) wird<br />
+<strong>vor</strong> dem eigentlichen <code>BookUseCase</code>-Aufruf in <code>device_events</code><br />
+   gespeichert — absichtlich, damit auch fachlich gescheiterte Buchungen<br />
+   (z. B. unbekannte Karte) lückenlos protokolliert bleiben.</li>
+</ol>
+<h4 id="feedback-ausgabe">Feedback-Ausgabe</h4>
+<p>Nach jeder Buchung gibt das Terminal eine einzeilige Rückmeldung aus.</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Ausgabe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN</code> / <code>OK</code></td>
+<td><code>Buchung erfasst.</code></td>
+</tr>
+<tr>
+<td><code>WARN</code></td>
+<td><code>Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.</code></td>
+</tr>
+<tr>
+<td><code>NEEDS_REVIEW</code></td>
+<td><code>Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="domanenfehler-behandlung">Domänenfehler-Behandlung</h4>
+<p>Bekannte Domänenfehler werden in menschenlesbare Meldungen übersetzt und<br />
+ausgegeben, ohne den Prozess zu beenden:</p>
+<table>
+<thead>
+<tr>
+<th>Fehlerklasse</th>
+<th>Anzeige</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UnknownCardError</code></td>
+<td><code>Karte nicht erkannt.</code></td>
+</tr>
+<tr>
+<td><code>InactiveCardError</code></td>
+<td><code>Karte deaktiviert.</code></td>
+</tr>
+<tr>
+<td><code>InactiveEmployeeError</code></td>
+<td><code>Mitarbeiter inaktiv.</code></td>
+</tr>
+<tr>
+<td><code>InvalidBookingSequenceError</code></td>
+<td><code>Ungültige Buchungsreihenfolge.</code></td>
+</tr>
+<tr>
+<td><code>OpenPhaseConflictError</code></td>
+<td><code>Offene Phase — bitte zuerst abschließen.</code></td>
+</tr>
+</tbody>
+</table>
+<p>Unerwartete Ausnahmen werden in <code>system_events</code> protokolliert; der<br />
+Betrieb läuft weiter.</p>
+<hr />
+<h3 id="admin-cli-admin_cli">Admin-CLI (<code>admin_cli/</code>)</h3>
+<h4 id="zweck_1">Zweck</h4>
+<p>Die Admin-CLI ist das Verwaltungswerkzeug für Administratoren und<br />
+technisches Personal. Sie wird als <code>admin</code>-Programm gestartet, erfordert<br />
+immer die Datenbankdatei (<code>--db</code>) und eine Benutzer-ID (<code>--user-id</code><br />
+oder Umgebungsvariable <code>ADMIN_USER_ID</code>), und verteilt alle Aufrufe über<br />
+eine zentrale Dispatch-Tabelle an spezialisierte Handler-Module.</p>
+<h4 id="grundaufruf">Grundaufruf</h4>
+<div class="codehilite"><pre><span></span><code>admin<span class="w"> </span>--db<span class="w"> </span>/pfad/zur/datenbank.db<span class="w"> </span>--user-id<span class="w"> </span><span class="m">1</span><span class="w"> </span>&lt;domain&gt;<span class="w"> </span>&lt;subcommand&gt;<span class="w"> </span><span class="o">[</span>optionen<span class="o">]</span>
+</code></pre></div>
+
+<p>Alternativ zur <code>--user-id</code>-Option kann die Umgebungsvariable<br />
+<code>ADMIN_USER_ID</code> gesetzt werden. Die einzige Ausnahme ist<br />
+<code>users bootstrap</code> — dieser Befehl benötigt keine Benutzer-ID, da noch<br />
+kein Admin existiert.</p>
+<h4 id="rollenmodell">Rollenmodell</h4>
+<p>Alle schreibenden Operationen prüfen die Rolle des aufrufenden Benutzers<br />
+direkt gegen die Tabelle <code>user_accounts</code>. Es gibt drei Rollen:</p>
+<table>
+<thead>
+<tr>
+<th>Rolle</th>
+<th>Erlaubte Bereiche</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADMIN</code></td>
+<td>Alle Operationen (Lesen + Schreiben)</td>
+</tr>
+<tr>
+<td><code>REVIEWER</code></td>
+<td>Berichte, Buchungsüberprüfung, Nachträge genehmigen/ablehnen</td>
+</tr>
+<tr>
+<td><code>TECH</code></td>
+<td>Systemcheck, Backup</td>
+</tr>
+</tbody>
+</table>
+<p>Lesende Operationen (z. B. <code>employees list</code>, <code>users list</code>) sind ohne<br />
+Rolleneinschränkung nutzbar.</p>
+<hr />
+<h3 id="domain-employees-und-cards">Domain: <code>employees</code> und <code>cards</code></h3>
+<h4 id="mitarbeiterverwaltung-employeespy">Mitarbeiterverwaltung (<code>employees.py</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>employees list</code></td>
+<td>Alle Mitarbeiter tabellarisch auflisten</td>
+<td>keine</td>
+</tr>
+<tr>
+<td><code>employees add --personnel-no … --first-name … --last-name …</code></td>
+<td>Mitarbeiter anlegen</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>employees deactivate &lt;id&gt;</code></td>
+<td>Mitarbeiter deaktivieren</td>
+<td><code>ADMIN</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="kartenverwaltung">Kartenverwaltung</h4>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cards assign --employee-id … --uid-hash …</code></td>
+<td>Neue RFID-Karte einem Mitarbeiter zuweisen</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>cards replace --old-card-id … --uid-hash …</code></td>
+<td>Verlorene/defekte Karte ersetzen (alte Karte erhält Status <code>REPLACED</code>)</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>cards deactivate &lt;id&gt;</code></td>
+<td>Karte auf Status <code>INACTIVE</code> setzen</td>
+<td><code>ADMIN</code></td>
+</tr>
+</tbody>
+</table>
+<p>Jede schreibende Operation wird mit einem <code>_audit(…)</code>-Eintrag in<br />
+<code>audit_log</code> protokolliert. Verwendete Ereignistypen:<br />
+<code>EMPLOYEE_CREATED</code>, <code>EMPLOYEE_DEACTIVATED</code>, <code>CARD_ASSIGNED</code>,<br />
+<code>CARD_REPLACED</code>, <code>CARD_DEACTIVATED</code>.</p>
+<hr />
+<h3 id="domain-bookings">Domain: <code>bookings</code></h3>
+<p>Buchungskorrekturen und Nachträge laufen vollständig über Use Cases der<br />
+Anwendungsschicht — die Rollenprüfung erfolgt dort, die CLI übernimmt<br />
+nur Fehlerformatierung und Ausgabe.</p>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bookings correct --booking-id … --type … --at … --reason …</code></td>
+<td>Bestehende Buchung korrigieren; erzeugt einen neuen Korrektur-Datensatz und setzt die alte Buchung auf <code>CORRECTED</code></td>
+</tr>
+<tr>
+<td><code>bookings supplement --employee-id … --type … --at … --reason …</code></td>
+<td>Nachträgliche Buchung erfassen; erzeugt automatisch einen Prüffall (<code>review_case</code>)</td>
+</tr>
+<tr>
+<td><code>bookings approve-supplement --supplement-id …</code></td>
+<td>Nachtrag freigeben → Buchung wird wirksam</td>
+</tr>
+<tr>
+<td><code>bookings reject-supplement --supplement-id … --reason …</code></td>
+<td>Nachtrag ablehnen</td>
+</tr>
+</tbody>
+</table>
+<p>Das <code>--at</code>-Argument erwartet ISO-8601-Format (z. B.<br />
+<code>2026-07-01T08:00:00</code>). Fehlt die Zeitzone, wird UTC angenommen.</p>
+<hr />
+<h3 id="domain-schedule">Domain: <code>schedule</code></h3>
+<p>Die Regelarbeitszeit wird versioniert gespeichert; jede Änderung erzeugt<br />
+eine neue Version und schließt die Vorgängerversion.</p>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD</code></td>
+<td>Globale Regelarbeitszeit setzen</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>schedule show</code></td>
+<td>Alle aktiven Versionen anzeigen (global + mitarbeiterspezifisch)</td>
+<td><code>ADMIN</code>, <code>REVIEWER</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="domain-reports">Domain: <code>reports</code></h3>
+<p>Alle Report-Befehle erfordern <code>ADMIN</code>- oder <code>REVIEWER</code>-Rolle. Das<br />
+Export-Verzeichnis wird aus <code>system_config</code> (Schlüssel<br />
+<code>export.export_dir</code>) gelesen.</p>
+<h4 id="export-befehle">Export-Befehle</h4>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reports export-csv --from … --to … [--employee-id …]</code></td>
+<td>Zwei CSV-Dateien: Detailbuchungen + verdichtete Übersicht</td>
+</tr>
+<tr>
+<td><code>reports export-pdf-day YYYY-MM-DD</code></td>
+<td>Tagesbericht als PDF</td>
+</tr>
+<tr>
+<td><code>reports export-pdf-week &lt;Jahr&gt; &lt;KW&gt;</code></td>
+<td>Wochenbericht (ISO-Woche) als PDF</td>
+</tr>
+<tr>
+<td><code>reports export-pdf-month &lt;Jahr&gt; &lt;Monat&gt;</code></td>
+<td>Monatsbericht als PDF</td>
+</tr>
+<tr>
+<td><code>reports export-pdf-employee --employee-id … --from … --to …</code></td>
+<td>Mitarbeiterbericht als PDF</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pflichtauswertungen">Pflichtauswertungen</h4>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reports open-bookings [--from … --to …] [--employee-id …]</code></td>
+<td>Buchungen mit Status <code>OPEN</code></td>
+</tr>
+<tr>
+<td><code>reports warn-cases --from … --to … [--employee-id …]</code></td>
+<td>Buchungen mit Status <code>WARN</code> oder <code>NEEDS_REVIEW</code></td>
+</tr>
+<tr>
+<td><code>reports corrections --from … --to … [--employee-id …]</code></td>
+<td>Alle Korrekturen im Zeitraum</td>
+</tr>
+<tr>
+<td><code>reports supplements --from … --to … [--employee-id …]</code></td>
+<td>Alle Nachträge im Zeitraum</td>
+</tr>
+<tr>
+<td><code>reports open-review-cases [--from … --to …] [--employee-id …]</code></td>
+<td>Offene Prüffälle</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="domain-system">Domain: <code>system</code></h3>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>system check</code></td>
+<td>Systemcheck auslösen; gibt Detailstatus aller Prüfpunkte aus; Exitcode 0 = OK, 1 = Fehler</td>
+<td><code>ADMIN</code>, <code>TECH</code></td>
+</tr>
+<tr>
+<td><code>system backup</code></td>
+<td>Manuelles Backup der SQLite-Datenbank auslösen; bei aktivierter NAS-Synchronisation (<code>backup.nas_enabled</code>) wird das Backup auch auf den NAS-Pfad kopiert</td>
+<td><code>ADMIN</code>, <code>TECH</code></td>
+</tr>
+</tbody>
+</table>
+<p>Der Backup-Dienst liest Zielverzeichnis und NAS-Pfad aus <code>system_config</code>.<br />
+Schlägt die NAS-Synchronisation fehl, wird nur eine Warnung ausgegeben —<br />
+der Prozess endet nicht mit Fehler.</p>
+<hr />
+<h3 id="domain-users">Domain: <code>users</code></h3>
+<p>Passwörter werden mit PBKDF2-HMAC-SHA256 und 260.000 Iterationen gehasht<br />
+(DSGVO Art. 32). Das Klartextpasswort wird nach der Ausgabe nirgends<br />
+gespeichert.</p>
+<table>
+<thead>
+<tr>
+<th>Befehl</th>
+<th>Beschreibung</th>
+<th>Rolle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>users bootstrap --username … [--password …]</code></td>
+<td>Erstes Administratorkonto anlegen (nur wenn noch kein aktiver Admin existiert)</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>users add --username … --role … [--employee-id …] [--password …]</code></td>
+<td>Neues Benutzerkonto anlegen</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>users list</code></td>
+<td>Alle Konten tabellarisch auflisten</td>
+<td>keine</td>
+</tr>
+<tr>
+<td><code>users deactivate --user-id …</code></td>
+<td>Benutzerkonto deaktivieren</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>users reactivate --user-id …</code></td>
+<td>Benutzerkonto reaktivieren</td>
+<td><code>ADMIN</code></td>
+</tr>
+<tr>
+<td><code>users change-role --user-id … --role …</code></td>
+<td>Rolle eines Kontos ändern</td>
+<td><code>ADMIN</code></td>
+</tr>
+</tbody>
+</table>
+<p>Wird <code>--password</code> weggelassen, generiert das System ein sicheres<br />
+zufälliges Passwort und zeigt es <strong>einmalig</strong> auf der Konsole an.</p>
+<hr />
+<h3 id="zeitraum-hilfsfunktionen-_intervalspy">Zeitraum-Hilfsfunktionen (<code>_intervals.py</code>)</h3>
+<p>Alle Datums-/Zeitraumberechnungen in der Admin-CLI verwenden ausschließlich<br />
+die drei Funktionen aus<br />
+<code>src/arbeitszeit/presentation/admin_cli/_intervals.py</code>. Eigene<br />
+Ad-hoc-Konstruktionen aus Benutzereingaben sind verboten, um<br />
+UTC-Normalisierung und halboffene Intervalle <code>[from_dt, to_dt)</code><br />
+sicherzustellen.</p>
+<table>
+<thead>
+<tr>
+<th>Funktion</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>day_interval(day)</code></td>
+<td><code>[day 00:00 UTC, next_day 00:00 UTC)</code></td>
+</tr>
+<tr>
+<td><code>week_interval(year, week)</code></td>
+<td>ISO-Woche: Montag 00:00 UTC bis Montag+7 00:00 UTC</td>
+</tr>
+<tr>
+<td><code>month_interval(year, month)</code></td>
+<td>Erster bis (exklusiv) erster des Folgemonats, UTC</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="kapitel-4-anwendungsschicht">Kapitel 4: Anwendungsschicht</h2>
+<p><strong>Quelle:</strong> <code>handbuch_application_layer.md</code></p>
+<p>Die Anwendungsschicht ist das Herzstück der fachlichen Steuerung. Sie vermittelt<br />
+zwischen der Präsentationsschicht (UI, Terminal-Handler) und der Domänenschicht<br />
+(Geschäftsregeln, Entitäten). Sie enthält <strong>keine</strong> SQL-Logik, <strong>keine</strong><br />
+Hardware-Zugriffe und <strong>keine</strong> UI-Elemente — ausschließlich Ablaufsteuerung,<br />
+Validierung und Koordination.</p>
+<hr />
+<h3 id="41-uberblick-und-einordnung">4.1 Überblick und Einordnung</h3>
+<p>Das Paket folgt dem <strong>CQRS-Prinzip</strong> (Command Query Responsibility Segregation):<br />
+Schreibende Operationen werden über <em>Commands</em> und <em>Use Cases</em> gesteuert,<br />
+lesende Operationen über <em>Query-DTOs</em>. Beide Seiten sind strikt getrennt,<br />
+sodass sie unabhängig voneinander weiterentwickelt und getestet werden können.</p>
+<div class="codehilite"><pre><span></span><code>src/arbeitszeit/application/
+├── __init__.py            # leer — kein impliziter Re-Export
+├── commands.py            # Eingabe-DTOs für alle schreibenden Operationen
+├── queries.py             # Ausgabe-DTOs für lesende Abfragen (CQRS-Read)
+├── results.py             # Ausgabe-DTOs für schreibende Operationen
+├── unit_of_work.py        # Transaktion-Protokoll (Protocol-Klasse)
+└── use_cases/
+    ├── __init__.py
+    ├── book_time.py           # Buchung via RFID-Terminal
+    ├── correct_booking.py     # Manuelle Korrektur durch Admin/Reviewer
+    ├── register_supplement.py # Nachtrag erfassen (Status: PENDING)
+    ├── approve_supplement.py  # Nachtrag freigeben → erzeugt Buchung
+    ├── reject_supplement.py   # Nachtrag ablehnen
+    └── manage_work_schedule.py # Regelarbeitszeit ändern
+</code></pre></div>
+
+<hr />
+<h3 id="42-commands-eingabe-dtos-commandspy">4.2 Commands — Eingabe-DTOs (<code>commands.py</code>)</h3>
+<p>Commands sind <strong>unveränderliche Datenbehälter</strong> (<code>frozen=True, slots=True</code>),<br />
+die alle für eine Operation notwendigen Parameter bündeln. Sie enthalten keine<br />
+Logik. Die Use Cases konsumieren Commands als einzigen Eingabeparameter.</p>
+<table>
+<thead>
+<tr>
+<th>Command-Klasse</th>
+<th>Zweck</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BookCommand</code></td>
+<td>RFID-Buchung vom Terminal (Kommen/Gehen/Pause)</td>
+</tr>
+<tr>
+<td><code>CreateSupplementCommand</code></td>
+<td>Nachtrag durch Admin/Reviewer erfassen</td>
+</tr>
+<tr>
+<td><code>CreateCorrectionCommand</code></td>
+<td>Bestehende Buchung korrigieren</td>
+</tr>
+<tr>
+<td><code>ApproveSupplementCommand</code></td>
+<td>Nachtrag genehmigen</td>
+</tr>
+<tr>
+<td><code>RejectSupplementCommand</code></td>
+<td>Nachtrag ablehnen (mit Begründung)</td>
+</tr>
+<tr>
+<td><code>ChangeWorkScheduleCommand</code></td>
+<td>Regelarbeitszeit für Wochentag/Scope setzen</td>
+</tr>
+</tbody>
+</table>
+<p>Alle Commands importieren ihre Value-Object-Typen (z. B. <code>EmployeeId</code>,<br />
+<code>TerminalId</code>) aus <code>arbeitszeit.domain.value_objects</code>, um Typsicherheit<br />
+ohne Primitive Obsession zu gewährleisten.</p>
+<hr />
+<h3 id="43-results-ausgabe-dtos-schreibender-operationen-resultspy">4.3 Results — Ausgabe-DTOs schreibender Operationen (<code>results.py</code>)</h3>
+<p>Jeder Use Case gibt ein typisiertes Result-Objekt zurück. Results sind ebenfalls<br />
+<code>frozen</code> und <code>slots</code>-optimiert. Sie enthalten nur die IDs und Status-Werte, die<br />
+die Präsentationsschicht für Rückmeldungen oder Folgeverarbeitungen benötigt.</p>
+<table>
+<thead>
+<tr>
+<th>Result-Klasse</th>
+<th>Enthaltene Felder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BookResult</code></td>
+<td><code>booking_id</code>, <code>status</code>, <code>follow_up_case_ids</code></td>
+</tr>
+<tr>
+<td><code>SupplementResult</code></td>
+<td><code>supplement_id</code>, <code>review_case_id</code></td>
+</tr>
+<tr>
+<td><code>CorrectionResult</code></td>
+<td><code>correction_id</code>, <code>updated_booking_id</code>, <code>review_case_id</code></td>
+</tr>
+<tr>
+<td><code>WorkScheduleChangeResult</code></td>
+<td><code>new_version_id</code>, <code>superseded_version_id</code></td>
+</tr>
+<tr>
+<td><code>ApproveSupplementResult</code></td>
+<td><code>supplement_id</code>, <code>booking_id</code>, <code>booking_status</code>, <code>follow_up_case_ids</code></td>
+</tr>
+<tr>
+<td><code>RejectSupplementResult</code></td>
+<td><code>supplement_id</code>, <code>review_case_id</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="44-queries-lesende-abfrage-dtos-queriespy">4.4 Queries — Lesende Abfrage-DTOs (<code>queries.py</code>)</h3>
+<p>Die Query-DTOs bilden die CQRS-Leseseite ab. Sie definieren die Zeilenstruktur<br />
+für Berichte und Listen, ohne selbst SQL auszuführen. Die eigentlichen<br />
+Datenbankabfragen liegen in der Infrastrukturschicht<br />
+(<code>infrastructure/export/report_queries.py</code>).</p>
+<table>
+<thead>
+<tr>
+<th>Row-Klasse</th>
+<th>Verwendungszweck</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BookingRow</code></td>
+<td>Buchungsliste mit Mitarbeiterzuordnung für Berichte</td>
+</tr>
+<tr>
+<td><code>CorrectionRow</code></td>
+<td>Korrekturprotokoll mit altem und neuem Zustand (Regelwerk v3 §12)</td>
+</tr>
+<tr>
+<td><code>SupplementRow</code></td>
+<td>Nachtragsliste mit Freigabestatus (Regelwerk v3 §13/§19)</td>
+</tr>
+<tr>
+<td><code>ReviewCaseRow</code></td>
+<td>Offene Prüffälle (Pflichtenheft v3 §7.6/§7.12)</td>
+</tr>
+</tbody>
+</table>
+<p>Die Trennung von Command- und Query-Typen stellt sicher, dass<br />
+Präsentationsmodule <strong>keine</strong> Infrastruktur-Klassen importieren müssen.</p>
+<hr />
+<h3 id="45-unit-of-work-transaktionsprotokoll-unit_of_workpy">4.5 Unit of Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</h3>
+<p><code>UnitOfWork</code> ist ein <strong>Protocol</strong> (strukturelles Typing, kein Erben nötig).<br />
+Es fasst alle Repository-Referenzen unter einem gemeinsamen Transaktionskontext<br />
+zusammen und garantiert atomare Schreiboperationen.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uow</span><span class="p">:</span>
+    <span class="c1"># Alle Lese- und Schreiboperationen hier</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_uow</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Die in <code>UnitOfWork</code> definierten Repositories:</p>
+<ul>
+<li><code>employee_repo</code> — Mitarbeiterstammdaten</li>
+<li><code>user_account_repo</code> — Benutzerkonten (mit Rollen)</li>
+<li><code>rfid_card_repo</code> — RFID-Karten und deren Status</li>
+<li><code>time_booking_repo</code> — Zeitbuchungen (Kommen/Gehen/Pause)</li>
+<li><code>work_schedule_repo</code> — Regelarbeitszeitversionen</li>
+<li><code>review_case_repo</code> — Prüffälle</li>
+<li><code>supplement_repo</code> — Nachträge</li>
+<li><code>booking_correction_repo</code> — Buchungskorrekturen</li>
+<li><code>audit_log_repo</code> — Unveränderliches Audit-Protokoll</li>
+<li><code>system_config_repo</code> — Systemeinstellungen</li>
+<li><code>device_event_repo</code> — Geräteereignisse (Terminal, Numpad)</li>
+</ul>
+<blockquote>
+<p><strong>Wichtig:</strong> Das Audit-Log wird nach <code>commit()</code> geschrieben (nicht davor).<br />
+Begründung: Nach dem Commit hält die Hauptverbindung keinen <code>RESERVED</code>-Lock<br />
+mehr, sodass die Audit-Verbindung (SQLite WAL-Modus, Autocommit) ohne<br />
+Blockierung schreiben kann.</p>
+</blockquote>
+<hr />
+<h3 id="46-use-cases-im-detail">4.6 Use Cases im Detail</h3>
+<h4 id="461-bookusecase-terminalbuchung-book_timepy">4.6.1 <code>BookUseCase</code> — Terminalbuchung (<code>book_time.py</code>)</h4>
+<p>Dieser Use Case verarbeitet jede RFID-Buchung vom Terminal. Er ist der am<br />
+häufigsten ausgeführte Use Case im Tagesbetrieb.</p>
+<p><strong>Ablauf:</strong></p>
+<ol>
+<li>RFID-Karte per <code>uid_hash</code> nachschlagen</li>
+<li>Bei unbekannter Karte → Audit-Eintrag <code>BOOKING_REJECTED_UNKNOWN_CARD</code> + <code>UnknownCardError</code></li>
+<li>Bei inaktiver Karte → Audit-Eintrag <code>BOOKING_REJECTED_INACTIVE_CARD</code> + <code>InactiveCardError</code></li>
+<li>Mitarbeiter laden und Aktivstatus prüfen</li>
+<li>Tagesbuchungen laden, Buchungsreihenfolge validieren (<code>validate_booking_sequence</code>)</li>
+<li>Regelarbeitszeit prüfen → ggf. <code>ComplianceFlag(OUTSIDE_SCHEDULE_WINDOW, WARN)</code> setzen</li>
+<li>Compliance-Checks durchführen: Pausenpflicht, Höchstarbeitszeit, Ruhezeit</li>
+<li>Buchung speichern mit berechnetem Status (<code>OK</code> / <code>WARN</code> / <code>NEEDS_REVIEW</code>)</li>
+<li>Prüffälle für jeden <code>ComplianceFlag</code> anlegen</li>
+<li><code>commit()</code> → Audit-Log <code>TIME_BOOKED</code> schreiben</li>
+<li><code>BookResult</code> zurückgeben</li>
+</ol>
+<p><strong>Statuslogik der Buchung:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Bedingung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN</code></td>
+<td>Buchungstyp ist <code>COME</code> oder <code>BREAK_START</code> (Tag noch offen)</td>
+</tr>
+<tr>
+<td><code>OK</code></td>
+<td>Keine Compliance-Verstöße</td>
+</tr>
+<tr>
+<td><code>WARN</code></td>
+<td>Mindestens ein Flag ohne <code>CRITICAL</code>-Schwere</td>
+</tr>
+<tr>
+<td><code>NEEDS_REVIEW</code></td>
+<td>Mindestens ein Flag mit <code>CRITICAL</code>-Schwere</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ablehnungspfade und SQLite-Locks:</strong></p>
+<p>In den Ablehnungspfaden (unbekannte/inaktive Karte) darf vor dem<br />
+Audit-Log-Schreibvorgang <strong>keine</strong> andere Schreiboperation auf der<br />
+Hauptverbindung stattgefunden haben. Nur SELECTs sind vor dem ersten<br />
+Audit-Write erlaubt. Diese Invariante muss bei Erweiterungen gewahrt bleiben.</p>
+<hr />
+<h4 id="462-correctbookingusecase-buchungskorrektur-correct_bookingpy">4.6.2 <code>CorrectBookingUseCase</code> — Buchungskorrektur (<code>correct_booking.py</code>)</h4>
+<p>Ermöglicht berechtigten Benutzern (Rolle <code>ADMIN</code> oder <code>REVIEWER</code>), eine<br />
+bestehende Buchung nachträglich zu ändern.</p>
+<p><strong>Ablauf:</strong></p>
+<ol>
+<li>Berechtigungsprüfung des handelnden Benutzers</li>
+<li>Originalbuchung und zugehörigen Mitarbeiter laden</li>
+<li><code>BookingCorrection</code>-Datensatz anlegen (Vorher/Nachher-Snapshot)</li>
+<li>Status der Originalbuchung auf <code>CORRECTED</code> setzen</li>
+<li>Offene Prüffälle des Mitarbeiters durchsuchen:<br />
+   - Prüffälle mit <code>booking_id == original</code> und korrigierbarem Typ → Status <code>RESOLVED</code></li>
+<li><code>commit()</code> → Audit-Log <code>BOOKING_CORRECTED</code> schreiben</li>
+<li><code>CorrectionResult</code> zurückgeben</li>
+</ol>
+<p><strong>Korrigierbare Prüffalltypen</strong> (<code>_CORRECTABLE_CASE_TYPES</code>):<br />
+<code>OPEN_WORK_PHASE</code>, <code>OPEN_BREAK_PHASE</code>, <code>IMPLAUSIBLE_SEQUENCE</code>,<br />
+<code>POSSIBLE_BREAK_VIOLATION</code>, <code>POSSIBLE_REST_VIOLATION</code>,<br />
+<code>POSSIBLE_MAX_HOURS_VIOLATION</code>, <code>OUTSIDE_SCHEDULE_WINDOW</code>.</p>
+<p>Nicht durch Buchungskorrektur schließbar: <code>MANUAL_ENTRY_REVIEW</code>,<br />
+<code>UNKNOWN_CARD_ATTEMPT</code>, <code>INACTIVE_CARD_ATTEMPT</code>, <code>TIME_ANOMALY</code>.</p>
+<hr />
+<h4 id="463-registersupplementusecase-nachtrag-erfassen-register_supplementpy">4.6.3 <code>RegisterSupplementUseCase</code> — Nachtrag erfassen (<code>register_supplement.py</code>)</h4>
+<p>Erfasst eine nachträglich einzutragende Buchung (z. B. vergessenes Einstempeln).<br />
+Der Nachtrag wird zunächst im Status <code>PENDING</code> angelegt — er erzeugt noch<br />
+<strong>keine</strong> Buchung in <code>time_bookings</code>.</p>
+<p><strong>Ablauf:</strong></p>
+<ol>
+<li>Berechtigungsprüfung (<code>ADMIN</code> oder <code>REVIEWER</code>)</li>
+<li>Mitarbeiter laden und Aktivstatus prüfen</li>
+<li>Falls <code>related_booking_id</code> angegeben: Existenz der Originalbuchung sicherstellen</li>
+<li><code>Supplement</code>-Datensatz mit Status <code>PENDING</code> anlegen</li>
+<li>Prüffall <code>MANUAL_ENTRY_REVIEW</code> (Schwere <code>INFO</code>) anlegen</li>
+<li><code>commit()</code> → Audit-Log <code>SUPPLEMENT_CREATED</code> schreiben</li>
+<li><code>SupplementResult</code> zurückgeben</li>
+</ol>
+<hr />
+<h4 id="464-approvesupplementusecase-nachtrag-freigeben-approve_supplementpy">4.6.4 <code>ApproveSupplementUseCase</code> — Nachtrag freigeben (<code>approve_supplement.py</code>)</h4>
+<p>Genehmigt einen ausstehenden Nachtrag und überführt ihn in eine echte<br />
+Buchung mit vollständiger Compliance-Prüfung.</p>
+<p><strong>Ablauf:</strong></p>
+<ol>
+<li>Berechtigungsprüfung (<code>ADMIN</code> oder <code>REVIEWER</code>)</li>
+<li>Nachtrag laden, Status muss <code>PENDING</code> sein (sonst <code>ValidationError</code>)</li>
+<li>Mitarbeiter laden und prüfen</li>
+<li>Nachtrag in <code>approved</code> überführen (<code>supplement_repo.approve</code>)</li>
+<li>Zugehörigen Prüffall <code>MANUAL_ENTRY_REVIEW</code> auf <code>RESOLVED</code> schließen</li>
+<li>Buchungsreihenfolge validieren (wie bei Terminal-Buchung)</li>
+<li>Regelarbeitszeit und Compliance-Checks durchführen</li>
+<li>Neue <code>TimeBooking</code> mit Source <code>MANUAL</code> anlegen</li>
+<li>Folge-Prüffälle aus Compliance-Flags anlegen</li>
+<li><code>commit()</code> → Audit-Log <code>SUPPLEMENT_APPROVED</code> schreiben</li>
+<li><code>ApproveSupplementResult</code> zurückgeben</li>
+</ol>
+<hr />
+<h4 id="465-rejectsupplementusecase-nachtrag-ablehnen-reject_supplementpy">4.6.5 <code>RejectSupplementUseCase</code> — Nachtrag ablehnen (<code>reject_supplement.py</code>)</h4>
+<p>Lehnt einen ausstehenden Nachtrag ab, ohne eine Buchung zu erzeugen.</p>
+<p><strong>Ablauf:</strong></p>
+<ol>
+<li>Berechtigungsprüfung (<code>ADMIN</code> oder <code>REVIEWER</code>)</li>
+<li>Nachtrag laden, Status muss <code>PENDING</code> sein</li>
+<li>Nachtrag auf <code>rejected</code> setzen (<code>supplement_repo.reject</code>)</li>
+<li>Ggf. zugehörigen Prüffall <code>MANUAL_ENTRY_REVIEW</code> mit Status<br />
+<code>CLOSED_WITH_NOTE</code> und der Ablehnungsbegründung schließen</li>
+<li><code>commit()</code> → Audit-Log <code>SUPPLEMENT_REJECTED</code> schreiben</li>
+<li><code>RejectSupplementResult</code> zurückgeben</li>
+</ol>
+<hr />
+<h4 id="466-manageworkscheduleusecase-regelarbeitszeit-manage_work_schedulepy">4.6.6 <code>ManageWorkScheduleUseCase</code> — Regelarbeitszeit (<code>manage_work_schedule.py</code>)</h4>
+<p>Ändert die Regelarbeitszeit für einen Wochentag, entweder global (alle<br />
+Mitarbeiter) oder mitarbeiterspezifisch. Nur Benutzer mit Rolle <code>ADMIN</code><br />
+dürfen diesen Use Case ausführen.</p>
+<p><strong>Ablauf:</strong></p>
+<ol>
+<li>Berechtigungsprüfung (<code>ADMIN</code> — strikt, kein <code>REVIEWER</code>)</li>
+<li>Aktuell gültige Version für Wochentag/Scope laden</li>
+<li>Konfliktprüfung: existiert bereits eine Version mit gleichem <code>valid_from</code><br />
+   → <code>ConflictError</code></li>
+<li>Rückwärtseinfüge-Schutz: existiert eine spätere Version → <code>ValidationError</code></li>
+<li>Aktuelle Version schließen (<code>valid_until = valid_from - 1 Tag</code>)</li>
+<li>Neue <code>WorkScheduleVersion</code> anlegen</li>
+<li><code>commit()</code> → Audit-Log <code>WORK_SCHEDULE_CHANGED</code> schreiben<br />
+   (enthält Vorher/Nachher-Snapshot)</li>
+<li><code>WorkScheduleChangeResult</code> zurückgeben</li>
+</ol>
+<hr />
+<h3 id="47-querschnittliche-entwurfsprinzipien">4.7 Querschnittliche Entwurfsprinzipien</h3>
+<h4 id="berechtigungsprufung">Berechtigungsprüfung</h4>
+<p>Alle manuellen Use Cases (Korrektur, Nachtrag, Regelzeitänderung) prüfen<br />
+zu Beginn die Benutzerrolle und werfen <code>PermissionDeniedError</code>, bevor sie<br />
+irgendwelche Datenbankzugriffe ausführen. Terminal-Buchungen (<code>BookUseCase</code>)<br />
+benötigen keine Rollenprüfung — die RFID-Karte ist das Authentifikationsmittel<br />
+des Mitarbeiters (Regelwerk v5 §16).</p>
+<h4 id="audit-log-konsistenz">Audit-Log-Konsistenz</h4>
+<p>Das Audit-Log wird in <strong>allen</strong> Use Cases nach dem <code>commit()</code> geschrieben.<br />
+Diese Reihenfolge ist eine bewusste Architekturentscheidung für SQLite im<br />
+WAL-Modus: Erst nach dem Commit gibt die Hauptverbindung ihren <code>RESERVED</code>-Lock<br />
+frei, sodass die Audit-Verbindung (separater Autocommit-Cursor) blockierungsfrei<br />
+schreiben kann.</p>
+<h4 id="unveranderlichkeit-der-dtos">Unveränderlichkeit der DTOs</h4>
+<p>Alle Commands und Results sind <code>@dataclass(frozen=True, slots=True)</code>.<br />
+<code>frozen=True</code> verhindert versehentliche Mutation nach der Erzeugung.<br />
+<code>slots=True</code> reduziert Speicherbedarf und beschleunigt Attributzugriffe.</p>
+<h4 id="fehlertypen">Fehlertypen</h4>
+<table>
+<thead>
+<tr>
+<th>Fehlerklasse</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PermissionDeniedError</code></td>
+<td>Fehlende Berechtigung der handelnden Person</td>
+</tr>
+<tr>
+<td><code>NotFoundError</code></td>
+<td>Entität (Mitarbeiter, Buchung, Nachtrag) nicht gefunden</td>
+</tr>
+<tr>
+<td><code>InactiveCardError</code></td>
+<td>RFID-Karte ist gesperrt oder deaktiviert</td>
+</tr>
+<tr>
+<td><code>InactiveEmployeeError</code></td>
+<td>Mitarbeiter ist nicht mehr aktiv</td>
+</tr>
+<tr>
+<td><code>UnknownCardError</code></td>
+<td>RFID-UID ist im System nicht registriert</td>
+</tr>
+<tr>
+<td><code>ValidationError</code></td>
+<td>Fachliche Verletzung (z. B. falscher Status)</td>
+</tr>
+<tr>
+<td><code>ConflictError</code></td>
+<td>Doppelter Eintrag (z. B. doppelte Regelzeitversion)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="48-erweiterungshinweise">4.8 Erweiterungshinweise</h3>
+<ul>
+<li><strong>Neuer Use Case:</strong> Neue Datei in <code>use_cases/</code>, entsprechendes Command in<br />
+<code>commands.py</code> und Result in <code>results.py</code> ergänzen. <code>UnitOfWork</code> in<br />
+<code>unit_of_work.py</code> nur erweitern, wenn ein neues Repository benötigt wird.</li>
+<li><strong>Neue Abfragesicht:</strong> Neue <code>*Row</code>-Klasse in <code>queries.py</code> definieren;<br />
+  die SQL-Implementierung gehört in <code>infrastructure/export/report_queries.py</code>.</li>
+<li><strong>Compliance-Regel hinzufügen:</strong> Neue Prüffunktion in<br />
+<code>domain/services/compliance_checks.py</code>, dann in <code>_evaluate_booking()</code> der<br />
+  betroffenen Use Cases aufrufen.</li>
+<li><strong>Reihenfolge beim Audit-Log nie ändern:</strong> Der Commit muss vor dem<br />
+  Audit-Log-Schreibvorgang erfolgen (SQLite-WAL-Lock-Invariante, s. o.).</li>
+</ul>
+<hr />
+<h3 id="49-hinweis-zu-admin-cli-befehlen">4.9 Hinweis zu admin-CLI-Befehlen</h3>
+<p>Eine vollständige Liste der über die Admin-CLI aufrufbaren Befehlsgruppen<br />
+(<code>employees</code>, <code>cards</code>, <code>bookings</code>, <code>schedule</code>, <code>reports</code>, <code>system</code>, <code>users</code>)<br />
+und der einzelnen Befehle ist nicht Bestandteil dieses Kapitels, da sie zur<br />
+Präsentationsschicht gehört. Diese Zuordnung wird in <code>handbuch_presentation.md</code><br />
+dokumentiert, um Doppelpflege zu vermeiden.</p>
+<hr />
+<h2 id="kapitel-5-domain-modell">Kapitel 5: Domain-Modell</h2>
+<p><strong>Quelle:</strong> <code>handbuch_domain.md</code></p>
+<h3 id="uberblick-und-designprinzip">Überblick und Designprinzip</h3>
+<p>Das Domain-Modell ist der fachliche Kern des Systems <code>arbeitszeit</code>. Es enthält ausschließlich<br />
+Geschäftslogik und keinerlei Abhängigkeiten zu Datenbank, Hardware oder UI. Die Schicht ist<br />
+nach dem Prinzip <strong>Domain-Driven Design (DDD)</strong> aufgebaut: Entitäten, Value Objects,<br />
+Enumerationen, Fehlertypen und Domain Services sind klar voneinander getrennt.<br />
+Alle Dateien liegen unter <code>src/arbeitszeit/domain/</code>.</p>
+<div class="codehilite"><pre><span></span><code>src/arbeitszeit/domain/
+├── __init__.py          # leer – kein öffentliches Re-Export
+├── audit_events.py      # Katalog aller Audit-Log-Eventnamen
+├── entities.py          # Entitäten (frozen dataclasses)
+├── enums.py             # Alle StrEnum-Typen des Systems
+├── errors.py            # Domänenfehler-Hierarchie
+├── value_objects.py     # Starke ID-Typen via NewType
+├── ports/
+│   └── repositories.py  # Repository-Protokolle (Interfaces)
+└── services/
+    ├── booking_rules.py      # Buchungssequenz-Validierung
+    └── compliance_checks.py  # ArbZG-Prüfhilfen
+</code></pre></div>
+
+<hr />
+<h3 id="value-objects-starke-id-typen">Value Objects – Starke ID-Typen</h3>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/value_objects.py</code></p>
+<p>Alle Primärschlüssel im System sind keine bloßen <code>int</code>-Werte, sondern eigene Typen,<br />
+die mit <code>typing.NewType</code> erzeugt werden:</p>
+<table>
+<thead>
+<tr>
+<th>ID-Typ</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EmployeeId</code></td>
+<td>Mitarbeiter-Datensatz</td>
+</tr>
+<tr>
+<td><code>UserAccountId</code></td>
+<td>Benutzerkonto (Login)</td>
+</tr>
+<tr>
+<td><code>RfidCardId</code></td>
+<td>RFID-Karte</td>
+</tr>
+<tr>
+<td><code>TerminalId</code></td>
+<td>Buchungsterminal (Hardware)</td>
+</tr>
+<tr>
+<td><code>TimeBookingId</code></td>
+<td>Zeitbuchung (COME/GO/Pause)</td>
+</tr>
+<tr>
+<td><code>WorkScheduleVersionId</code></td>
+<td>Version einer Regelarbeitszeit</td>
+</tr>
+<tr>
+<td><code>ReviewCaseId</code></td>
+<td>Prüffall</td>
+</tr>
+<tr>
+<td><code>SupplementId</code></td>
+<td>Nachtrag</td>
+</tr>
+<tr>
+<td><code>BookingCorrectionId</code></td>
+<td>Korrektur einer Buchung</td>
+</tr>
+<tr>
+<td><code>DeviceEventId</code></td>
+<td>Geräteereignis (RFID-Scan, Numpad)</td>
+</tr>
+<tr>
+<td><code>AuditLogEntryId</code></td>
+<td>Eintrag im Audit-Log</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Warum NewType?</strong> Obwohl zur Laufzeit alle IDs schlichte <code>int</code>-Werte sind, behandelt<br />
+<code>mypy</code> sie als inkompatible Typen. Ein versehentlicher Aufruf wie<br />
+<code>booking_repo.get_by_id(employee.id)</code> wird damit bereits statisch als Typfehler<br />
+erkannt – ohne jeglichen Laufzeit-Overhead. Da alle ID-Typen Subtypen von <code>int</code> sind,<br />
+können sie ohne Konvertierung als SQL-Parameter übergeben werden.</p>
+<hr />
+<h3 id="enumerationen">Enumerationen</h3>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/enums.py</code></p>
+<p>Alle Zustands- und Klassenangaben des Systems sind als <code>StrEnum</code> definiert.<br />
+Das bedeutet: Die Enum-Werte sind gleichzeitig ihre eigene String-Darstellung<br />
+(z. B. <code>BookingType.COME == "COME"</code>), was die direkte Speicherung in SQLite<br />
+ohne separate Konvertierung ermöglicht.</p>
+<h4 id="buchungstypen-bookingtype">Buchungstypen (<code>BookingType</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Wert</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>COME</code></td>
+<td>Arbeitsbeginn</td>
+</tr>
+<tr>
+<td><code>GO</code></td>
+<td>Arbeitsende</td>
+</tr>
+<tr>
+<td><code>BREAK_START</code></td>
+<td>Pausenbeginn</td>
+</tr>
+<tr>
+<td><code>BREAK_END</code></td>
+<td>Pausenende</td>
+</tr>
+</tbody>
+</table>
+<h4 id="buchungsstatus-bookingstatus">Buchungsstatus (<code>BookingStatus</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Wert</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OK</code></td>
+<td>Buchung geprüft und regelkonform</td>
+</tr>
+<tr>
+<td><code>OPEN</code></td>
+<td>Automatisch erzeugt, noch nicht abgeschlossen</td>
+</tr>
+<tr>
+<td><code>WARN</code></td>
+<td>Auffälligkeit, Prüfung empfohlen</td>
+</tr>
+<tr>
+<td><code>NEEDS_REVIEW</code></td>
+<td>Prüffall wurde angelegt</td>
+</tr>
+<tr>
+<td><code>CORRECTED</code></td>
+<td>Buchung wurde nachträglich korrigiert</td>
+</tr>
+<tr>
+<td><code>CLOSED_WITH_NOTE</code></td>
+<td>Abgeschlossen mit Begründungsnotiz</td>
+</tr>
+</tbody>
+</table>
+<h4 id="pruffall-typen-reviewcasetype">Prüffall-Typen (<code>ReviewCaseType</code>)</h4>
+<table>
+<thead>
+<tr>
+<th>Wert</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN_WORK_PHASE</code></td>
+<td>Keine abschließende GO-Buchung vorhanden</td>
+</tr>
+<tr>
+<td><code>OPEN_BREAK_PHASE</code></td>
+<td>Keine BREAK_END-Buchung vorhanden</td>
+</tr>
+<tr>
+<td><code>OUTSIDE_SCHEDULE_WINDOW</code></td>
+<td>Buchung außerhalb der Regelarbeitszeit</td>
+</tr>
+<tr>
+<td><code>POSSIBLE_BREAK_VIOLATION</code></td>
+<td>Möglicher Verstoß gegen §4 ArbZG (Pausen)</td>
+</tr>
+<tr>
+<td><code>POSSIBLE_REST_VIOLATION</code></td>
+<td>Möglicher Verstoß gegen §5 ArbZG (Ruhezeit)</td>
+</tr>
+<tr>
+<td><code>POSSIBLE_MAX_HOURS_VIOLATION</code></td>
+<td>Möglicher Verstoß gegen §3 ArbZG (10h-Grenze)</td>
+</tr>
+<tr>
+<td><code>IMPLAUSIBLE_SEQUENCE</code></td>
+<td>Buchungsreihenfolge ist fachlich unplausibel</td>
+</tr>
+<tr>
+<td><code>UNKNOWN_CARD_ATTEMPT</code></td>
+<td>Unbekannte RFID-Karte wurde gescannt</td>
+</tr>
+<tr>
+<td><code>INACTIVE_CARD_ATTEMPT</code></td>
+<td>Deaktivierte RFID-Karte wurde gescannt</td>
+</tr>
+<tr>
+<td><code>TIME_ANOMALY</code></td>
+<td>Zeitstempel weicht stark von Normalwerten ab</td>
+</tr>
+<tr>
+<td><code>MANUAL_ENTRY_REVIEW</code></td>
+<td>Manuell erfasster Eintrag muss geprüft werden</td>
+</tr>
+</tbody>
+</table>
+<h4 id="weitere-enumerationen">Weitere Enumerationen</h4>
+<table>
+<thead>
+<tr>
+<th>Enum</th>
+<th>Werte</th>
+<th>Verwendung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ReviewCaseStatus</code></td>
+<td><code>OPEN</code>, <code>IN_REVIEW</code>, <code>RESOLVED</code>, <code>CLOSED_WITH_NOTE</code></td>
+<td>Workflow eines Prüffalls</td>
+</tr>
+<tr>
+<td><code>ReviewSeverity</code></td>
+<td><code>INFO</code>, <code>WARN</code>, <code>CRITICAL</code></td>
+<td>Schweregrad eines Prüffalls</td>
+</tr>
+<tr>
+<td><code>CardStatus</code></td>
+<td><code>ACTIVE</code>, <code>INACTIVE</code>, <code>REPLACED</code>, <code>LOST</code></td>
+<td>Status einer RFID-Karte</td>
+</tr>
+<tr>
+<td><code>UserRole</code></td>
+<td><code>EMPLOYEE</code>, <code>ADMIN</code>, <code>REVIEWER</code>, <code>TECH</code></td>
+<td>Berechtigungsstufe</td>
+</tr>
+<tr>
+<td><code>BookingSource</code></td>
+<td><code>TERMINAL</code>, <code>MANUAL</code>, <code>IMPORT</code></td>
+<td>Herkunft einer Zeitbuchung</td>
+</tr>
+<tr>
+<td><code>ChangeOrigin</code></td>
+<td><code>SYSTEM_SEED</code>, <code>ADMIN_UI</code>, <code>MIGRATION</code></td>
+<td>Herkunft einer Systemänderung</td>
+</tr>
+<tr>
+<td><code>ApprovalStatus</code></td>
+<td><code>PENDING</code>, <code>APPROVED</code>, <code>REJECTED</code></td>
+<td>Genehmigungsstatus eines Nachtrags</td>
+</tr>
+<tr>
+<td><code>ScopeType</code></td>
+<td><code>GLOBAL</code>, <code>EMPLOYEE</code></td>
+<td>Geltungsbereich einer Regelarbeitszeit</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="entitaten">Entitäten</h3>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/entities.py</code></p>
+<p>Alle Entitäten sind als <code>@dataclass(frozen=True)</code> definiert. Das bedeutet: Einmal<br />
+erzeugte Entitätsobjekte sind unveränderlich (immutable). Zustandsänderungen werden<br />
+nicht durch Mutation, sondern durch neue Datenbankoperationen über die Repositories<br />
+ausgedrückt. Jede Entität validiert ihre Geschäftsregeln in <code>__post_init__</code>.</p>
+<h4 id="employee-mitarbeiter"><code>Employee</code> – Mitarbeiter</h4>
+<p>Repräsentiert einen Mitarbeiter der Praxis.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Pflicht</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>EmployeeId</code></td>
+<td>ja</td>
+<td>Datenbankschlüssel</td>
+</tr>
+<tr>
+<td><code>personnel_no</code></td>
+<td><code>str</code></td>
+<td>ja</td>
+<td>Personalnummer (darf nicht leer sein)</td>
+</tr>
+<tr>
+<td><code>first_name</code></td>
+<td><code>str</code></td>
+<td>ja</td>
+<td>Vorname</td>
+</tr>
+<tr>
+<td><code>last_name</code></td>
+<td><code>str</code></td>
+<td>ja</td>
+<td>Nachname</td>
+</tr>
+<tr>
+<td><code>is_active</code></td>
+<td><code>bool</code></td>
+<td>ja</td>
+<td>Aktiv-Status; inaktive Mitarbeiter dürfen nicht buchen</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Invariante:</strong> <code>personnel_no</code> darf nicht leer oder nur Leerzeichen sein.</p>
+<hr />
+<h4 id="useraccount-benutzerkonto"><code>UserAccount</code> – Benutzerkonto</h4>
+<p>Repräsentiert ein Anmeldekonto (z. B. für Admins oder Reviewer). Ein Benutzerkonto<br />
+kann optional mit einem Mitarbeiter verknüpft sein.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>UserAccountId</code></td>
+<td>Datenbankschlüssel</td>
+</tr>
+<tr>
+<td><code>employee_id</code></td>
+<td><code>EmployeeId \| None</code></td>
+<td>Optionaler Mitarbeiterbezug</td>
+</tr>
+<tr>
+<td><code>username</code></td>
+<td><code>str</code></td>
+<td>Anmeldename (darf nicht leer sein)</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td><code>UserRole</code></td>
+<td>Berechtigungsstufe</td>
+</tr>
+<tr>
+<td><code>is_active</code></td>
+<td><code>bool</code></td>
+<td>Ob das Konto aktiv ist</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="rfidcard-rfid-karte"><code>RfidCard</code> – RFID-Karte</h4>
+<p>Repräsentiert eine physische RFID-Karte, die einem Mitarbeiter zugeordnet ist.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>RfidCardId</code></td>
+<td>Datenbankschlüssel</td>
+</tr>
+<tr>
+<td><code>employee_id</code></td>
+<td><code>EmployeeId</code></td>
+<td>Zugehöriger Mitarbeiter</td>
+</tr>
+<tr>
+<td><code>uid_hash</code></td>
+<td><code>str</code></td>
+<td>SHA-256-Hash der RFID-UID (nie die Roh-UID)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>CardStatus</code></td>
+<td>Aktueller Kartenstatus</td>
+</tr>
+<tr>
+<td><code>valid_from</code></td>
+<td><code>date</code></td>
+<td>Gültigkeitsbeginn</td>
+</tr>
+<tr>
+<td><code>valid_until</code></td>
+<td><code>date \| None</code></td>
+<td>Gültigkeitsende (None = unbefristet)</td>
+</tr>
+<tr>
+<td><code>replaced_by_card_id</code></td>
+<td><code>RfidCardId \| None</code></td>
+<td>Nachfolgekarte bei Ersatz</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Invariante:</strong> <code>valid_until</code> darf nicht vor <code>valid_from</code> liegen.</p>
+<hr />
+<h4 id="timebooking-zeitbuchung"><code>TimeBooking</code> – Zeitbuchung</h4>
+<p>Das zentrale Kernobjekt des Systems. Jede Stempelung (Kommen, Gehen, Pause) erzeugt<br />
+eine <code>TimeBooking</code>-Instanz.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>TimeBookingId</code></td>
+<td>Datenbankschlüssel</td>
+</tr>
+<tr>
+<td><code>employee_id</code></td>
+<td><code>EmployeeId</code></td>
+<td>Buchender Mitarbeiter</td>
+</tr>
+<tr>
+<td><code>booking_type</code></td>
+<td><code>BookingType</code></td>
+<td>Art der Buchung (COME/GO/BREAK_START/BREAK_END)</td>
+</tr>
+<tr>
+<td><code>booked_at</code></td>
+<td><code>datetime</code></td>
+<td>Zeitstempel der Buchung</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td><code>BookingSource</code></td>
+<td>Herkunft (Terminal, Manuell, Import)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>BookingStatus</code></td>
+<td>Aktueller Prüfstatus</td>
+</tr>
+<tr>
+<td><code>terminal_id</code></td>
+<td><code>TerminalId \| None</code></td>
+<td>Terminal, das die Buchung erzeugt hat</td>
+</tr>
+<tr>
+<td><code>rfid_card_id</code></td>
+<td><code>RfidCardId \| None</code></td>
+<td>Verwendete RFID-Karte</td>
+</tr>
+<tr>
+<td><code>device_event_id</code></td>
+<td><code>DeviceEventId \| None</code></td>
+<td>Zugehöriges Geräteereignis</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td><code>str \| None</code></td>
+<td>Optionale Freitextnotiz</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="workscheduleversion-regelarbeitszeit"><code>WorkScheduleVersion</code> – Regelarbeitszeit</h4>
+<p>Speichert die Soll-Arbeitszeiten, die entweder global für alle Mitarbeiter oder<br />
+individuell pro Mitarbeiter für einen bestimmten Wochentag und Zeitraum gelten.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>scope_type</code></td>
+<td><code>ScopeType</code></td>
+<td><code>GLOBAL</code> oder <code>EMPLOYEE</code></td>
+</tr>
+<tr>
+<td><code>scope_employee_id</code></td>
+<td><code>EmployeeId \| None</code></td>
+<td>Nur bei <code>EMPLOYEE</code>-Scope gesetzt</td>
+</tr>
+<tr>
+<td><code>weekday</code></td>
+<td><code>int</code></td>
+<td>ISO-Wochentag: 1=Montag … 7=Sonntag</td>
+</tr>
+<tr>
+<td><code>start_time</code></td>
+<td><code>time</code></td>
+<td>Beginn der Regelarbeitszeit</td>
+</tr>
+<tr>
+<td><code>end_time</code></td>
+<td><code>time</code></td>
+<td>Ende der Regelarbeitszeit</td>
+</tr>
+<tr>
+<td><code>valid_from</code></td>
+<td><code>date</code></td>
+<td>Gültigkeitsbeginn dieser Version</td>
+</tr>
+<tr>
+<td><code>valid_until</code></td>
+<td><code>date \| None</code></td>
+<td>Gültigkeitsende (None = aktuell gültig)</td>
+</tr>
+<tr>
+<td><code>change_origin</code></td>
+<td><code>ChangeOrigin</code></td>
+<td>Wer/was die Änderung ausgelöst hat</td>
+</tr>
+<tr>
+<td><code>changed_by_user_id</code></td>
+<td><code>UserAccountId \| None</code></td>
+<td>Ausführendes Benutzerkonto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Invarianten:</strong> <code>start_time</code> muss vor <code>end_time</code> liegen; <code>scope_type</code> und<br />
+<code>scope_employee_id</code> müssen konsistent sein; <code>weekday</code> muss 1–7 (ISO) betragen.</p>
+<hr />
+<h4 id="reviewcase-pruffall"><code>ReviewCase</code> – Prüffall</h4>
+<p>Repräsentiert einen fachlichen Auffälligkeitsbefund, der durch automatische<br />
+Compliance-Checks oder manuelle Auslösung entsteht und einen Bearbeitungsworkflow<br />
+durchläuft.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>case_type</code></td>
+<td><code>ReviewCaseType</code></td>
+<td>Art der Auffälligkeit</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td><code>ReviewSeverity</code></td>
+<td>Schweregrad: INFO / WARN / CRITICAL</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>ReviewCaseStatus</code></td>
+<td>Workflow-Status (OPEN → IN_REVIEW → RESOLVED)</td>
+</tr>
+<tr>
+<td><code>booking_id</code></td>
+<td><code>TimeBookingId \| None</code></td>
+<td>Betroffene Zeitbuchung (sofern zuordenbar)</td>
+</tr>
+<tr>
+<td><code>closed_at</code></td>
+<td><code>datetime \| None</code></td>
+<td>Zeitpunkt des Abschlusses</td>
+</tr>
+<tr>
+<td><code>closed_by_user_id</code></td>
+<td><code>UserAccountId \| None</code></td>
+<td>Benutzer, der den Fall abgeschlossen hat</td>
+</tr>
+<tr>
+<td><code>note</code></td>
+<td><code>str \| None</code></td>
+<td>Pflicht bei <code>CLOSED_WITH_NOTE</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Invariante:</strong> Offene Fälle (<code>OPEN</code>, <code>IN_REVIEW</code>) dürfen keine Schließungsdaten<br />
+haben; abgeschlossene Fälle (<code>RESOLVED</code>, <code>CLOSED_WITH_NOTE</code>) müssen sie haben.<br />
+<code>CLOSED_WITH_NOTE</code> erfordert zusätzlich eine nicht-leere Begründung.</p>
+<hr />
+<h4 id="supplement-nachtrag"><code>Supplement</code> – Nachtrag</h4>
+<p>Repräsentiert eine nachträglich erfasste Zeitbuchung (z. B. vergessene Stempelung),<br />
+die durch einen Administrator genehmigt oder abgelehnt werden muss.</p>
+<p>Der Workflow verläuft immer in einer Richtung:</p>
+<div class="codehilite"><pre><span></span><code>PENDING  →  APPROVED
+         →  REJECTED
+</code></pre></div>
+
+<p><strong>Invarianten:</strong> Je nach <code>approval_status</code> müssen die entsprechenden Felder<br />
+(<code>approved_by_user_id</code>, <code>approved_at</code>, <code>rejected_by_user_id</code>, <code>rejected_at</code>)<br />
+gesetzt bzw. leer sein. <code>approved_at</code> und <code>rejected_at</code> dürfen nicht vor<br />
+<code>recorded_at</code> liegen.</p>
+<hr />
+<h4 id="bookingcorrection-buchungskorrektur"><code>BookingCorrection</code> – Buchungskorrektur</h4>
+<p>Speichert den vollständigen Vorher-/Nachher-Vergleich einer Buchungskorrektur<br />
+als unveränderlichen Audit-Trail.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>original_booking_id</code></td>
+<td><code>TimeBookingId</code></td>
+<td>Die korrigierte Originalbuchung</td>
+</tr>
+<tr>
+<td><code>corrected_by_user_id</code></td>
+<td><code>UserAccountId</code></td>
+<td>Ausführendes Benutzerkonto</td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code>str</code></td>
+<td>Begründung der Korrektur (Pflicht)</td>
+</tr>
+<tr>
+<td><code>old_booking_type</code></td>
+<td><code>BookingType</code></td>
+<td>Ursprünglicher Buchungstyp</td>
+</tr>
+<tr>
+<td><code>old_booked_at</code></td>
+<td><code>datetime</code></td>
+<td>Ursprünglicher Zeitstempel</td>
+</tr>
+<tr>
+<td><code>new_booking_type</code></td>
+<td><code>BookingType</code></td>
+<td>Neuer Buchungstyp</td>
+</tr>
+<tr>
+<td><code>new_booked_at</code></td>
+<td><code>datetime</code></td>
+<td>Neuer Zeitstempel</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Invariante:</strong> <code>created_at</code> darf nicht vor <code>old_booked_at</code> liegen.</p>
+<hr />
+<h4 id="auditlogentry-audit-log-eintrag"><code>AuditLogEntry</code> – Audit-Log-Eintrag</h4>
+<p>Repräsentiert einen unveränderlichen Protokolleintrag für revisionssichere<br />
+Nachvollziehbarkeit aller systemrelevanten Ereignisse.</p>
+<table>
+<thead>
+<tr>
+<th>Feld</th>
+<th>Typ</th>
+<th>Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_type</code></td>
+<td><code>str</code></td>
+<td>Konstantenname aus <code>audit_events.py</code></td>
+</tr>
+<tr>
+<td><code>object_type</code></td>
+<td><code>str</code></td>
+<td>Tabellenname (snake_case) oder Systembezeichner</td>
+</tr>
+<tr>
+<td><code>object_id</code></td>
+<td><code>int</code></td>
+<td>Polymorph: Row-ID aus der betroffenen Tabelle</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td><code>UserAccountId \| None</code></td>
+<td>Auslösendes Benutzerkonto (ggf. kein Konto)</td>
+</tr>
+<tr>
+<td><code>employee_id</code></td>
+<td><code>EmployeeId \| None</code></td>
+<td>Betroffener Mitarbeiter (ggf. nicht personenbezogen)</td>
+</tr>
+<tr>
+<td><code>details_json</code></td>
+<td><code>str</code></td>
+<td>Kontextdaten als JSON-String</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="domanenfehler">Domänenfehler</h3>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/errors.py</code></p>
+<p>Alle Fehler, die bei Verletzung fachlicher Regeln ausgelöst werden, erben von<br />
+<code>DomainError</code>. Jeder Fehlertyp trägt einen maschinenlesbaren <code>code</code>-String,<br />
+der in Logs und der Benutzeroberfläche ausgewertet werden kann.</p>
+<table>
+<thead>
+<tr>
+<th>Fehlerklasse</th>
+<th>Code</th>
+<th>Auslöser</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DomainError</code></td>
+<td><code>DOMAIN_ERROR</code></td>
+<td>Basisklasse; direkt oder abgeleitet</td>
+</tr>
+<tr>
+<td><code>UnknownCardError</code></td>
+<td><code>UNKNOWN_CARD</code></td>
+<td>Gescannte RFID-Karte ist im System unbekannt</td>
+</tr>
+<tr>
+<td><code>InactiveCardError</code></td>
+<td><code>INACTIVE_CARD</code></td>
+<td>Gescannte RFID-Karte ist deaktiviert</td>
+</tr>
+<tr>
+<td><code>InactiveEmployeeError</code></td>
+<td><code>INACTIVE_EMPLOYEE</code></td>
+<td>Mitarbeiter ist deaktiviert</td>
+</tr>
+<tr>
+<td><code>InvalidBookingSequenceError</code></td>
+<td><code>INVALID_BOOKING_SEQUENCE</code></td>
+<td>Buchungsfolge verletzt Sequenzregeln</td>
+</tr>
+<tr>
+<td><code>OpenPhaseConflictError</code></td>
+<td><code>OPEN_PHASE_CONFLICT</code></td>
+<td>Konflikt mit einer offenen Arbeits- oder Pausenphase</td>
+</tr>
+<tr>
+<td><code>PermissionDeniedError</code></td>
+<td><code>PERMISSION_DENIED</code></td>
+<td>Fehlende Berechtigung für die Aktion</td>
+</tr>
+<tr>
+<td><code>ValidationError</code></td>
+<td><code>VALIDATION_ERROR</code></td>
+<td>Fachliche Validierung schlug fehl</td>
+</tr>
+<tr>
+<td><code>NotFoundError</code></td>
+<td><code>NOT_FOUND</code></td>
+<td>Gesuchtes Objekt existiert nicht</td>
+</tr>
+<tr>
+<td><code>ConflictError</code></td>
+<td><code>CONFLICT</code></td>
+<td>Datenbankkonflikt (z. B. doppelte Buchung)</td>
+</tr>
+</tbody>
+</table>
+<p>Alle Fehlerklassen akzeptieren einen optionalen <code>message</code>-String sowie beliebige<br />
+Schlüsselwort-Argumente als <code>context</code>-Dictionary für strukturierte Fehlerdiagnose.</p>
+<hr />
+<h3 id="repository-protokolle-ports">Repository-Protokolle (Ports)</h3>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/ports/repositories.py</code></p>
+<p>Das Domain-Modell kennt keine konkrete Datenbank. Stattdessen definiert es<br />
+<strong>Protokolle</strong> (Python <code>typing.Protocol</code>) für jeden Repository-Typ. Die SQLite-<br />
+Implementierungen in der Infrastrukturschicht müssen diese Protokolle erfüllen,<br />
+ohne dass das Domain-Modell sie importiert – klassische Dependency Inversion.</p>
+<table>
+<thead>
+<tr>
+<th>Protokoll</th>
+<th>Zuständigkeit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EmployeeRepository</code></td>
+<td>Mitarbeiter lesen</td>
+</tr>
+<tr>
+<td><code>UserAccountRepository</code></td>
+<td>Benutzerkonten lesen</td>
+</tr>
+<tr>
+<td><code>RfidCardRepository</code></td>
+<td>RFID-Karten lesen (inkl. UID-Hash-Lookup)</td>
+</tr>
+<tr>
+<td><code>TimeBookingRepository</code></td>
+<td>Buchungen schreiben, lesen, Status setzen</td>
+</tr>
+<tr>
+<td><code>WorkScheduleRepository</code></td>
+<td>Regelarbeitszeiten verwalten (Versionen, Gültigkeit)</td>
+</tr>
+<tr>
+<td><code>ReviewCaseRepository</code></td>
+<td>Prüffälle anlegen und abschließen</td>
+</tr>
+<tr>
+<td><code>SupplementRepository</code></td>
+<td>Nachträge verwalten (PENDING → APPROVED/REJECTED)</td>
+</tr>
+<tr>
+<td><code>BookingCorrectionRepository</code></td>
+<td>Korrekturen anlegen und lesen</td>
+</tr>
+<tr>
+<td><code>AuditLogRepository</code></td>
+<td>Audit-Einträge persistent schreiben</td>
+</tr>
+<tr>
+<td><code>DeviceEventRepository</code></td>
+<td>Geräteereignisse (RFID-Scans) protokollieren</td>
+</tr>
+<tr>
+<td><code>SystemConfigRepository</code></td>
+<td>Systemkonfiguration lesen und schreiben</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Wichtiger Sonderfall – <code>AuditLogRepository</code>:</strong> Die Implementierung muss<br />
+Audit-Einträge <strong>auch dann persistent speichern</strong>, wenn die übergeordnete<br />
+Transaktion (UnitOfWork) zurückgerollt wird. Grund: Abweisungen von<br />
+unbekannten oder inaktiven Karten sind auditpflichtig und dürfen nicht<br />
+zusammen mit dem fehlgeschlagenen Buchungsvorgang verloren gehen. In der<br />
+SQLite-Implementierung wird dafür eine separate <code>autocommit</code>-Verbindung<br />
+verwendet.</p>
+</blockquote>
+<h4 id="besonderheit-workschedulerepositorylist_versions">Besonderheit <code>WorkScheduleRepository.list_versions</code></h4>
+<div class="codehilite"><pre><span></span><code>scope_employee_id=None  → ausschließlich GLOBAL-Versionen
+scope_employee_id=&lt;id&gt;  → ausschließlich EMPLOYEE-Versionen für diesen MA
+Niemals beide Scopes gemischt.
+Rückgabe aufsteigend nach valid_from sortiert.
+</code></pre></div>
+
+<h4 id="besonderheit-timebookingrepositorylist_for_employee_on_day">Besonderheit <code>TimeBookingRepository.list_for_employee_on_day</code></h4>
+<p>Die Rückgabe muss <strong>aufsteigend nach <code>booked_at</code></strong> sortiert sein, da alle<br />
+nachgelagerten Compliance-Prüfungen eine chronologische Reihenfolge voraussetzen.</p>
+<hr />
+<h3 id="domain-services">Domain Services</h3>
+<h4 id="buchungssequenz-validierung">Buchungssequenz-Validierung</h4>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/services/booking_rules.py</code></p>
+<p>Die Funktion <code>validate_booking_sequence(booking_type, day_bookings)</code> stellt sicher,<br />
+dass eine neue Buchung zur bisherigen Tagesfolge passt. Sie wirft einen <code>DomainError</code>,<br />
+wenn die Sequenz verletzt wird. Die Funktion arbeitet zustandslos auf den übergebenen<br />
+Listen – kein Datenbankzugriff.</p>
+<p><strong>Erlaubte Übergänge:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Neuer Typ</th>
+<th>Bedingung für Zulässigkeit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>COME</code></td>
+<td>Keine offene Arbeitsphase, keine offene Pause</td>
+</tr>
+<tr>
+<td><code>GO</code></td>
+<td>Offene Arbeitsphase vorhanden; keine offene Pause</td>
+</tr>
+<tr>
+<td><code>BREAK_START</code></td>
+<td>Offene Arbeitsphase vorhanden; keine offene Pause</td>
+</tr>
+<tr>
+<td><code>BREAK_END</code></td>
+<td>Offene Pause vorhanden</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Erster Eintrag des Tages</strong> darf ausschließlich <code>COME</code> sein; <code>GO</code>, <code>BREAK_START</code><br />
+und <code>BREAK_END</code> als erste Buchung des Tages sind immer ungültig.</p>
+<p><strong>Fehler-Mapping:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>Geworfener Fehler</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GO/BREAK_START/BREAK_END als Erstbuchung</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+<tr>
+<td>COME bei offener Arbeitsphase</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+<tr>
+<td>COME bei offener Pause</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+<tr>
+<td>GO ohne offene Arbeitsphase</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+<tr>
+<td>GO bei offener Pause</td>
+<td><code>OpenPhaseConflictError</code></td>
+</tr>
+<tr>
+<td>BREAK_START ohne offene Arbeitsphase</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+<tr>
+<td>BREAK_START bei offener Pause</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+<tr>
+<td>BREAK_END ohne offene Pause</td>
+<td><code>InvalidBookingSequenceError</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h4 id="arbzg-compliance-prufungen">ArbZG-Compliance-Prüfungen</h4>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/services/compliance_checks.py</code></p>
+<p>Drei zustandslose Prüffunktionen erzeugen <code>ComplianceFlag</code>-Objekte, wenn<br />
+arbeitszeitrechtliche Schwellwerte überschritten werden. Jedes Flag enthält<br />
+einen <code>ReviewCaseType</code> und einen <code>ReviewSeverity</code>-Wert.</p>
+<blockquote>
+<p><strong>Hinweis:</strong> Die Prüfungen arbeiten auf der <strong>Netto-Arbeitszeit</strong> (Gesamtdauer<br />
+der Arbeitsphasen abzüglich aller erfassten Pausen). Sie ersetzen keine<br />
+rechtsverbindliche Einzelfallbewertung, sondern dienen als fachliche Prüfhilfe.</p>
+</blockquote>
+<h5 id="check_break_complianceday_bookings-4-arbzg"><code>check_break_compliance(day_bookings)</code> – §4 ArbZG</h5>
+<table>
+<thead>
+<tr>
+<th>Bedingung</th>
+<th>Schweregrad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ununterbrochener Arbeitsblock &gt; 6 Stunden</td>
+<td><code>WARN</code></td>
+</tr>
+<tr>
+<td>Netto &gt; 9h mit weniger als 45 min Gesamtpause</td>
+<td><code>CRITICAL</code></td>
+</tr>
+<tr>
+<td>Netto &gt; 6h mit weniger als 30 min Gesamtpause</td>
+<td><code>WARN</code></td>
+</tr>
+</tbody>
+</table>
+<h5 id="check_max_hoursday_bookings-3-arbzg"><code>check_max_hours(day_bookings)</code> – §3 ArbZG</h5>
+<table>
+<thead>
+<tr>
+<th>Bedingung</th>
+<th>Schweregrad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Netto-Arbeitszeit &gt; 10 Stunden</td>
+<td><code>CRITICAL</code></td>
+</tr>
+<tr>
+<td>Netto-Arbeitszeit &gt; 8 Stunden</td>
+<td><code>WARN</code></td>
+</tr>
+</tbody>
+</table>
+<h5 id="check_rest_periodlast_go-next_come-5-arbzg"><code>check_rest_period(last_go, next_come)</code> – §5 ArbZG</h5>
+<table>
+<thead>
+<tr>
+<th>Bedingung</th>
+<th>Schweregrad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ruhezeit zwischen GO und nächstem COME &lt; 11h</td>
+<td><code>CRITICAL</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="audit-event-katalog">Audit-Event-Katalog</h3>
+<p><strong>Datei:</strong> <code>src/arbeitszeit/domain/audit_events.py</code></p>
+<p>Um Tippfehler in Audit-Log-Einträgen zu verhindern, sind alle <code>event_type</code>-Strings<br />
+zentral als Modulkonstanten definiert. Kein Use Case oder Infrastrukturkomponente darf<br />
+freie String-Literale für <code>event_type</code> verwenden.</p>
+<table>
+<thead>
+<tr>
+<th>Konstante</th>
+<th>Ereignis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TIME_BOOKED</code></td>
+<td>Zeitbuchung erfolgreich gespeichert</td>
+</tr>
+<tr>
+<td><code>BOOKING_REJECTED_UNKNOWN_CARD</code></td>
+<td>Buchung abgewiesen – Karte unbekannt</td>
+</tr>
+<tr>
+<td><code>BOOKING_REJECTED_INACTIVE_CARD</code></td>
+<td>Buchung abgewiesen – Karte inaktiv</td>
+</tr>
+<tr>
+<td><code>BOOKING_CORRECTED</code></td>
+<td>Buchung nachträglich korrigiert</td>
+</tr>
+<tr>
+<td><code>SUPPLEMENT_CREATED</code></td>
+<td>Nachtrag erfasst</td>
+</tr>
+<tr>
+<td><code>SUPPLEMENT_APPROVED</code></td>
+<td>Nachtrag genehmigt</td>
+</tr>
+<tr>
+<td><code>SUPPLEMENT_REJECTED</code></td>
+<td>Nachtrag abgelehnt</td>
+</tr>
+<tr>
+<td><code>WORK_SCHEDULE_CHANGED</code></td>
+<td>Regelarbeitszeit geändert</td>
+</tr>
+<tr>
+<td><code>USER_ACCOUNT_CREATED</code></td>
+<td>Benutzerkonto angelegt</td>
+</tr>
+<tr>
+<td><code>USER_ACCOUNT_DEACTIVATED</code></td>
+<td>Benutzerkonto deaktiviert</td>
+</tr>
+<tr>
+<td><code>USER_ACCOUNT_REACTIVATED</code></td>
+<td>Benutzerkonto reaktiviert</td>
+</tr>
+<tr>
+<td><code>USER_ACCOUNT_ROLE_CHANGED</code></td>
+<td>Rolle eines Benutzerkontos geändert</td>
+</tr>
+<tr>
+<td><code>BACKUP_CREATED</code></td>
+<td>Datenbank-Backup erstellt</td>
+</tr>
+<tr>
+<td><code>BACKUP_SYNCED_TO_NAS</code></td>
+<td>Backup erfolgreich auf NAS übertragen</td>
+</tr>
+<tr>
+<td><code>BACKUP_SYNC_FAILED</code></td>
+<td>Backup-Übertragung auf NAS fehlgeschlagen</td>
+</tr>
+<tr>
+<td><code>RESTORE_COMPLETED</code></td>
+<td>Datenbank-Wiederherstellung abgeschlossen</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="zusammenspiel-der-domain-schicht">Zusammenspiel der Domain-Schicht</h3>
+<p>Das folgende Ablaufdiagramm zeigt, wie ein typischer RFID-Buchungsvorgang die<br />
+Domain-Schicht durchläuft:</p>
+<div class="codehilite"><pre><span></span><code>[RFID-Scan am Terminal]
+        │
+        ▼
+  RfidCardRepository.get_active_by_uid_hash()
+        │
+   ┌────┴────┐
+   │ Karte   │ nein → UnknownCardError / InactiveCardError
+   │ bekannt?│        → AuditLogRepository.add() (autocommit!)
+   │ aktiv?  │
+   └────┬────┘
+        │ ja
+        ▼
+  EmployeeRepository.get_by_id()
+        │
+  InactiveEmployeeError? → Fehler
+        │
+        ▼
+  TimeBookingRepository.list_for_employee_on_day()
+        │
+        ▼
+  validate_booking_sequence()   ← booking_rules.py
+        │
+  Fehler? → InvalidBookingSequenceError / OpenPhaseConflictError
+        │
+        ▼
+  TimeBookingRepository.add()
+        │
+        ▼
+  check_break_compliance()      ← compliance_checks.py
+  check_max_hours()
+        │
+  Flags? → ReviewCaseRepository.add()
+        │
+        ▼
+  AuditLogRepository.add(TIME_BOOKED)
+</code></pre></div>
+
+<p>Jede Schicht kommuniziert ausschließlich über die in <code>ports/repositories.py</code><br />
+definierten Protokolle. Die Domain kennt weder SQLite noch RFID-Hardware.</p>
+<hr />
+<h2 id="kapitel-6-infrastrukturschicht">Kapitel 6: Infrastrukturschicht</h2>
+<p><strong>Quelle:</strong> <code>handbuch_infrastructure.md</code></p>
+<h3 id="uberblick-und-zweck">Überblick und Zweck</h3>
+<p>Die Infrastrukturschicht ist die unterste technische Ebene des Systems <code>arbeitszeit</code>.<br />
+Sie übersetzt die fachlichen Anforderungen der Domain- und Anwendungsschicht in<br />
+konkrete Betriebsmittel: SQLite-Datenbankzugriffe, Hardware-Kommunikation, Dateiexporte,<br />
+Backups und Systemüberwachung.</p>
+<p><strong>Grundregel:</strong> Alle anderen Schichten (Domain, Application) dürfen die Infrastruktur<br />
+nutzen, aber niemals von ihr abhängen. Die Infrastruktur kennt die Domain, nicht umgekehrt.<br />
+Direct-SQL-Abfragen außerhalb von <code>infrastructure</code> sind architektonisch verboten<br />
+(Regelwerk §11).</p>
+<h4 id="verzeichnisstruktur">Verzeichnisstruktur</h4>
+<div class="codehilite"><pre><span></span><code>src/arbeitszeit/infrastructure/
+├── __init__.py
+├── notification.py          # Desktop-Benachrichtigung
+├── system_check.py          # Selbsttest beim Start
+├── time_monitor.py          # Zeitsprung-Erkennung
+├── backup/
+│   └── backup_service.py    # Lokales Backup + NAS-Sync
+├── db/
+│   ├── connection.py        # SQLite-Verbindung mit PRAGMAs
+│   ├── migrations.py        # Schema-Migration aus SQL-Dateien
+│   ├── unit_of_work.py      # Transaktionscontroller + Repositories
+│   └── repositories/        # Ein Repository pro Entität (11 Klassen)
+├── export/
+│   ├── csv_exporter.py      # Detail- und Verdichtungsexport (CSV)
+│   ├── pdf_report_service.py# Tages-/Wochen-/Monats-/Mitarbeiterberichte (PDF)
+│   └── report_queries.py    # Gemeinsame Abfrageschicht für alle Exportkanäle
+└── hardware/
+    ├── ports.py             # Protokoll-Definitionen (Protocol-Klassen)
+    ├── uid_hash.py          # SHA-256-Hash der RFID-UID
+    ├── evdev_reader.py      # Physischer RFID-Reader + Numpad (evdev)
+    └── simulator.py         # In-Memory-Simulator für Tests
+</code></pre></div>
+
+<hr />
+<h3 id="datenbankzugriff-db">Datenbankzugriff (<code>db/</code>)</h3>
+<h4 id="verbindungsaufbau-dbconnectionpy">Verbindungsaufbau — <code>db/connection.py</code></h4>
+<p>Alle Datenbankverbindungen werden ausschließlich über <code>open_connection(db_path)</code> geöffnet.<br />
+Die Funktion setzt vier SQLite-PRAGMAs, die für den Betrieb zwingend erforderlich sind:</p>
+<table>
+<thead>
+<tr>
+<th>PRAGMA</th>
+<th>Wert</th>
+<th>Begründung</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>isolation_level</code></td>
+<td><code>None</code></td>
+<td>Manuelle Transaktionskontrolle (kein Autocommit-Fallback)</td>
+</tr>
+<tr>
+<td><code>journal_mode</code></td>
+<td><code>WAL</code></td>
+<td>Gleichzeitige Lese-/Schreibzugriffe (audit_conn + Haupt-Transaktion)</td>
+</tr>
+<tr>
+<td><code>foreign_keys</code></td>
+<td><code>ON</code></td>
+<td>Referenzielle Integrität auf Datenbankebene</td>
+</tr>
+<tr>
+<td><code>busy_timeout</code></td>
+<td><code>5000 ms</code></td>
+<td>5 Sekunden Wartezeit bei Lock-Konflikt statt sofortigem Fehler</td>
+</tr>
+</tbody>
+</table>
+<p>Die Verbindung liefert immer <code>sqlite3.Row</code>-Objekte zurück, sodass Spalten<br />
+per Namen abrufbar sind (<code>row["employee_id"]</code> statt <code>row[0]</code>).</p>
+<h4 id="migrationen-dbmigrationspy">Migrationen — <code>db/migrations.py</code></h4>
+<p>Das Schema wird ausschließlich durch nummerierte SQL-Dateien im Verzeichnis<br />
+<code>migrations/</code> gesteuert (Format: <code>NNNN_beschreibung.sql</code>).</p>
+<p><code>run_migrations(conn)</code> arbeitet folgendes Schema ab:</p>
+<ol>
+<li>Bereits angewandte Versionen aus <code>schema_migrations</code> laden.</li>
+<li>SQL-Dateien aufsteigend durchlaufen; bekannte Versionen überspringen.</li>
+<li>Jede Migration und ihre Registrierung in <code>schema_migrations</code> in <strong>einer einzigen<br />
+   Transaktion</strong> ausführen — entweder beides oder keines wird geschrieben.</li>
+<li>Bei Fehler: <code>conn.rollback()</code>, dann Ausnahme weiterwerfen.</li>
+</ol>
+<p>Der Versionsstring wird durch <code>version.isdigit() and len(version) == 4</code> validiert,<br />
+bevor er in den SQL-String eingebettet wird (kein SQL-Injection-Risiko).</p>
+<h4 id="unit-of-work-dbunit_of_workpy">Unit of Work — <code>db/unit_of_work.py</code></h4>
+<p><code>SQLiteUnitOfWork</code> ist der einzige Einstiegspunkt für Use-Cases, die Datenbankänderungen<br />
+vornehmen. Er bündelt alle elf Repositories unter einem gemeinsamen Transaktions-Context-Manager:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">with</span> <span class="n">SQLiteUnitOfWork</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">audit_conn</span><span class="o">=</span><span class="n">audit_conn</span><span class="p">)</span> <span class="k">as</span> <span class="n">uow</span><span class="p">:</span>
+    <span class="n">uow</span><span class="o">.</span><span class="n">time_booking_repo</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">booking</span><span class="p">)</span>
+    <span class="n">uow</span><span class="o">.</span><span class="n">audit_log_repo</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+    <span class="n">uow</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>   <span class="c1"># explizit notwendig — __exit__ rollt sonst zurück</span>
+</code></pre></div>
+
+<p><strong>Transaktionssemantik:</strong> <code>__exit__</code> rollt <strong>immer</strong> zurück, sofern kein explizites<br />
+<code>commit()</code> aufgerufen wurde — auch ohne Exception. Eine vergessene Bestätigung<br />
+persistiert damit nie stillschweigend.</p>
+<p><strong>Audit-Connection:</strong> Die optionale <code>audit_conn</code> wird ausschließlich für Audit-Log-Einträge<br />
+verwendet und muss mit <code>isolation_level=None</code> (Autocommit) geöffnet sein.<br />
+Dadurch bleiben Audit-Einträge auch nach einem Rollback der Haupt-Transaktion erhalten.<br />
+Ohne <code>audit_conn</code> fällt das Audit-Log auf die Haupt-Verbindung zurück —<br />
+Einträge, die vor einem Rollback erzeugt wurden, gehen dann verloren.</p>
+<h4 id="repositories-dbrepositories">Repositories — <code>db/repositories/</code></h4>
+<p>Jede Domänen-Entität besitzt genau ein Repository. Alle Repositories folgen demselben<br />
+Muster: Konstruktor nimmt <code>conn: sqlite3.Connection</code>; interne Hilfsfunktion <code>_row_to_entity</code><br />
+wandelt <code>sqlite3.Row</code> in das Domänenobjekt um; alle Zeitstempel werden über<br />
+<code>_helpers._parse_dt()</code> UTC-normalisiert.</p>
+<table>
+<thead>
+<tr>
+<th>Repository-Klasse</th>
+<th>Tabelle</th>
+<th>Kernmethoden</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SQLiteTimeBookingRepository</code></td>
+<td><code>time_bookings</code></td>
+<td><code>add</code>, <code>get_by_id</code>, <code>list_for_employee_on_day</code>, <code>list_open_for_employee</code>, <code>list_between</code>, <code>set_status</code></td>
+</tr>
+<tr>
+<td><code>SQLiteEmployeeRepository</code></td>
+<td><code>employees</code></td>
+<td><code>get_by_id</code>, <code>get_active_by_personnel_no</code></td>
+</tr>
+<tr>
+<td><code>SQLiteRfidCardRepository</code></td>
+<td><code>rfid_cards</code></td>
+<td><code>get_by_uid_hash</code>, <code>get_active_by_uid_hash</code>, <code>get_by_id</code></td>
+</tr>
+<tr>
+<td><code>SQLiteUserAccountRepository</code></td>
+<td><code>user_accounts</code></td>
+<td><code>get_by_id</code>, <code>get_by_username</code>, <code>add</code></td>
+</tr>
+<tr>
+<td><code>SQLiteWorkScheduleRepository</code></td>
+<td><code>work_schedule_versions</code></td>
+<td><code>add</code>, <code>close_version</code>, <code>get_effective</code></td>
+</tr>
+<tr>
+<td><code>SQLiteReviewCaseRepository</code></td>
+<td><code>review_cases</code></td>
+<td><code>add</code>, <code>list_open_for_employee</code>, <code>resolve</code></td>
+</tr>
+<tr>
+<td><code>SQLiteBookingCorrectionRepository</code></td>
+<td><code>booking_corrections</code></td>
+<td><code>add</code>, <code>list_for_booking</code></td>
+</tr>
+<tr>
+<td><code>SQLiteSupplementRepository</code></td>
+<td><code>supplements</code></td>
+<td><code>add</code>, <code>get_by_id</code>, <code>list_pending</code>, <code>approve</code>, <code>reject</code></td>
+</tr>
+<tr>
+<td><code>SQLiteAuditLogRepository</code></td>
+<td><code>audit_log</code></td>
+<td><code>add</code> (immer via <code>audit_conn</code> mit Autocommit)</td>
+</tr>
+<tr>
+<td><code>SQLiteSystemConfigRepository</code></td>
+<td><code>system_config</code></td>
+<td><code>get_current</code>, <code>set_current</code></td>
+</tr>
+<tr>
+<td><code>SQLiteDeviceEventRepository</code></td>
+<td><code>device_events</code></td>
+<td><code>add</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Statushistorie:</strong> <code>set_status</code> im <code>SQLiteTimeBookingRepository</code> schreibt jeden<br />
+Statuswechsel zusätzlich in <code>booking_status_history</code> — der vollständige Verlauf<br />
+jeder Buchung ist damit lückenlos rekonstruierbar.</p>
+<p><strong>Konfigurationsversionierung:</strong> <code>SQLiteSystemConfigRepository.set_current</code> erstellt<br />
+bei jeder Änderung einen neuen Datensatz mit inkrementierter <code>version</code>-Nummer.<br />
+Der aktuelle Wert ist stets der Datensatz mit dem höchsten <code>version</code>-Wert.</p>
+<p><strong>Zeitzonenregel:</strong> <code>list_for_employee_on_day</code> erwartet einen UTC-Kalendertag.<br />
+Die Anwendungsschicht ist verantwortlich, den lokalen Arbeitstag vor dem Aufruf<br />
+in UTC zu normalisieren.</p>
+<hr />
+<h3 id="hardware-abstraktion-hardware">Hardware-Abstraktion (<code>hardware/</code>)</h3>
+<h4 id="protokolldefinition-hardwareportspy">Protokolldefinition — <code>hardware/ports.py</code></h4>
+<p>Alle Hardware-Komponenten kommunizieren ausschließlich über das <code>HardwareReader</code>-Protocol<br />
+(PEP 544). Der Rückgabetyp jeder Buchungsanforderung ist <code>RawBookingRequest</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">RawBookingRequest</span><span class="p">:</span>
+    <span class="n">booking_type</span><span class="p">:</span> <span class="n">BookingType</span>  <span class="c1"># COME | GO | BREAK_START | BREAK_END</span>
+    <span class="n">uid_hash</span><span class="p">:</span> <span class="nb">str</span>              <span class="c1"># SHA-256-Hash der Karten-UID</span>
+    <span class="n">occurred_at</span><span class="p">:</span> <span class="n">datetime</span>      <span class="c1"># UTC-Zeitstempel nach vollständiger UID-Lesung</span>
+</code></pre></div>
+
+<p>Zusätzlich definiert <code>ports.py</code> zwei Fehlerfälle:<br />
+- <code>EmptyUidError</code>: RFID-Reader lieferte leere oder nicht mappbare UID.<br />
+- <code>HardwareTimeoutError</code>: UID-Lesung überschritt das Zeitlimit (Standard: 5 Sekunden).</p>
+<h4 id="uid-hashing-hardwareuid_hashpy">UID-Hashing — <code>hardware/uid_hash.py</code></h4>
+<p>Die Roh-UID des RFID-Lesers (Hex-String oder Dezimalfolge) wird <strong>nie direkt gespeichert</strong>.<br />
+<code>hash_uid(raw_uid)</code> berechnet den SHA-256-Hash als Hex-String:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">raw_uid</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Dieser Hash ist der einzige Bezeichner, der in die Datenbank gelangt (<code>rfid_cards.uid_hash</code>).<br />
+Damit ist die physische Karten-UID aus dem Datenbankinhalt nicht rückrechenbar.</p>
+<h4 id="physischer-reader-hardwareevdev_readerpy">Physischer Reader — <code>hardware/evdev_reader.py</code></h4>
+<p><code>EvdevHardwareReader</code> liest Buchungsanfragen von zwei unabhängigen USB-HID-Geräten:</p>
+<ol>
+<li><strong>USB-Numpad</strong> (<code>/dev/input/event*</code>): Tasten 1–4 (KP-Variante und normale Ziffern)<br />
+   wählen den Buchungstyp (COME/GO/BREAK_START/BREAK_END).</li>
+<li><strong>RFID-Reader</strong> (<code>/dev/input/event*</code>): Liefert die Karten-UID als Hex-Zeichenfolge,<br />
+   abgeschlossen durch Enter. Nicht-Hex-Zeichen werden ignoriert.</li>
+</ol>
+<p><strong>Ablauf eines <code>read_next()</code>-Aufrufs:</strong><br />
+1. <code>_read_booking_type()</code> blockiert unbegrenzt bis zu einer gültigen Numpad-Taste<br />
+   (Idle-Wartezustand, kein Timeout — Timeout-Logik gehört in die aufrufende Schicht).<br />
+2. <code>_read_rfid_uid()</code> liest die UID mit einem konfigurierbaren Timeout (Standard: 5 s).<br />
+3. <code>occurred_at</code> wird erst nach vollständiger UID-Lesung gesetzt.<br />
+4. <code>hash_uid()</code> berechnet den Hash; das <code>RawBookingRequest</code>-Objekt wird zurückgegeben.</p>
+<p>Geräte werden mit <code>grab=True</code> exklusiv belegt, damit keine anderen Prozesse<br />
+(z. B. der Desktop) dieselben Tastenanschläge empfangen.</p>
+<p><strong>Voraussetzung:</strong> Der Systemprozess benötigt Lesezugriff auf <code>/dev/input/event*</code><br />
+(Gruppe <code>input</code> oder udev-Regel).</p>
+<p>Die Funktion <code>map_rfid_key(keycode, shift_active)</code> ist eigenständig testbar<br />
+ohne physische Hardware (enthält die gesamte Filterlogik).</p>
+<h4 id="simulator-hardwaresimulatorpy">Simulator — <code>hardware/simulator.py</code></h4>
+<p><code>SimulatedHardwareReader</code> implementiert dasselbe <code>HardwareReader</code>-Protocol wie der<br />
+physische Reader und ermöglicht Tests ohne Hardware:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">reader</span> <span class="o">=</span> <span class="n">SimulatedHardwareReader</span><span class="p">()</span>
+<span class="n">reader</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="n">BookingType</span><span class="o">.</span><span class="n">COME</span><span class="p">,</span> <span class="n">uid_hash</span><span class="o">=</span><span class="s2">&quot;abc123...&quot;</span><span class="p">)</span>
+<span class="n">request</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">read_next</span><span class="p">()</span>  <span class="c1"># liefert das injizierte Ereignis</span>
+</code></pre></div>
+
+<p>Die interne Queue ist eine <code>deque</code>; <code>pending</code> gibt die Anzahl noch nicht abgerufener<br />
+Ereignisse zurück. <code>read_next()</code> auf leerer Queue wirft <code>RuntimeError</code>.</p>
+<hr />
+<h3 id="export-export">Export (<code>export/</code>)</h3>
+<h4 id="gemeinsame-abfrageschicht-exportreport_queriespy">Gemeinsame Abfrageschicht — <code>export/report_queries.py</code></h4>
+<p><strong>Alle</strong> Exportkanäle (CSV, PDF, UI-Pflichtauswertungen) nutzen ausschließlich die<br />
+Funktionen in <code>report_queries.py</code>. Direkte Ad-hoc-Queries außerhalb dieses Moduls<br />
+sind architektonisch verboten (Regelwerk §11).</p>
+<p>Öffentliche Abfragefunktionen:</p>
+<table>
+<thead>
+<tr>
+<th>Funktion</th>
+<th>Ergebnis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>list_bookings(conn, from_dt, to_dt, employee_id?)</code></td>
+<td>Alle Buchungen im Zeitraum, aufsteigend nach <code>booked_at</code></td>
+</tr>
+<tr>
+<td><code>list_open_bookings(conn, employee_id?)</code></td>
+<td>Buchungen mit Status OPEN (kein Zeitraum)</td>
+</tr>
+<tr>
+<td><code>list_warn_bookings(conn, from_dt, to_dt, employee_id?)</code></td>
+<td>Buchungen mit Status WARN oder NEEDS_REVIEW</td>
+</tr>
+<tr>
+<td><code>list_open_bookings_in_period(conn, from_dt, to_dt, employee_id?)</code></td>
+<td>Offene Buchungen im Zeitraum (§7.12)</td>
+</tr>
+<tr>
+<td><code>list_corrections(conn, from_dt, to_dt, employee_id?)</code></td>
+<td>Korrekturen nach <code>corrected_at</code></td>
+</tr>
+<tr>
+<td><code>list_supplements(conn, from_dt, to_dt, employee_id?)</code></td>
+<td>Nachträge nach <code>event_at</code></td>
+</tr>
+<tr>
+<td><code>list_open_review_cases(conn, employee_id?)</code></td>
+<td>Offene Prüffälle (OPEN + IN_REVIEW, kein Zeitraum)</td>
+</tr>
+<tr>
+<td><code>list_open_review_cases_in_period(conn, from_dt, to_dt, employee_id?)</code></td>
+<td>Offene Prüffälle im Zeitraum (§7.12)</td>
+</tr>
+<tr>
+<td><code>list_review_cases_for_booking(conn, booking_id)</code></td>
+<td>Alle Prüffälle zu einer bestimmten Buchung</td>
+</tr>
+<tr>
+<td><code>get_employee_identity(conn, employee_id)</code></td>
+<td><code>(personnel_no, employee_name)</code> — Fallback bei fehlendem Datensatz</td>
+</tr>
+</tbody>
+</table>
+<p>Alle Zeitraumbeschränkungen verwenden das halboffene Intervall <code>[from_dt, to_dt)</code>.</p>
+<h4 id="csv-export-exportcsv_exporterpy">CSV-Export — <code>export/csv_exporter.py</code></h4>
+<p>Zwei Exportfunktionen erzeugen CSV-Dateien nach Pflichtenheft §7.11:</p>
+<p><strong>Detailexport</strong> (<code>export_detail</code>): Eine Zeile pro Buchung.</p>
+<p>Felder: <code>buchungs_id</code>, <code>mitarbeiter_nr</code>, <code>mitarbeiter_name</code>, <code>datum</code>, <code>uhrzeit</code>,<br />
+<code>buchungsart</code>, <code>status</code>, <code>quelle</code>, <code>ist_nachtrag</code>, <code>ist_korrigiert</code>, <code>dauer_minuten</code></p>
+<ul>
+<li><code>dauer_minuten</code> wird aus dem Tagesverlauf abgeleitet: GO = Minuten seit letztem COME;<br />
+  BREAK_END = Minuten seit letztem BREAK_START; COME/BREAK_START = leer.</li>
+<li>Nachträge (<code>source=MANUAL</code>) werden mit <code>ist_nachtrag=ja</code> gekennzeichnet.</li>
+</ul>
+<p><strong>Verdichtungsexport</strong> (<code>export_condensed</code>): Eine Zeile pro Mitarbeiter und Kalendertag.</p>
+<p>Felder: <code>mitarbeiter_nr</code>, <code>mitarbeiter_name</code>, <code>datum</code>, <code>nettoarbeitszeit_minuten</code>,<br />
+<code>nettopausenzeit_minuten</code>, <code>pausenanzahl</code>, <code>anzahl_buchungen</code>, <code>offene_buchungen</code>,<br />
+<code>warn_buchungen</code>, <code>pruefpflicht_buchungen</code>, <code>korrekturen</code>, <code>nachtraege</code></p>
+<p>Die Tagesstatistik <code>_day_stats()</code> arbeitet als Zustandsmaschine:<br />
+- Nettoarbeitszeit = Summe aller Arbeitsphasen (COME→BREAK_START und BREAK_END→GO).<br />
+- Pausen werden nicht zur Arbeitszeit gezählt.<br />
+- Korrekturen werden am <code>corrected_at</code>-Tag, Nachträge am <code>event_at</code>-Tag gezählt.</p>
+<p><strong>Dateinamenschema:</strong></p>
+<div class="codehilite"><pre><span></span><code>export_detail_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv
+export_verdichtet_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv
+</code></pre></div>
+
+<p>Der <code>export_dir</code>-Pfad wird von der aufrufenden Schicht aus <code>system_config</code><br />
+gelesen und direkt übergeben.</p>
+<h4 id="pdf-berichte-exportpdf_report_servicepy">PDF-Berichte — <code>export/pdf_report_service.py</code></h4>
+<p>Vier Berichtsfunktionen erzeugen A4-PDFs via <code>reportlab</code> (Pflichtenheft §7.11):</p>
+<table>
+<thead>
+<tr>
+<th>Funktion</th>
+<th>Dateiname</th>
+<th>Zeitraum</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>create_daily_report(conn, day, export_dir)</code></td>
+<td><code>bericht_tag_YYYY-MM-DD_…Z.pdf</code></td>
+<td>Ein Kalendertag (alle Mitarbeiter)</td>
+</tr>
+<tr>
+<td><code>create_weekly_report(conn, year, week, export_dir)</code></td>
+<td><code>bericht_woche_YYYY-WNN_…Z.pdf</code></td>
+<td>ISO-Woche (alle Mitarbeiter)</td>
+</tr>
+<tr>
+<td><code>create_monthly_report(conn, year, month, export_dir)</code></td>
+<td><code>bericht_monat_YYYY-MM_…Z.pdf</code></td>
+<td>Kalendermonat (alle Mitarbeiter)</td>
+</tr>
+<tr>
+<td><code>create_employee_report(conn, employee_id, from_dt, to_dt, export_dir)</code></td>
+<td><code>bericht_mitarbeiter_NNNN_…_…Z.pdf</code></td>
+<td>Freier Zeitraum (ein Mitarbeiter)</td>
+</tr>
+</tbody>
+</table>
+<p>Jeder Bericht enthält vier inhaltliche Abschnitte:<br />
+1. <strong>Buchungen</strong> — Tabelle aller Buchungen im Zeitraum<br />
+2. <strong>Korrekturen</strong> — Alter Zustand, neuer Zustand, Begründung, Zeitstempel<br />
+3. <strong>Nachträge</strong> — Buchungsart, Ereigniszeitpunkt, Begründung, Freigabestatus<br />
+4. <strong>Offene Prüffälle</strong> — Typ, Schwere, Beschreibung, Erkennungszeitpunkt<br />
+5. <strong>Erläuterungen</strong> — Bedeutung der Status-Codes (OPEN, WARN, NEEDS_REVIEW,<br />
+   Nachträge, Korrekturen)</p>
+<hr />
+<h3 id="backup-backupbackup_servicepy">Backup (<code>backup/backup_service.py</code>)</h3>
+<p><code>SQLiteBackupService</code> verwaltet lokale Sicherungskopien und optionale NAS-Synchronisation.</p>
+<h4 id="methoden">Methoden</h4>
+<p><strong><code>create_local_backup()</code></strong>: Erstellt ein Online-Backup via SQLite-Backup-API<br />
+(<code>sqlite3.Connection.backup()</code>). Die Quelldatenbank bleibt während des Backups<br />
+vollständig lesbar und schreibbar — kein Sperren, kein Downtime.</p>
+<ul>
+<li>Dateiname: <code>arbeitszeit_YYYYMMDDTHHMMSSZ.db</code></li>
+<li>Falls <code>export_dir</code> gesetzt: Exportdateien werden nach <code>backup_dir/exports/</code> kopiert<br />
+  und vom nachfolgenden NAS-Sync mitgenommen.</li>
+<li>Ergebnis wird in <code>audit_log</code> mit Ereignistyp <code>BACKUP_CREATED</code> protokolliert.</li>
+</ul>
+<p><strong><code>sync_to_nas(nas_path)</code></strong>: Synchronisiert <code>backup_dir/</code> → NAS via <code>rsync --archive --delete</code>.</p>
+<ul>
+<li>Schlägt die Synchronisation fehl, wird <code>BACKUP_SYNC_FAILED</code> mit Returncode,<br />
+  Befehlszeile und stderr ins Audit-Log geschrieben; die Ausnahme wird weitergereicht.</li>
+<li>Erfolg wird mit <code>BACKUP_SYNCED_TO_NAS</code> protokolliert.</li>
+</ul>
+<p><strong><code>restore_from(backup_path, restore_exports?)</code></strong>: Stellt die Datenbank aus einer<br />
+Backup-Datei wieder her.</p>
+<ul>
+<li>Vorbedingung: Keine offenen Verbindungen zur Zieldatenbank beim Aufruf.</li>
+<li>Führt nach dem Restore <code>PRAGMA integrity_check</code> aus; schlägt dieser fehl,<br />
+  wird <code>RuntimeError</code> geworfen.</li>
+<li>Mit <code>restore_exports=True</code> und gesetztem <code>export_dir</code>: Exportdateien werden<br />
+  aus <code>backup_dir/exports/</code> zurück in <code>export_dir</code> kopiert.</li>
+<li>Ergebnis wird als <code>RESTORE_COMPLETED</code> ins Audit-Log der <strong>wiederhergestellten</strong><br />
+  Datenbank geschrieben.</li>
+</ul>
+<p><strong><code>run(nas_path?)</code></strong>: Kombinierte Hilfsmethode — erstellt lokales Backup und<br />
+synchronisiert optional zum NAS; gibt <code>BackupResult</code> zurück.</p>
+<p><strong>NAS-Erreichbarkeitsprüfung (Designentscheidung):</strong> Das System prüft den<br />
+NAS-Mount-Punkt ausschließlich per <code>Path.exists()</code> und <code>os.access(..., os.W_OK)</code>.<br />
+Kein Netzwerk-Ping oder TCP-Verbindungstest — ein vorübergehend nicht erreichbares<br />
+NAS (Neustart, Wartung) soll keinen <code>SELFTEST_FAIL</code> auslösen.</p>
+<hr />
+<h3 id="systemuberwachung">Systemüberwachung</h3>
+<h4 id="selbsttest-system_checkpy">Selbsttest — <code>system_check.py</code></h4>
+<p><code>run_system_check(db_path, numpad_path?, rfid_path?)</code> prüft beim Systemstart<br />
+fünf Bereiche und schreibt das Gesamtergebnis als <code>SELFTEST_OK</code> oder <code>SELFTEST_FAIL</code><br />
+in <code>system_events</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Prüfbereich</th>
+<th>Was wird geprüft</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>db_access</code></td>
+<td>Datenbankverbindung öffenbar; alle erwarteten Migrationsversionen angewendet</td>
+</tr>
+<tr>
+<td><code>config_keys</code></td>
+<td>Sechs Pflicht-Konfigurationsschlüssel in <code>system_config</code> vorhanden</td>
+</tr>
+<tr>
+<td><code>nas_reachability</code></td>
+<td>NAS-Pfad existiert und ist schreibbar (nur wenn <code>backup.nas_enabled=true</code>)</td>
+</tr>
+<tr>
+<td><code>fk_consistency</code></td>
+<td><code>PRAGMA foreign_key_check</code> meldet keine verwaisten Fremdschlüsselreferenzen</td>
+</tr>
+<tr>
+<td><code>device_availability</code></td>
+<td>Numpad und RFID-Gerätepfade existieren und sind lesbar</td>
+</tr>
+</tbody>
+</table>
+<p>Jeder Bereich liefert ein <code>CheckResult(name, ok, detail)</code>. Das <code>SystemCheckResult</code><br />
+aggregiert alle Checks; <code>overall_ok</code> ist <code>True</code> genau dann, wenn alle Checks bestanden sind.</p>
+<h4 id="zeitsprung-erkennung-time_monitorpy">Zeitsprung-Erkennung — <code>time_monitor.py</code></h4>
+<p><code>SystemTimeMonitor</code> erkennt Uhrzeitänderungen durch Gegenüberstellung von<br />
+Wall-Clock (<code>datetime.now(timezone.utc)</code>) und monotoner Uhr (<code>time.monotonic()</code>):</p>
+<div class="codehilite"><pre><span></span><code>diff = actual_wall_ts - (last_wall_ts + mono_elapsed)
+</code></pre></div>
+
+<ul>
+<li><code>|diff| &gt; threshold</code> (Standard: 60 Sekunden): Zeitsprung erkannt.</li>
+<li><code>diff &gt; 0</code>: Vorwärtssprung → Ereignistyp <code>TIME_JUMP_DETECTED</code><br />
+  (NTP-Korrektur oder manuelle Vorstellung).</li>
+<li><code>diff &lt; 0</code>: Rückwärtssprung → Ereignistyp <code>MANUAL_TIME_CHANGE_DETECTED</code><br />
+  (fast immer manuell).</li>
+</ul>
+<p>Der Schwellenwert filtert NTP-Drift (typisch &lt; 1 s/Stunde) heraus.<br />
+<code>load_threshold_from_config(db_path)</code> liest den Wert aus <code>system_config</code><br />
+(Schlüssel <code>time_monitor.jump_threshold_seconds</code>); Fallback: 60 Sekunden.</p>
+<p>Beide Clock-Funktionen sind per Dependency-Injection ersetzbar (<code>_wall_clock</code>,<br />
+<code>_mono_clock</code>), was Unit-Tests ohne Systemzeit-Manipulation ermöglicht.</p>
+<h4 id="desktop-benachrichtigung-notificationpy">Desktop-Benachrichtigung — <code>notification.py</code></h4>
+<p><code>notify(title, body, urgency?)</code> sendet eine Desktop-Benachrichtigung via <code>notify-send</code><br />
+(Pflichtenheft §7.10: Systemzustand muss dem Betreiber sichtbar sein).</p>
+<ul>
+<li>Dringlichkeitsstufen: <code>"low"</code> | <code>"normal"</code> | <code>"critical"</code></li>
+<li><strong>Fail-Safe:</strong> <code>FileNotFoundError</code> (notify-send nicht installiert) und<br />
+<code>TimeoutExpired</code> werden still ignoriert; ein <code>logging.debug</code>-Eintrag wird erzeugt.</li>
+<li>Sonstige Ausnahmen erzeugen einen <code>logging.warning</code>-Eintrag.</li>
+<li>Voraussetzung: Paket <code>libnotify-bin</code> (auf Lubuntu/Linux Mint standardmäßig vorhanden).</li>
+</ul>
+<hr />
+<h3 id="querverbindungen-und-architekturprinzipien">Querverbindungen und Architekturprinzipien</h3>
+<h4 id="abhangigkeitsrichtung">Abhängigkeitsrichtung</h4>
+<div class="codehilite"><pre><span></span><code>Application/Domain
+       ↓
+  infrastructure/
+  ├── db/           ← nutzt domain.entities, domain.enums, domain.ports
+  ├── export/       ← nutzt application.queries, domain.enums
+  ├── hardware/     ← nutzt domain.enums
+  ├── backup/       ← nutzt domain.audit_events, domain.entities
+  └── system_check/ ← nutzt infrastructure.db.connection
+</code></pre></div>
+
+<p>Alle Repositories implementieren die in <code>domain/ports/repositories.py</code> definierten<br />
+Abstract-Base-Interfaces — die Fachlogik kennt daher nur das Interface, nie die<br />
+SQLite-Implementierung.</p>
+<h4 id="nicht-delegierte-verantwortlichkeiten">Nicht delegierte Verantwortlichkeiten</h4>
+<p>Die Infrastrukturschicht übernimmt bewusst <strong>keine</strong> Zuständigkeit für:<br />
+- Fachliche Validierung (gehört in die Domain- oder Anwendungsschicht).<br />
+- Timeout-Logik für den Numpad-Idle-Wartezustand (gehört in die Betriebsschicht).<br />
+- NTP-Synchronisation (Aufgabe des Betriebssystems / systemd).<br />
+- Authentifizierung und Autorisierung (Anwendungsschicht).</p>
+<h4 id="testbarkeit">Testbarkeit</h4>
+<p>Alle sicherheitskritischen und zustandsbehafteten Teile sind ohne physische Hardware testbar:<br />
+- <code>SimulatedHardwareReader</code> implementiert dasselbe Protocol wie <code>EvdevHardwareReader</code>.<br />
+- <code>map_rfid_key()</code> ist eine pure Funktion ohne Gerätezugriff.<br />
+- <code>SystemTimeMonitor</code> akzeptiert injizierbare Clock-Callbacks.<br />
+- Repositories arbeiten auf jeder <code>sqlite3.Connection</code>, auch auf In-Memory-Datenbanken (<code>:memory:</code>).</p>
+<hr />
+<h2 id="kapitel-7-audit-und-prufstatus">Kapitel 7: Audit und Prüfstatus</h2>
+<p><strong>Quelle:</strong> <code>handbuch_audit.md</code></p>
+<h3 id="sicher-belegt">Sicher belegt</h3>
+<p>Die folgenden Aussagen sind durch die tatsächlich gelesenen Dateien abgesichert:</p>
+<ul>
+<li>Python-Anforderung <code>&gt;=3.14,&lt;3.15</code></li>
+<li>Paketabhängigkeiten aus <code>pyproject.toml</code></li>
+<li>Trennung in <code>presentation</code>, <code>infrastructure</code>, <code>application</code>, <code>domain</code></li>
+<li>Vorhandensein von <code>scripts/init_db.py</code>, <code>scripts/setup.py</code>, <code>scripts/backup.py</code></li>
+<li>Bootstrap des ersten Administratorkontos</li>
+<li>Zulässige Rollen für <code>users add</code>: <code>ADMIN</code>, <code>REVIEWER</code>, <code>TECH</code></li>
+<li>Mitarbeiterverwaltung über <code>employees add</code></li>
+<li><code>employees deactivate</code> und <code>cards deactivate</code> erfordern positionale IDs</li>
+<li><code>cards replace</code> erfordert <code>--old-card-id</code> und <code>--uid-hash</code></li>
+<li><code>users deactivate</code>, <code>users reactivate</code> und <code>users change-role</code> erfordern<br />
+  ein eigenes <code>--user-id</code> für das Zielkonto</li>
+<li>Kartenzuweisung über <code>cards assign --uid-hash</code></li>
+<li>Terminal-UI mit Pflichtparametern <code>--db</code>, <code>--numpad</code>, <code>--rfid</code>,<br />
+<code>--terminal-id</code></li>
+<li>Admin-CLI mit verpflichtendem <code>--db</code>; Benutzer-ID alternativ über<br />
+<code>ADMIN_USER_ID</code></li>
+<li><code>setup.py</code> unterstützt nicht-interaktiven Aufruf mit <code>--backup-dir</code> und<br />
+<code>--export-dir</code></li>
+<li>Vierstellige Migrationsversionen <code>0001</code> bis <code>0006</code></li>
+<li>NAS-bezogene Konfigurationsschlüssel im Backup-Skript</li>
+<li><code>scripts/verify_hardware.py</code> für Hardware-Smoke-Tests</li>
+<li><code>run_audit.sh</code> und <code>scripts/generate_audit_notes.py</code> für Code-Audits</li>
+</ul>
+<h3 id="nicht-uberbehaupten">Nicht überbehaupten</h3>
+<p>Die folgenden Punkte sollten in einer technischen Dokumentation nur dann<br />
+detailliert dargestellt werden, wenn ihre Implementierung vollständig gelesen<br />
+und verifiziert wurde:</p>
+<ul>
+<li>genaue interne RFID-Hash-Bildung und zugehörige Dateipfade</li>
+<li>konkrete Restore-Abläufe und Restore-Befehle</li>
+<li>konkrete <code>system_events</code>-Ereignistypen außerhalb nachweislich gelesener<br />
+  Stellen</li>
+<li>exakte Inhalte nicht gelesener Module oder Verzeichnisse</li>
+<li>Hardware-Aussagen zu Plattformen, die im gelesenen Code nicht ausdrücklich<br />
+  genannt sind</li>
+</ul>
+<h3 id="empfohlene-nachste-prufungen">Empfohlene nächste Prüfungen</h3>
+<p>Für eine vollständige, dauerhaft belastbare Dokumentation sollten als nächstes<br />
+gezielt separat geprüft werden:</p>
+<ol>
+<li><code>migrations/0001_schema.sql</code> im Volltext für die exakte Datenbankdokumentation</li>
+<li><code>src/arbeitszeit/domain/enums.py</code> für belastbare Dokumentation der Enums</li>
+<li><code>src/arbeitszeit/infrastructure/hardware/evdev_reader.py</code> für belastbare<br />
+   Hardwarebeschreibung</li>
+<li><code>scripts/show_config.py</code> nur dann dokumentieren, wenn seine Optionen und<br />
+   Ausgabeformate tatsächlich gelesen wurden</li>
+<li>Admin-CLI-Unterdateien <code>bookings.py</code>, <code>reports.py</code>, <code>schedule.py</code> und<br />
+<code>system.py</code> für vollständige Befehls- und Rollenbeschreibung</li>
+</ol>
+</body>
+</html>

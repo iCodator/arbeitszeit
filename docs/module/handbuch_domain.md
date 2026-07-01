@@ -1,4 +1,9 @@
-# Kapitel 3 – Das Domain-Modell
+# Handbuch `arbeitszeit` – Das Domain-Modell
+
+**Kapitel:** 5
+**Version:** 1.0
+**Stand:** Juli 2026
+**Quelldatei:** `docs/module/handbuch_domain.md`
 
 ## Überblick und Designprinzip
 
@@ -8,7 +13,7 @@ nach dem Prinzip **Domain-Driven Design (DDD)** aufgebaut: Entitäten, Value Obj
 Enumerationen, Fehlertypen und Domain Services sind klar voneinander getrennt.
 Alle Dateien liegen unter `src/arbeitszeit/domain/`.
 
-```
+```text
 src/arbeitszeit/domain/
 ├── __init__.py          # leer – kein öffentliches Re-Export
 ├── audit_events.py      # Katalog aller Audit-Log-Eventnamen
@@ -243,7 +248,7 @@ die durch einen Administrator genehmigt oder abgelehnt werden muss.
 
 Der Workflow verläuft immer in einer Richtung:
 
-```
+```text
 PENDING  →  APPROVED
          →  REJECTED
 ```
@@ -276,7 +281,7 @@ als unveränderlichen Audit-Trail.
 
 ### `AuditLogEntry` – Audit-Log-Eintrag
 
-Repräsentiert einen unveränderlichen Protokolleintrag für revisionssicherere
+Repräsentiert einen unveränderlichen Protokolleintrag für revisionssichere
 Nachvollziehbarkeit aller systemrelevanten Ereignisse.
 
 | Feld           | Typ                   | Beschreibung                                         |
@@ -349,7 +354,7 @@ ohne dass das Domain-Modell sie importiert – klassische Dependency Inversion.
 
 ### Besonderheit `WorkScheduleRepository.list_versions`
 
-```
+```text
 scope_employee_id=None  → ausschließlich GLOBAL-Versionen
 scope_employee_id=<id>  → ausschließlich EMPLOYEE-Versionen für diesen MA
 Niemals beide Scopes gemischt.
@@ -441,7 +446,7 @@ einen `ReviewCaseType` und einen `ReviewSeverity`-Wert.
 **Datei:** `src/arbeitszeit/domain/audit_events.py`
 
 Um Tippfehler in Audit-Log-Einträgen zu verhindern, sind alle `event_type`-Strings
-zentral als Modulkonstanten definiert. Kein Use Case oder Infrastrukturkomponent darf
+zentral als Modulkonstanten definiert. Kein Use Case oder Infrastrukturkomponente darf
 freie String-Literale für `event_type` verwenden.
 
 | Konstante                        | Ereignis                                      |
@@ -470,7 +475,7 @@ freie String-Literale für `event_type` verwenden.
 Das folgende Ablaufdiagramm zeigt, wie ein typischer RFID-Buchungsvorgang die
 Domain-Schicht durchläuft:
 
-```
+```text
 [RFID-Scan am Terminal]
         │
         ▼
