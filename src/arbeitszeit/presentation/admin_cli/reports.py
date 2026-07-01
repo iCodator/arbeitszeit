@@ -263,15 +263,15 @@ def register_subcommands(
     csv_cmd.add_argument("--employee-id", type=int, default=None)
 
     pdf_day = rsub.add_parser("export-pdf-day", help="Tagesbericht als PDF")
-    pdf_day.add_argument("date", metavar="YYYY-MM-DD")
+    pdf_day.add_argument("--date", required=True, metavar="YYYY-MM-DD")
 
     pdf_week = rsub.add_parser("export-pdf-week", help="Wochenbericht als PDF")
-    pdf_week.add_argument("year", type=int)
-    pdf_week.add_argument("week", type=int)
+    pdf_week.add_argument("--year", required=True, type=int)
+    pdf_week.add_argument("--week", required=True, type=int)
 
     pdf_month = rsub.add_parser("export-pdf-month", help="Monatsbericht als PDF")
-    pdf_month.add_argument("year", type=int)
-    pdf_month.add_argument("month", type=int)
+    pdf_month.add_argument("--year", required=True, type=int)
+    pdf_month.add_argument("--month", required=True, type=int)
 
     pdf_emp = rsub.add_parser("export-pdf-employee", help="Mitarbeiterbericht als PDF")
     pdf_emp.add_argument("--employee-id", required=True, type=int)
