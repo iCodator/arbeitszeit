@@ -459,7 +459,7 @@ Desktop-Benachrichtigung ausgelöst
 wird <strong>nicht</strong> abgebrochen — die Praxis soll arbeitsfähig
 bleiben. Fehlerdetails werden in der Tabelle <code>system_events</code>
 gespeichert.</p>
-<h4 id="buchungszyklus-booking_looppy">Buchungszyklus
+<h4 id="buchungszyklus-booking_loop.py">Buchungszyklus
 (<code>booking_loop.py</code>)</h4>
 <p>Jeder Buchungszyklus läuft in drei Schritten ab:</p>
 <ol type="1">
@@ -480,6 +480,10 @@ gespeichert — absichtlich, damit auch fachlich gescheiterte Buchungen
 <p>Nach jeder Buchung gibt das Terminal eine einzeilige Rückmeldung
 aus.</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Status</th>
@@ -505,6 +509,10 @@ aus.</p>
 <p>Bekannte Domänenfehler werden in menschenlesbare Meldungen übersetzt
 und ausgegeben, ohne den Prozess zu beenden:</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Fehlerklasse</th>
@@ -557,6 +565,10 @@ Benutzer-ID, da noch kein Admin existiert.</p>
 Benutzers direkt gegen die Tabelle <code>user_accounts</code>. Es gibt
 drei Rollen:</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Rolle</th>
@@ -583,9 +595,14 @@ drei Rollen:</p>
 <hr />
 <h3 id="domain-employees-und-cards">Domain: <code>employees</code> und
 <code>cards</code></h3>
-<h4 id="mitarbeiterverwaltung-employeespy">Mitarbeiterverwaltung
+<h4 id="mitarbeiterverwaltung-employees.py">Mitarbeiterverwaltung
 (<code>employees.py</code>)</h4>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -613,6 +630,11 @@ drei Rollen:</p>
 </table>
 <h4 id="kartenverwaltung">Kartenverwaltung</h4>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -650,6 +672,10 @@ Verwendete Ereignistypen: <code>EMPLOYEE_CREATED</code>,
 der Anwendungsschicht — die Rollenprüfung erfolgt dort, die CLI
 übernimmt nur Fehlerformatierung und Ausgabe.</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -686,6 +712,11 @@ angenommen.</p>
 <p>Die Regelarbeitszeit wird versioniert gespeichert; jede Änderung
 erzeugt eine neue Version und schließt die Vorgängerversion.</p>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -722,6 +753,10 @@ CLI. <code>schedule show</code> prüft die Rolle direkt in der CLI
 gelesen.</p>
 <h4 id="export-befehle">Export-Befehle</h4>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -757,6 +792,10 @@ gelesen.</p>
 </table>
 <h4 id="pflichtauswertungen">Pflichtauswertungen</h4>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -793,6 +832,11 @@ Zeitraum einzugrenzen.</p>
 <hr />
 <h3 id="domain-system">Domain: <code>system</code></h3>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -826,6 +870,11 @@ bereits erfolgreich erstellt.</p>
 gehasht (DSGVO Art. 32). Das Klartextpasswort wird nach der Ausgabe
 nirgends gespeichert.</p>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Befehl</th>
@@ -882,7 +931,7 @@ Cases der Anwendungsschicht ab.</p>
 <p>Die Anwendung gliedert sich in fünf Reiter (Tabs): Mitarbeiter,
 Karten, Benutzer, Regelzeiten und System.</p>
 <hr />
-<h3 id="zeitraum-hilfsfunktionen-_intervalspy">Zeitraum-Hilfsfunktionen
+<h3 id="zeitraum-hilfsfunktionen-_intervals.py">Zeitraum-Hilfsfunktionen
 (<code>_intervals.py</code>)</h3>
 <p>Alle Datums-/Zeitraumberechnungen in der Admin-CLI verwenden
 ausschließlich die drei Funktionen aus
@@ -891,6 +940,10 @@ Eigene Ad-hoc-Konstruktionen aus Benutzereingaben sind verboten, um
 UTC-Normalisierung und halboffene Intervalle
 <code>[from_dt, to_dt)</code> sicherzustellen.</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Funktion</th>
@@ -923,7 +976,7 @@ der Domänenschicht (Geschäftsregeln, Entitäten). Sie enthält
 Hardware-Zugriffe und <strong>keine</strong> UI-Elemente —
 ausschließlich Ablaufsteuerung, Validierung und Koordination.</p>
 <hr />
-<h3 id="41-überblick-und-einordnung">4.1 Überblick und Einordnung</h3>
+<h3 id="überblick-und-einordnung">4.1 Überblick und Einordnung</h3>
 <p>Das Paket folgt dem <strong>CQRS-Prinzip</strong> (Command Query
 Responsibility Segregation): Schreibende Operationen werden über
 <em>Commands</em> und <em>Use Cases</em> gesteuert, lesende Operationen
@@ -947,13 +1000,17 @@ unabhängig voneinander weiterentwickelt und getestet werden können.</p>
     ├── register_supplement.py  # Nachtrag erfassen (Status: PENDING)
     └── reject_supplement.py    # Nachtrag ablehnen</code></pre>
 <hr />
-<h3 id="42-commands--eingabe-dtos-commandspy">4.2 Commands —
-Eingabe-DTOs (<code>commands.py</code>)</h3>
+<h3 id="commands-eingabe-dtos-commands.py">4.2 Commands — Eingabe-DTOs
+(<code>commands.py</code>)</h3>
 <p>Commands sind <strong>unveränderliche Datenbehälter</strong>
 (<code>frozen=True, slots=True</code>), die alle für eine Operation
 notwendigen Parameter bündeln. Sie enthalten keine Logik. Die Use Cases
 konsumieren Commands als einzigen Eingabeparameter.</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Command-Klasse</th>
@@ -1032,7 +1089,7 @@ konsumieren Commands als einzigen Eingabeparameter.</p>
 <code>arbeitszeit.domain.value_objects</code>, um Typsicherheit ohne
 Primitive Obsession zu gewährleisten.</p>
 <hr />
-<h3 id="43-results--ausgabe-dtos-schreibender-operationen-resultspy">4.3
+<h3 id="results-ausgabe-dtos-schreibender-operationen-results.py">4.3
 Results — Ausgabe-DTOs schreibender Operationen
 (<code>results.py</code>)</h3>
 <p>Jeder Use Case gibt ein typisiertes Result-Objekt zurück. Results
@@ -1040,6 +1097,10 @@ sind ebenfalls <code>frozen</code> und <code>slots</code>-optimiert. Sie
 enthalten nur die IDs und Status-Werte, die die Präsentationsschicht für
 Rückmeldungen oder Folgeverarbeitungen benötigt.</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Result-Klasse</th>
@@ -1100,13 +1161,17 @@ Rückmeldungen oder Folgeverarbeitungen benötigt.</p>
 <code>None</code> zurück — kein eigenes Result-Objekt, da die
 Präsentationsschicht keine Rückgabedaten benötigt.</p>
 <hr />
-<h3 id="44-queries--lesende-abfrage-dtos-queriespy">4.4 Queries —
-Lesende Abfrage-DTOs (<code>queries.py</code>)</h3>
+<h3 id="queries-lesende-abfrage-dtos-queries.py">4.4 Queries — Lesende
+Abfrage-DTOs (<code>queries.py</code>)</h3>
 <p>Die Query-DTOs bilden die CQRS-Leseseite ab. Sie definieren die
 Zeilenstruktur für Berichte und Listen, ohne selbst SQL auszuführen. Die
 eigentlichen Datenbankabfragen liegen in der Infrastrukturschicht
 (<code>infrastructure/export/report_queries.py</code>).</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Row-Klasse</th>
@@ -1139,8 +1204,8 @@ Regelwerk v3 §12)</td>
 Präsentationsmodule <strong>keine</strong> Infrastruktur-Klassen
 importieren müssen.</p>
 <hr />
-<h3 id="45-unit-of-work--transaktionsprotokoll-unit_of_workpy">4.5 Unit
-of Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</h3>
+<h3 id="unit-of-work-transaktionsprotokoll-unit_of_work.py">4.5 Unit of
+Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</h3>
 <p><code>UnitOfWork</code> ist ein <strong>Protocol</strong>
 (strukturelles Typing, kein Erben nötig). Es fasst alle
 Repository-Referenzen unter einem gemeinsamen Transaktionskontext
@@ -1173,8 +1238,8 @@ Verbindungs- und Transaktionsimplementierung liegen in der
 Infrastrukturschicht.</p>
 </blockquote>
 <hr />
-<h3 id="46-use-cases-im-detail">4.6 Use Cases im Detail</h3>
-<h4 id="461-bookusecase--terminalbuchung-book_timepy">4.6.1
+<h3 id="use-cases-im-detail">4.6 Use Cases im Detail</h3>
+<h4 id="bookusecase-terminalbuchung-book_time.py">4.6.1
 <code>BookUseCase</code> — Terminalbuchung
 (<code>book_time.py</code>)</h4>
 <p>Dieser Use Case verarbeitet jede RFID-Buchung vom Terminal. Er ist
@@ -1237,7 +1302,7 @@ ersten Audit-Write erlaubt. Diese Invariante muss bei Erweiterungen
 gewahrt bleiben.</p>
 <hr />
 <h4
-id="462-correctbookingusecase--buchungskorrektur-correct_bookingpy">4.6.2
+id="correctbookingusecase-buchungskorrektur-correct_booking.py">4.6.2
 <code>CorrectBookingUseCase</code> — Buchungskorrektur
 (<code>correct_booking.py</code>)</h4>
 <p>Ermöglicht berechtigten Benutzern (Rolle <code>ADMIN</code> oder
@@ -1271,7 +1336,7 @@ schreiben</li>
 <code>INACTIVE_CARD_ATTEMPT</code>, <code>TIME_ANOMALY</code>.</p>
 <hr />
 <h4
-id="463-registersupplementusecase--nachtrag-erfassen-register_supplementpy">4.6.3
+id="registersupplementusecase-nachtrag-erfassen-register_supplement.py">4.6.3
 <code>RegisterSupplementUseCase</code> — Nachtrag erfassen
 (<code>register_supplement.py</code>)</h4>
 <p>Erfasst eine nachträglich einzutragende Buchung (z. B. vergessenes
@@ -1295,7 +1360,7 @@ schreiben</li>
 </ol>
 <hr />
 <h4
-id="464-approvesupplementusecase--nachtrag-freigeben-approve_supplementpy">4.6.4
+id="approvesupplementusecase-nachtrag-freigeben-approve_supplement.py">4.6.4
 <code>ApproveSupplementUseCase</code> — Nachtrag freigeben
 (<code>approve_supplement.py</code>)</h4>
 <p>Genehmigt einen ausstehenden Nachtrag und überführt ihn in eine echte
@@ -1322,7 +1387,7 @@ schreiben</li>
 </ol>
 <hr />
 <h4
-id="465-rejectsupplementusecase--nachtrag-ablehnen-reject_supplementpy">4.6.5
+id="rejectsupplementusecase-nachtrag-ablehnen-reject_supplement.py">4.6.5
 <code>RejectSupplementUseCase</code> — Nachtrag ablehnen
 (<code>reject_supplement.py</code>)</h4>
 <p>Lehnt einen ausstehenden Nachtrag ab, ohne eine Buchung zu
@@ -1343,7 +1408,7 @@ schreiben</li>
 </ol>
 <hr />
 <h4
-id="466-manageworkscheduleusecase--regelarbeitszeit-manage_work_schedulepy">4.6.6
+id="manageworkscheduleusecase-regelarbeitszeit-manage_work_schedule.py">4.6.6
 <code>ManageWorkScheduleUseCase</code> — Regelarbeitszeit
 (<code>manage_work_schedule.py</code>)</h4>
 <p>Ändert die Regelarbeitszeit für einen Wochentag, entweder global
@@ -1366,7 +1431,7 @@ schreiben (enthält Vorher/Nachher-Snapshot)</li>
 <li><code>WorkScheduleChangeResult</code> zurückgeben</li>
 </ol>
 <hr />
-<h4 id="467-mitarbeiterverwaltung-manage_employeespy">4.6.7
+<h4 id="mitarbeiterverwaltung-manage_employees.py">4.6.7
 Mitarbeiterverwaltung (<code>manage_employees.py</code>)</h4>
 <p>Beide Use Cases erfordern <code>ADMIN</code>-Rolle.</p>
 <p><strong><code>CreateEmployeeUseCase</code></strong></p>
@@ -1389,7 +1454,7 @@ schreiben</li>
 schreiben</li>
 </ol>
 <hr />
-<h4 id="468-rfid-kartenverwaltung-manage_rfid_cardspy">4.6.8
+<h4 id="rfid-kartenverwaltung-manage_rfid_cards.py">4.6.8
 RFID-Kartenverwaltung (<code>manage_rfid_cards.py</code>)</h4>
 <p>Alle drei Use Cases erfordern <code>ADMIN</code>-Rolle.</p>
 <p><strong><code>AssignRfidCardUseCase</code></strong></p>
@@ -1426,7 +1491,7 @@ schreiben</li>
 schreiben</li>
 </ol>
 <hr />
-<h4 id="469-benutzerkontenverwaltung-manage_user_accountspy">4.6.9
+<h4 id="benutzerkontenverwaltung-manage_user_accounts.py">4.6.9
 Benutzerkontenverwaltung (<code>manage_user_accounts.py</code>)</h4>
 <p><strong><code>CreateUserAccountUseCase</code></strong> (ADMIN)</p>
 <ol type="1">
@@ -1461,7 +1526,7 @@ ersten Admin-Account an; im Audit-Log wird
 verwendet. Gibt <code>BootstrapAdminResult(user_id, username)</code>
 zurück.</p>
 <hr />
-<h3 id="47-querschnittliche-entwurfsprinzipien">4.7 Querschnittliche
+<h3 id="querschnittliche-entwurfsprinzipien">4.7 Querschnittliche
 Entwurfsprinzipien</h3>
 <h4 id="berechtigungsprüfung">Berechtigungsprüfung</h4>
 <p>Alle manuellen Use Cases prüfen zu Beginn die Benutzerrolle (via
@@ -1495,6 +1560,10 @@ Erzeugung. <code>slots=True</code> reduziert Speicherbedarf und
 beschleunigt Attributzugriffe.</p>
 <h4 id="fehlertypen">Fehlertypen</h4>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Fehlerklasse</th>
@@ -1533,7 +1602,7 @@ beschleunigt Attributzugriffe.</p>
 </tbody>
 </table>
 <hr />
-<h3 id="48-erweiterungshinweise">4.8 Erweiterungshinweise</h3>
+<h3 id="erweiterungshinweise">4.8 Erweiterungshinweise</h3>
 <ul>
 <li><strong>Neuer Use Case:</strong> Neue Datei in
 <code>use_cases/</code>, entsprechendes Command in
@@ -1551,7 +1620,7 @@ aufrufen.</li>
 muss vor dem Audit-Log-Schreibvorgang erfolgen.</li>
 </ul>
 <hr />
-<h3 id="49-hinweis-zu-admin-cli-befehlen">4.9 Hinweis zu
+<h3 id="hinweis-zu-admin-cli-befehlen">4.9 Hinweis zu
 admin-CLI-Befehlen</h3>
 <p>Eine vollständige Liste der über die Admin-CLI aufrufbaren
 Befehlsgruppen (<code>employees</code>, <code>cards</code>,
@@ -1584,7 +1653,7 @@ sind klar voneinander getrennt. Alle Dateien liegen unter
     ├── booking_rules.py      # Buchungssequenz-Validierung
     └── compliance_checks.py  # ArbZG-Prüfhilfen</code></pre>
 <hr />
-<h3 id="value-objects--starke-id-typen">Value Objects – Starke
+<h3 id="value-objects-starke-id-typen">Value Objects – Starke
 ID-Typen</h3>
 <p><strong>Datei:</strong>
 <code>src/arbeitszeit/domain/value_objects.py</code></p>
@@ -1692,6 +1761,10 @@ SQLite ohne separate Konvertierung ermöglicht.</p>
 <h4 id="buchungsstatus-bookingstatus">Buchungsstatus
 (<code>BookingStatus</code>)</h4>
 <table>
+<colgroup>
+<col style="width: 28%" />
+<col style="width: 71%" />
+</colgroup>
 <thead>
 <tr>
 <th>Wert</th>
@@ -1728,6 +1801,10 @@ SQLite ohne separate Konvertierung ermöglicht.</p>
 <h4 id="prüffall-typen-reviewcasetype">Prüffall-Typen
 (<code>ReviewCaseType</code>)</h4>
 <table>
+<colgroup>
+<col style="width: 40%" />
+<col style="width: 59%" />
+</colgroup>
 <thead>
 <tr>
 <th>Wert</th>
@@ -1783,6 +1860,11 @@ SQLite ohne separate Konvertierung ermöglicht.</p>
 </table>
 <h4 id="weitere-enumerationen">Weitere Enumerationen</h4>
 <table>
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 47%" />
+<col style="width: 35%" />
+</colgroup>
 <thead>
 <tr>
 <th>Enum</th>
@@ -1848,9 +1930,15 @@ unveränderlich (immutable). Zustandsänderungen werden nicht durch
 Mutation, sondern durch neue Datenbankoperationen über die Repositories
 ausgedrückt. Entitäten mit fachlichen Invarianten validieren diese in
 <code>__post_init__</code>.</p>
-<h4 id="employee--mitarbeiter"><code>Employee</code> – Mitarbeiter</h4>
+<h4 id="employee-mitarbeiter"><code>Employee</code> – Mitarbeiter</h4>
 <p>Repräsentiert einen Mitarbeiter der Praxis.</p>
 <table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 10%" />
+<col style="width: 55%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -1895,11 +1983,16 @@ ausgedrückt. Entitäten mit fachlichen Invarianten validieren diese in
 <p><strong>Invariante:</strong> <code>personnel_no</code> darf nicht
 leer oder nur Leerzeichen sein.</p>
 <hr />
-<h4 id="useraccount--benutzerkonto"><code>UserAccount</code> –
+<h4 id="useraccount-benutzerkonto"><code>UserAccount</code> –
 Benutzerkonto</h4>
 <p>Repräsentiert ein Anmeldekonto (z. B. für Admins oder Reviewer). Ein
 Benutzerkonto kann optional mit einem Mitarbeiter verknüpft sein.</p>
 <table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 30%" />
+<col style="width: 49%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -1915,7 +2008,7 @@ Benutzerkonto kann optional mit einem Mitarbeiter verknüpft sein.</p>
 </tr>
 <tr>
 <td><code>employee_id</code></td>
-<td><code>EmployeeId | None</code></td>
+<td><code>EmployeeId \| None</code></td>
 <td>Optionaler Mitarbeiterbezug</td>
 </tr>
 <tr>
@@ -1936,10 +2029,15 @@ Benutzerkonto kann optional mit einem Mitarbeiter verknüpft sein.</p>
 </tbody>
 </table>
 <hr />
-<h4 id="rfidcard--rfid-karte"><code>RfidCard</code> – RFID-Karte</h4>
+<h4 id="rfidcard-rfid-karte"><code>RfidCard</code> – RFID-Karte</h4>
 <p>Repräsentiert eine physische RFID-Karte, die einem Mitarbeiter
 zugeordnet ist.</p>
 <table>
+<colgroup>
+<col style="width: 26%" />
+<col style="width: 26%" />
+<col style="width: 47%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -1975,12 +2073,12 @@ zugeordnet ist.</p>
 </tr>
 <tr>
 <td><code>valid_until</code></td>
-<td><code>date | None</code></td>
+<td><code>date \| None</code></td>
 <td>Gültigkeitsende (None = unbefristet)</td>
 </tr>
 <tr>
 <td><code>replaced_by_card_id</code></td>
-<td><code>RfidCardId | None</code></td>
+<td><code>RfidCardId \| None</code></td>
 <td>Nachfolgekarte bei Ersatz</td>
 </tr>
 </tbody>
@@ -1988,11 +2086,16 @@ zugeordnet ist.</p>
 <p><strong>Invariante:</strong> <code>valid_until</code> darf nicht vor
 <code>valid_from</code> liegen.</p>
 <hr />
-<h4 id="timebooking--zeitbuchung"><code>TimeBooking</code> –
+<h4 id="timebooking-zeitbuchung"><code>TimeBooking</code> –
 Zeitbuchung</h4>
 <p>Das zentrale Kernobjekt des Systems. Jede Stempelung (Kommen, Gehen,
 Pause) erzeugt eine <code>TimeBooking</code>-Instanz.</p>
 <table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 27%" />
+<col style="width: 51%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -2033,34 +2136,39 @@ Pause) erzeugt eine <code>TimeBooking</code>-Instanz.</p>
 </tr>
 <tr>
 <td><code>terminal_id</code></td>
-<td><code>TerminalId | None</code></td>
+<td><code>TerminalId \| None</code></td>
 <td>Terminal, das die Buchung erzeugt hat</td>
 </tr>
 <tr>
 <td><code>rfid_card_id</code></td>
-<td><code>RfidCardId | None</code></td>
+<td><code>RfidCardId \| None</code></td>
 <td>Verwendete RFID-Karte</td>
 </tr>
 <tr>
 <td><code>device_event_id</code></td>
-<td><code>DeviceEventId | None</code></td>
+<td><code>DeviceEventId \| None</code></td>
 <td>Zugehöriges Geräteereignis</td>
 </tr>
 <tr>
 <td><code>note</code></td>
-<td><code>str | None</code></td>
+<td><code>str \| None</code></td>
 <td>Optionale Freitextnotiz</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h4
-id="workscheduleversion--regelarbeitszeit"><code>WorkScheduleVersion</code>
+id="workscheduleversion-regelarbeitszeit"><code>WorkScheduleVersion</code>
 – Regelarbeitszeit</h4>
 <p>Speichert die Soll-Arbeitszeiten, die entweder global für alle
 Mitarbeiter oder individuell pro Mitarbeiter für einen bestimmten
 Wochentag und Zeitraum gelten.</p>
 <table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 31%" />
+<col style="width: 43%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -2076,7 +2184,7 @@ Wochentag und Zeitraum gelten.</p>
 </tr>
 <tr>
 <td><code>scope_employee_id</code></td>
-<td><code>EmployeeId | None</code></td>
+<td><code>EmployeeId \| None</code></td>
 <td>Nur bei <code>EMPLOYEE</code>-Scope gesetzt</td>
 </tr>
 <tr>
@@ -2101,7 +2209,7 @@ Wochentag und Zeitraum gelten.</p>
 </tr>
 <tr>
 <td><code>valid_until</code></td>
-<td><code>date | None</code></td>
+<td><code>date \| None</code></td>
 <td>Gültigkeitsende (None = aktuell gültig)</td>
 </tr>
 <tr>
@@ -2111,7 +2219,7 @@ Wochentag und Zeitraum gelten.</p>
 </tr>
 <tr>
 <td><code>changed_by_user_id</code></td>
-<td><code>UserAccountId | None</code></td>
+<td><code>UserAccountId \| None</code></td>
 <td>Ausführendes Benutzerkonto</td>
 </tr>
 </tbody>
@@ -2122,11 +2230,16 @@ Wochentag und Zeitraum gelten.</p>
 <code>weekday</code> muss 1–7 (ISO) betragen; <code>valid_until</code>
 darf nicht vor <code>valid_from</code> liegen.</p>
 <hr />
-<h4 id="reviewcase--prüffall"><code>ReviewCase</code> – Prüffall</h4>
+<h4 id="reviewcase-prüffall"><code>ReviewCase</code> – Prüffall</h4>
 <p>Repräsentiert einen fachlichen Auffälligkeitsbefund, der durch
 automatische Compliance-Checks oder manuelle Auslösung entsteht und
 einen Bearbeitungsworkflow durchläuft.</p>
 <table>
+<colgroup>
+<col style="width: 22%" />
+<col style="width: 27%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -2167,7 +2280,7 @@ einen Bearbeitungsworkflow durchläuft.</p>
 </tr>
 <tr>
 <td><code>booking_id</code></td>
-<td><code>TimeBookingId | None</code></td>
+<td><code>TimeBookingId \| None</code></td>
 <td>Betroffene Zeitbuchung (sofern zuordenbar)</td>
 </tr>
 <tr>
@@ -2177,17 +2290,17 @@ einen Bearbeitungsworkflow durchläuft.</p>
 </tr>
 <tr>
 <td><code>closed_at</code></td>
-<td><code>datetime | None</code></td>
+<td><code>datetime \| None</code></td>
 <td>Zeitpunkt des Abschlusses</td>
 </tr>
 <tr>
 <td><code>closed_by_user_id</code></td>
-<td><code>UserAccountId | None</code></td>
+<td><code>UserAccountId \| None</code></td>
 <td>Benutzer, der den Fall abgeschlossen hat</td>
 </tr>
 <tr>
 <td><code>note</code></td>
-<td><code>str | None</code></td>
+<td><code>str \| None</code></td>
 <td>Pflicht bei <code>CLOSED_WITH_NOTE</code></td>
 </tr>
 </tbody>
@@ -2199,7 +2312,7 @@ abgeschlossene Fälle (<code>RESOLVED</code>,
 <code>CLOSED_WITH_NOTE</code> erfordert zusätzlich eine nicht-leere
 Begründung.</p>
 <hr />
-<h4 id="supplement--nachtrag"><code>Supplement</code> – Nachtrag</h4>
+<h4 id="supplement-nachtrag"><code>Supplement</code> – Nachtrag</h4>
 <p>Repräsentiert eine nachträglich erfasste Zeitbuchung (z. B.
 vergessene Stempelung), die durch ein Benutzerkonto genehmigt oder
 abgelehnt werden muss.</p>
@@ -2214,11 +2327,16 @@ müssen die entsprechenden Felder (<code>approved_by_user_id</code>,
 <code>recorded_at</code> liegen.</p>
 <hr />
 <h4
-id="bookingcorrection--buchungskorrektur"><code>BookingCorrection</code>
+id="bookingcorrection-buchungskorrektur"><code>BookingCorrection</code>
 – Buchungskorrektur</h4>
 <p>Speichert den vollständigen Vorher-/Nachher-Vergleich einer
 Buchungskorrektur als unveränderlichen Audit-Trail.</p>
 <table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 24%" />
+<col style="width: 44%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -2267,12 +2385,17 @@ Buchungskorrektur als unveränderlichen Audit-Trail.</p>
 <p><strong>Invariante:</strong> <code>created_at</code> darf nicht vor
 <code>old_booked_at</code> liegen.</p>
 <hr />
-<h4 id="auditlogentry--audit-log-eintrag"><code>AuditLogEntry</code> –
+<h4 id="auditlogentry-audit-log-eintrag"><code>AuditLogEntry</code> –
 Audit-Log-Eintrag</h4>
 <p>Repräsentiert einen unveränderlichen Protokolleintrag für
 revisionssichere Nachvollziehbarkeit aller systemrelevanten
 Ereignisse.</p>
 <table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 26%" />
+<col style="width: 56%" />
+</colgroup>
 <thead>
 <tr>
 <th>Feld</th>
@@ -2303,12 +2426,12 @@ Ereignisse.</p>
 </tr>
 <tr>
 <td><code>user_id</code></td>
-<td><code>UserAccountId | None</code></td>
+<td><code>UserAccountId \| None</code></td>
 <td>Auslösendes Benutzerkonto (ggf. kein Konto)</td>
 </tr>
 <tr>
 <td><code>employee_id</code></td>
-<td><code>EmployeeId | None</code></td>
+<td><code>EmployeeId \| None</code></td>
 <td>Betroffener Mitarbeiter (ggf. nicht personenbezogen)</td>
 </tr>
 <tr>
@@ -2332,6 +2455,11 @@ erben von <code>DomainError</code>. Jeder Fehlertyp trägt einen
 maschinenlesbaren <code>code</code>-String, der in Logs und der
 Benutzeroberfläche ausgewertet werden kann.</p>
 <table>
+<colgroup>
+<col style="width: 27%" />
+<col style="width: 24%" />
+<col style="width: 47%" />
+</colgroup>
 <thead>
 <tr>
 <th>Fehlerklasse</th>
@@ -2406,6 +2534,10 @@ Implementierungen in der Infrastrukturschicht müssen diese Protokolle
 erfüllen, ohne dass das Domain-Modell sie importiert – klassische
 Dependency Inversion.</p>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 66%" />
+</colgroup>
 <thead>
 <tr>
 <th>Protokoll</th>
@@ -2470,14 +2602,14 @@ verloren gehen. In den Repository-Kommentaren ist für die
 SQLite-Implementierung eine separate <code>autocommit</code>-Verbindung
 als Implementierungshinweis dokumentiert.</p>
 </blockquote>
-<h4 id="besonderheit-workschedulerepositorylist_versions">Besonderheit
+<h4 id="besonderheit-workschedulerepository.list_versions">Besonderheit
 <code>WorkScheduleRepository.list_versions</code></h4>
 <pre class="text"><code>scope_employee_id=None  → ausschließlich GLOBAL-Versionen
 scope_employee_id=&lt;id&gt;  → ausschließlich EMPLOYEE-Versionen für diesen MA
 Niemals beide Scopes gemischt.
 Rückgabe aufsteigend nach valid_from sortiert.</code></pre>
 <h4
-id="besonderheit-timebookingrepositorylist_for_employee_on_day">Besonderheit
+id="besonderheit-timebookingrepository.list_for_employee_on_day">Besonderheit
 <code>TimeBookingRepository.list_for_employee_on_day</code></h4>
 <p>Die Rückgabe muss <strong>aufsteigend nach
 <code>booked_at</code></strong> sortiert sein, da alle nachgelagerten
@@ -2529,6 +2661,10 @@ nicht eine Liste vollständiger <code>TimeBooking</code>-Entitäten.</p>
 ungültig.</p>
 <p><strong>Fehler-Mapping:</strong></p>
 <table>
+<colgroup>
+<col style="width: 56%" />
+<col style="width: 43%" />
+</colgroup>
 <thead>
 <tr>
 <th>Situation</th>
@@ -2586,7 +2722,7 @@ abzüglich aller erfassten Pausen). Sie ersetzen keine rechtsverbindliche
 Einzelfallbewertung, sondern dienen als fachliche Prüfhilfe.</p>
 </blockquote>
 <h5
-id="check_break_complianceday_bookings--4-arbzg"><code>check_break_compliance(day_bookings)</code>
+id="check_break_complianceday_bookings-4-arbzg"><code>check_break_compliance(day_bookings)</code>
 – §4 ArbZG</h5>
 <table>
 <thead>
@@ -2611,7 +2747,7 @@ id="check_break_complianceday_bookings--4-arbzg"><code>check_break_compliance(da
 </tbody>
 </table>
 <h5
-id="check_max_hoursday_bookings--3-arbzg"><code>check_max_hours(day_bookings)</code>
+id="check_max_hoursday_bookings-3-arbzg"><code>check_max_hours(day_bookings)</code>
 – §3 ArbZG</h5>
 <table>
 <thead>
@@ -2632,7 +2768,7 @@ id="check_max_hoursday_bookings--3-arbzg"><code>check_max_hours(day_bookings)</c
 </tbody>
 </table>
 <h5
-id="check_rest_periodlast_go-next_come--5-arbzg"><code>check_rest_period(last_go, next_come)</code>
+id="check_rest_periodlast_go-next_come-5-arbzg"><code>check_rest_period(last_go, next_come)</code>
 – §5 ArbZG</h5>
 <table>
 <thead>
@@ -2657,6 +2793,10 @@ id="check_rest_periodlast_go-next_come--5-arbzg"><code>check_rest_period(last_go
 Kein Use Case oder Infrastrukturkomponente darf freie String-Literale
 für <code>event_type</code> verwenden.</p>
 <table>
+<colgroup>
+<col style="width: 44%" />
+<col style="width: 55%" />
+</colgroup>
 <thead>
 <tr>
 <th>Konstante</th>
@@ -2838,12 +2978,17 @@ auch einige direkte Schreibzugriffe ohne Use Case.</p>
     └── simulator.py         # In-Memory-Simulator für Tests</code></pre>
 <hr />
 <h3 id="datenbankzugriff-db">Datenbankzugriff (<code>db/</code>)</h3>
-<h4 id="verbindungsaufbau--dbconnectionpy">Verbindungsaufbau —
+<h4 id="verbindungsaufbau-dbconnection.py">Verbindungsaufbau —
 <code>db/connection.py</code></h4>
 <p>Alle Datenbankverbindungen werden ausschließlich über
 <code>open_connection(db_path)</code> geöffnet. Die Funktion setzt vier
 SQLite-PRAGMAs, die für den Betrieb zwingend erforderlich sind:</p>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>PRAGMA</th>
@@ -2878,7 +3023,7 @@ Haupt-Transaktion)</td>
 <p>Die Verbindung liefert immer <code>sqlite3.Row</code>-Objekte zurück,
 sodass Spalten per Namen abrufbar sind (<code>row["employee_id"]</code>
 statt <code>row[0]</code>).</p>
-<h4 id="migrationen--dbmigrationspy">Migrationen —
+<h4 id="migrationen-dbmigrations.py">Migrationen —
 <code>db/migrations.py</code></h4>
 <p>Das Schema wird ausschließlich durch nummerierte SQL-Dateien im
 Verzeichnis <code>migrations/</code> gesteuert (Format:
@@ -2899,7 +3044,7 @@ weiterwerfen.</li>
 <p>Der Versionsstring wird durch
 <code>version.isdigit() and len(version) == 4</code> validiert, bevor er
 in den SQL-String eingebettet wird (kein SQL-Injection-Risiko).</p>
-<h4 id="unit-of-work--dbunit_of_workpy">Unit of Work —
+<h4 id="unit-of-work-dbunit_of_work.py">Unit of Work —
 <code>db/unit_of_work.py</code></h4>
 <p><code>SQLiteUnitOfWork</code> ist der einzige Einstiegspunkt für
 Use-Cases, die Datenbankänderungen vornehmen. Er bündelt alle elf
@@ -2920,7 +3065,7 @@ geöffnet sein. Dadurch bleiben Audit-Einträge auch nach einem Rollback
 der Haupt-Transaktion erhalten. Ohne <code>audit_conn</code> fällt das
 Audit-Log auf die Haupt-Verbindung zurück — Einträge, die vor einem
 Rollback erzeugt wurden, gehen dann verloren.</p>
-<h4 id="repositories--dbrepositories">Repositories —
+<h4 id="repositories-dbrepositories">Repositories —
 <code>db/repositories/</code></h4>
 <p>Jede Domänen-Entität besitzt genau ein Repository. Alle Repositories
 folgen demselben Muster: Konstruktor nimmt
@@ -2936,6 +3081,11 @@ zeitstempelverarbeitenden Repositories normalisieren Zeitstempel dabei
 <code>SQLiteDeviceEventRepository</code> verwenden diese Hilfsfunktion
 nicht.</p>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Repository-Klasse</th>
@@ -3030,7 +3180,7 @@ Aufruf in UTC zu normalisieren.</p>
 <hr />
 <h3 id="hardware-abstraktion-hardware">Hardware-Abstraktion
 (<code>hardware/</code>)</h3>
-<h4 id="protokolldefinition--hardwareportspy">Protokolldefinition —
+<h4 id="protokolldefinition-hardwareports.py">Protokolldefinition —
 <code>hardware/ports.py</code></h4>
 <p>Alle Hardware-Komponenten kommunizieren ausschließlich über das
 <code>HardwareReader</code>-Protocol (PEP 544). Der Rückgabetyp jeder
@@ -3041,14 +3191,11 @@ class="sourceCode python"><code class="sourceCode python"><span id="cb27-1"><a h
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    booking_type: BookingType  <span class="co"># COME | GO | BREAK_START | BREAK_END</span></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    uid_hash: <span class="bu">str</span>              <span class="co"># SHA-256-Hash der Karten-UID</span></span>
 <span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    occurred_at: datetime      <span class="co"># UTC-Zeitstempel nach vollständiger UID-Lesung</span></span></code></pre></div>
-<p>Zusätzlich definiert <code>ports.py</code> zwei Fehlerfälle:</p>
-<ul>
-<li><code>EmptyUidError</code>: RFID-Reader lieferte leere oder nicht
-mappbare UID.</li>
-<li><code>HardwareTimeoutError</code>: UID-Lesung überschritt das
-Zeitlimit (Standard: 5 Sekunden).</li>
-</ul>
-<h4 id="uid-hashing--hardwareuid_hashpy">UID-Hashing —
+<p>Zusätzlich definiert <code>ports.py</code> zwei Fehlerfälle: -
+<code>EmptyUidError</code>: RFID-Reader lieferte leere oder nicht
+mappbare UID. - <code>HardwareTimeoutError</code>: UID-Lesung
+überschritt das Zeitlimit (Standard: 5 Sekunden).</p>
+<h4 id="uid-hashing-hardwareuid_hash.py">UID-Hashing —
 <code>hardware/uid_hash.py</code></h4>
 <p>Die Roh-UID des RFID-Lesers (Hex-String oder Dezimalfolge) wird
 <strong>nie direkt gespeichert</strong>. <code>hash_uid(raw_uid)</code>
@@ -3058,7 +3205,7 @@ class="sourceCode python"><code class="sourceCode python"><span id="cb28-1"><a h
 <p>Dieser Hash ist der einzige Bezeichner, der in die Datenbank gelangt
 (<code>rfid_cards.uid_hash</code>). Damit ist die physische Karten-UID
 aus dem Datenbankinhalt nicht rückrechenbar.</p>
-<h4 id="physischer-reader--hardwareevdev_readerpy">Physischer Reader —
+<h4 id="physischer-reader-hardwareevdev_reader.py">Physischer Reader —
 <code>hardware/evdev_reader.py</code></h4>
 <p><code>EvdevHardwareReader</code> liest Buchungsanfragen von zwei
 unabhängigen USB-HID-Geräten:</p>
@@ -3070,18 +3217,14 @@ unabhängigen USB-HID-Geräten:</p>
 Liefert die Karten-UID als Hex-Zeichenfolge, abgeschlossen durch Enter.
 Nicht-Hex-Zeichen werden ignoriert.</li>
 </ol>
-<p><strong>Ablauf eines <code>read_next()</code>-Aufrufs:</strong></p>
-<ol type="1">
-<li><code>_read_booking_type()</code> blockiert unbegrenzt bis zu einer
+<p><strong>Ablauf eines <code>read_next()</code>-Aufrufs:</strong> 1.
+<code>_read_booking_type()</code> blockiert unbegrenzt bis zu einer
 gültigen Numpad-Taste (Idle-Wartezustand, kein Timeout — Timeout-Logik
-gehört in die aufrufende Schicht).</li>
-<li><code>_read_rfid_uid()</code> liest die UID mit einem
-konfigurierbaren Timeout (Standard: 5 s).</li>
-<li><code>occurred_at</code> wird erst nach vollständiger UID-Lesung
-gesetzt.</li>
-<li><code>hash_uid()</code> berechnet den Hash; das
-<code>RawBookingRequest</code>-Objekt wird zurückgegeben.</li>
-</ol>
+gehört in die aufrufende Schicht). 2. <code>_read_rfid_uid()</code>
+liest die UID mit einem konfigurierbaren Timeout (Standard: 5 s). 3.
+<code>occurred_at</code> wird erst nach vollständiger UID-Lesung
+gesetzt. 4. <code>hash_uid()</code> berechnet den Hash; das
+<code>RawBookingRequest</code>-Objekt wird zurückgegeben.</p>
 <p>Geräte werden mit <code>grab=True</code> exklusiv belegt, damit keine
 anderen Prozesse (z. B. der Desktop) dieselben Tastenanschläge
 empfangen.</p>
@@ -3091,7 +3234,7 @@ Lesezugriff auf <code>/dev/input/event*</code> (Gruppe
 <p>Die Funktion <code>map_rfid_key(keycode, shift_active)</code> ist
 eigenständig testbar ohne physische Hardware (enthält die gesamte
 Filterlogik).</p>
-<h4 id="simulator--hardwaresimulatorpy">Simulator —
+<h4 id="simulator-hardwaresimulator.py">Simulator —
 <code>hardware/simulator.py</code></h4>
 <p><code>SimulatedHardwareReader</code> implementiert dasselbe
 <code>HardwareReader</code>-Protocol wie der physische Reader und
@@ -3106,7 +3249,7 @@ gibt die Anzahl noch nicht abgerufener Ereignisse zurück.
 <code>RuntimeError</code>.</p>
 <hr />
 <h3 id="export-export">Export (<code>export/</code>)</h3>
-<h4 id="gemeinsame-abfrageschicht--exportreport_queriespy">Gemeinsame
+<h4 id="gemeinsame-abfrageschicht-exportreport_queries.py">Gemeinsame
 Abfrageschicht — <code>export/report_queries.py</code></h4>
 <p><strong>Alle</strong> Exportkanäle (CSV, PDF, UI-Pflichtauswertungen)
 nutzen ausschließlich die Funktionen in <code>report_queries.py</code>.
@@ -3117,6 +3260,10 @@ zulässig sind (ADR-002,
 <code>docs/adr/adr-cqrs-lesezugriff.md</code>).</p>
 <p>Öffentliche Abfragefunktionen:</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Funktion</th>
@@ -3170,7 +3317,7 @@ Datensatz</td>
 </table>
 <p>Alle Zeitraumbeschränkungen verwenden das halboffene Intervall
 <code>[from_dt, to_dt)</code>.</p>
-<h4 id="csv-export--exportcsv_exporterpy">CSV-Export —
+<h4 id="csv-export-exportcsv_exporter.py">CSV-Export —
 <code>export/csv_exporter.py</code></h4>
 <p>Drei Exportfunktionen erzeugen CSV-Dateien nach Pflichtenheft
 §7.11:</p>
@@ -3197,14 +3344,11 @@ Eine Zeile pro Mitarbeiter und Kalendertag.</p>
 <code>warn_buchungen</code>, <code>pruefpflicht_buchungen</code>,
 <code>korrekturen</code>, <code>nachtraege</code></p>
 <p>Die Tagesstatistik <code>_day_stats()</code> arbeitet als
-Zustandsmaschine:</p>
-<ul>
-<li>Nettoarbeitszeit = Summe aller Arbeitsphasen (COME→BREAK_START und
-BREAK_END→GO).</li>
-<li>Pausen werden nicht zur Arbeitszeit gezählt.</li>
-<li>Korrekturen werden am <code>corrected_at</code>-Tag, Nachträge am
-<code>event_at</code>-Tag gezählt.</li>
-</ul>
+Zustandsmaschine: - Nettoarbeitszeit = Summe aller Arbeitsphasen
+(COME→BREAK_START und BREAK_END→GO). - Pausen werden nicht zur
+Arbeitszeit gezählt. - Korrekturen werden am
+<code>corrected_at</code>-Tag, Nachträge am <code>event_at</code>-Tag
+gezählt.</p>
 <p><strong>Prüffallexport</strong> (<code>export_review_cases</code>):
 Eine Zeile pro offenem Prüffall.</p>
 <p><strong>Dateinamenschema:</strong></p>
@@ -3212,11 +3356,16 @@ Eine Zeile pro offenem Prüffall.</p>
 export_verdichtet_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv</code></pre>
 <p>Der <code>export_dir</code>-Pfad wird von der aufrufenden Schicht aus
 <code>system_config</code> gelesen und direkt übergeben.</p>
-<h4 id="pdf-berichte--exportpdf_report_servicepy">PDF-Berichte —
+<h4 id="pdf-berichte-exportpdf_report_service.py">PDF-Berichte —
 <code>export/pdf_report_service.py</code></h4>
 <p>Vier Berichtsfunktionen erzeugen A4-PDFs via <code>reportlab</code>
 (Pflichtenheft §7.11):</p>
 <table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
 <thead>
 <tr>
 <th>Funktion</th>
@@ -3247,21 +3396,16 @@ export_verdichtet_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.csv</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Jeder Bericht enthält fünf inhaltliche Abschnitte:</p>
-<ol type="1">
-<li><strong>Buchungen</strong> — Tabelle aller Buchungen im
-Zeitraum</li>
-<li><strong>Korrekturen</strong> — Alter Zustand, neuer Zustand,
-Begründung, Zeitstempel</li>
-<li><strong>Nachträge</strong> — Buchungsart, Ereigniszeitpunkt,
-Begründung, Freigabestatus</li>
-<li><strong>Offene Prüffälle</strong> — Typ, Schwere, Beschreibung,
-Erkennungszeitpunkt</li>
-<li><strong>Erläuterungen</strong> — Bedeutung der Status-Codes (OPEN,
-WARN, NEEDS_REVIEW, Nachträge, Korrekturen)</li>
-</ol>
+<p>Jeder Bericht enthält fünf inhaltliche Abschnitte: 1.
+<strong>Buchungen</strong> — Tabelle aller Buchungen im Zeitraum 2.
+<strong>Korrekturen</strong> — Alter Zustand, neuer Zustand, Begründung,
+Zeitstempel 3. <strong>Nachträge</strong> — Buchungsart,
+Ereigniszeitpunkt, Begründung, Freigabestatus 4. <strong>Offene
+Prüffälle</strong> — Typ, Schwere, Beschreibung, Erkennungszeitpunkt 5.
+<strong>Erläuterungen</strong> — Bedeutung der Status-Codes (OPEN, WARN,
+NEEDS_REVIEW, Nachträge, Korrekturen)</p>
 <hr />
-<h3 id="backup-backupbackup_servicepy">Backup
+<h3 id="backup-backupbackup_service.py">Backup
 (<code>backup/backup_service.py</code>)</h3>
 <p><code>SQLiteBackupService</code> verwaltet lokale Sicherungskopien
 und optionale NAS-Synchronisation.</p>
@@ -3317,13 +3461,17 @@ erreichbares NAS (Neustart, Wartung) soll keinen
 <code>SELFTEST_FAIL</code> auslösen.</p>
 <hr />
 <h3 id="systemüberwachung">Systemüberwachung</h3>
-<h4 id="selbsttest--system_checkpy">Selbsttest —
+<h4 id="selbsttest-system_check.py">Selbsttest —
 <code>system_check.py</code></h4>
 <p><code>run_system_check(db_path, numpad_path?, rfid_path?)</code>
 prüft beim Systemstart sechs Bereiche und schreibt das Gesamtergebnis
 als <code>SELFTEST_OK</code> oder <code>SELFTEST_FAIL</code> in
 <code>system_events</code>:</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Prüfbereich</th>
@@ -3365,7 +3513,7 @@ Fremdschlüsselreferenzen</td>
 Das <code>SystemCheckResult</code> aggregiert alle Checks;
 <code>overall_ok</code> ist <code>True</code> genau dann, wenn alle
 Checks bestanden sind.</p>
-<h4 id="zeitsprung-erkennung--time_monitorpy">Zeitsprung-Erkennung —
+<h4 id="zeitsprung-erkennung-time_monitor.py">Zeitsprung-Erkennung —
 <code>time_monitor.py</code></h4>
 <p><code>SystemTimeMonitor</code> erkennt Uhrzeitänderungen durch
 Gegenüberstellung von Wall-Clock
@@ -3390,7 +3538,7 @@ Sekunden.</p>
 (<code>_wall_clock</code>, <code>_mono_clock</code>), was Unit-Tests
 ohne Systemzeit-Manipulation ermöglicht.</p>
 <h4
-id="desktop-benachrichtigung--notificationpy">Desktop-Benachrichtigung —
+id="desktop-benachrichtigung-notification.py">Desktop-Benachrichtigung —
 <code>notification.py</code></h4>
 <p><code>notify(title, body, urgency?)</code> sendet eine
 Desktop-Benachrichtigung via <code>notify-send</code> (Pflichtenheft
@@ -3426,34 +3574,232 @@ nie die SQLite-Implementierung.</p>
 <h4 id="nicht-delegierte-verantwortlichkeiten">Nicht delegierte
 Verantwortlichkeiten</h4>
 <p>Die Infrastrukturschicht übernimmt bewusst <strong>keine</strong>
-Zuständigkeit für:</p>
-<ul>
-<li>Fachliche Validierung (gehört in die Domain- oder
-Anwendungsschicht).</li>
-<li>Timeout-Logik für den Numpad-Idle-Wartezustand (gehört in die
-Betriebsschicht).</li>
-<li>NTP-Synchronisation (Aufgabe des Betriebssystems / systemd).</li>
-<li>Authentifizierung und Autorisierung (Anwendungsschicht).</li>
-</ul>
+Zuständigkeit für: - Fachliche Validierung (gehört in die Domain- oder
+Anwendungsschicht). - Timeout-Logik für den Numpad-Idle-Wartezustand
+(gehört in die Betriebsschicht). - NTP-Synchronisation (Aufgabe des
+Betriebssystems / systemd). - Authentifizierung und Autorisierung
+(Anwendungsschicht).</p>
 <h4 id="testbarkeit">Testbarkeit</h4>
 <p>Alle sicherheitskritischen und zustandsbehafteten Teile sind ohne
-physische Hardware testbar:</p>
-<ul>
-<li><code>SimulatedHardwareReader</code> implementiert dasselbe Protocol
-wie <code>EvdevHardwareReader</code>.</li>
-<li><code>map_rfid_key()</code> ist eine pure Funktion ohne
-Gerätezugriff.</li>
-<li><code>SystemTimeMonitor</code> akzeptiert injizierbare
-Clock-Callbacks.</li>
-<li>Repositories arbeiten auf jeder <code>sqlite3.Connection</code>;
-eine Verwendung von In-Memory-Datenbanken (<code>:memory:</code>) ist im
+physische Hardware testbar: - <code>SimulatedHardwareReader</code>
+implementiert dasselbe Protocol wie <code>EvdevHardwareReader</code>. -
+<code>map_rfid_key()</code> ist eine pure Funktion ohne Gerätezugriff. -
+<code>SystemTimeMonitor</code> akzeptiert injizierbare Clock-Callbacks.
+- Repositories arbeiten auf jeder <code>sqlite3.Connection</code>; eine
+Verwendung von In-Memory-Datenbanken (<code>:memory:</code>) ist im
 Repository nicht belegt — die Testsuite nutzt durchgängig dateibasierte
-Datenbanken über <code>tmp_path</code> (nicht verifizierbar).</li>
-</ul>
+Datenbanken über <code>tmp_path</code> (nicht verifizierbar).</p>
 <hr />
 <h2 id="kapitel-7-audit-und-prüfstatus">Kapitel 7: Audit und
 Prüfstatus</h2>
 <p><strong>Quelle:</strong> <code>handbuch_audit.md</code></p>
+<h3
+id="code-audit-run_audit.sh-und-scriptsgenerate_audit_notes.py">Code-Audit
+(<code>run_audit.sh</code> und
+<code>scripts/generate_audit_notes.py</code>)</h3>
+<p><code>run_audit.sh</code> ist ein ausführbares Shell-Skript im
+Repository-Wurzelverzeichnis (56 Zeilen). Es führt nacheinander folgende
+Analyse-Tools gegen <code>src/arbeitszeit</code> aus und schreibt deren
+Rohausgaben in ein datumsbezogenes Unterverzeichnis
+<code>docs/audits/reports/&lt;DATUM&gt;/</code> (Datum im Format
+<code>YYYY-MM-DD</code>):</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Zweck</th>
+<th>Ausgabedatei</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ruff check</code></td>
+<td>Linting</td>
+<td><code>ruff-report.txt</code></td>
+</tr>
+<tr>
+<td><code>mypy</code></td>
+<td>Typprüfung</td>
+<td><code>mypy-report.txt</code></td>
+</tr>
+<tr>
+<td><code>radon cc -s -a</code></td>
+<td>Zyklomatische Komplexität</td>
+<td><code>radon-cc.txt</code></td>
+</tr>
+<tr>
+<td><code>radon raw</code></td>
+<td>Rohmetriken (LOC, Kommentare)</td>
+<td><code>radon-raw.txt</code></td>
+</tr>
+<tr>
+<td><code>lint-imports</code></td>
+<td>Architektur-Contract (import-linter)</td>
+<td><code>import-linter.txt</code></td>
+</tr>
+<tr>
+<td><code>bandit -r ... -f json</code></td>
+<td>Security-Analyse</td>
+<td><code>bandit-report.json</code></td>
+</tr>
+<tr>
+<td><code>pytest --cov=arbeitszeit</code></td>
+<td>Tests und Testabdeckung</td>
+<td><code>coverage.xml</code>, <code>htmlcov/</code>,
+<code>pytest.txt</code></td>
+</tr>
+</tbody>
+</table>
+<p>Aufruf:</p>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> run_audit.sh</span></code></pre></div>
+<p>Das Skript verwendet <code>set -uo pipefail</code> und bewusst
+<strong>nicht</strong> <code>set -e</code>: Ein Kommentar im Skript
+begründet dies damit, dass die Analyse-Tools bei Befunden mit Exit-Code
+1 zurückkehren können, ohne dass der Gesamtlauf abgebrochen werden soll.
+Entsprechend sind die Aufrufe von <code>ruff</code>, <code>mypy</code>,
+<code>lint-imports</code>, <code>bandit</code> und <code>pytest</code>
+jeweils mit <code>|| true</code> abgesichert; lediglich die beiden
+<code>radon</code>-Aufrufe besitzen kein <code>|| true</code>.</p>
+<p>Am Ende jedes Laufs ruft <code>run_audit.sh</code> automatisch
+<code>scripts/generate_audit_notes.py</code> auf, das die Rohdaten
+einliest und eine versionierte Markdown-Zusammenfassung erzeugt:</p>
+<div class="sourceCode" id="cb34"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/generate_audit_notes.py <span class="dt">\</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--report-dir</span> docs/audits/reports/<span class="op">&lt;</span>DATUM<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--output</span> docs/audits/reports/audit-notes-<span class="op">&lt;</span>DATUM<span class="op">&gt;</span>.md</span></code></pre></div>
+<p><code>scripts/generate_audit_notes.py</code> (596 Zeilen) unterstützt
+folgende Parameter:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Bedeutung</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--report-dir &lt;PFAD&gt;</code></td>
+<td>Verzeichnis mit den Rohdaten von <code>run_audit.sh</code></td>
+<td><code>docs/audits/reports</code></td>
+</tr>
+<tr>
+<td><code>--output &lt;PFAD&gt;</code></td>
+<td>Ausgabedatei</td>
+<td><code>&lt;report-dir&gt;/audit-notes-&lt;DATUM&gt;.md</code></td>
+</tr>
+</tbody>
+</table>
+<p>Jeder Parser des Skripts liefert bei fehlender Quelldatei
+<code>{"available": False}</code> zurück, statt Werte zu schätzen oder
+zu erfinden. Der erzeugte Bericht ist in folgender fester
+Abschnittsreihenfolge aufgebaut:</p>
+<ol type="1">
+<li><strong>Überblick</strong> – Codebasisgröße in KLoC (aus
+<code>radon raw</code>) sowie Testanzahl, aufgeschlüsselt nach
+<code>tests/domain/</code>, <code>tests/application/</code>,
+<code>tests/integration/</code> und <code>tests/e2e/</code> (gezählt
+werden Dateien nach dem Muster <code>test_*.py</code>, ohne
+<code>conftest.py</code>/<code>__init__.py</code>).</li>
+<li><strong>Linting (Ruff)</strong> – Gesamtanzahl der Befunde sowie
+gesondert ausgewiesene Kategorien <code>E501</code> (line-too-long),
+<code>F401</code> (unused-import) und die <code>B</code>-Serie
+(Bugbear).</li>
+<li><strong>Typprüfung (Mypy)</strong> – bei Erfolg „Fehler insgesamt:
+0“ mit Anzahl der geprüften Quelldateien; bei Fehlern die Gesamtzahl
+sowie bis zu 5 Beispielzeilen.</li>
+<li><strong>Komplexität (Radon)</strong> – Durchschnittswert und -note
+der zyklomatischen Komplexität sowie eine Tabelle aller „Hotspots“ mit
+CC ≥ 10 (Datei, Block, CC-Wert).</li>
+<li><strong>Architektur (import-linter)</strong> – Anzahl geprüfter
+Contracts, Anzahl Verstöße sowie Detailzeilen zu Verstößen.</li>
+<li><strong>Security (Bandit)</strong> – Anzahl der Funde nach
+Schweregrad (High/Medium/Low), gescannte LOC, <code>nosec</code>-Marker
+sowie eine Tabelle aller HIGH- und MEDIUM-Funde (ID, Datei, Zeile,
+Beschreibung).</li>
+<li><strong>Tests &amp; Coverage</strong> – Gesamt-Coverage in Prozent
+(aus <code>coverage.xml</code>, Cobertura-Format) sowie eine Tabelle der
+Dateien mit Coverage unter 60 %.</li>
+<li><strong>Maßnahmenplan</strong> – dynamisch erzeugte, priorisierte
+Liste offener Maßnahmen. Ein Eintrag wird jeweils nur aufgenommen, wenn
+die zugehörige Bedingung zutrifft:
+<ol type="1">
+<li>Bandit-Funde mit Schweregrad HIGH oder MEDIUM in Summe &gt; 0</li>
+<li>import-linter-Verstöße (<code>broken</code>) &gt; 0</li>
+<li>Mypy meldet keinen Erfolg und Gesamtfehleranzahl &gt; 0</li>
+<li>Ruff-Gesamtbefunde &gt; 0</li>
+<li>Radon-Hotspots mit CC ≥ 15 (bis zu drei Blocknamen werden
+genannt)</li>
+<li>Gesamt-Coverage &lt; 80 % (der zugehörige Maßnahmentext verweist
+dabei auf die Anzahl der Dateien mit Coverage &lt; 60 %, wie sie im
+Abschnitt „Tests &amp; Coverage“ ausgewiesen werden)</li>
+</ol>
+Treffen keine der Bedingungen zu, gibt der Bericht den Text „<em>Keine
+offenen Maßnahmen identifiziert – alle Checks bestanden.</em>“ aus.</li>
+</ol>
+<blockquote>
+<p>⚠️ <code>run_audit.sh</code> benötigt zusätzlich installierte Tools
+(<code>mypy</code>, <code>radon</code>, <code>bandit</code>), die in
+<code>pyproject.toml</code> unter
+<code>[project.optional-dependencies]</code> (Gruppe <code>dev</code>)
+nicht als Pflichtabhängigkeiten geführt sind. Dort sind nur
+<code>pytest</code>, <code>pytest-cov</code>, <code>pypdf</code>,
+<code>ruff</code> und <code>import-linter</code> gelistet.</p>
+</blockquote>
+<p>Die von den Analyse-Tools verwendete Konfiguration ist in
+<code>pyproject.toml</code> hinterlegt:</p>
+<ul>
+<li><code>[tool.ruff]</code>: <code>line-length = 100</code>,
+<code>target-version = "py314"</code>,
+<code>[tool.ruff.lint] select = ["E", "F", "W", "I", "B"]</code>,
+<code>ignore = []</code>; ausgeschlossen sind <code>.git</code>,
+<code>.venv</code>, <code>__pycache__</code> und
+<code>docs/audits/reports</code>.</li>
+<li><code>[tool.mypy]</code>: <code>python_version = "3.14"</code>,
+<code>strict = true</code>,
+<code>disallow_incomplete_defs = true</code>,
+<code>disallow_untyped_defs = true</code>,
+<code>ignore_missing_imports = true</code>,
+<code>warn_unused_ignores = true</code>,
+<code>warn_return_any = true</code>; ausgeschlossen sind
+<code>^\.venv/</code> und <code>^docs/audits/reports/</code>.</li>
+<li><code>[tool.importlinter]</code>: ein Contract „Clean Architecture -
+Layer-Abhaengigkeiten“ vom Typ <code>layers</code> mit der
+Schichtreihenfolge <code>arbeitszeit.presentation</code> →
+<code>arbeitszeit.infrastructure</code> →
+<code>arbeitszeit.application</code> →
+<code>arbeitszeit.domain</code>.</li>
+</ul>
+<blockquote>
+<p>ℹ️ Im Repository liegen zwei Audit-bezogene Verzeichnisse
+nebeneinander: <code>docs/audits/reports/</code> enthält die Rohdaten
+eines abgeschlossenen Laufs vom 16.06.2026
+(<code>ruff-report.txt</code>, <code>mypy-report.txt</code>,
+<code>radon-cc.txt</code>, <code>radon-raw.txt</code>,
+<code>import-linter.txt</code>, <code>bandit-report.json</code>,
+<code>coverage.xml</code>, <code>pytest.txt</code>) – dieser Pfad
+entspricht weiterhin dem in <code>run_audit.sh</code> fest codierten
+<code>BASE_DIR="docs/audits/reports"</code>.
+<code>docs/08_planung_intern/audits/</code> enthält demgegenüber ältere,
+manuell erstellte Audit-Berichte
+(<code>audit_arbeitszeit_v1_*.md</code>) sowie eine bereits gerenderte
+Fassung <code>reports/audit-notes-2026-06-16.md</code>. Eine Datei
+<code>audit-notes-2026-06-16.md</code> direkt unter
+<code>docs/audits/reports/</code> (dem von <code>run_audit.sh</code>
+erzeugten Standardpfad) existiert im aktuellen Repository-Stand
+nicht.</p>
+</blockquote>
 <h3 id="sicher-belegt">Sicher belegt</h3>
 <p>Die folgenden Aussagen sind durch die tatsächlich gelesenen Dateien
 abgesichert:</p>
@@ -3489,7 +3835,8 @@ alternativ über <code>ADMIN_USER_ID</code></li>
 <li><code>scripts/verify_hardware.py</code> für
 Hardware-Smoke-Tests</li>
 <li><code>run_audit.sh</code> und
-<code>scripts/generate_audit_notes.py</code> für Code-Audits</li>
+<code>scripts/generate_audit_notes.py</code> für Code-Audits (Details
+siehe Abschnitt „Code-Audit” oben)</li>
 </ul>
 <h3 id="nicht-überbehaupten">Nicht überbehaupten</h3>
 <p>Die folgenden Punkte sollten in einer technischen Dokumentation nur
