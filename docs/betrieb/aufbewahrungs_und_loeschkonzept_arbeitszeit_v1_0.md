@@ -62,7 +62,11 @@ Folgende Datenkategorien werden unterschieden:
 - **Praktische Umsetzung:** Daten in der Datenbank werden nicht physisch gelöscht,
   sondern verbleiben dauerhaft, werden aber nach Ablauf von **5 Jahren** nur noch
   bei berechtigtem Bedarf ausgewertet (z. B. behördliche Prüfung, arbeitsrechtliche
-  Auseinandersetzung).
+  Auseinandersetzung). Diese 5-Jahres-Marke ist eine Praxisfestlegung, die über
+  die gesetzliche Mindestfrist von 2 Jahren nach § 16 Abs. 2 ArbZG hinausgeht
+  (siehe Regelwerk § 18 und Pflichtenheft Kap. 12); eine automatisierte
+  technische Durchsetzung (z. B. Sperrung der Auswertung nach Fristablauf)
+  ist im System nicht implementiert.
 
 ### 4.2 Mitarbeiter-Stammdaten
 
@@ -70,9 +74,10 @@ Folgende Datenkategorien werden unterschieden:
 - Nach Beendigung des Beschäftigungsverhältnisses:
   - Deaktivierung der Zuordnung im System (z. B. Deaktivierung RFID-Karte, Kennzeichnung
     als „inaktiv“).
-  - Mindestaufbewahrung der arbeitszeitrelevanten Daten: 2 Jahre, praktische
-    Aufbewahrung von bis zu 5 Jahren, wenn arbeitsrechtliche Auseinandersetzungen
-    nicht ausgeschlossen sind.
+  - Mindestaufbewahrung der arbeitszeitrelevanten Daten: 2 Jahre (gesetzliche
+    Mindestfrist, siehe Regelwerk § 18/Pflichtenheft Kap. 12), praktische
+    Aufbewahrung von bis zu 5 Jahren als Praxisfestlegung, wenn arbeitsrechtliche
+    Auseinandersetzungen nicht ausgeschlossen sind.
   - Danach Prüfung, ob ein berechtigter Aufbewahrungsgrund weiter besteht.
 
 ### 4.3 Benutzerkonten-Daten
@@ -93,8 +98,11 @@ Folgende Datenkategorien werden unterschieden:
 
 - Exporte können zusätzliche Risiken bergen (z. B. Ablage auf Fileservern).
 - Standardaufbewahrungsfrist der Praxis für solche Dokumente:
-  - **5 Jahre**, sofern nicht kürzere Fristen vereinbart oder längere Aufbewahrung
-    aus Gründen der Beweisführung erforderlich ist.
+  - **5 Jahre** als Praxisfestlegung, sofern nicht kürzere Fristen vereinbart oder
+    längere Aufbewahrung aus Gründen der Beweisführung erforderlich ist. Diese
+    Frist ist keine gesetzliche Vorgabe aus Regelwerk oder Pflichtenheft (dort
+    jeweils nur „mindestens 2 Jahre“) und wird im System nicht automatisiert
+    durchgesetzt.
 - Verantwortlich für Archivierung und Löschung: siehe Abschnitt 7.
 
 ---
