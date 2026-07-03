@@ -1,0 +1,1000 @@
+I001 [*] Import block is un-sorted or un-formatted
+  --> src/arbeitszeit/application/use_cases/manage_user_accounts.py:3:1
+   |
+ 1 |   """Use Cases für Benutzerkontenverwaltung (ADMIN-Rolle, Ausnahme: Bootstrap)."""
+ 2 |
+ 3 | / import json
+ 4 | | from datetime import datetime, timezone
+ 5 | |
+ 6 | | from arbeitszeit.application.commands import (
+ 7 | |     BootstrapAdminCommand,
+ 8 | |     ChangeUserRoleCommand,
+ 9 | |     CreateUserAccountCommand,
+10 | |     DeactivateUserAccountCommand,
+11 | |     ReactivateUserAccountCommand,
+12 | | )
+13 | | from arbeitszeit.application.results import BootstrapAdminResult, CreateUserAccountResult
+14 | | from arbeitszeit.application.unit_of_work import UnitOfWork
+15 | | from arbeitszeit.domain import audit_events
+16 | | from arbeitszeit.domain.entities import AuditLogEntry, UserAccount
+17 | | from arbeitszeit.domain.enums import UserRole
+18 | | from arbeitszeit.domain.errors import ConflictError, NotFoundError, PermissionDeniedError, ValidationError
+19 | | from arbeitszeit.domain.value_objects import AuditLogEntryId, UserAccountId
+   | |___________________________________________________________________________^
+20 |
+21 |   _ALLOWED_ROLES = {UserRole.ADMIN, UserRole.REVIEWER, UserRole.TECH}
+   |
+help: Organize imports
+
+E501 Line too long (106 > 100)
+  --> src/arbeitszeit/application/use_cases/manage_user_accounts.py:18:101
+   |
+16 | from arbeitszeit.domain.entities import AuditLogEntry, UserAccount
+17 | from arbeitszeit.domain.enums import UserRole
+18 | from arbeitszeit.domain.errors import ConflictError, NotFoundError, PermissionDeniedError, ValidationError
+   |                                                                                                     ^^^^^^
+19 | from arbeitszeit.domain.value_objects import AuditLogEntryId, UserAccountId
+   |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> src/arbeitszeit/domain/ports/repositories.py:1:1
+   |
+ 1 | / from datetime import date, datetime
+ 2 | | from typing import Literal, Protocol
+ 3 | |
+ 4 | | from arbeitszeit.domain.entities import (
+ 5 | |     AuditLogEntry,
+ 6 | |     BookingCorrection,
+ 7 | |     Employee,
+ 8 | |     ReviewCase,
+ 9 | |     RfidCard,
+10 | |     Supplement,
+11 | |     TimeBooking,
+12 | |     UserAccount,
+13 | |     WorkScheduleVersion,
+14 | | )
+15 | | from arbeitszeit.domain.enums import BookingStatus, CardStatus, ChangeOrigin, ReviewCaseStatus, UserRole
+16 | | from arbeitszeit.domain.value_objects import (
+17 | |     DeviceEventId,
+18 | |     EmployeeId,
+19 | |     ReviewCaseId,
+20 | |     RfidCardId,
+21 | |     SupplementId,
+22 | |     TerminalId,
+23 | |     TimeBookingId,
+24 | |     UserAccountId,
+25 | |     WorkScheduleVersionId,
+26 | | )
+   | |_^
+   |
+help: Organize imports
+
+E501 Line too long (104 > 100)
+  --> src/arbeitszeit/domain/ports/repositories.py:15:101
+   |
+13 |     WorkScheduleVersion,
+14 | )
+15 | from arbeitszeit.domain.enums import BookingStatus, CardStatus, ChangeOrigin, ReviewCaseStatus, UserRole
+   |                                                                                                     ^^^^
+16 | from arbeitszeit.domain.value_objects import (
+17 |     DeviceEventId,
+   |
+
+E501 Line too long (105 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/main.py:112:101
+    |
+110 |         ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, audit_conn, args, user_id),
+111 |         ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, audit_conn, args, user_id),
+112 |         ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(conn, audit_conn, args, user_id),
+    |                                                                                                     ^^^^^
+113 |         ("bookings", "correct"): lambda: bookings.cmd_bookings_correct(
+114 |             conn, audit_conn, args, user_id
+    |
+
+E501 Line too long (121 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/main.py:128:101
+    |
+126 |         ("schedule", "show"): lambda: schedule.cmd_schedule_show(conn, args, user_id),
+127 |         ("reports", "export-csv"): lambda: reports.cmd_reports_export_csv(conn, args, user_id),
+128 |         ("reports", "export-csv-review-cases"): lambda: reports.cmd_reports_export_csv_review_cases(conn, args, user_id),
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^
+129 |         ("reports", "export-pdf-day"): lambda: reports.cmd_reports_export_pdf_day(
+130 |             conn, args, user_id
+    |
+
+E501 Line too long (109 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/main.py:154:101
+    |
+152 |         ("users", "add"): lambda: user_accounts.cmd_users_add(conn, audit_conn, args, user_id),
+153 |         ("users", "list"): lambda: user_accounts.cmd_users_list(conn, args),
+154 |         ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, audit_conn, args, user_id),
+    |                                                                                                     ^^^^^^^^^
+155 |         ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, audit_conn, args, user_id),
+156 |         ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, audit_conn, args, user_id),
+    |
+
+E501 Line too long (109 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/main.py:155:101
+    |
+153 |         ("users", "list"): lambda: user_accounts.cmd_users_list(conn, args),
+154 |         ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, audit_conn, args, user_id),
+155 |         ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, audit_conn, args, user_id),
+    |                                                                                                     ^^^^^^^^^
+156 |         ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, audit_conn, args, user_id),
+157 |         ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, audit_conn, args),
+    |
+
+E501 Line too long (111 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/main.py:156:101
+    |
+154 |         ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, audit_conn, args, user_id),
+155 |         ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, audit_conn, args, user_id),
+156 |         ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, audit_conn, args, user_id),
+    |                                                                                                     ^^^^^^^^^^^
+157 |         ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, audit_conn, args),
+158 |     }
+    |
+
+E501 Line too long (104 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/user_accounts.py:178:101
+    |
+176 |         help="Rolle: ADMIN, REVIEWER oder TECH",
+177 |     )
+178 |     add.add_argument("--employee-id", type=int, default=None, help="Verknüpfter Mitarbeiter (optional)")
+    |                                                                                                     ^^^^
+179 |     add.add_argument(
+180 |         "--password",
+    |
+
+E501 Line too long (108 > 100)
+   --> src/arbeitszeit/presentation/admin_cli/user_accounts.py:207:101
+    |
+205 |     )
+206 |     boot.add_argument("--username", required=True, help="Benutzername des ersten Administrators")
+207 |     boot.add_argument("--password", default=None, help="Passwort (leer lassen für automatisch generiertes)")
+    |                                                                                                     ^^^^^^^^
+    |
+
+I001 [*] Import block is un-sorted or un-formatted
+  --> src/arbeitszeit/presentation/admin_gui/main.py:12:1
+   |
+10 |   """
+11 |
+12 | / from __future__ import annotations
+13 | |
+14 | | import binascii
+15 | | import hashlib
+16 | | import json
+17 | | import os
+18 | | import secrets
+19 | | import sqlite3
+20 | | import sys
+21 | | import traceback
+22 | | from datetime import date, datetime, timezone
+23 | | from pathlib import Path
+24 | | from typing import Callable
+25 | |
+26 | | import tkinter as tk
+27 | | from tkinter import filedialog, messagebox, ttk
+   | |_______________________________________________^
+28 |
+29 |   _SRC = Path(__file__).resolve().parents[4]
+   |
+help: Organize imports
+
+F401 [*] `traceback` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:21:8
+   |
+19 | import sqlite3
+20 | import sys
+21 | import traceback
+   |        ^^^^^^^^^
+22 | from datetime import date, datetime, timezone
+23 | from pathlib import Path
+   |
+help: Remove unused import: `traceback`
+
+F401 [*] `datetime.date` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:22:22
+   |
+20 | import sys
+21 | import traceback
+22 | from datetime import date, datetime, timezone
+   |                      ^^^^
+23 | from pathlib import Path
+24 | from typing import Callable
+   |
+help: Remove unused import
+
+F401 [*] `datetime.datetime` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:22:28
+   |
+20 | import sys
+21 | import traceback
+22 | from datetime import date, datetime, timezone
+   |                            ^^^^^^^^
+23 | from pathlib import Path
+24 | from typing import Callable
+   |
+help: Remove unused import
+
+F401 [*] `datetime.timezone` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:22:38
+   |
+20 | import sys
+21 | import traceback
+22 | from datetime import date, datetime, timezone
+   |                                      ^^^^^^^^
+23 | from pathlib import Path
+24 | from typing import Callable
+   |
+help: Remove unused import
+
+F401 [*] `typing.Callable` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:24:20
+   |
+22 | from datetime import date, datetime, timezone
+23 | from pathlib import Path
+24 | from typing import Callable
+   |                    ^^^^^^^^
+25 |
+26 | import tkinter as tk
+   |
+help: Remove unused import: `typing.Callable`
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:33:1
+   |
+31 |       sys.path.insert(0, str(_SRC))
+32 |
+33 | / from arbeitszeit.application.commands import (
+34 | |     AssignRfidCardCommand,
+35 | |     BootstrapAdminCommand,
+36 | |     ChangeUserRoleCommand,
+37 | |     ChangeWorkScheduleCommand,
+38 | |     CreateEmployeeCommand,
+39 | |     CreateUserAccountCommand,
+40 | |     DeactivateEmployeeCommand,
+41 | |     DeactivateRfidCardCommand,
+42 | |     DeactivateUserAccountCommand,
+43 | |     ReactivateUserAccountCommand,
+44 | |     ReplaceRfidCardCommand,
+45 | | )
+   | |_^
+46 |   from arbeitszeit.application.use_cases.manage_employees import (
+47 |       CreateEmployeeUseCase,
+   |
+
+F401 [*] `arbeitszeit.application.commands.ChangeWorkScheduleCommand` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:37:5
+   |
+35 |     BootstrapAdminCommand,
+36 |     ChangeUserRoleCommand,
+37 |     ChangeWorkScheduleCommand,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+38 |     CreateEmployeeCommand,
+39 |     CreateUserAccountCommand,
+   |
+help: Remove unused import: `arbeitszeit.application.commands.ChangeWorkScheduleCommand`
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:46:1
+   |
+44 |       ReplaceRfidCardCommand,
+45 |   )
+46 | / from arbeitszeit.application.use_cases.manage_employees import (
+47 | |     CreateEmployeeUseCase,
+48 | |     DeactivateEmployeeUseCase,
+49 | | )
+   | |_^
+50 |   from arbeitszeit.application.use_cases.manage_rfid_cards import (
+51 |       AssignRfidCardUseCase,
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:50:1
+   |
+48 |       DeactivateEmployeeUseCase,
+49 |   )
+50 | / from arbeitszeit.application.use_cases.manage_rfid_cards import (
+51 | |     AssignRfidCardUseCase,
+52 | |     DeactivateRfidCardUseCase,
+53 | |     ReplaceRfidCardUseCase,
+54 | | )
+   | |_^
+55 |   from arbeitszeit.application.use_cases.manage_user_accounts import (
+56 |       BootstrapAdminUseCase,
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:55:1
+   |
+53 |       ReplaceRfidCardUseCase,
+54 |   )
+55 | / from arbeitszeit.application.use_cases.manage_user_accounts import (
+56 | |     BootstrapAdminUseCase,
+57 | |     ChangeUserRoleUseCase,
+58 | |     CreateUserAccountUseCase,
+59 | |     DeactivateUserAccountUseCase,
+60 | |     ReactivateUserAccountUseCase,
+61 | | )
+   | |_^
+62 |   from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+63 |   from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:62:1
+   |
+60 |     ReactivateUserAccountUseCase,
+61 | )
+62 | from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+63 | from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+64 | from arbeitszeit.domain.errors import DomainError
+   |
+
+F401 [*] `arbeitszeit.application.use_cases.manage_work_schedule.ManageWorkScheduleUseCase` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:62:68
+   |
+60 |     ReactivateUserAccountUseCase,
+61 | )
+62 | from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+   |                                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+63 | from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+64 | from arbeitszeit.domain.errors import DomainError
+   |
+help: Remove unused import: `arbeitszeit.application.use_cases.manage_work_schedule.ManageWorkScheduleUseCase`
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:63:1
+   |
+61 | )
+62 | from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+63 | from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+64 | from arbeitszeit.domain.errors import DomainError
+65 | from arbeitszeit.domain.value_objects import (
+   |
+
+F401 [*] `arbeitszeit.domain.enums.ChangeOrigin` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:63:38
+   |
+61 | )
+62 | from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+63 | from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+   |                                      ^^^^^^^^^^^^
+64 | from arbeitszeit.domain.errors import DomainError
+65 | from arbeitszeit.domain.value_objects import (
+   |
+help: Remove unused import
+
+F401 [*] `arbeitszeit.domain.enums.ScopeType` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:63:52
+   |
+61 | )
+62 | from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+63 | from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+   |                                                    ^^^^^^^^^
+64 | from arbeitszeit.domain.errors import DomainError
+65 | from arbeitszeit.domain.value_objects import (
+   |
+help: Remove unused import
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:64:1
+   |
+62 | from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
+63 | from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+64 | from arbeitszeit.domain.errors import DomainError
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+65 | from arbeitszeit.domain.value_objects import (
+66 |     EmployeeId,
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:65:1
+   |
+63 |   from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+64 |   from arbeitszeit.domain.errors import DomainError
+65 | / from arbeitszeit.domain.value_objects import (
+66 | |     EmployeeId,
+67 | |     RfidCardId,
+68 | |     UserAccountId,
+69 | |     WorkScheduleVersionId,
+70 | | )
+   | |_^
+71 |   from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+72 |   from arbeitszeit.infrastructure.db.connection import open_connection
+   |
+
+F401 [*] `arbeitszeit.domain.value_objects.WorkScheduleVersionId` imported but unused
+  --> src/arbeitszeit/presentation/admin_gui/main.py:69:5
+   |
+67 |     RfidCardId,
+68 |     UserAccountId,
+69 |     WorkScheduleVersionId,
+   |     ^^^^^^^^^^^^^^^^^^^^^
+70 | )
+71 | from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+   |
+help: Remove unused import: `arbeitszeit.domain.value_objects.WorkScheduleVersionId`
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:71:1
+   |
+69 |     WorkScheduleVersionId,
+70 | )
+71 | from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+72 | from arbeitszeit.infrastructure.db.connection import open_connection
+73 | from arbeitszeit.infrastructure.db.migrations import run_migrations
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:72:1
+   |
+70 | )
+71 | from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+72 | from arbeitszeit.infrastructure.db.connection import open_connection
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+73 | from arbeitszeit.infrastructure.db.migrations import run_migrations
+74 | from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:73:1
+   |
+71 | from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+72 | from arbeitszeit.infrastructure.db.connection import open_connection
+73 | from arbeitszeit.infrastructure.db.migrations import run_migrations
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+74 | from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+75 | from arbeitszeit.infrastructure.system_check import run_system_check
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:74:1
+   |
+72 | from arbeitszeit.infrastructure.db.connection import open_connection
+73 | from arbeitszeit.infrastructure.db.migrations import run_migrations
+74 | from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+75 | from arbeitszeit.infrastructure.system_check import run_system_check
+   |
+
+E402 Module level import not at top of file
+  --> src/arbeitszeit/presentation/admin_gui/main.py:75:1
+   |
+73 | from arbeitszeit.infrastructure.db.migrations import run_migrations
+74 | from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+75 | from arbeitszeit.infrastructure.system_check import run_system_check
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+76 |
+77 | # ─────────────────────────────────────────────────────────────────────────────
+   |
+
+E501 Line too long (110 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:270:101
+    |
+268 |                 conn.close()
+269 |             except Exception as exc:
+270 |                 messagebox.showerror("Fehler", f"Datenbank konnte nicht angelegt werden:\n{exc}", parent=self)
+    |                                                                                                     ^^^^^^^^^^
+271 |                 return
+272 |         else:
+    |
+
+E501 Line too long (110 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:439:101
+    |
+437 |             name = f"{r['first_name']} {r['last_name']}"
+438 |             status = "aktiv" if r["active"] else "inaktiv"
+439 |             self._tree.insert("", tk.END, iid=str(r["id"]), values=(r["id"], r["personnel_no"], name, status))
+    |                                                                                                     ^^^^^^^^^^
+440 |         self._info.set(f"{len(rows)} Mitarbeiter geladen ({aktiv} aktiv).")
+    |
+
+E501 Line too long (111 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:444:101
+    |
+442 |     def _anlegen(self) -> None:
+443 |         if not self._app.user_id:
+444 |             messagebox.showwarning("Keine Benutzer-ID", "Bitte zuerst eine Benutzer-ID eingeben.", parent=self)
+    |                                                                                                     ^^^^^^^^^^^
+445 |             return
+446 |         dlg = _MitarbeiterAnlegenDialog(self, self._app)
+    |
+
+E501 Line too long (130 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:507:101
+    |
+505 |         f = ttk.LabelFrame(self, text="Mitarbeiterdaten", padding=12)
+506 |         f.pack(padx=16, pady=12, fill=tk.BOTH)
+507 |         self._nr = EingabeFeld(f, 0, "Personalnummer:", "Eindeutige Kennung (z. B. M001). Darf kein anderes aktives Konto haben.")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+508 |         self._vn = EingabeFeld(f, 1, "Vorname:", "Vorname der Mitarbeiterin / des Mitarbeiters.")
+509 |         self._nn = EingabeFeld(f, 2, "Nachname:", "Nachname der Mitarbeiterin / des Mitarbeiters.")
+    |
+
+E501 Line too long (130 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:553:101
+    |
+552 |     _COLUMNS = ("id", "mitarbeiter_id", "uid_hash", "status", "gueltig_ab")
+553 |     _HEADERS = {"id": "ID", "mitarbeiter_id": "Mitarb.-ID", "uid_hash": "UID-Hash", "status": "Status", "gueltig_ab": "Gültig ab"}
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+554 |     _WIDTHS = {"id": 50, "mitarbeiter_id": 90, "uid_hash": 220, "status": 80, "gueltig_ab": 90}
+    |
+
+E501 Line too long (105 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:572:101
+    |
+570 |             "Sie benötigen die Mitarbeiter-ID (aus dem Mitarbeiter-Tab) und "
+571 |             "den SHA-256-Hash der Karte. Den Hash erhalten Sie mit dem Befehl:\n"
+572 |             "  python scripts/verify_hardware.py --numpad /dev/input/eventX --rfid /dev/input/eventY\n\n"
+    |                                                                                                     ^^^^^
+573 |             "Halten Sie während des Tests die Karte an den Leser — das Script "
+574 |             "zeigt den Hash an.",
+    |
+
+E501 Line too long (106 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:601:101
+    |
+599 |         tree_frame = ttk.Frame(self)
+600 |         tree_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
+601 |         self._tree = ttk.Treeview(tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse")
+    |                                                                                                     ^^^^^^
+602 |         for col in self._COLUMNS:
+603 |             self._tree.heading(col, text=self._HEADERS[col])
+    |
+
+E501 Line too long (115 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:611:101
+    |
+610 |         self._info = tk.StringVar(value="Keine Verbindung.")
+611 |         tk.Label(self, textvariable=self._info, foreground="#555", anchor="w").pack(fill=tk.X, padx=8, pady=(0, 6))
+    |                                                                                                     ^^^^^^^^^^^^^^^
+612 |
+613 |     def laden(self) -> None:
+    |
+
+E501 Line too long (107 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:628:101
+    |
+626 |         for r in rows:
+627 |             self._tree.insert("", tk.END, iid=str(r["id"]),
+628 |                 values=(r["id"], r["employee_id"], r["uid_hash"][:24] + "…", r["status"], r["valid_from"]))
+    |                                                                                                     ^^^^^^^
+629 |         self._info.set(f"{len(rows)} Karte(n) geladen.")
+    |
+
+F821 Undefined name `simpledialog`
+   --> src/arbeitszeit/presentation/admin_gui/main.py:648:22
+    |
+646 |         if karte_id is None:
+647 |             return
+648 |         neuer_hash = simpledialog.askstring(
+    |                      ^^^^^^^^^^^^
+649 |             "Karte ersetzen",
+650 |             "SHA-256-Hash der neuen Karte eingeben:\n\n"
+    |
+
+E501 Line too long (106 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:675:101
+    |
+673 |         if karte_id is None:
+674 |             return
+675 |         if not messagebox.askyesno("Bestätigen", f"Karte {karte_id} wirklich deaktivieren?", parent=self):
+    |                                                                                                     ^^^^^^
+676 |             return
+677 |         try:
+    |
+
+E501 Line too long (119 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:705:101
+    |
+703 |         f = ttk.LabelFrame(self, text="Kartendaten", padding=12)
+704 |         f.pack(padx=16, pady=12, fill=tk.BOTH)
+705 |         self._empid = EingabeFeld(f, 0, "Mitarbeiter-ID:", "Numerische ID des Mitarbeiters (aus dem Mitarbeiter-Tab).")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^
+706 |         self._hash = EingabeFeld(
+707 |             f, 1, "UID-Hash:",
+    |
+
+E501 Line too long (117 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:792:101
+    |
+790 |         deakt_btn = ttk.Button(bar, text="🚫 Deaktivieren", command=self._deaktivieren)
+791 |         deakt_btn.pack(side=tk.LEFT, padx=(0, 4))
+792 |         tip(deakt_btn, "Ausgewähltes Benutzerkonto deaktivieren. Der Benutzer kann sich danach nicht mehr anmelden.")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^
+793 |
+794 |         reakt_btn = ttk.Button(bar, text="✅ Reaktivieren", command=self._reaktivieren)
+    |
+
+E501 Line too long (106 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:806:101
+    |
+804 |         tree_frame = ttk.Frame(self)
+805 |         tree_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
+806 |         self._tree = ttk.Treeview(tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse")
+    |                                                                                                     ^^^^^^
+807 |         for col in self._COLUMNS:
+808 |             self._tree.heading(col, text=self._HEADERS[col])
+    |
+
+E501 Line too long (115 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:816:101
+    |
+815 |         self._info = tk.StringVar(value="Keine Verbindung.")
+816 |         tk.Label(self, textvariable=self._info, foreground="#555", anchor="w").pack(fill=tk.X, padx=8, pady=(0, 6))
+    |                                                                                                     ^^^^^^^^^^^^^^^
+817 |
+818 |     def laden(self) -> None:
+    |
+
+E501 Line too long (111 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:834:101
+    |
+832 |         for r in rows:
+833 |             status = "aktiv" if r["active"] else "inaktiv"
+834 |             self._tree.insert("", tk.END, iid=str(r["id"]), values=(r["id"], r["username"], r["role"], status))
+    |                                                                                                     ^^^^^^^^^^^
+835 |         self._info.set(f"{len(rows)} Benutzerkonto/-konten geladen.")
+    |
+
+F821 Undefined name `simpledialog`
+   --> src/arbeitszeit/presentation/admin_gui/main.py:851:24
+    |
+850 |     def _bootstrap(self) -> None:
+851 |         benutzername = simpledialog.askstring("Bootstrap", "Benutzername des ersten Administrators:", parent=self)
+    |                        ^^^^^^^^^^^^
+852 |         if not benutzername:
+853 |             return
+    |
+
+E501 Line too long (114 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:851:101
+    |
+850 |     def _bootstrap(self) -> None:
+851 |         benutzername = simpledialog.askstring("Bootstrap", "Benutzername des ersten Administrators:", parent=self)
+    |                                                                                                     ^^^^^^^^^^^^^^
+852 |         if not benutzername:
+853 |             return
+    |
+
+F821 Undefined name `simpledialog`
+   --> src/arbeitszeit/presentation/admin_gui/main.py:854:20
+    |
+852 |         if not benutzername:
+853 |             return
+854 |         passwort = simpledialog.askstring(
+    |                    ^^^^^^^^^^^^
+855 |             "Bootstrap",
+856 |             "Passwort (leer lassen für automatisch generiertes Passwort):",
+    |
+
+E501 Line too long (107 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:870:101
+    |
+868 |             msg = f"Erstes Administratorkonto angelegt (ID {result.user_id})."
+869 |             if not passwort:
+870 |                 msg += f"\n\nGeneriertes Passwort (einmalig sichtbar):\n{plain}\n\nNotieren Sie es sofort!"
+    |                                                                                                     ^^^^^^^
+871 |             messagebox.showinfo("Bootstrap erfolgreich", msg, parent=self)
+872 |             self._app.status("Bootstrap abgeschlossen.")
+    |
+
+E501 Line too long (102 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:941:101
+    |
+939 |         f = ttk.LabelFrame(self, text="Kontodaten", padding=12)
+940 |         f.pack(padx=16, pady=12, fill=tk.BOTH)
+941 |         self._name = EingabeFeld(f, 0, "Benutzername:", "Eindeutiger Anmeldename (ohne Leerzeichen).")
+    |                                                                                                     ^^
+942 |         self._pw = EingabeFeld(f, 1, "Passwort:", "Passwort (leer lassen für automatisch generierten Wert).", show="*")
+    |
+
+E501 Line too long (119 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:942:101
+    |
+940 |         f.pack(padx=16, pady=12, fill=tk.BOTH)
+941 |         self._name = EingabeFeld(f, 0, "Benutzername:", "Eindeutiger Anmeldename (ohne Leerzeichen).")
+942 |         self._pw = EingabeFeld(f, 1, "Passwort:", "Passwort (leer lassen für automatisch generierten Wert).", show="*")
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^
+943 |
+944 |         tk.Label(f, text="Rolle:", anchor="w").grid(row=2, column=0, sticky="w", padx=8, pady=4)
+    |
+
+E501 Line too long (130 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:946:101
+    |
+944 |         tk.Label(f, text="Rolle:", anchor="w").grid(row=2, column=0, sticky="w", padx=8, pady=4)
+945 |         self._rolle_var = tk.StringVar(value="REVIEWER")
+946 |         rolle_cb = ttk.Combobox(f, textvariable=self._rolle_var, values=["ADMIN", "REVIEWER", "TECH"], state="readonly", width=12)
+    |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+947 |         rolle_cb.grid(row=2, column=1, sticky="w", padx=(0, 8), pady=4)
+948 |         tip(rolle_cb, "ADMIN: Vollzugriff | REVIEWER: Berichte und Nachträge | TECH: Systemcheck und Backup")
+    |
+
+E501 Line too long (109 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:948:101
+    |
+946 |         rolle_cb = ttk.Combobox(f, textvariable=self._rolle_var, values=["ADMIN", "REVIEWER", "TECH"], state="readonly", width=12)
+947 |         rolle_cb.grid(row=2, column=1, sticky="w", padx=(0, 8), pady=4)
+948 |         tip(rolle_cb, "ADMIN: Vollzugriff | REVIEWER: Berichte und Nachträge | TECH: Systemcheck und Backup")
+    |                                                                                                     ^^^^^^^^^
+949 |
+950 |         tk.Label(f, text="Mitarbeiter-ID:", anchor="w").grid(row=3, column=0, sticky="w", padx=8, pady=4)
+    |
+
+E501 Line too long (105 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:950:101
+    |
+948 |         tip(rolle_cb, "ADMIN: Vollzugriff | REVIEWER: Berichte und Nachträge | TECH: Systemcheck und Backup")
+949 |
+950 |         tk.Label(f, text="Mitarbeiter-ID:", anchor="w").grid(row=3, column=0, sticky="w", padx=8, pady=4)
+    |                                                                                                     ^^^^^
+951 |         self._empid_var = tk.StringVar(value="")
+952 |         empid_e = ttk.Entry(f, textvariable=self._empid_var, width=10)
+    |
+
+E501 Line too long (107 > 100)
+   --> src/arbeitszeit/presentation/admin_gui/main.py:991:101
+    |
+989 |             msg = f"Benutzerkonto angelegt (ID {result.user_id})."
+990 |             if not self._pw.wert:
+991 |                 msg += f"\n\nGeneriertes Passwort (einmalig sichtbar):\n{plain}\n\nNotieren Sie es sofort!"
+    |                                                                                                     ^^^^^^^
+992 |             messagebox.showinfo("Erfolg", msg, parent=self)
+993 |             self._app.status(f"Benutzerkonto {result.user_id} angelegt.")
+    |
+
+E501 Line too long (131 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1014:101
+     |
+1012 |         f = ttk.Frame(self)
+1013 |         f.pack(padx=16, pady=16)
+1014 |         tk.Label(f, text=f"Neue Rolle für Benutzerkonto {self._target_id}:", anchor="w").grid(row=0, column=0, padx=(0, 8), pady=4)
+     |                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1015 |         self._var = tk.StringVar(value="REVIEWER")
+1016 |         cb = ttk.Combobox(f, textvariable=self._var, values=["ADMIN", "REVIEWER", "TECH"], state="readonly", width=12)
+     |
+
+E501 Line too long (118 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1016:101
+     |
+1014 |         tk.Label(f, text=f"Neue Rolle für Benutzerkonto {self._target_id}:", anchor="w").grid(row=0, column=0, padx=(0, 8), pady=4)
+1015 |         self._var = tk.StringVar(value="REVIEWER")
+1016 |         cb = ttk.Combobox(f, textvariable=self._var, values=["ADMIN", "REVIEWER", "TECH"], state="readonly", width=12)
+     |                                                                                                     ^^^^^^^^^^^^^^^^^^
+1017 |         cb.grid(row=0, column=1, pady=4)
+1018 |         tip(cb, "Neue Rolle auswählen. EMPLOYEE-Rolle ist nicht erlaubt.")
+     |
+
+E501 Line too long (102 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1099:101
+     |
+1098 |         self._gesamt = tk.StringVar(value="Noch kein Systemcheck durchgeführt.")
+1099 |         tk.Label(self, textvariable=self._gesamt, anchor="w", font=("TkDefaultFont", 0, "bold")).pack(
+     |                                                                                                     ^^
+1100 |             fill=tk.X, padx=8, pady=(0, 8)
+1101 |         )
+     |
+
+E501 Line too long (105 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1105:101
+     |
+1103 |     def _systemcheck(self) -> None:
+1104 |         if not self._app.db_path:
+1105 |             messagebox.showwarning("Nicht verbunden", "Bitte zuerst eine Datenbank öffnen.", parent=self)
+     |                                                                                                     ^^^^^
+1106 |             return
+1107 |         self._tree.delete(*self._tree.get_children())
+     |
+
+E501 Line too long (102 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1119:101
+     |
+1117 |             status_text = "OK" if check.ok else "FEHLER"
+1118 |             tag = "ok" if check.ok else "fail"
+1119 |             self._tree.insert("", tk.END, values=(check.name, status_text, check.detail), tags=(tag,))
+     |                                                                                                     ^^
+1120 |
+1121 |         self._tree.tag_configure("ok", foreground="#2e7d32")
+     |
+
+E501 Line too long (113 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1124:99
+     |
+1122 |         self._tree.tag_configure("fail", foreground="#c62828")
+1123 |
+1124 |         gesamt_text = "✅ Systemcheck bestanden." if result.overall_ok else "❌ Systemcheck: FEHLER aufgetreten."
+     |                                                                                                     ^^^^^^^^^^^^^
+1125 |         self._gesamt.set(gesamt_text)
+1126 |         self._app.status(gesamt_text)
+     |
+
+E501 Line too long (105 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1130:101
+     |
+1128 |     def _backup(self) -> None:
+1129 |         if not self._app.db_path:
+1130 |             messagebox.showwarning("Nicht verbunden", "Bitte zuerst eine Datenbank öffnen.", parent=self)
+     |                                                                                                     ^^^^^
+1131 |             return
+1132 |         try:
+     |
+
+E501 Line too long (138 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1174:101
+     |
+1173 | … "bis", "gueltig_ab")
+1174 | …: "Mitarb.-ID", "tag": "Tag", "von": "Von", "bis": "Bis", "gueltig_ab": "Gültig ab"}
+     |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1175 | …ag": 45, "von": 60, "bis": 60, "gueltig_ab": 90}
+1176 | …r", 6: "Sa", 7: "So"}
+     |
+
+E501 Line too long (102 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1175:101
+     |
+1173 |     _COLUMNS = ("id", "scope", "mitarb", "tag", "von", "bis", "gueltig_ab")
+1174 |     _HEADERS = {"id": "ID", "scope": "Scope", "mitarb": "Mitarb.-ID", "tag": "Tag", "von": "Von", "bis": "Bis", "gueltig_ab": "Gülti…
+1175 |     _WIDTHS = {"id": 45, "scope": 80, "mitarb": 80, "tag": 45, "von": 60, "bis": 60, "gueltig_ab": 90}
+     |                                                                                                     ^^
+1176 |     _TAGE = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"}
+     |
+
+E501 Line too long (106 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1205:101
+     |
+1203 |         tree_frame = ttk.Frame(self)
+1204 |         tree_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
+1205 |         self._tree = ttk.Treeview(tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse")
+     |                                                                                                     ^^^^^^
+1206 |         for col in self._COLUMNS:
+1207 |             self._tree.heading(col, text=self._HEADERS[col])
+     |
+
+E501 Line too long (115 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1215:101
+     |
+1214 |         self._info = tk.StringVar(value="Keine Verbindung.")
+1215 |         tk.Label(self, textvariable=self._info, foreground="#555", anchor="w").pack(fill=tk.X, padx=8, pady=(0, 6))
+     |                                                                                                     ^^^^^^^^^^^^^^^
+1216 |
+1217 |     def laden(self) -> None:
+     |
+
+E501 Line too long (102 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1224:101
+     |
+1222 |             conn = open_connection(self._app.db_path)
+1223 |             rows = conn.execute(
+1224 |                 "SELECT id, scope_type, scope_employee_id, weekday, start_time, end_time, valid_from "
+     |                                                                                                     ^^
+1225 |                 "FROM work_schedule_versions WHERE valid_until IS NULL ORDER BY scope_type, weekday"
+1226 |             ).fetchall()
+     |
+
+E501 Line too long (101 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1315:101
+     |
+1313 |         # Ansicht
+1314 |         ansicht_menu = tk.Menu(menubar, tearoff=False)
+1315 |         ansicht_menu.add_command(label="Alles neu laden", accelerator="F5", command=self._alle_laden)
+     |                                                                                                     ^
+1316 |         menubar.add_cascade(label="Ansicht", menu=ansicht_menu)
+     |
+
+E501 Line too long (106 > 100)
+    --> src/arbeitszeit/presentation/admin_gui/main.py:1320:101
+     |
+1318 |         # Hilfe
+1319 |         hilfe_menu = tk.Menu(menubar, tearoff=False)
+1320 |         hilfe_menu.add_command(label="Kurzanleitung", accelerator="F1", command=self._hilfe_kurzanleitung)
+     |                                                                                                     ^^^^^^
+1321 |         hilfe_menu.add_command(label="Tastenkürzel", command=self._hilfe_tastaturkuerzel)
+1322 |         hilfe_menu.add_separator()
+     |
+
+E501 Line too long (114 > 100)
+  --> tests/application/test_manage_employees.py:24:101
+   |
+23 |     acct = uow.user_account_repo.add(
+24 |         UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=UserRole.ADMIN, is_active=True)
+   |                                                                                                     ^^^^^^^^^^^^^^
+25 |     )
+26 |     return acct.id
+   |
+
+E501 Line too long (114 > 100)
+  --> tests/application/test_manage_employees.py:33:101
+   |
+32 |     emp = uow.employee_repo.add(
+33 |         Employee(id=EmployeeId(0), personnel_no=personnel_no, first_name="Anna", last_name="Test", is_active=True)
+   |                                                                                                     ^^^^^^^^^^^^^^
+34 |     )
+35 |     return emp.id
+   |
+
+E501 Line too long (118 > 100)
+  --> tests/application/test_manage_employees.py:77:101
+   |
+75 |         from arbeitszeit.domain.entities import UserAccount
+76 |         reviewer = uow.user_account_repo.add(
+77 |             UserAccount(id=UserAccountId(0), employee_id=None, username="rev", role=UserRole.REVIEWER, is_active=True)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^
+78 |         )
+79 |         with pytest.raises(PermissionDeniedError):
+   |
+
+E501 Line too long (115 > 100)
+   --> tests/application/test_manage_employees.py:142:101
+    |
+140 |         from arbeitszeit.domain.entities import UserAccount
+141 |         tech = uow.user_account_repo.add(
+142 |             UserAccount(id=UserAccountId(0), employee_id=None, username="tech", role=UserRole.TECH, is_active=True)
+    |                                                                                                     ^^^^^^^^^^^^^^^
+143 |         )
+144 |         with pytest.raises(PermissionDeniedError):
+    |
+
+E501 Line too long (113 > 100)
+  --> tests/application/test_manage_rfid_cards.py:29:101
+   |
+27 | def _make_admin(uow: FakeUnitOfWork) -> int:
+28 |     acct = uow.user_account_repo.add(
+29 |         UserAccount(id=UserAccountId(0), employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True)
+   |                                                                                                     ^^^^^^^^^^^^^
+30 |     )
+31 |     return acct.id
+   |
+
+E501 Line too long (102 > 100)
+  --> tests/application/test_manage_rfid_cards.py:36:101
+   |
+34 | def _make_employee(uow: FakeUnitOfWork) -> int:
+35 |     emp = uow.employee_repo.add(
+36 |         Employee(id=EmployeeId(0), personnel_no="M001", first_name="A", last_name="B", is_active=True)
+   |                                                                                                     ^^
+37 |     )
+38 |     return emp.id
+   |
+
+E501 Line too long (118 > 100)
+  --> tests/application/test_manage_rfid_cards.py:94:101
+   |
+92 |         emp_id = _make_employee(uow)
+93 |         reviewer = uow.user_account_repo.add(
+94 |             UserAccount(id=UserAccountId(0), employee_id=None, username="rev", role=UserRole.REVIEWER, is_active=True)
+   |                                                                                                     ^^^^^^^^^^^^^^^^^^
+95 |         )
+96 |         with pytest.raises(PermissionDeniedError):
+   |
+
+E501 Line too long (114 > 100)
+  --> tests/application/test_manage_user_accounts.py:32:101
+   |
+30 | def _make_admin(uow: FakeUnitOfWork, username: str = "admin") -> int:
+31 |     acct = uow.user_account_repo.add(
+32 |         UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=UserRole.ADMIN, is_active=True)
+   |                                                                                                     ^^^^^^^^^^^^^^
+33 |     )
+34 |     return acct.id
+   |
+
+E501 Line too long (104 > 100)
+  --> tests/application/test_manage_user_accounts.py:39:101
+   |
+37 | def _make_user(uow: FakeUnitOfWork, username: str, role: UserRole = UserRole.REVIEWER) -> int:
+38 |     acct = uow.user_account_repo.add(
+39 |         UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=role, is_active=True)
+   |                                                                                                     ^^^^
+40 |     )
+41 |     return acct.id
+   |
+
+Found 84 errors.
+[*] 13 fixable with the `--fix` option.
