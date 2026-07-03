@@ -1,6 +1,7 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
 import json
+import logging
 import signal
 import sys
 from datetime import datetime, timezone
@@ -55,8 +56,8 @@ def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]
             )
         finally:
             conn.close()
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        logging.warning("_log_system_event fehlgeschlagen: %s", exc, exc_info=True)
 
 
 def _run_one_cycle(

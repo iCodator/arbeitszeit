@@ -96,6 +96,11 @@ def load_threshold_from_config(db_path: Path, default: float = 60.0) -> float:
                 return float(json.loads(row["config_value_json"]))
         finally:
             conn.close()
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        logging.warning(
+            "load_threshold_from_config fehlgeschlagen, verwende Standard %.1f: %s",
+            default,
+            exc,
+            exc_info=True,
+        )
     return default

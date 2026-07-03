@@ -7,6 +7,7 @@ in system_events. Aufrufbar manuell und beim Systemstart.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sqlite3
 import subprocess
@@ -301,5 +302,5 @@ def _write_event(db_path: Path, result: SystemCheckResult) -> None:
             )
         finally:
             conn.close()
-    except Exception:
-        pass
+    except Exception as exc:  # noqa: BLE001
+        logging.warning("system_check._write_event fehlgeschlagen: %s", exc, exc_info=True)

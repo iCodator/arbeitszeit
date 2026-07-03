@@ -27,6 +27,7 @@ Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutz
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 
+import logging
 import select
 import time
 from datetime import datetime, timezone
@@ -175,9 +176,13 @@ class EvdevHardwareReader(HardwareReader):
         for dev in (self._numpad, self._rfid):
             try:
                 dev.ungrab()
-            except Exception:
-                pass
+            except OSError as exc:
+                logging.warning(
+                    "evdev: ungrab() fehlgeschlagen [%s]: %s", dev.path, exc, exc_info=True
+                )
             try:
                 dev.close()
-            except Exception:
-                pass
+            except OSError as exc:
+                logging.warning(
+                    "evdev: close() fehlgeschlagen [%s]: %s", dev.path, exc, exc_info=True
+                )
