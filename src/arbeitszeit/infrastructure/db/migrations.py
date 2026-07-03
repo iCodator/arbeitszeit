@@ -36,8 +36,8 @@ def run_migrations(
         # damit "angewendet" und "registriert" untrennbar sind.
         # B608: `version` ist durch isdigit()+len==4 auf "0000"-"9999" beschraenkt
         # (kein SQL-Injektionsvektor moeglich).
-        script = (  # nosec B608
-            f"BEGIN;\n{sql}\n"
+        script = (  
+            f"BEGIN;\n{sql}\n" # nosec B608
             f"INSERT INTO schema_migrations (version, applied_at)"
             f" VALUES ('{version}', datetime('now'));\n"
             f"COMMIT;"
