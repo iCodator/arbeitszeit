@@ -14,8 +14,12 @@ Backups und Systemüberwachung.
 
 **Grundregel:** Alle anderen Schichten (Domain, Application) dürfen die Infrastruktur
 nutzen, aber niemals von ihr abhängen. Die Infrastruktur kennt die Domain, nicht umgekehrt.
-Direct-SQL-Abfragen außerhalb von `infrastructure` sind architektonisch verboten
-(Regelwerk §11).
+Für **schreibende** Operationen gilt dies ausnahmslos: jede Zustandsänderung läuft über
+einen Use Case in `application/use_cases/`. Für **lesende** Direktzugriffe aus der
+Admin-CLI (`presentation/admin_cli/`) auf `infrastructure/` besteht eine dokumentierte
+Ausnahme (ADR-002, `docs/adr/adr-cqrs-lesezugriff.md`); zusätzlich enthält
+`employees.py` als separat dokumentierter Grenzfall auch einige direkte
+Schreibzugriffe ohne Use Case.
 
 ### Verzeichnisstruktur
 
@@ -103,9 +107,12 @@ Einträge, die vor einem Rollback erzeugt wurden, gehen dann verloren.
 ### Repositories — `db/repositories/`
 
 Jede Domänen-Entität besitzt genau ein Repository. Alle Repositories folgen demselben
-Muster: Konstruktor nimmt `conn: sqlite3.Connection`; interne Hilfsfunktion `_row_to_entity`
-wandelt `sqlite3.Row` in das Domänenobjekt um; alle Zeitstempel werden über
-`_helpers._parse_dt()` UTC-normalisiert.
+Muster: Konstruktor nimmt `conn: sqlite3.Connection`; eine repository-eigene, individuell
+benannte Hilfsfunktion nach dem Muster `_row_to_*` (z. B. `_row_to_booking`,
+`_row_to_employee`, `_row_to_card`) wandelt `sqlite3.Row` in das Domänenobjekt um. Die
+meisten zeitstempelverarbeitenden Repositories normalisieren Zeitstempel dabei über
+`_helpers._parse_dt()` auf UTC; `SQLiteAuditLogRepository`, `SQLiteSystemConfigRepository`
+und `SQLiteDeviceEventRepository` verwenden diese Hilfsfunktion nicht.
 
 | Repository-Klasse | Tabelle | Kernmethoden |
 |---|---|---|
@@ -113,7 +120,7 @@ wandelt `sqlite3.Row` in das Domänenobjekt um; alle Zeitstempel werden über
 | `SQLiteEmployeeRepository` | `employees` | `add`, `get_by_id`, `get_active_by_personnel_no`, `deactivate` |
 | `SQLiteRfidCardRepository` | `rfid_cards` | `add`, `get_by_uid_hash`, `get_active_by_uid_hash`, `get_by_id`, `set_status` |
 | `SQLiteUserAccountRepository` | `user_accounts` | `add(account, password_hash)`, `get_by_id`, `get_by_username`, `deactivate`, `reactivate`, `set_role`, `has_active_admin` |
-| `SQLiteWorkScheduleRepository` | `work_schedule_versions` | `add`, `close_version`, `get_effective` |
+| `SQLiteWorkScheduleRepository` | `work_schedule_versions` | `add`, `close_version`, `get_effective`, `list_versions` |
 | `SQLiteReviewCaseRepository` | `review_cases` | `add`, `list_open_for_employee`, `resolve` |
 | `SQLiteBookingCorrectionRepository` | `booking_corrections` | `add`, `list_for_booking` |
 | `SQLiteSupplementRepository` | `supplements` | `add`, `get_by_id`, `list_pending`, `approve`, `reject` |
@@ -212,8 +219,10 @@ Ereignisse zurück. `read_next()` auf leerer Queue wirft `RuntimeError`.
 ### Gemeinsame Abfrageschicht — `export/report_queries.py`
 
 **Alle** Exportkanäle (CSV, PDF, UI-Pflichtauswertungen) nutzen ausschließlich die
-Funktionen in `report_queries.py`. Direkte Ad-hoc-Queries außerhalb dieses Moduls
-sind architektonisch verboten (Regelwerk §11).
+Funktionen in `report_queries.py`. Für die Admin-CLI (`presentation/admin_cli/reports.py`)
+besteht hierzu eine dokumentierte Ausnahme von der Schichtentrennung, wonach lesende
+Direktzugriffe auf `report_queries.py` zulässig sind (ADR-002,
+`docs/adr/adr-cqrs-lesezugriff.md`).
 
 Öffentliche Abfragefunktionen:
 
@@ -234,7 +243,7 @@ Alle Zeitraumbeschränkungen verwenden das halboffene Intervall `[from_dt, to_dt
 
 ### CSV-Export — `export/csv_exporter.py`
 
-Zwei Exportfunktionen erzeugen CSV-Dateien nach Pflichtenheft §7.11:
+Drei Exportfunktionen erzeugen CSV-Dateien nach Pflichtenheft §7.11:
 
 **Detailexport** (`export_detail`): Eine Zeile pro Buchung.
 
@@ -255,6 +264,8 @@ Die Tagesstatistik `_day_stats()` arbeitet als Zustandsmaschine:
 - Nettoarbeitszeit = Summe aller Arbeitsphasen (COME→BREAK_START und BREAK_END→GO).
 - Pausen werden nicht zur Arbeitszeit gezählt.
 - Korrekturen werden am `corrected_at`-Tag, Nachträge am `event_at`-Tag gezählt.
+
+**Prüffallexport** (`export_review_cases`): Eine Zeile pro offenem Prüffall.
 
 **Dateinamenschema:**
 
@@ -337,7 +348,7 @@ NAS (Neustart, Wartung) soll keinen `SELFTEST_FAIL` auslösen.
 ### Selbsttest — `system_check.py`
 
 `run_system_check(db_path, numpad_path?, rfid_path?)` prüft beim Systemstart
-fünf Bereiche und schreibt das Gesamtergebnis als `SELFTEST_OK` oder `SELFTEST_FAIL`
+sechs Bereiche und schreibt das Gesamtergebnis als `SELFTEST_OK` oder `SELFTEST_FAIL`
 in `system_events`:
 
 | Prüfbereich | Was wird geprüft |
@@ -346,6 +357,7 @@ in `system_events`:
 | `config_keys` | Sechs Pflicht-Konfigurationsschlüssel in `system_config` vorhanden |
 | `nas_reachability` | NAS-Pfad existiert und ist schreibbar (nur wenn `backup.nas_enabled=true`) |
 | `fk_consistency` | `PRAGMA foreign_key_check` meldet keine verwaisten Fremdschlüsselreferenzen |
+| `ntp_sync` | NTP via `timedatectl` aktiv und synchronisiert |
 | `device_availability` | Numpad und RFID-Gerätepfade existieren und sind lesbar |
 
 Jeder Bereich liefert ein `CheckResult(name, ok, detail)`. Das `SystemCheckResult`
@@ -419,4 +431,6 @@ Alle sicherheitskritischen und zustandsbehafteten Teile sind ohne physische Hard
 - `SimulatedHardwareReader` implementiert dasselbe Protocol wie `EvdevHardwareReader`.
 - `map_rfid_key()` ist eine pure Funktion ohne Gerätezugriff.
 - `SystemTimeMonitor` akzeptiert injizierbare Clock-Callbacks.
-- Repositories arbeiten auf jeder `sqlite3.Connection`, auch auf In-Memory-Datenbanken (`:memory:`).
+- Repositories arbeiten auf jeder `sqlite3.Connection`; eine Verwendung von
+  In-Memory-Datenbanken (`:memory:`) ist im Repository nicht belegt — die Testsuite
+  nutzt durchgängig dateibasierte Datenbanken über `tmp_path` (nicht verifizierbar).
