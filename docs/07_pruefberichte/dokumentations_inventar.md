@@ -177,9 +177,9 @@ Dieses Inventar erfasst **alle** Markdown-/HTML-Dokumentationsdateien im Reposit
 
 | Datei | Zweck | Status | Letzte Änderung |
 |---|---|---|---|
-| [`.claude/claude.md`](../.claude/claude.md) | Entwicklungsmodus-Regeln für KI-Agenten | TK | 2026-07-03 |
-| [`.claude/audit/CLAUDE_audit.md`](../.claude/audit/CLAUDE_audit.md) | Auditmodus-Regeln für KI-Agenten | TK | 2026-07-03 |
-| [`.claude/rules/CLAUDE_strict.md`](../.claude/rules/CLAUDE_strict.md) | Strenger Modus für sensible Bereiche | TK | 2026-06-30 |
+| [`.claude/claude.md`](../../.claude/claude.md) | Entwicklungsmodus-Regeln für KI-Agenten | TK | 2026-07-03 |
+| [`.claude/audit/CLAUDE_audit.md`](../../.claude/audit/CLAUDE_audit.md) | Auditmodus-Regeln für KI-Agenten | TK | 2026-07-03 |
+| [`.claude/rules/CLAUDE_strict.md`](../../.claude/rules/CLAUDE_strict.md) | Strenger Modus für sensible Bereiche | TK | 2026-06-30 |
 | `.claude/markdown-Rules.md` | Markdownlint-Regelreferenz | TK / **DUP** | 2026-07-03 |
 | `.claude/rules/markdown-Rules.md` | Identische Kopie der Markdownlint-Regelreferenz | TK / **DUP** | 2026-07-03 |
 
