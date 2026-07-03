@@ -1,7 +1,7 @@
 # Datenbankschema `arbeitszeit`
 
 **Kapitel:** 6.1 (Ergänzung zu Infrastructure Layer)
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Quelldateien:** `migrations/0001_schema.sql` bis `migrations/0006_system_events_application_error.sql`
 
@@ -16,7 +16,7 @@ nicht aus abgeleiteten oder vermuteten Zusammenhängen.
 
 | Version | Datei | Zweck |
 | --- | --- | --- |
-| 0001 | `0001_schema.sql` | Ursprüngliches Gesamtschema (17 Tabellen, 17 Indizes) |
+| 0001 | `0001_schema.sql` | Ursprüngliches Gesamtschema (16 Tabellen, 17 Indizes) |
 | 0002 | `0002_seed_defaults.sql` | Standard-Wochenarbeitszeiten und System-Konfigurationswerte |
 | 0003 | `0003_cleanup_booking_status.sql` | Bereinigung der Status-Werte in `time_bookings` und `booking_status_history` |
 | 0004 | `0004_supplement_reject_fields_and_review_note.sql` | Trennung von Genehmigung und Ablehnung bei Nachträgen; Notizfeld für Prüffälle |
@@ -90,9 +90,7 @@ größer/gleich `valid_from`.
 ### time_bookings
 
 Diese Tabelle wurde durch Migration 0003 (Status-Bereinigung) und
-Migration 0005 (`device_event_id`) jeweils vollständig neu angelegt,
-da SQLite `CHECK`-Constraints nicht nachträglich per `ALTER TABLE`
-ändern kann.
+Migration 0005 (`device_event_id`) jeweils vollständig neu angelegt.
 
 | Spalte | Typ | Constraint |
 | --- | --- | --- |
@@ -114,7 +112,10 @@ zusätzlich die Werte `POSSIBLE_BREAK_VIOLATION`,
 `MANUAL_ENTRY`. Migration 0003 hat diese entfernt, da vergleichbare
 Sachverhalte seither ausschließlich über `review_cases` mit einer
 `severity`-Einstufung abgebildet werden; die Herkunft einer Buchung
-(manuell oder Terminal) wird über `source` abgebildet.
+(manuell oder Terminal) wird über `source` abgebildet. Migration 0005
+legte die Tabelle erneut vollständig neu an, da das Hinzufügen eines
+Foreign-Key-Constraints auf `device_events` in SQLite keinen
+`ALTER TABLE`-Weg erlaubt.
 
 ### booking_status_history
 
@@ -166,10 +167,13 @@ Ablehnung eines Nachtrags über getrennte Spaltenpaare abzubilden.
 | `rejected_by_user_id` | INTEGER | FOREIGN KEY → `user_accounts(id)` (seit 0004) |
 | `rejected_at` | TEXT | seit 0004 |
 
-Tabellen-Constraint (seit 0004): Je nach `approval_status` müssen
-genau die dazu passenden Genehmigungs- oder Ablehnungsfelder gesetzt
-sein, alle anderen müssen NULL sein. Bei `PENDING` müssen alle vier
-Felder NULL sein.
+Tabellen-Constraint (seit 0004): Bei `PENDING` müssen alle vier Felder
+(`approved_by_user_id`, `approved_at`, `rejected_by_user_id`,
+`rejected_at`) NULL sein. Bei `APPROVED` müssen `approved_by_user_id`
+und `approved_at` gesetzt sein, `rejected_by_user_id` und `rejected_at`
+müssen NULL sein. Bei `REJECTED` müssen `rejected_by_user_id` und
+`rejected_at` gesetzt sein, `approved_by_user_id` und `approved_at`
+müssen NULL sein.
 
 **Vor Migration 0004** existierte nur ein gemeinsames Feldpaar
 (`approved_by_user_id`, `approved_at`), das sowohl für Genehmigungen
@@ -255,10 +259,10 @@ Freitag 07:30–16:00 Uhr, jeweils gültig ab dem 2026-01-01 mit
 | `changed_at` | TEXT | NOT NULL |
 | `reason` | TEXT | — |
 
-`UNIQUE (config_key, version)` stellt die in
-`handbuch_infrastructure.md` beschriebene Versionierungslogik sicher:
-Der aktuell gültige Wert ist stets der Datensatz mit dem höchsten
-`version`-Wert je Schlüssel.
+`UNIQUE (config_key, version)` verhindert doppelte Versionen je
+Schlüssel. Die Auslesestrategie (aktuell gültiger Wert = höchste
+`version`-Zahl je Schlüssel) ist in `handbuch_infrastructure.md`
+beschrieben und nicht allein aus dem Schemacode ableitbar.
 
 Migration 0002 seedet vier Startwerte: `app.timezone`
 (`"Europe/Berlin"`), `booking.grace_seconds_after_numpad_select`
@@ -327,9 +331,10 @@ Terminal-UI-Schleife, ohne dass der Prozess beendet wird).
 
 Anders als bei `system_events` ist `event_type` hier nicht über einen
 `CHECK`-Constraint eingeschränkt, sondern ein freier Text. Migration
-0002 schreibt bereits beim Seeding zwei Beispieleinträge mit
-`event_type = 'SEEDED'` für die initialen Datensätze in
-`work_schedule_versions` und `system_config`.
+0002 erzeugt beim Seeding Einträge in `audit_log` mit
+`event_type = 'SEEDED'`: je einen Eintrag pro geseedeter Zeile in
+`work_schedule_versions` (5 Einträge) und `system_config` (4 Einträge),
+insgesamt 9 Zeilen.
 
 ### schema_migrations
 
@@ -360,11 +365,16 @@ Anders als bei `system_events` ist `event_type` hier nicht über einen
 | `idx_audit_log_object_event_at` | `audit_log` | `object_type`, `object_id`, `event_at` |
 | `idx_audit_log_employee_event_at` | `audit_log` | `employee_id`, `event_at` |
 
-## Technisches Muster: Table-Rebuild bei CHECK-Änderungen
+## Technisches Muster: Table-Rebuild bei Schema-Änderungen
 
-Migrationen 0003, 0004, 0005 und 0006 folgen alle demselben Muster,
-weil SQLite bestehende `CHECK`-Constraints nicht per `ALTER TABLE`
-ändern kann:
+Migrationen 0003, 0004 und 0006 folgen demselben Muster, weil SQLite
+bestehende `CHECK`-Constraints nicht per `ALTER TABLE` ändern kann.
+Migration 0005 folgt demselben Muster, weil SQLite das nachträgliche
+Hinzufügen eines Foreign-Key-Constraints per `ALTER TABLE ADD COLUMN`
+nicht unterstützt (laut Kommentar in
+`0005_time_bookings_device_event_id.sql`).
+
+Das Muster lautet in allen vier Fällen:
 
 1. Neue Tabelle mit Suffix `_new` und geändertem Schema anlegen.
 2. Daten aus der alten Tabelle per `INSERT INTO ... SELECT` übertragen
@@ -383,9 +393,12 @@ Table-Rebuild möglich ist.
 
 ## Globale Einstellung
 
-`PRAGMA foreign_keys = ON;` wird in `0001_schema.sql` einmalig gesetzt
-und gilt für die referenzielle Integrität aller Fremdschlüssel im
-Schema. Alle Fremdschlüssel im gesamten Schema verwenden durchgängig
-`ON UPDATE RESTRICT ON DELETE RESTRICT` — ein Löschen oder Ändern
-referenzierter Datensätze wird von der Datenbank grundsätzlich
-verweigert, solange abhängige Datensätze existieren.
+`PRAGMA foreign_keys = ON;` ist in `0001_schema.sql` gesetzt. Da dieses
+PRAGMA in SQLite verbindungsweit und nicht persistent gilt, muss der
+Anwendungscode es bei jeder Datenbankverbindung erneut aktivieren,
+damit die referenzielle Integrität aller Fremdschlüssel durchgesetzt
+wird. Ob dies im Anwendungscode erfolgt, ist aus den Migrationsdateien
+allein nicht verifizierbar. Alle Fremdschlüssel im gesamten Schema
+verwenden durchgängig `ON UPDATE RESTRICT ON DELETE RESTRICT` — ein
+Löschen oder Ändern referenzierter Datensätze wird von der Datenbank
+grundsätzlich verweigert, solange abhängige Datensätze existieren.
