@@ -45,9 +45,9 @@ Dabei gilt:
 - Standard-Timeout: 5,0 Sekunden
 - Das Timeout ist im Konstruktor konfigurierbar.
 - Gelesen wird bis `Enter` oder bis zum Timeout.
-- `Shift` wird berücksichtigt, damit `A-F` auch in Großschreibung erfasst
-  werden können.
-- Nicht-Hex-Tasten werden verworfen.
+- `Shift` wird berücksichtigt: Ohne Shift werden `a-f` (Kleinbuchstaben)
+  erfasst, mit Shift `A-F` (Großbuchstaben).
+- Nicht-Hex-Tasten werden in beiden Fällen verworfen.
 
 Die gelesene UID wird vor der Weiterverarbeitung per `.strip()` bereinigt.
 
@@ -85,8 +85,9 @@ Schicht unterschiedlich behandelt werden.
 
 Beide Geräte werden im Konstruktor als `InputDevice` geöffnet.
 
-Standardmäßig wird `grab=True` verwendet. Dadurch werden Numpad und
-RFID-Reader exklusiv für diesen Prozess reserviert.
+Der `grab`-Parameter ist konfigurierbar (Standard: `True`). Bei `grab=True`
+werden Numpad und RFID-Reader exklusiv für diesen Prozess reserviert. Für
+Diagnosezwecke oder Tests kann `grab=False` übergeben werden.
 
 Das ist für einen Kiosk- oder Terminalbetrieb sinnvoll, weil dieselben
 Eingaben nicht gleichzeitig an andere Prozesse weitergereicht werden.
