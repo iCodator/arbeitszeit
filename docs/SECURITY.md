@@ -44,7 +44,7 @@ protokolliert, darunter:
 
 | Ereignis | Audit-Typ |
 |---|---|
-| Buchung erfasst | `BOOKING_CREATED` |
+| Buchung erfasst | `TIME_BOOKED` |
 | Unbekannte Karte abgewiesen | `BOOKING_REJECTED_UNKNOWN_CARD` |
 | Inaktive Karte abgewiesen | `BOOKING_REJECTED_INACTIVE_CARD` |
 | Buchung korrigiert (Admin) | `BOOKING_CORRECTED` |
@@ -52,7 +52,7 @@ protokolliert, darunter:
 | Nachtrag genehmigt/abgelehnt | `SUPPLEMENT_APPROVED` / `SUPPLEMENT_REJECTED` |
 | Regelarbeitszeit geändert | `WORK_SCHEDULE_CHANGED` |
 | Backup erstellt | `BACKUP_CREATED` |
-| NAS-Sync | `BACKUP_NAS_SYNCED` |
+| NAS-Sync | `BACKUP_SYNCED_TO_NAS` |
 
 Einträge im `audit_log` werden vom System **nicht gelöscht oder überschrieben**.
 Eine Benutzeroberfläche zum nachträglichen Ändern von Audit-Einträgen existiert nicht.
@@ -63,8 +63,8 @@ Eine Benutzeroberfläche zum nachträglichen Ändern von Audit-Einträgen existi
 
 ### Was das System prüft
 
-Der Systemcheck (`arbeitszeit system check`, `infrastructure/system_check.py`)
-prüft beim Check-Lauf:
+Der Systemcheck (`admin --db <PFAD> --user-id <ID> system check`, Logik in
+`infrastructure/system_check.py`) prüft beim Check-Lauf:
 
 - Ist `backup.nas_enabled` in der Datenbank auf `true` gesetzt?
 - Ist `backup.nas_path` gesetzt und nicht leer?
@@ -100,7 +100,7 @@ Diese Entscheidung ist bewusst und begründet:
 - Der Systemcheck meldet `nas_reachability: OK` nur dann, wenn der Mount-Pfad
   tatsächlich existiert und schreibbar ist — **nicht** allein auf Basis der
   DB-Konfiguration.
-- Schlägt der NAS-Sync beim Backup (`arbeitszeit system backup`) fehl, wird
+- Schlägt der NAS-Sync beim Backup (`admin --db <PFAD> --user-id <ID> system backup`) fehl, wird
   eine **Warnung** ausgegeben, aber das lokale Backup bleibt erhalten und der
   Prozess endet mit Exit-Code 0. Das lokale Backup ist das primäre Sicherungsmittel.
 
@@ -118,12 +118,13 @@ der Systemcheck erkennt damit korrekt, ob das NAS tatsächlich erreichbar ist.
 
 ## 5. Benutzerverwaltung
 
-- Passwörter werden **nicht im Klartext** gespeichert. Das verwendete
-  Hash-Verfahren ist in `infrastructure/db/` dokumentiert.
+- Passwörter werden **nicht im Klartext** gespeichert. Das verwendete Verfahren
+  ist PBKDF2-HMAC-SHA256 mit 260.000 Iterationen und 16-Byte-Zufallssalt
+  (`presentation/admin_cli/user_accounts.py`, Funktion `_hash_password`).
 - Rollen (`ADMIN`, `REVIEWER`, `TECH`, `EMPLOYEE`) schränken den Zugriff auf
   schreibende Operationen ein. Terminal-Buchungen erfordern keine Anmeldung —
   die Authentifizierung erfolgt ausschließlich über die RFID-Karte.
-- Deaktivierte Benutzerkonten (`is_active = false`) können sich nicht anmelden
+- Deaktivierte Benutzerkonten (`active = 0`) können sich nicht anmelden
   und deren Aktionen werden vom System abgewiesen.
 
 ---
