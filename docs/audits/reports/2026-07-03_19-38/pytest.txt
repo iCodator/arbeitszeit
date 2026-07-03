@@ -44,157 +44,157 @@ tests/test_migrations.py ............                                    [100%]
 
 =============================== warnings summary ===============================
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7925c0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca5c0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7923e0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca3e0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792020>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca020>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792200>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca200>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba790a90>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c8a90>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba790b80>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c8b80>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7913f0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c93f0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7914e0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c94e0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792110>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca110>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba791210>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c9210>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba791300>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c9300>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7915d0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c95d0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba791120>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c9120>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7922f0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca2f0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792a70>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700caa70>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792b60>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700cab60>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792c50>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700cac50>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792d40>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700cad40>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7916c0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c96c0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7927a0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700ca7a0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7917b0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c97b0>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792f20>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700caf20>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba793010>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700cb010>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_csv_export.py::test_export_detail_dateiname_korrekt
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba793100>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700cb100>
     return compile(source, filename, mode, flags,
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_employees.py::test_employees_deactivate_setzt_active_0
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/argparse.py:2100: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba7909a0>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/argparse.py:2100: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700c89a0>
     seen_non_default_actions = set()
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
 
 tests/integration/test_employees.py::test_employees_deactivate_setzt_active_0
-  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/argparse.py:2100: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x73a2ba792e30>
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/argparse.py:2100: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x718a700cae30>
     seen_non_default_actions = set()
   Enable tracemalloc to get traceback where the object was allocated.
   See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
@@ -237,6 +237,6 @@ src/arbeitszeit/presentation/terminal_ui/main.py                     73     39  
 TOTAL                                                              2746    507    568     56    79%
 
 45 files skipped due to complete coverage.
-Coverage HTML written to dir docs/audits/reports/2026-07-03/htmlcov
-Coverage XML written to file docs/audits/reports/2026-07-03/coverage.xml
-======================= 484 passed, 26 warnings in 9.28s =======================
+Coverage HTML written to dir docs/audits/reports/2026-07-03_19-38/htmlcov
+Coverage XML written to file docs/audits/reports/2026-07-03_19-38/coverage.xml
+======================= 484 passed, 26 warnings in 9.14s =======================
