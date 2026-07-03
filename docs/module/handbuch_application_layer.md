@@ -30,12 +30,15 @@ src/arbeitszeit/application/
 ├── unit_of_work.py        # Transaktion-Protokoll (Protocol-Klasse)
 └── use_cases/
     ├── __init__.py
-    ├── book_time.py           # Buchung via RFID-Terminal
-    ├── correct_booking.py     # Manuelle Korrektur durch Admin/Reviewer
-    ├── register_supplement.py # Nachtrag erfassen (Status: PENDING)
-    ├── approve_supplement.py  # Nachtrag freigeben → erzeugt Buchung
-    ├── reject_supplement.py   # Nachtrag ablehnen
-    └── manage_work_schedule.py # Regelarbeitszeit ändern
+    ├── approve_supplement.py   # Nachtrag freigeben → erzeugt Buchung
+    ├── book_time.py            # Buchung via RFID-Terminal
+    ├── correct_booking.py      # Manuelle Korrektur durch Admin/Reviewer
+    ├── manage_employees.py     # Mitarbeiter anlegen/deaktivieren
+    ├── manage_rfid_cards.py    # RFID-Karten zuweisen/ersetzen/deaktivieren
+    ├── manage_user_accounts.py # Benutzerkonten verwalten / Bootstrap-Admin
+    ├── manage_work_schedule.py # Regelarbeitszeit ändern
+    ├── register_supplement.py  # Nachtrag erfassen (Status: PENDING)
+    └── reject_supplement.py    # Nachtrag ablehnen
 ```
 
 ---
@@ -106,9 +109,9 @@ Datenbankabfragen liegen in der Infrastrukturschicht
 | Row-Klasse | Verwendungszweck |
 |---|---|
 | `BookingRow` | Buchungsliste mit Mitarbeiterzuordnung für Berichte |
-| `CorrectionRow` | Korrekturprotokoll mit altem und neuem Zustand (Regelwerk v3 §12) |
-| `SupplementRow` | Nachtragsliste mit Freigabestatus (Regelwerk v3 §13/§19) |
-| `ReviewCaseRow` | Offene Prüffälle (Pflichtenheft v3 §7.6/§7.12) |
+| `CorrectionRow` | Korrekturprotokoll mit altem und neuem Zustand (interne Referenz auf Regelwerk v3 §12) |
+| `SupplementRow` | Nachtragsliste mit Freigabestatus (interne Referenz auf Regelwerk v3 §13/§19) |
+| `ReviewCaseRow` | Offene oder aktive Prüffälle (interne Referenz auf Pflichtenheft v3 §7.6/§7.12) |
 
 Die Trennung von Command- und Query-Typen stellt sicher, dass
 Präsentationsmodule **keine** Infrastruktur-Klassen importieren müssen.
@@ -142,9 +145,9 @@ Die in `UnitOfWork` definierten Repositories:
 - `device_event_repo` — Geräteereignisse (Terminal, Numpad)
 
 > **Wichtig:** Das Audit-Log wird nach `commit()` geschrieben (nicht davor).
-> Begründung: Nach dem Commit hält die Hauptverbindung keinen `RESERVED`-Lock
-> mehr, sodass die Audit-Verbindung (SQLite WAL-Modus, Autocommit) ohne
-> Blockierung schreiben kann.
+> Diese Reihenfolge ist im Anwendungscode durchgängig umgesetzt. Details zur
+> konkreten Verbindungs- und Transaktionsimplementierung liegen in der
+> Infrastrukturschicht.
 
 ---
 
@@ -164,7 +167,7 @@ häufigsten ausgeführte Use Case im Tagesbetrieb.
 5. Tagesbuchungen laden, Buchungsreihenfolge validieren (`validate_booking_sequence`)
 6. Regelarbeitszeit prüfen → ggf. `ComplianceFlag(OUTSIDE_SCHEDULE_WINDOW, WARN)` setzen
 7. Compliance-Checks durchführen: Pausenpflicht, Höchstarbeitszeit, Ruhezeit
-8. Buchung speichern mit berechnetem Status (`OK` / `WARN` / `NEEDS_REVIEW`)
+8. Buchung speichern mit berechnetem Status (`OPEN` / `OK` / `WARN` / `NEEDS_REVIEW`)
 9. Prüffälle für jeden `ComplianceFlag` anlegen
 10. `commit()` → Audit-Log `TIME_BOOKED` schreiben
 11. `BookResult` zurückgeben
@@ -173,7 +176,7 @@ häufigsten ausgeführte Use Case im Tagesbetrieb.
 
 | Status | Bedingung |
 |---|---|
-| `OPEN` | Buchungstyp ist `COME` oder `BREAK_START` (Tag noch offen) |
+| `OPEN` | Buchungstyp ist `COME` oder `BREAK_START` |
 | `OK` | Keine Compliance-Verstöße |
 | `WARN` | Mindestens ein Flag ohne `CRITICAL`-Schwere |
 | `NEEDS_REVIEW` | Mindestens ein Flag mit `CRITICAL`-Schwere |
@@ -296,7 +299,7 @@ Beide Use Cases erfordern `ADMIN`-Rolle.
 **`CreateEmployeeUseCase`**
 
 1. Berechtigungsprüfung (`ADMIN`)
-2. Duplikat-Personalnummer prüfen → `ConflictError`
+2. Duplikat-Personalnummer unter aktiven Mitarbeitern prüfen → `ConflictError`
 3. `Employee`-Entität anlegen via `EmployeeRepository.add()`
 4. `commit()` → Audit-Log `EMPLOYEE_CREATED` schreiben
 5. `CreateEmployeeResult(employee_id)` zurückgeben
@@ -360,14 +363,17 @@ Audit-Log (`USER_ACCOUNT_DEACTIVATED` / `USER_ACCOUNT_REACTIVATED`).
 
 **`ChangeUserRoleUseCase`** (ADMIN)
 
-Prüft zusätzlich, dass die neue Rolle nicht `EMPLOYEE` ist (`ValidationError`).
+Prüft zusätzlich, dass die neue Rolle in der erlaubten Menge
+`{ADMIN, REVIEWER, TECH}` liegt, andernfalls `ValidationError`.
 Audit-Log `USER_ACCOUNT_ROLE_CHANGED` enthält alte und neue Rolle.
 
 **`BootstrapAdminUseCase`** (kein Actor)
 
 Sonderfall: kein `acting_user_id` im Command. Prüft via `has_active_admin()`,
-ob bereits ein aktiver Admin existiert → `ConflictError`. Legt den ersten
-Admin-Account an; im Audit-Log wird `user_id = saved.id` (Self-Reference)
+ob bereits ein aktiver Admin existiert → `ConflictError`. Prüft zusätzlich,
+ob der gewünschte Username bereits vergeben ist → `ConflictError`. Legt den
+ersten Admin-Account an; im Audit-Log wird `USER_ACCOUNT_CREATED` mit
+`user_id = saved.id` (Self-Reference) und dem Zusatzfeld `bootstrap: true`
 verwendet. Gibt `BootstrapAdminResult(user_id, username)` zurück.
 
 ---
@@ -376,29 +382,27 @@ verwendet. Gibt `BootstrapAdminResult(user_id, username)` zurück.
 
 ### Berechtigungsprüfung
 
-Alle manuellen Use Cases prüfen zu Beginn die Benutzerrolle und werfen
-`PermissionDeniedError`, bevor sie irgendwelche Datenbankzugriffe ausführen:
+Alle manuellen Use Cases prüfen zu Beginn die Benutzerrolle (via `get_by_id`
+des handelnden Accounts) und werfen `PermissionDeniedError`, bevor sie auf
+das jeweilige Zielobjekt zugreifen:
 
 - `ADMIN` + `REVIEWER`: Korrektur, Nachtrag (erfassen/genehmigen/ablehnen)
 - Nur `ADMIN`: Regelzeitänderung, Mitarbeiterverwaltung, Kartenverwaltung,
   Benutzerkontenverwaltung
 - Kein Actor: `BootstrapAdminUseCase` (Existenzprüfung ersetzt Rollencheck)
 - Kein Rollencheck: Terminal-Buchungen (`BookUseCase`) — die RFID-Karte ist
-  das Authentifikationsmittel des Mitarbeiters (Regelwerk v5 §16).
+  das Authentifikationsmittel des Mitarbeiters
 
 ### Audit-Log-Konsistenz
 
 **Erfolgspfade:** Das Audit-Log wird nach dem `commit()` geschrieben.
-Diese Reihenfolge ist eine bewusste Architekturentscheidung für SQLite im
-WAL-Modus: Erst nach dem Commit gibt die Hauptverbindung ihren `RESERVED`-Lock
-frei, sodass die Audit-Verbindung (separater Autocommit-Cursor) blockierungsfrei
-schreiben kann.
+Diese Reihenfolge ist eine bewusste Architekturentscheidung und im
+Anwendungscode durchgängig umgesetzt.
 
-**Ablehnungspfade (`BookUseCase`):** Die Ereignisse `BOOKING_REJECTED_UNKNOWN_CARD`
-und `BOOKING_REJECTED_INACTIVE_CARD` werden **ohne** vorherigen `commit()` direkt
-über die Autocommit-Audit-Verbindung geschrieben, weil diese Pfade die
-Haupttransaktion nie committen. Die Autocommit-Verbindung stellt Persistenz auch
-ohne UoW-Commit sicher.
+**Ablehnungspfade (`BookUseCase`):** Die Ereignisse
+`BOOKING_REJECTED_UNKNOWN_CARD` und `BOOKING_REJECTED_INACTIVE_CARD` werden
+in Pfaden geschrieben, in denen vor dem Audit-Write keine andere
+Schreiboperation auf der Hauptverbindung erfolgt.
 
 ### Unveränderlichkeit der DTOs
 
@@ -431,7 +435,7 @@ Alle Commands und Results sind `@dataclass(frozen=True, slots=True)`.
   `domain/services/compliance_checks.py`, dann in `_evaluate_booking()` der
   betroffenen Use Cases aufrufen.
 - **Reihenfolge beim Audit-Log nie ändern:** Der Commit muss vor dem
-  Audit-Log-Schreibvorgang erfolgen (SQLite-WAL-Lock-Invariante, s. o.).
+  Audit-Log-Schreibvorgang erfolgen.
 
 ---
 
