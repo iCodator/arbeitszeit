@@ -9,9 +9,9 @@ __pycache__/
 
 dist/
 build/
-docs/audits/
+# docs/audits/
 docs/claude_coding/
-docs/archive/
+# docs/archive/
 docs/prompts/
 
 *.db
