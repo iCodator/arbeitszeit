@@ -13,7 +13,7 @@
 | **Geprüft am** | *(Datum einsetzen)* |
 | **Nächste Überprüfung** | *(Datum einsetzen, spätestens jährlich)* |
 
-> **Hinweis:** Dieses Dokument ist eine Vorlage auf Basis der technischen Umsetzung des Systems `arbeitszeit` (Stand: `pflichtenheft_arbeitszeit_v5.md`, `regelwerk_arbeitszeit_v5.md`). Alle mit *(…)* gekennzeichneten Felder sind vor Inbetriebnahme durch die verantwortliche Stelle auszufüllen und zu unterzeichnen. Das ausgefüllte Dokument ist **außerhalb des Repositories** sicher aufzubewahren.
+> **Hinweis:** Dieses Dokument ist eine Vorlage auf Basis der technischen Umsetzung des Systems `arbeitszeit` (Stand: `pflichtenheft_arbeitszeit_v6.md`, `regelwerk_arbeitszeit_v5.md`). Alle mit *(…)* gekennzeichneten Felder sind vor Inbetriebnahme durch die verantwortliche Stelle auszufüllen und zu unterzeichnen. Das ausgefüllte Dokument ist **außerhalb des Repositories** sicher aufzubewahren.
 
 ---
 
@@ -239,4 +239,4 @@ Für das System `arbeitszeit` gilt:
 
 ---
 
-*Grundlage: `pflichtenheft_arbeitszeit_v5.md` §§ 4, 8.4, 11, 12; `regelwerk_arbeitszeit_v5.md` §§ 17, 18; DSGVO Art. 5, 6, 13, 15–22, 25, 30, 32, 33–35; BDSG § 26; ArbZG §§ 3, 4, 5, 16.*
+*Grundlage: `pflichtenheft_arbeitszeit_v6.md` §§ 4, 8.4, 11, 12; `regelwerk_arbeitszeit_v5.md` §§ 17, 18; DSGVO Art. 5, 6, 13, 15–22, 25, 30, 32, 33–35; BDSG § 26; ArbZG §§ 3, 4, 5, 16.*

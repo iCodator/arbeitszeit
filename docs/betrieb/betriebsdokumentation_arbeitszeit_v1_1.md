@@ -7,10 +7,10 @@
 **Methodik:** Alle Aussagen sind ausschließlich aus Repo-Artefakten belegt.
 Technische Aussagen: aus Code und Phasenplänen. Betriebsregeln: aus Phasenplänen
 explizit als „Betriebsregel/Betriebsentscheidung" ausgewiesen. Organisatorische
-Auflagen: aus Pflichtenheft v5 / Regelwerk v5 / planung_gesamt.md — ohne
+Auflagen: aus Pflichtenheft v6 / Regelwerk v5 / planung_gesamt.md — ohne
 Freigabe-Behauptung.
 
-**Abkürzungen:** PH = Pflichtenheft v5, RW = Regelwerk v5
+**Abkürzungen:** PH = Pflichtenheft v6, RW = Regelwerk v5
 
 ---
 

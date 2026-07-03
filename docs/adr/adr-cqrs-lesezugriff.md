@@ -175,4 +175,4 @@ eine unnatürliche Erweiterung des Repository-Protokolls.
 - `src/arbeitszeit/presentation/admin_cli/reports.py` — Verwendung in Reports
 - `src/arbeitszeit/presentation/admin_cli/employees.py` — direkte SQL-Zugriffe
 - `src/arbeitszeit/presentation/admin_cli/schedule.py` — gemischtes Muster
-- Pflichtenheft v5 §7.12 — Pflichtauswertungen
+- Pflichtenheft v6 §7.13 — Pflichtauswertungen
