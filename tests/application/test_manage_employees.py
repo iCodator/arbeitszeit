@@ -21,7 +21,13 @@ def _make_admin(uow: FakeUnitOfWork, username: str = "admin") -> int:
     from arbeitszeit.domain.entities import UserAccount
 
     acct = uow.user_account_repo.add(
-        UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=UserRole.ADMIN, is_active=True)
+        UserAccount(
+            id=UserAccountId(0),
+            employee_id=None,
+            username=username,
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
     )
     return acct.id
 
@@ -30,7 +36,13 @@ def _make_employee(uow: FakeUnitOfWork, personnel_no: str = "M001") -> int:
     from arbeitszeit.domain.entities import Employee
 
     emp = uow.employee_repo.add(
-        Employee(id=EmployeeId(0), personnel_no=personnel_no, first_name="Anna", last_name="Test", is_active=True)
+        Employee(
+            id=EmployeeId(0),
+            personnel_no=personnel_no,
+            first_name="Anna",
+            last_name="Test",
+            is_active=True,
+        )
     )
     return emp.id
 
@@ -74,7 +86,13 @@ class TestCreateEmployee:
         uow = FakeUnitOfWork()
         from arbeitszeit.domain.entities import UserAccount
         reviewer = uow.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="rev", role=UserRole.REVIEWER, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="rev",
+                role=UserRole.REVIEWER,
+                is_active=True,
+            )
         )
         with pytest.raises(PermissionDeniedError):
             CreateEmployeeUseCase(uow).execute(
@@ -139,7 +157,13 @@ class TestDeactivateEmployee:
         emp_id = _make_employee(uow)
         from arbeitszeit.domain.entities import UserAccount
         tech = uow.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="tech", role=UserRole.TECH, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="tech",
+                role=UserRole.TECH,
+                is_active=True,
+            )
         )
         with pytest.raises(PermissionDeniedError):
             DeactivateEmployeeUseCase(uow).execute(

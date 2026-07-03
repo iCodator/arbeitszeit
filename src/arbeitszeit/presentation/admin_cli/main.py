@@ -109,7 +109,9 @@ def _dispatch(
         ),
         ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, audit_conn, args, user_id),
         ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, audit_conn, args, user_id),
-        ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(conn, audit_conn, args, user_id),
+        ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(
+            conn, audit_conn, args, user_id
+        ),
         ("bookings", "correct"): lambda: bookings.cmd_bookings_correct(
             conn, audit_conn, args, user_id
         ),
@@ -125,7 +127,9 @@ def _dispatch(
         ("schedule", "set"): lambda: schedule.cmd_schedule_set(conn, audit_conn, args, user_id),
         ("schedule", "show"): lambda: schedule.cmd_schedule_show(conn, args, user_id),
         ("reports", "export-csv"): lambda: reports.cmd_reports_export_csv(conn, args, user_id),
-        ("reports", "export-csv-review-cases"): lambda: reports.cmd_reports_export_csv_review_cases(conn, args, user_id),
+        ("reports", "export-csv-review-cases"): lambda: reports.cmd_reports_export_csv_review_cases(
+            conn, args, user_id
+        ),
         ("reports", "export-pdf-day"): lambda: reports.cmd_reports_export_pdf_day(
             conn, args, user_id
         ),
@@ -151,9 +155,15 @@ def _dispatch(
         ("system", "backup"): lambda: system.cmd_system_backup(db_path, conn, args, user_id),
         ("users", "add"): lambda: user_accounts.cmd_users_add(conn, audit_conn, args, user_id),
         ("users", "list"): lambda: user_accounts.cmd_users_list(conn, args),
-        ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(conn, audit_conn, args, user_id),
-        ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(conn, audit_conn, args, user_id),
-        ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(conn, audit_conn, args, user_id),
+        ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(
+            conn, audit_conn, args, user_id
+        ),
+        ("users", "reactivate"): lambda: user_accounts.cmd_users_reactivate(
+            conn, audit_conn, args, user_id
+        ),
+        ("users", "change-role"): lambda: user_accounts.cmd_users_change_role(
+            conn, audit_conn, args, user_id
+        ),
         ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, audit_conn, args),
     }
     domain: str = args.domain

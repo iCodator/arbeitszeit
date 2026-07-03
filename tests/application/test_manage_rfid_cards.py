@@ -26,14 +26,26 @@ from .fakes import FakeUnitOfWork
 
 def _make_admin(uow: FakeUnitOfWork) -> int:
     acct = uow.user_account_repo.add(
-        UserAccount(id=UserAccountId(0), employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True)
+        UserAccount(
+            id=UserAccountId(0),
+            employee_id=None,
+            username="admin",
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
     )
     return acct.id
 
 
 def _make_employee(uow: FakeUnitOfWork) -> int:
     emp = uow.employee_repo.add(
-        Employee(id=EmployeeId(0), personnel_no="M001", first_name="A", last_name="B", is_active=True)
+        Employee(
+            id=EmployeeId(0),
+            personnel_no="M001",
+            first_name="A",
+            last_name="B",
+            is_active=True,
+        )
     )
     return emp.id
 
@@ -91,7 +103,13 @@ class TestAssignRfidCard:
         uow = FakeUnitOfWork()
         emp_id = _make_employee(uow)
         reviewer = uow.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="rev", role=UserRole.REVIEWER, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="rev",
+                role=UserRole.REVIEWER,
+                is_active=True,
+            )
         )
         with pytest.raises(PermissionDeniedError):
             AssignRfidCardUseCase(uow).execute(

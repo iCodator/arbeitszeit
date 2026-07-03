@@ -71,6 +71,10 @@ exclude = [
 select = ["E", "F", "W", "I", "B"]  # Errors, Warnings, Imports, Bugbear
 ignore = []
 
+[tool.ruff.lint.per-file-ignores]
+# sys.path-Manipulation vor Anwendungsimporten ist in diesem Einstiegspunkt bewusst
+"src/arbeitszeit/presentation/admin_gui/main.py" = ["E402"]
+
 # ---------------------------------------------------------------------------
 # Type Checking
 # ---------------------------------------------------------------------------

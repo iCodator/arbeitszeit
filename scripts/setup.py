@@ -120,7 +120,10 @@ def main() -> None:
     print("=" * 40)
     print("Ersteinrichtung abgeschlossen. System betriebsbereit.")
     print("Terminal-UI: python -m arbeitszeit.presentation.terminal_ui.main --db <DB> ...")
-    print("Admin-CLI:   python -m arbeitszeit.presentation.admin_cli.main --db <DB> --user-id <ID> ...")
+    print(
+        "Admin-CLI:   python -m arbeitszeit.presentation.admin_cli.main"
+        " --db <DB> --user-id <ID> ..."
+    )
 
 
 if __name__ == "__main__":

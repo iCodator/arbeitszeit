@@ -29,14 +29,26 @@ from .fakes import FakeUnitOfWork
 
 def _make_admin(uow: FakeUnitOfWork, username: str = "admin") -> int:
     acct = uow.user_account_repo.add(
-        UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=UserRole.ADMIN, is_active=True)
+        UserAccount(
+            id=UserAccountId(0),
+            employee_id=None,
+            username=username,
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
     )
     return acct.id
 
 
 def _make_user(uow: FakeUnitOfWork, username: str, role: UserRole = UserRole.REVIEWER) -> int:
     acct = uow.user_account_repo.add(
-        UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=role, is_active=True)
+        UserAccount(
+            id=UserAccountId(0),
+            employee_id=None,
+            username=username,
+            role=role,
+            is_active=True,
+        )
     )
     return acct.id
 

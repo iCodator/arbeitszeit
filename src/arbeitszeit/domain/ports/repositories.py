@@ -12,7 +12,13 @@ from arbeitszeit.domain.entities import (
     UserAccount,
     WorkScheduleVersion,
 )
-from arbeitszeit.domain.enums import BookingStatus, CardStatus, ChangeOrigin, ReviewCaseStatus, UserRole
+from arbeitszeit.domain.enums import (
+    BookingStatus,
+    CardStatus,
+    ChangeOrigin,
+    ReviewCaseStatus,
+    UserRole,
+)
 from arbeitszeit.domain.value_objects import (
     DeviceEventId,
     EmployeeId,

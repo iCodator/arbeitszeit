@@ -18,12 +18,8 @@ import os
 import secrets
 import sqlite3
 import sys
-import traceback
-from datetime import date, datetime, timezone
-from pathlib import Path
-from typing import Callable
-
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 _SRC = Path(__file__).resolve().parents[4]
@@ -32,6 +28,11 @@ if str(_SRC) not in sys.path:
 
 from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import DomainError
+from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+from arbeitszeit.infrastructure.db.connection import open_connection
+from arbeitszeit.infrastructure.db.migrations import run_migrations
+from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.presentation.admin_gui.controller import (
     assign_rfid_card,
     bootstrap_admin,
@@ -44,11 +45,6 @@ from arbeitszeit.presentation.admin_gui.controller import (
     reactivate_user_account,
     replace_rfid_card,
 )
-from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
-from arbeitszeit.infrastructure.db.connection import open_connection
-from arbeitszeit.infrastructure.db.migrations import run_migrations
-from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
-from arbeitszeit.infrastructure.system_check import run_system_check
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Hilfsfunktionen
@@ -243,7 +239,11 @@ class VerbindungsDialog(tk.Toplevel):
                 run_migrations(conn)
                 conn.close()
             except Exception as exc:
-                messagebox.showerror("Fehler", f"Datenbank konnte nicht angelegt werden:\n{exc}", parent=self)
+                messagebox.showerror(
+                    "Fehler",
+                    f"Datenbank konnte nicht angelegt werden:\n{exc}",
+                    parent=self,
+                )
                 return
         else:
             try:
@@ -412,12 +412,17 @@ class MitarbeiterView(ttk.Frame):
         for r in rows:
             name = f"{r['first_name']} {r['last_name']}"
             status = "aktiv" if r["active"] else "inaktiv"
-            self._tree.insert("", tk.END, iid=str(r["id"]), values=(r["id"], r["personnel_no"], name, status))
+            self._tree.insert(
+                "", tk.END, iid=str(r["id"]),
+                values=(r["id"], r["personnel_no"], name, status),
+            )
         self._info.set(f"{len(rows)} Mitarbeiter geladen ({aktiv} aktiv).")
 
     def _anlegen(self) -> None:
         if not self._app.user_id:
-            messagebox.showwarning("Keine Benutzer-ID", "Bitte zuerst eine Benutzer-ID eingeben.", parent=self)
+            messagebox.showwarning(
+                "Keine Benutzer-ID", "Bitte zuerst eine Benutzer-ID eingeben.", parent=self
+            )
             return
         dlg = _MitarbeiterAnlegenDialog(self, self._app)
         self.wait_window(dlg)
@@ -479,7 +484,10 @@ class _MitarbeiterAnlegenDialog(tk.Toplevel):
     def _build(self) -> None:
         f = ttk.LabelFrame(self, text="Mitarbeiterdaten", padding=12)
         f.pack(padx=16, pady=12, fill=tk.BOTH)
-        self._nr = EingabeFeld(f, 0, "Personalnummer:", "Eindeutige Kennung (z. B. M001). Darf kein anderes aktives Konto haben.")
+        self._nr = EingabeFeld(
+            f, 0, "Personalnummer:",
+            "Eindeutige Kennung (z. B. M001). Darf kein anderes aktives Konto haben.",
+        )
         self._vn = EingabeFeld(f, 1, "Vorname:", "Vorname der Mitarbeiterin / des Mitarbeiters.")
         self._nn = EingabeFeld(f, 2, "Nachname:", "Nachname der Mitarbeiterin / des Mitarbeiters.")
         f.columnconfigure(1, weight=1)
@@ -522,7 +530,10 @@ class KartenView(ttk.Frame):
     """Tab: RFID-Kartenverwaltung."""
 
     _COLUMNS = ("id", "mitarbeiter_id", "uid_hash", "status", "gueltig_ab")
-    _HEADERS = {"id": "ID", "mitarbeiter_id": "Mitarb.-ID", "uid_hash": "UID-Hash", "status": "Status", "gueltig_ab": "Gültig ab"}
+    _HEADERS = {
+        "id": "ID", "mitarbeiter_id": "Mitarb.-ID", "uid_hash": "UID-Hash",
+        "status": "Status", "gueltig_ab": "Gültig ab",
+    }
     _WIDTHS = {"id": 50, "mitarbeiter_id": 90, "uid_hash": 220, "status": 80, "gueltig_ab": 90}
 
     def __init__(self, parent: tk.Widget, app: "ArbeitszeitApp") -> None:
@@ -541,7 +552,8 @@ class KartenView(ttk.Frame):
             "Neue RFID-Karte einem Mitarbeiter zuweisen.\n\n"
             "Sie benötigen die Mitarbeiter-ID (aus dem Mitarbeiter-Tab) und "
             "den SHA-256-Hash der Karte. Den Hash erhalten Sie mit dem Befehl:\n"
-            "  python scripts/verify_hardware.py --numpad /dev/input/eventX --rfid /dev/input/eventY\n\n"
+            "  python scripts/verify_hardware.py --numpad /dev/input/eventX"
+            " --rfid /dev/input/eventY\n\n"
             "Halten Sie während des Tests die Karte an den Leser — das Script "
             "zeigt den Hash an.",
         )
@@ -570,7 +582,9 @@ class KartenView(ttk.Frame):
 
         tree_frame = ttk.Frame(self)
         tree_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
-        self._tree = ttk.Treeview(tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse")
+        self._tree = ttk.Treeview(
+            tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse"
+        )
         for col in self._COLUMNS:
             self._tree.heading(col, text=self._HEADERS[col])
             self._tree.column(col, width=self._WIDTHS[col], minwidth=40)
@@ -580,7 +594,9 @@ class KartenView(ttk.Frame):
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         self._info = tk.StringVar(value="Keine Verbindung.")
-        tk.Label(self, textvariable=self._info, foreground="#555", anchor="w").pack(fill=tk.X, padx=8, pady=(0, 6))
+        tk.Label(
+            self, textvariable=self._info, foreground="#555", anchor="w"
+        ).pack(fill=tk.X, padx=8, pady=(0, 6))
 
     def laden(self) -> None:
         self._tree.delete(*self._tree.get_children())
@@ -597,7 +613,10 @@ class KartenView(ttk.Frame):
             return
         for r in rows:
             self._tree.insert("", tk.END, iid=str(r["id"]),
-                values=(r["id"], r["employee_id"], r["uid_hash"][:24] + "…", r["status"], r["valid_from"]))
+                values=(
+                    r["id"], r["employee_id"], r["uid_hash"][:24] + "…",
+                    r["status"], r["valid_from"],
+                ))
         self._info.set(f"{len(rows)} Karte(n) geladen.")
 
     def _ausgewaehlt(self) -> int | None:
@@ -642,7 +661,9 @@ class KartenView(ttk.Frame):
         karte_id = self._ausgewaehlt()
         if karte_id is None:
             return
-        if not messagebox.askyesno("Bestätigen", f"Karte {karte_id} wirklich deaktivieren?", parent=self):
+        if not messagebox.askyesno(
+            "Bestätigen", f"Karte {karte_id} wirklich deaktivieren?", parent=self
+        ):
             return
         _c = self._app.require_connection(self)
         if _c is None:
@@ -671,7 +692,10 @@ class _KarteZuweisenDialog(tk.Toplevel):
     def _build(self) -> None:
         f = ttk.LabelFrame(self, text="Kartendaten", padding=12)
         f.pack(padx=16, pady=12, fill=tk.BOTH)
-        self._empid = EingabeFeld(f, 0, "Mitarbeiter-ID:", "Numerische ID des Mitarbeiters (aus dem Mitarbeiter-Tab).")
+        self._empid = EingabeFeld(
+            f, 0, "Mitarbeiter-ID:",
+            "Numerische ID des Mitarbeiters (aus dem Mitarbeiter-Tab).",
+        )
         self._hash = EingabeFeld(
             f, 1, "UID-Hash:",
             "SHA-256-Hash der RFID-Karte, wie in der Datenbank gespeichert.\n\n"
@@ -756,7 +780,11 @@ class BenutzerView(ttk.Frame):
 
         deakt_btn = ttk.Button(bar, text="🚫 Deaktivieren", command=self._deaktivieren)
         deakt_btn.pack(side=tk.LEFT, padx=(0, 4))
-        tip(deakt_btn, "Ausgewähltes Benutzerkonto deaktivieren. Der Benutzer kann sich danach nicht mehr anmelden.")
+        tip(
+            deakt_btn,
+            "Ausgewähltes Benutzerkonto deaktivieren. Der Benutzer kann sich"
+            " danach nicht mehr anmelden.",
+        )
 
         reakt_btn = ttk.Button(bar, text="✅ Reaktivieren", command=self._reaktivieren)
         reakt_btn.pack(side=tk.LEFT, padx=(0, 4))
@@ -770,7 +798,9 @@ class BenutzerView(ttk.Frame):
 
         tree_frame = ttk.Frame(self)
         tree_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
-        self._tree = ttk.Treeview(tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse")
+        self._tree = ttk.Treeview(
+            tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse"
+        )
         for col in self._COLUMNS:
             self._tree.heading(col, text=self._HEADERS[col])
             self._tree.column(col, width=self._WIDTHS[col], minwidth=40)
@@ -780,7 +810,9 @@ class BenutzerView(ttk.Frame):
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         self._info = tk.StringVar(value="Keine Verbindung.")
-        tk.Label(self, textvariable=self._info, foreground="#555", anchor="w").pack(fill=tk.X, padx=8, pady=(0, 6))
+        tk.Label(
+            self, textvariable=self._info, foreground="#555", anchor="w"
+        ).pack(fill=tk.X, padx=8, pady=(0, 6))
 
     def laden(self) -> None:
         self._tree.delete(*self._tree.get_children())
@@ -798,7 +830,10 @@ class BenutzerView(ttk.Frame):
             return
         for r in rows:
             status = "aktiv" if r["active"] else "inaktiv"
-            self._tree.insert("", tk.END, iid=str(r["id"]), values=(r["id"], r["username"], r["role"], status))
+            self._tree.insert(
+                "", tk.END, iid=str(r["id"]),
+                values=(r["id"], r["username"], r["role"], status),
+            )
         self._info.set(f"{len(rows)} Benutzerkonto/-konten geladen.")
 
     def _ausgewaehlt(self) -> int | None:
@@ -815,7 +850,9 @@ class BenutzerView(ttk.Frame):
             self.laden()
 
     def _bootstrap(self) -> None:
-        benutzername = simpledialog.askstring("Bootstrap", "Benutzername des ersten Administrators:", parent=self)
+        benutzername = simpledialog.askstring(
+            "Bootstrap", "Benutzername des ersten Administrators:", parent=self
+        )
         if not benutzername:
             return
         passwort = simpledialog.askstring(
@@ -839,7 +876,10 @@ class BenutzerView(ttk.Frame):
             _close(conn, audit_conn)
             msg = f"Erstes Administratorkonto angelegt (ID {result.user_id})."
             if not passwort:
-                msg += f"\n\nGeneriertes Passwort (einmalig sichtbar):\n{plain}\n\nNotieren Sie es sofort!"
+                msg += (
+                    f"\n\nGeneriertes Passwort (einmalig sichtbar):\n{plain}"
+                    "\n\nNotieren Sie es sofort!"
+                )
             messagebox.showinfo("Bootstrap erfolgreich", msg, parent=self)
             self._app.status("Bootstrap abgeschlossen.")
             self.laden()
@@ -908,16 +948,32 @@ class _BenutzerAnlegenDialog(tk.Toplevel):
     def _build(self) -> None:
         f = ttk.LabelFrame(self, text="Kontodaten", padding=12)
         f.pack(padx=16, pady=12, fill=tk.BOTH)
-        self._name = EingabeFeld(f, 0, "Benutzername:", "Eindeutiger Anmeldename (ohne Leerzeichen).")
-        self._pw = EingabeFeld(f, 1, "Passwort:", "Passwort (leer lassen für automatisch generierten Wert).", show="*")
+        self._name = EingabeFeld(
+            f, 0, "Benutzername:", "Eindeutiger Anmeldename (ohne Leerzeichen)."
+        )
+        self._pw = EingabeFeld(
+            f, 1, "Passwort:",
+            "Passwort (leer lassen für automatisch generierten Wert).",
+            show="*",
+        )
 
         tk.Label(f, text="Rolle:", anchor="w").grid(row=2, column=0, sticky="w", padx=8, pady=4)
         self._rolle_var = tk.StringVar(value="REVIEWER")
-        rolle_cb = ttk.Combobox(f, textvariable=self._rolle_var, values=["ADMIN", "REVIEWER", "TECH"], state="readonly", width=12)
+        rolle_cb = ttk.Combobox(
+            f, textvariable=self._rolle_var,
+            values=["ADMIN", "REVIEWER", "TECH"],
+            state="readonly", width=12,
+        )
         rolle_cb.grid(row=2, column=1, sticky="w", padx=(0, 8), pady=4)
-        tip(rolle_cb, "ADMIN: Vollzugriff | REVIEWER: Berichte und Nachträge | TECH: Systemcheck und Backup")
+        tip(
+            rolle_cb,
+            "ADMIN: Vollzugriff | REVIEWER: Berichte und Nachträge"
+            " | TECH: Systemcheck und Backup",
+        )
 
-        tk.Label(f, text="Mitarbeiter-ID:", anchor="w").grid(row=3, column=0, sticky="w", padx=8, pady=4)
+        tk.Label(f, text="Mitarbeiter-ID:", anchor="w").grid(
+            row=3, column=0, sticky="w", padx=8, pady=4
+        )
         self._empid_var = tk.StringVar(value="")
         empid_e = ttk.Entry(f, textvariable=self._empid_var, width=10)
         empid_e.grid(row=3, column=1, sticky="w", padx=(0, 8), pady=4)
@@ -954,7 +1010,10 @@ class _BenutzerAnlegenDialog(tk.Toplevel):
             _close(conn, audit_conn)
             msg = f"Benutzerkonto angelegt (ID {result.user_id})."
             if not self._pw.wert:
-                msg += f"\n\nGeneriertes Passwort (einmalig sichtbar):\n{plain}\n\nNotieren Sie es sofort!"
+                msg += (
+                    f"\n\nGeneriertes Passwort (einmalig sichtbar):\n{plain}"
+                    "\n\nNotieren Sie es sofort!"
+                )
             messagebox.showinfo("Erfolg", msg, parent=self)
             self._app.status(f"Benutzerkonto {result.user_id} angelegt.")
             self.ok = True
@@ -977,9 +1036,15 @@ class _RolleAendernDialog(tk.Toplevel):
     def _build(self) -> None:
         f = ttk.Frame(self)
         f.pack(padx=16, pady=16)
-        tk.Label(f, text=f"Neue Rolle für Benutzerkonto {self._target_id}:", anchor="w").grid(row=0, column=0, padx=(0, 8), pady=4)
+        tk.Label(
+            f, text=f"Neue Rolle für Benutzerkonto {self._target_id}:", anchor="w"
+        ).grid(row=0, column=0, padx=(0, 8), pady=4)
         self._var = tk.StringVar(value="REVIEWER")
-        cb = ttk.Combobox(f, textvariable=self._var, values=["ADMIN", "REVIEWER", "TECH"], state="readonly", width=12)
+        cb = ttk.Combobox(
+            f, textvariable=self._var,
+            values=["ADMIN", "REVIEWER", "TECH"],
+            state="readonly", width=12,
+        )
         cb.grid(row=0, column=1, pady=4)
         tip(cb, "Neue Rolle auswählen. EMPLOYEE-Rolle ist nicht erlaubt.")
         btn_f = ttk.Frame(self)
@@ -1060,13 +1125,16 @@ class SystemView(ttk.Frame):
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         self._gesamt = tk.StringVar(value="Noch kein Systemcheck durchgeführt.")
-        tk.Label(self, textvariable=self._gesamt, anchor="w", font=("TkDefaultFont", 0, "bold")).pack(
-            fill=tk.X, padx=8, pady=(0, 8)
-        )
+        tk.Label(
+            self, textvariable=self._gesamt,
+            anchor="w", font=("TkDefaultFont", 0, "bold"),
+        ).pack(fill=tk.X, padx=8, pady=(0, 8))
 
     def _systemcheck(self) -> None:
         if not self._app.db_path:
-            messagebox.showwarning("Nicht verbunden", "Bitte zuerst eine Datenbank öffnen.", parent=self)
+            messagebox.showwarning(
+                "Nicht verbunden", "Bitte zuerst eine Datenbank öffnen.", parent=self
+            )
             return
         self._tree.delete(*self._tree.get_children())
         self._gesamt.set("Systemcheck läuft …")
@@ -1080,18 +1148,28 @@ class SystemView(ttk.Frame):
         for check in result.checks:
             status_text = "OK" if check.ok else "FEHLER"
             tag = "ok" if check.ok else "fail"
-            self._tree.insert("", tk.END, values=(check.name, status_text, check.detail), tags=(tag,))
+            self._tree.insert(
+                "", tk.END,
+                values=(check.name, status_text, check.detail),
+                tags=(tag,),
+            )
 
         self._tree.tag_configure("ok", foreground="#2e7d32")
         self._tree.tag_configure("fail", foreground="#c62828")
 
-        gesamt_text = "✅ Systemcheck bestanden." if result.overall_ok else "❌ Systemcheck: FEHLER aufgetreten."
+        gesamt_text = (
+            "✅ Systemcheck bestanden."
+            if result.overall_ok
+            else "❌ Systemcheck: FEHLER aufgetreten."
+        )
         self._gesamt.set(gesamt_text)
         self._app.status(gesamt_text)
 
     def _backup(self) -> None:
         if not self._app.db_path:
-            messagebox.showwarning("Nicht verbunden", "Bitte zuerst eine Datenbank öffnen.", parent=self)
+            messagebox.showwarning(
+                "Nicht verbunden", "Bitte zuerst eine Datenbank öffnen.", parent=self
+            )
             return
         try:
             conn = open_connection(self._app.db_path)
@@ -1135,8 +1213,14 @@ class RegelzeitenView(ttk.Frame):
     """Tab: Aktive Regelarbeitszeiten anzeigen."""
 
     _COLUMNS = ("id", "scope", "mitarb", "tag", "von", "bis", "gueltig_ab")
-    _HEADERS = {"id": "ID", "scope": "Scope", "mitarb": "Mitarb.-ID", "tag": "Tag", "von": "Von", "bis": "Bis", "gueltig_ab": "Gültig ab"}
-    _WIDTHS = {"id": 45, "scope": 80, "mitarb": 80, "tag": 45, "von": 60, "bis": 60, "gueltig_ab": 90}
+    _HEADERS = {
+        "id": "ID", "scope": "Scope", "mitarb": "Mitarb.-ID",
+        "tag": "Tag", "von": "Von", "bis": "Bis", "gueltig_ab": "Gültig ab",
+    }
+    _WIDTHS = {
+        "id": 45, "scope": 80, "mitarb": 80,
+        "tag": 45, "von": 60, "bis": 60, "gueltig_ab": 90,
+    }
     _TAGE = {1: "Mo", 2: "Di", 3: "Mi", 4: "Do", 5: "Fr", 6: "Sa", 7: "So"}
 
     def __init__(self, parent: tk.Widget, app: "ArbeitszeitApp") -> None:
@@ -1166,7 +1250,9 @@ class RegelzeitenView(ttk.Frame):
 
         tree_frame = ttk.Frame(self)
         tree_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=4)
-        self._tree = ttk.Treeview(tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse")
+        self._tree = ttk.Treeview(
+            tree_frame, columns=self._COLUMNS, show="headings", selectmode="browse"
+        )
         for col in self._COLUMNS:
             self._tree.heading(col, text=self._HEADERS[col])
             self._tree.column(col, width=self._WIDTHS[col], minwidth=40)
@@ -1176,7 +1262,9 @@ class RegelzeitenView(ttk.Frame):
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
         self._info = tk.StringVar(value="Keine Verbindung.")
-        tk.Label(self, textvariable=self._info, foreground="#555", anchor="w").pack(fill=tk.X, padx=8, pady=(0, 6))
+        tk.Label(
+            self, textvariable=self._info, foreground="#555", anchor="w"
+        ).pack(fill=tk.X, padx=8, pady=(0, 6))
 
     def laden(self) -> None:
         self._tree.delete(*self._tree.get_children())
@@ -1185,7 +1273,8 @@ class RegelzeitenView(ttk.Frame):
         try:
             conn = open_connection(self._app.db_path)
             rows = conn.execute(
-                "SELECT id, scope_type, scope_employee_id, weekday, start_time, end_time, valid_from "
+                "SELECT id, scope_type, scope_employee_id, weekday, "
+                "start_time, end_time, valid_from "
                 "FROM work_schedule_versions WHERE valid_until IS NULL ORDER BY scope_type, weekday"
             ).fetchall()
             conn.close()
@@ -1276,12 +1365,16 @@ class ArbeitszeitApp(tk.Tk):
 
         # Ansicht
         ansicht_menu = tk.Menu(menubar, tearoff=False)
-        ansicht_menu.add_command(label="Alles neu laden", accelerator="F5", command=self._alle_laden)
+        ansicht_menu.add_command(
+            label="Alles neu laden", accelerator="F5", command=self._alle_laden
+        )
         menubar.add_cascade(label="Ansicht", menu=ansicht_menu)
 
         # Hilfe
         hilfe_menu = tk.Menu(menubar, tearoff=False)
-        hilfe_menu.add_command(label="Kurzanleitung", accelerator="F1", command=self._hilfe_kurzanleitung)
+        hilfe_menu.add_command(
+            label="Kurzanleitung", accelerator="F1", command=self._hilfe_kurzanleitung
+        )
         hilfe_menu.add_command(label="Tastenkürzel", command=self._hilfe_tastaturkuerzel)
         hilfe_menu.add_separator()
         hilfe_menu.add_command(label="Über Arbeitszeit", command=self._ueber)
@@ -1325,7 +1418,8 @@ class ArbeitszeitApp(tk.Tk):
         if self.db_path is None:
             messagebox.showwarning(
                 "Nicht verbunden",
-                "Bitte zuerst eine Datenbankverbindung herstellen\n(Datei → Verbindung herstellen …).",
+                "Bitte zuerst eine Datenbankverbindung herstellen\n"
+                "(Datei → Verbindung herstellen …).",
                 parent=parent,
             )
             return None

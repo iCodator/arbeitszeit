@@ -15,7 +15,12 @@ from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, UserAccount
 from arbeitszeit.domain.enums import UserRole
-from arbeitszeit.domain.errors import ConflictError, NotFoundError, PermissionDeniedError, ValidationError
+from arbeitszeit.domain.errors import (
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+    ValidationError,
+)
 from arbeitszeit.domain.value_objects import AuditLogEntryId, UserAccountId
 
 _ALLOWED_ROLES = {UserRole.ADMIN, UserRole.REVIEWER, UserRole.TECH}

@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.domain.entities import Employee, RfidCard, UserAccount
 from arbeitszeit.domain.enums import CardStatus, UserRole
-from arbeitszeit.domain.errors import ConflictError, NotFoundError, PermissionDeniedError
+from arbeitszeit.domain.errors import ConflictError, NotFoundError
 from arbeitszeit.domain.value_objects import EmployeeId, RfidCardId, UserAccountId
 from arbeitszeit.presentation.admin_gui.controller import (
     assign_rfid_card,
@@ -25,21 +25,32 @@ from arbeitszeit.presentation.admin_gui.controller import (
 sys.path.insert(0, str(Path(__file__).parents[1]))
 from application.fakes import FakeUnitOfWork
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Hilfsfunktionen
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _admin(uow: FakeUnitOfWork, username: str = "admin") -> int:
     acct = uow.user_account_repo.add(
-        UserAccount(id=UserAccountId(0), employee_id=None, username=username, role=UserRole.ADMIN, is_active=True)
+        UserAccount(
+            id=UserAccountId(0),
+            employee_id=None,
+            username=username,
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
     )
     return acct.id
 
 
 def _employee(uow: FakeUnitOfWork, personnel_no: str = "M001") -> int:
     emp = uow.employee_repo.add(
-        Employee(id=EmployeeId(0), personnel_no=personnel_no, first_name="Anna", last_name="Test", is_active=True)
+        Employee(
+            id=EmployeeId(0),
+            personnel_no=personnel_no,
+            first_name="Anna",
+            last_name="Test",
+            is_active=True,
+        )
     )
     return emp.id
 
@@ -81,10 +92,22 @@ class TestCreateEmployee:
         create_employee(uow, admin_id, "M001", "Anna", "Eins")
         uow2 = FakeUnitOfWork()
         uow2.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="admin",
+                role=UserRole.ADMIN,
+                is_active=True,
+            )
         )
         uow2.employee_repo.add(
-            Employee(id=EmployeeId(0), personnel_no="M001", first_name="Anna", last_name="Eins", is_active=True)
+            Employee(
+                id=EmployeeId(0),
+                personnel_no="M001",
+                first_name="Anna",
+                last_name="Eins",
+                is_active=True,
+            )
         )
         with pytest.raises(ConflictError):
             create_employee(uow2, 1, "M001", "Berta", "Zwei")
@@ -229,7 +252,13 @@ class TestBootstrapAdmin:
         bootstrap_admin(uow, "erster_admin", "pw_hash")
         uow2 = FakeUnitOfWork()
         uow2.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="admin",
+                role=UserRole.ADMIN,
+                is_active=True,
+            )
         )
         with pytest.raises(ConflictError):
             bootstrap_admin(uow2, "zweiter_admin", "pw_hash")
@@ -244,7 +273,13 @@ class TestDeactivateUserAccount:
         uow = FakeUnitOfWork()
         admin_id = _admin(uow)
         target = uow.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="reviewer", role=UserRole.REVIEWER, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="reviewer",
+                role=UserRole.REVIEWER,
+                is_active=True,
+            )
         )
         deactivate_user_account(uow, admin_id, target.id)
         acct = uow.user_account_repo.get_by_id(target.id)
@@ -267,7 +302,13 @@ class TestReactivateUserAccount:
         uow = FakeUnitOfWork()
         admin_id = _admin(uow)
         target = uow.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="reviewer", role=UserRole.REVIEWER, is_active=False)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="reviewer",
+                role=UserRole.REVIEWER,
+                is_active=False,
+            )
         )
         reactivate_user_account(uow, admin_id, target.id)
         acct = uow.user_account_repo.get_by_id(target.id)
@@ -290,7 +331,13 @@ class TestChangeUserRole:
         uow = FakeUnitOfWork()
         admin_id = _admin(uow)
         target = uow.user_account_repo.add(
-            UserAccount(id=UserAccountId(0), employee_id=None, username="reviewer", role=UserRole.REVIEWER, is_active=True)
+            UserAccount(
+                id=UserAccountId(0),
+                employee_id=None,
+                username="reviewer",
+                role=UserRole.REVIEWER,
+                is_active=True,
+            )
         )
         change_user_role(uow, admin_id, target.id, UserRole.TECH)
         acct = uow.user_account_repo.get_by_id(target.id)

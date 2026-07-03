@@ -175,7 +175,9 @@ def register_subcommands(
         choices=["ADMIN", "REVIEWER", "TECH"],
         help="Rolle: ADMIN, REVIEWER oder TECH",
     )
-    add.add_argument("--employee-id", type=int, default=None, help="Verknüpfter Mitarbeiter (optional)")
+    add.add_argument(
+        "--employee-id", type=int, default=None, help="Verknüpfter Mitarbeiter (optional)"
+    )
     add.add_argument(
         "--password",
         default=None,
@@ -204,4 +206,6 @@ def register_subcommands(
         help="Erstes Administratorkonto anlegen (nur wenn kein Admin existiert)",
     )
     boot.add_argument("--username", required=True, help="Benutzername des ersten Administrators")
-    boot.add_argument("--password", default=None, help="Passwort (leer lassen für automatisch generiertes)")
+    boot.add_argument(
+        "--password", default=None, help="Passwort (leer lassen für automatisch generiertes)"
+    )
