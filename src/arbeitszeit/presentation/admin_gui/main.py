@@ -30,43 +30,19 @@ _SRC = Path(__file__).resolve().parents[4]
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
 
-from arbeitszeit.application.commands import (
-    AssignRfidCardCommand,
-    BootstrapAdminCommand,
-    ChangeUserRoleCommand,
-    ChangeWorkScheduleCommand,
-    CreateEmployeeCommand,
-    CreateUserAccountCommand,
-    DeactivateEmployeeCommand,
-    DeactivateRfidCardCommand,
-    DeactivateUserAccountCommand,
-    ReactivateUserAccountCommand,
-    ReplaceRfidCardCommand,
-)
-from arbeitszeit.application.use_cases.manage_employees import (
-    CreateEmployeeUseCase,
-    DeactivateEmployeeUseCase,
-)
-from arbeitszeit.application.use_cases.manage_rfid_cards import (
-    AssignRfidCardUseCase,
-    DeactivateRfidCardUseCase,
-    ReplaceRfidCardUseCase,
-)
-from arbeitszeit.application.use_cases.manage_user_accounts import (
-    BootstrapAdminUseCase,
-    ChangeUserRoleUseCase,
-    CreateUserAccountUseCase,
-    DeactivateUserAccountUseCase,
-    ReactivateUserAccountUseCase,
-)
-from arbeitszeit.application.use_cases.manage_work_schedule import ManageWorkScheduleUseCase
-from arbeitszeit.domain.enums import ChangeOrigin, ScopeType, UserRole
+from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import DomainError
-from arbeitszeit.domain.value_objects import (
-    EmployeeId,
-    RfidCardId,
-    UserAccountId,
-    WorkScheduleVersionId,
+from arbeitszeit.presentation.admin_gui.controller import (
+    assign_rfid_card,
+    bootstrap_admin,
+    change_user_role,
+    create_employee,
+    create_user_account,
+    deactivate_employee,
+    deactivate_rfid_card,
+    deactivate_user_account,
+    reactivate_user_account,
+    replace_rfid_card,
 )
 from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
 from arbeitszeit.infrastructure.db.connection import open_connection
@@ -465,12 +441,7 @@ class MitarbeiterView(ttk.Frame):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            DeactivateEmployeeUseCase(uow).execute(
-                DeactivateEmployeeCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    employee_id=EmployeeId(emp_id),
-                )
-            )
+            deactivate_employee(uow, self._app.user_id, emp_id)
             _close(conn, audit_conn)
             self._app.status(f"Mitarbeiter {emp_id} deaktiviert.")
             self.laden()
@@ -524,14 +495,7 @@ class _MitarbeiterAnlegenDialog(tk.Toplevel):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = CreateEmployeeUseCase(uow).execute(
-                CreateEmployeeCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    personnel_no=self._nr.wert,
-                    first_name=self._vn.wert,
-                    last_name=self._nn.wert,
-                )
-            )
+            result = create_employee(uow, self._app.user_id, self._nr.wert, self._vn.wert, self._nn.wert)
             _close(conn, audit_conn)
             self._app.status(f"Mitarbeiter angelegt (ID {result.employee_id}).")
             self.ok = True
@@ -655,13 +619,7 @@ class KartenView(ttk.Frame):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = ReplaceRfidCardUseCase(uow).execute(
-                ReplaceRfidCardCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    old_card_id=RfidCardId(karte_id),
-                    uid_hash=neuer_hash.strip(),
-                )
-            )
+            result = replace_rfid_card(uow, self._app.user_id, karte_id, neuer_hash.strip())
             _close(conn, audit_conn)
             self._app.status(f"Karte ersetzt: alt={karte_id}, neu={result.new_card_id}.")
             self.laden()
@@ -676,12 +634,7 @@ class KartenView(ttk.Frame):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            DeactivateRfidCardUseCase(uow).execute(
-                DeactivateRfidCardCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    card_id=RfidCardId(karte_id),
-                )
-            )
+            deactivate_rfid_card(uow, self._app.user_id, karte_id)
             _close(conn, audit_conn)
             self._app.status(f"Karte {karte_id} deaktiviert.")
             self.laden()
@@ -727,13 +680,7 @@ class _KarteZuweisenDialog(tk.Toplevel):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = AssignRfidCardUseCase(uow).execute(
-                AssignRfidCardCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    employee_id=EmployeeId(emp_id),
-                    uid_hash=self._hash.wert,
-                )
-            )
+            result = assign_rfid_card(uow, self._app.user_id, emp_id, self._hash.wert)
             _close(conn, audit_conn)
             self._app.status(f"Karte zugewiesen (ID {result.card_id}).")
             self.ok = True
@@ -861,9 +808,7 @@ class BenutzerView(ttk.Frame):
         pw_hash = _hash_password(plain)
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = BootstrapAdminUseCase(uow).execute(
-                BootstrapAdminCommand(username=benutzername, password_hash=pw_hash)
-            )
+            result = bootstrap_admin(uow, benutzername, pw_hash)
             _close(conn, audit_conn)
             msg = f"Erstes Administratorkonto angelegt (ID {result.user_id})."
             if not passwort:
@@ -885,12 +830,7 @@ class BenutzerView(ttk.Frame):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            DeactivateUserAccountUseCase(uow).execute(
-                DeactivateUserAccountCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    target_user_id=UserAccountId(uid),
-                )
-            )
+            deactivate_user_account(uow, self._app.user_id, uid)
             _close(conn, audit_conn)
             self._app.status(f"Benutzerkonto {uid} deaktiviert.")
             self.laden()
@@ -903,12 +843,7 @@ class BenutzerView(ttk.Frame):
             return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            ReactivateUserAccountUseCase(uow).execute(
-                ReactivateUserAccountCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    target_user_id=UserAccountId(uid),
-                )
-            )
+            reactivate_user_account(uow, self._app.user_id, uid)
             _close(conn, audit_conn)
             self._app.status(f"Benutzerkonto {uid} reaktiviert.")
             self.laden()
@@ -969,22 +904,14 @@ class _BenutzerAnlegenDialog(tk.Toplevel):
         emp_id = None
         if emp_id_str:
             try:
-                emp_id = EmployeeId(int(emp_id_str))
+                emp_id = int(emp_id_str)
             except ValueError:
                 messagebox.showerror("Fehler", "Mitarbeiter-ID muss eine Zahl sein.", parent=self)
                 return
         try:
             rolle = UserRole(self._rolle_var.get())
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = CreateUserAccountUseCase(uow).execute(
-                CreateUserAccountCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    username=self._name.wert,
-                    password_hash=pw_hash,
-                    role=rolle,
-                    employee_id=emp_id,
-                )
-            )
+            result = create_user_account(uow, self._app.user_id, self._name.wert, pw_hash, rolle, emp_id)
             _close(conn, audit_conn)
             msg = f"Benutzerkonto angelegt (ID {result.user_id})."
             if not self._pw.wert:
@@ -1024,13 +951,7 @@ class _RolleAendernDialog(tk.Toplevel):
     def _ok(self) -> None:
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
-            ChangeUserRoleUseCase(uow).execute(
-                ChangeUserRoleCommand(
-                    acting_user_id=UserAccountId(self._app.user_id),
-                    target_user_id=UserAccountId(self._target_id),
-                    new_role=UserRole(self._var.get()),
-                )
-            )
+            change_user_role(uow, self._app.user_id, self._target_id, UserRole(self._var.get()))
             _close(conn, audit_conn)
             self._app.status(f"Rolle von Konto {self._target_id} geändert.")
             self.ok = True
