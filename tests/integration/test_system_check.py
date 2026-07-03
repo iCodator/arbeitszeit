@@ -1,15 +1,36 @@
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.system_check import (
+    CheckResult,
     SystemCheckResult,
+    _check_ntp,
     run_system_check,
 )
+
+# ---------------------------------------------------------------------------
+# NTP-Check-Isolation
+#
+# _check_ntp ruft `timedatectl` via subprocess auf und hängt damit vom
+# NTP-Status des Host-Systems ab. In Container-/CI-Umgebungen läuft i.d.R.
+# kein systemd-timesyncd, sodass `timedatectl` NTP=no meldet und der Check
+# fehlschlägt – unabhängig vom Zustand der geprüften Datenbank.
+#
+# Die "OK"-Erfolgsfall-Tests unten prüfen die DB-, Config- und
+# Event-Logik. Damit sie deterministisch und host-unabhängig sind, wird
+# `_check_ntp` gemockt und liefert einen erfolgreichen CheckResult. Die
+# tatsächliche NTP-Prüflogik wird separat in den `test_ntp_*`-Tests weiter
+# unten mit gemocktem `subprocess.run` geprüft.
+# ---------------------------------------------------------------------------
+_NTP_OK = CheckResult(name="ntp_sync", ok=True, detail="NTP aktiv und synchronisiert (gemockt)")
+_PATCH_NTP = "arbeitszeit.infrastructure.system_check._check_ntp"
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -59,20 +80,23 @@ def test_selftest_gibt_system_check_result_zurueck(tmp_path):
 
 def test_selftest_ok_bei_korrekt_migrierter_db(tmp_path):
     db = _make_db(tmp_path)
-    result = run_system_check(db)
+    with patch(_PATCH_NTP, return_value=_NTP_OK):
+        result = run_system_check(db)
     assert result.overall_ok
 
 
 def test_selftest_protokolliert_selftest_ok_in_system_events(tmp_path):
     db = _make_db(tmp_path)
-    run_system_check(db)
+    with patch(_PATCH_NTP, return_value=_NTP_OK):
+        run_system_check(db)
     events = _system_events(db)
     assert any(e["event_type"] == "SELFTEST_OK" for e in events)
 
 
 def test_selftest_ok_event_hat_source_system_check(tmp_path):
     db = _make_db(tmp_path)
-    run_system_check(db)
+    with patch(_PATCH_NTP, return_value=_NTP_OK):
+        run_system_check(db)
     events = _system_events(db)
     ok_event = next(e for e in events if e["event_type"] == "SELFTEST_OK")
     assert ok_event["source"] == "system_check"
@@ -80,7 +104,8 @@ def test_selftest_ok_event_hat_source_system_check(tmp_path):
 
 def test_selftest_ok_event_hat_severity_info(tmp_path):
     db = _make_db(tmp_path)
-    run_system_check(db)
+    with patch(_PATCH_NTP, return_value=_NTP_OK):
+        run_system_check(db)
     events = _system_events(db)
     ok_event = next(e for e in events if e["event_type"] == "SELFTEST_OK")
     assert ok_event["severity"] == "INFO"
@@ -242,3 +267,45 @@ def test_geraete_check_ok_bei_existierender_geraetedatei(tmp_path):
     result = run_system_check(db, numpad_path=fake_dev)
     dev_check = next(c for c in result.checks if c.name == "device_availability")
     assert dev_check.ok
+
+
+# --- NTP-Prüfung (isoliert, mit gemocktem subprocess.run) ---
+#
+# Diese Tests prüfen die reale _check_ntp-Logik host-unabhängig, indem der
+# timedatectl-Aufruf gemockt wird. Sie ersetzen die frühere implizite
+# Abdeckung über die "OK"-Tests, die jetzt _check_ntp mocken.
+
+_RUN = "arbeitszeit.infrastructure.system_check.subprocess.run"
+
+
+def _fake_timedatectl(ntp: str, synced: str):
+    stdout = f"NTP={ntp}\nNTPSynchronized={synced}\n"
+    return SimpleNamespace(stdout=stdout, stderr="", returncode=0)
+
+
+def test_ntp_ok_bei_aktiv_und_synchronisiert():
+    with patch(_RUN, return_value=_fake_timedatectl("yes", "yes")):
+        result = _check_ntp()
+    assert result.ok
+    assert result.name == "ntp_sync"
+
+
+def test_ntp_fail_bei_nicht_aktiv():
+    with patch(_RUN, return_value=_fake_timedatectl("no", "no")):
+        result = _check_ntp()
+    assert not result.ok
+    assert "NTP" in result.detail
+
+
+def test_ntp_fail_bei_aktiv_aber_nicht_synchronisiert():
+    with patch(_RUN, return_value=_fake_timedatectl("yes", "no")):
+        result = _check_ntp()
+    assert not result.ok
+    assert "synchronisiert" in result.detail.lower()
+
+
+def test_ntp_fail_wenn_timedatectl_fehlt():
+    with patch(_RUN, side_effect=FileNotFoundError):
+        result = _check_ntp()
+    assert not result.ok
+    assert "timedatectl" in result.detail
