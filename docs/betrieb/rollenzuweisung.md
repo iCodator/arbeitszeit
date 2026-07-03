@@ -30,11 +30,16 @@ Dieses Dokument legt die organisatorischen Rollen, Zuständigkeiten, Stellvertre
 
 ## 3. Rollenmodell
 
-Es gelten ausschließlich die folgenden Rollen im Administrations- und Prüfbetrieb:
+Für administrative Benutzerkonten gelten ausschließlich die folgenden Rollen im
+Administrations- und Prüfbetrieb:
 
 - `ADMIN`.
 - `REVIEWER`.
 - `TECH`.
+
+Im `UserRole`-Enum ist zusätzlich die Rolle `EMPLOYEE` vorgesehen; diese ist für
+administrative Benutzerkonten jedoch nicht vergebbar und daher für den
+Administrations- und Prüfbetrieb ohne Bedeutung.
 
 Mitarbeitende ohne diese Rollen dürfen keine administrativen Änderungen, keine Rollenwechsel und keine Systemkonfiguration vornehmen. Die technische Erfassung am Terminal bleibt hiervon unberührt.
 
@@ -90,13 +95,13 @@ Der TECH darf keine fachlichen Freigaben, keine Rollenänderungen und keine inha
 
 | Tätigkeit | ADMIN | REVIEWER | TECH | Bemerkung |
 |---|---:|---:|---:|---|
-| Benutzerkonten anlegen/ändern/deaktivieren | Ja | Nein | Nein | Nur via Admin-CLI |
-| Rollen ändern | Ja | Nein | Nein | Nur via Admin-CLI |
+| Benutzerkonten anlegen/ändern/deaktivieren | Ja | Nein | Nein | Admin-CLI oder Admin-GUI |
+| Rollen ändern | Ja | Nein | Nein | Admin-CLI oder Admin-GUI |
 | Mitarbeitende anlegen/ändern | Ja | Nein | Nein | Nur wenn in der Praxis freigegeben |
 | Offene Fälle prüfen | Ja | Ja | Nein | Fachliche Prüfung |
-| Nachträge freigeben/ablehnen | Ja | Ja | Nein | Mit Begründung |
+| Nachträge freigeben/ablehnen | Ja | Ja | Nein | Ablehnung erfordert Begründung |
 | Backup auslösen | Ja | Nein | Ja | Technische Funktion |
-| Restore auslösen | Ja | Nein | Ja | Nur nach Freigabe |
+| Restore auslösen | Ja | Nein | Ja | Nicht durch Rollenprüfung im System erzwungen; organisatorische Festlegung gemäß Restore-Checkliste |
 | Systemcheck | Ja | Nein | Ja | Technische Funktion |
 | Export erzeugen | Ja | Ja | Nein | Nur berechtigt |
 | Regelarbeitszeiten ändern | Ja | Nein | Nein | Soweit organisatorisch festgelegt |
