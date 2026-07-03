@@ -207,7 +207,7 @@ Beispiele:
 
 Änderungen, die Anforderungen aus
 
-- `pflichtenheft_arbeitszeit_v5.md` oder
+- `pflichtenheft_arbeitszeit_v6.md` oder
 - `regelwerk_arbeitszeit_v5.md`
 
 betreffen, sind zu prüfen auf:

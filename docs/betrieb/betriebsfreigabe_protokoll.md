@@ -50,7 +50,7 @@ Bitte jeweils „Ja/Nein“ markieren und bei Bedarf die konkret verwendete Vers
 
 | Dokument | Version / Datum | Liegt vor? | Bemerkung |
 |---|---|---|---|
-| Pflichtenheft `pflichtenheft_arbeitszeit_v5.md` | ______ | ☐ Ja ☐ Nein | __________________ |
+| Pflichtenheft `pflichtenheft_arbeitszeit_v6.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Regelwerk `regelwerk_arbeitszeit_v5.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Installationsanleitung `installationsanleitung_arbeitszeit.md` | ______ | ☐ Ja ☐ Nein | __________________ |
 | Handbuch `handbuch_arbeitszeit.md` | ______ | ☐ Ja ☐ Nein | __________________ |

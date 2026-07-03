@@ -35,7 +35,7 @@ Claude arbeitet in diesem Projekt nicht experimentell, sondern konservativ, prä
 
 Vor jeder größeren Änderung sind mindestens diese Dateien fachlich und technisch zu berücksichtigen:
 
-- `pflichtenheft_arbeitszeit_v5.md`
+- `pflichtenheft_arbeitszeit_v6.md`
 - `regelwerk_arbeitszeit_v5.md`
 - `CONTRIBUTING.md`
 - `CHANGELOG.md`

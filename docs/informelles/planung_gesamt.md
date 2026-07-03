@@ -4,10 +4,10 @@
 
 Die Dokumente unter `docs/informelles/` dokumentieren eine vollständige Design-Session für das Zeiterfassungssystem. Sie enthalten die wesentlichen Entscheidungen zu Domänenmodell, Datenbankschema, Projektstruktur, Use-Cases, Prüfregeln, Export, Betrieb und Testabdeckung.
 
-**Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v5.md`, `docs/regelwerk_arbeitszeit_v5.md`.  
+**Verbindliche Referenzdokumente:** `docs/pflichtenheft_arbeitszeit_v6.md`, `docs/regelwerk_arbeitszeit_v5.md`.  
 Anlage-Dokumente im Repo: `anlage_einhaltung_pflichtenheft.md` (Wurzelverzeichnis, v1) und `docs/archive/anlage_einhaltung_pflichtenheft_v2.md` (Version 2, referenziert Pflichtenheft v4, archiviert). Aktueller Stand der Betriebsdokumentation: `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`.
 
-Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungsstand des Projekts. Organisatorische, datenschutzrechtliche und betriebliche Pflichten der Praxis werden ausdrücklich benannt, soweit sie laut Pflichtenheft v5, Regelwerk v5 und Anlage v2 nicht allein durch Code erfüllt werden können.
+Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungsstand des Projekts. Organisatorische, datenschutzrechtliche und betriebliche Pflichten der Praxis werden ausdrücklich benannt, soweit sie laut Pflichtenheft v6, Regelwerk v5 und Anlage v2 nicht allein durch Code erfüllt werden können.
 
 ---
 
@@ -15,7 +15,7 @@ Dieses Dokument beschreibt den bekannten technischen Umsetzungs- und Planungssta
 
 ### Rechts- und Regelrahmen
 
-Die Systemauslegung stützt sich auf die Pflicht zu einem objektiven, verlässlichen und zugänglichen Zeiterfassungssystem sowie auf die arbeitszeitrechtlichen Anforderungen zu Höchstarbeitszeit, Ruhepausen und Ruhezeit. Pflichtenheft v5 ergänzt dies ausdrücklich um das Arbeitsschutzgesetz als organisatorische Grundlage des Arbeitgebers für geeignete Schutz- und Erfassungsmaßnahmen.
+Die Systemauslegung stützt sich auf die Pflicht zu einem objektiven, verlässlichen und zugänglichen Zeiterfassungssystem sowie auf die arbeitszeitrechtlichen Anforderungen zu Höchstarbeitszeit, Ruhepausen und Ruhezeit. Pflichtenheft v6 ergänzt dies ausdrücklich um das Arbeitsschutzgesetz als organisatorische Grundlage des Arbeitgebers für geeignete Schutz- und Erfassungsmaßnahmen.
 
 Für den Betrieb in der Zahnarztpraxis ist zusätzlich die IT-Sicherheitsrichtlinie nach § 75b SGB V zu beachten. Rollen, Rechte, Backup, Protokollierung, Schutz der Praxis-IT und die Einbindung in das Praxis-IT-Sicherheitskonzept sind daher nicht nur technische, sondern auch organisatorische Anforderungen.
 
@@ -31,9 +31,9 @@ Die Anlage Einhaltung Pflichtenheft v2 bewertet das Projekt fachlich als weit fo
 
 Diese Punkte werden in den fachlichen Phasen unten dort aufgegriffen, wo sie technischen Bezug haben. Soweit sie rein organisatorisch sind, werden sie als externe Auflagen gekennzeichnet und nicht fälschlich als bereits durch Code erfüllt dargestellt.
 
-### Benutzer- und Rollenverwaltung (Pflichtenheft v5 §7.9 / Regelwerk v5 §16, §16a)
+### Benutzer- und Rollenverwaltung (Pflichtenheft v6 §7.9 / Regelwerk v5 §16, §16a)
 
-Pflichtenheft v5 §7.9 (neu gegenüber v4) macht die Admin-CLI-basierte Benutzerkontenverwaltung zur verbindlichen Anforderung. Direktes SQL darf kein regulärer Betriebsprozess sein.
+Pflichtenheft v6 §7.9 (neu gegenüber v4) macht die Admin-CLI-basierte Benutzerkontenverwaltung zur verbindlichen Anforderung. Direktes SQL darf kein regulärer Betriebsprozess sein.
 
 Regelwerk v5 §16a (neu) definiert Benutzerkonten als eigenständige Zugangsobjekte, die optional einem Mitarbeiterdatensatz zugeordnet sein können. Doppelte Benutzernamen sind unzulässig; inaktive Konten dürfen keine administrativen oder prüfenden Aktionen ausführen.
 
@@ -148,7 +148,7 @@ V4-relevant bleibt: Die arbeitszeitrechtlichen Prüfungen orientieren sich an de
 Wochenarbeitszeit nach ArbZG §3 (Höchstarbeitszeit über 5 Werktage) ist derzeit
 nicht implementiert. Die tagbezogenen Prüfungen in `compliance_checks.py` decken
 §3 nur indirekt ab. Wochenprüfungen werden als späteres Backlog-Thema geführt;
-kein Handlungsbedarf für den aktuellen Pflichtenheft-v5-Scope.
+kein Handlungsbedarf für den aktuellen Pflichtenheft-v6-Scope.
 
 V4- und Regelwerk-konforme Statusmodellierung:
 - `POSSIBLE_*`-Prüflagen werden als `ReviewCaseType` modelliert.
@@ -181,7 +181,7 @@ V4- und Regelwerk-konforme Statusmodellierung:
 - `BookUseCase` persistiert die ID in `time_bookings.device_event_id`.
 - Architekturentscheidung (Pfad A1): `docs/adr/device_event_architekturentscheidung_v1.md`.
 
-**Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases gemäß Pflichtenheft v5 §5 und Regelwerk v5 §16.
+**Autorisierungsmuster** — Rollenprüfung in schreibenden Use Cases gemäß Pflichtenheft v6 §5 und Regelwerk v5 §16.
 
 | Use Case | Erlaubte Rollen | Prüf-ID |
 | --- | --- | --- |
@@ -208,7 +208,7 @@ src/arbeitszeit/application/
     └── book_time.py
 ```
 
-Die in Phase 3 festgelegten Commands, Results, Fakes und Use Cases entsprechen dem dokumentierten Fachmodell und den Prüfregeln. Die in Pflichtenheft v5 geforderten Kernabläufe, Korrektur-/Nachtragsmechanismen und Prüfpfade sind damit in der Anwendungslogik abgebildet.
+Die in Phase 3 festgelegten Commands, Results, Fakes und Use Cases entsprechen dem dokumentierten Fachmodell und den Prüfregeln. Die in Pflichtenheft v6 geforderten Kernabläufe, Korrektur-/Nachtragsmechanismen und Prüfpfade sind damit in der Anwendungslogik abgebildet.
 
 Hinweis: `approve_supplement.py` und `reject_supplement.py` wurden in Phase 3 vorimplementiert (Phase-4-Inhalt). Detailliert dokumentiert in `phase3_planung.md`.
 
@@ -216,7 +216,7 @@ Hinweis: `approve_supplement.py` und `reject_supplement.py` wurden in Phase 3 vo
 
 ### Phase 4 – Infrastruktur ✓ vollständig abgeschlossen
 
-Phase 4 schließt Datenbank-Integration, echte Repositorys, Unit of Work, Backup, Export, Pflichtauswertungen und Selbsttest. Die technische Umsetzung deckt damit große Teile von Pflichtenheft v5 §7.11–§7.13, §9.3, §12 und §14 ab.
+Phase 4 schließt Datenbank-Integration, echte Repositorys, Unit of Work, Backup, Export, Pflichtauswertungen und Selbsttest. Die technische Umsetzung deckt damit große Teile von Pflichtenheft v6 §7.11–§7.13, §9.3, §12 und §14 ab.
 
 Wesentliche Punkte:
 - `SQLiteUnitOfWork` mit konsequenter commit-or-rollback-Semantik.
@@ -238,8 +238,8 @@ Die Präsentationsschicht umfasst `presentation/terminal_ui/` und `presentation/
 Wesentliche Punkte:
 - Terminal-UI mit `process_booking()`, `format_feedback()`, Systemcheck beim Start und Fehlerprotokollierung.
 - Admin-CLI mit Befehlen für Mitarbeiter, Karten, Buchungen, Regelzeiten, Reports und Systemfunktionen.
-- Admin-CLI `users`-Gruppe (Pflichtenheft v5 §7.9): `users add`, `users list`, `users deactivate`. Passwort-Hashing via `hashlib.pbkdf2_hmac`. Audit-Events `USER_ACCOUNT_CREATED`, `USER_ACCOUNT_DEACTIVATED` im Audit-Log. Implementiert nach Phase-5-Abschluss als direktes Folge-Increment zu §7.9.
-- Pflichtauswertungen sind in der Anwendung einsehbar und exportierbar, wie es Pflichtenheft v5 §7.13 verlangt.
+- Admin-CLI `users`-Gruppe (Pflichtenheft v6 §7.9): `users add`, `users list`, `users deactivate`. Passwort-Hashing via `hashlib.pbkdf2_hmac`. Audit-Events `USER_ACCOUNT_CREATED`, `USER_ACCOUNT_DEACTIVATED` im Audit-Log. Implementiert nach Phase-5-Abschluss als direktes Folge-Increment zu §7.9.
+- Pflichtauswertungen sind in der Anwendung einsehbar und exportierbar, wie es Pflichtenheft v6 §7.13 verlangt.
 - Systemzeitprotokollierung ist in den Loop integriert und damit auch betrieblich angebunden.
 
 **Offener Architekturpunkt – `device_event_id`-Verkettung:**
@@ -276,7 +276,7 @@ Evidenzgrenzen (was aus dem Repo belegbar ist und was nicht): `docs/informelles/
 
 Phasenübergreifende Nachtragsmatrix (vorgezogene/nachgezogene Artefakte, 44 Einträge): `docs/betrieb/nachweise/nachtragsmatrix_phasen_v1.md` (2026-06-11).
 
-## Pflichtenheft v5 §16 Testpflicht-Abdeckung
+## Pflichtenheft v6 §16 Testpflicht-Abdeckung
 
 | Pflichtszenario | Abdeckung | Status |
 | --- | --- | --- |

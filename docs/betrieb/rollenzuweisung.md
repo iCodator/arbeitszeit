@@ -199,7 +199,7 @@ Die Praxis bestätigt, dass die Rollenverteilung bekanntgegeben, erläutert und 
 
 Dieses Formular ist inhaltlich auf die folgenden Unterlagen abgestimmt:
 
-- `pflichtenheft_arbeitszeit_v5.md`.
+- `pflichtenheft_arbeitszeit_v6.md`.
 - `regelwerk_arbeitszeit_v5.md`.
 - `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`.
 - `docs/datenschutz/vvt_arbeitszeit_v1.md`.

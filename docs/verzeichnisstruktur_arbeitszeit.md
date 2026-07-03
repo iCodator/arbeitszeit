@@ -22,7 +22,7 @@ Das Wurzelverzeichnis enthält ausschließlich Dateien, keine weiteren Unterverz
 - `CHANGELOG.md` – chronologische Aufzeichnung aller Versionsänderungen
 - `CONTRIBUTING.md` – Richtlinien für Beiträge, Code-Stil und Entwicklungsworkflow
 - `anlage_einhaltung_pflichtenheft.md` – Nachweisdokument, das die Erfüllung des Pflichtenhefts belegt
-- `pflichtenheft_arbeitszeit_v5.md` – das vollständige Pflichtenheft v5 mit funktionalen und nicht-funktionalen Anforderungen
+- `pflichtenheft_arbeitszeit_v6.md` – das vollständige Pflichtenheft v6 mit funktionalen und nicht-funktionalen Anforderungen
 - `regelwerk_arbeitszeit_v5.md` – fachliche Regelsammlung v5 (Buchungsregeln, Pausenregelung, Gesetzeskonformität)
 - `handbuch_arbeitszeit.md` – vollständiges Benutzerhandbuch in Markdown-Form
 - `Handbuch - Arbeitszeiterfassung.html` – HTML-Export des Benutzerhandbuchs (browserlesbar)

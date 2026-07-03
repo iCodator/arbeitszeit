@@ -1,4 +1,4 @@
-# Pflichtenheft Projekt arbeitszeit – Version 5.0
+# Pflichtenheft Projekt arbeitszeit – Version 6.0
 
 ## 1. Dokumentzweck
 
@@ -23,6 +23,8 @@ Für das Projekt sind insbesondere relevant:
 - Pflicht zur Arbeitszeiterfassung,[^1]
 - Arbeitszeitgesetz zu Höchstarbeitszeit, Ruhepausen und Ruhezeit,[^2][^3][^4]
 - Datenschutzrecht für Beschäftigtendaten.[^5][^6][^7]
+
+Zum Zeitpunkt der Erstellung dieses Dokuments liegt ein Referentenentwurf zur Novellierung des Arbeitszeitgesetzes vor, der u. a. eine grundsätzlich elektronische Erfassungspflicht sowie ergänzende Aufbewahrungs- und Auskunftsregelungen vorsieht. Dieser Entwurf ist noch nicht in Kraft getreten; der vorliegende Rechts- und Regelrahmen ist bei Verabschiedung einer entsprechenden Gesetzesänderung zu aktualisieren.[^9]
 
 ## 5. Nutzerrollen
 
@@ -194,7 +196,7 @@ Das System muss transaktionssicher schreiben, Wiederanlauf nach Störungen ermö
 
 ### 8.4 Datensparsamkeit
 
-Es dürfen nur die für Zeiterfassung, Prüfung, Korrektur, Nachweis und Verwaltung erforderlichen Daten verarbeitet werden.[^5][^6][^7]
+Es dürfen nur die für Zeiterfassung, Prüfung, Korrektur, Nachweis und Verwaltung erforderlichen Daten verarbeitet werden.[^5][^7]
 
 ## 9. Technische Anforderungen
 
@@ -252,7 +254,7 @@ Der Zugriff auf Befehle zur Benutzer- und Rollenverwaltung ist auf berechtigte B
 
 ## 12. Aufbewahrung, Archivierung und Löschung
 
-Arbeitszeitdaten müssen mindestens 2 Jahre aufbewahrt werden.[^8] Technische Protokolle, Backups und Exportdateien sind nach einem definierten Archivierungs- und Löschkonzept zu behandeln.
+Arbeitszeitdaten müssen mindestens 2 Jahre aufbewahrt werden. Für die über die werktägliche Arbeitszeit hinausgehende (Mehr-)Arbeitszeit ergibt sich diese Frist unmittelbar aus § 16 Abs. 2 ArbZG;[^8] für die übrige, im Rahmen der Zeiterfassungspflicht zu dokumentierende Arbeitszeit wird dieselbe Frist als Vorsorgemaßnahme im Sinne der Nachweispflicht zugrunde gelegt.[^1] Technische Protokolle, Backups und Exportdateien sind nach einem definierten Archivierungs- und Löschkonzept zu behandeln.
 
 Eine physische Löschung fachlich relevanter Buchungen darf im Normalfall nicht erfolgen; stattdessen sind Status- und Korrekturmechanismen zu verwenden.
 
@@ -322,11 +324,12 @@ Das System ist nur dann abnahmefähig, wenn zusätzlich zu den bisherigen Kriter
 
 ## Fußnoten
 
-[^1]: Bundesarbeitsgericht, Beschluss vom 13.09.2022 – 1 ABR 22/21; ergänzend EuGH, Urteil vom 14.05.2019 – C-55/18, zur Pflicht eines objektiven, verlässlichen und zugänglichen Systems zur Arbeitszeiterfassung.
+[^1]: Bundesarbeitsgericht, Beschluss vom 13.09.2022 – 1 ABR 22/21, hergeleitet aus § 3 Abs. 2 Nr. 1 Arbeitsschutzgesetz (ArbSchG) in unionsrechtskonformer Auslegung; ergänzend EuGH, Urteil vom 14.05.2019 – C-55/18, zur Pflicht eines objektiven, verlässlichen und zugänglichen Systems zur Arbeitszeiterfassung.
 [^2]: Arbeitszeitgesetz (ArbZG) § 3 Arbeitszeit der Arbeitnehmer, [https://www.gesetze-im-internet.de/arbzg/BJNR117100994.html](https://www.gesetze-im-internet.de/arbzg/BJNR117100994.html).
 [^3]: Arbeitszeitgesetz (ArbZG) § 4 Ruhepausen, [https://www.gesetze-im-internet.de/arbzg/BJNR117100994.html](https://www.gesetze-im-internet.de/arbzg/BJNR117100994.html).
 [^4]: Arbeitszeitgesetz (ArbZG) § 5 Ruhezeit, [https://www.gesetze-im-internet.de/arbzg/BJNR117100994.html](https://www.gesetze-im-internet.de/arbzg/BJNR117100994.html).
 [^5]: DSGVO Art. 5 Grundsätze für die Verarbeitung personenbezogener Daten.
 [^6]: DSGVO Art. 32 Sicherheit der Verarbeitung.
 [^7]: Bundesdatenschutzgesetz (BDSG) § 26 Datenverarbeitung für Zwecke des Beschäftigungsverhältnisses, [https://www.gesetze-im-internet.de/bdsg_2018/__26.html](https://www.gesetze-im-internet.de/bdsg_2018/__26.html).
-[^8]: Arbeitszeitgesetz (ArbZG) § 16 Aushang und Arbeitszeitnachweise, [https://www.gesetze-im-internet.de/arbzg/__16.html](https://www.gesetze-im-internet.de/arbzg/__16.html).
+[^8]: Arbeitszeitgesetz (ArbZG) § 16 Aushang und Arbeitszeitnachweise, [https://www.gesetze-im-internet.de/arbzg/__16.html](https://www.gesetze-im-internet.de/arbzg/__16.html). Die gesetzliche Aufbewahrungsfrist von mindestens zwei Jahren gilt nach dem Gesetzeswortlaut ausdrücklich für die über die werktägliche Arbeitszeit des § 3 Satz 1 ArbZG hinausgehende Arbeitszeit (Mehrarbeit) sowie für das Verzeichnis nach § 7 Abs. 7 ArbZG.
+[^9]: Referentenentwurf des Bundesministeriums für Arbeit und Soziales zur Änderung des Arbeitszeitgesetzes und anderer Vorschriften, Stand Juni 2026 (noch nicht in Ressortabstimmung, Kabinettsbeschluss oder Bundestagsverfahren abgeschlossen; noch nicht geltendes Recht).

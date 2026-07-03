@@ -36,7 +36,7 @@ Deshalb muss jede Audit-Bewertung besonders auf diese Punkte achten:
 
 Vor jeder Audit-Bewertung sind mindestens diese Dateien heranzuziehen:
 
-- `pflichtenheft_arbeitszeit_v5.md`
+- `pflichtenheft_arbeitszeit_v6.md`
 - `regelwerk_arbeitszeit_v5.md`
 - `CONTRIBUTING.md`
 - `CHANGELOG.md`
