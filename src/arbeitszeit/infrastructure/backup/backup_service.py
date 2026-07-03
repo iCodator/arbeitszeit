@@ -12,6 +12,8 @@ from arbeitszeit.domain.value_objects import AuditLogEntryId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteAuditLogRepository
 
+_RSYNC = "/usr/bin/rsync"
+
 
 @dataclass(frozen=True)
 class BackupResult:
@@ -72,7 +74,7 @@ class SQLiteBackupService:
         try:
             subprocess.run(
                 [
-                    "rsync",
+                    _RSYNC,
                     "--archive",
                     "--delete",
                     f"{self._backup_dir}/",

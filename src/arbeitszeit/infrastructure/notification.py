@@ -9,6 +9,8 @@ Voraussetzung: libnotify-bin (auf Lubuntu/Linux Mint standardmäßig vorhanden).
 import logging
 import subprocess
 
+_NOTIFY_SEND = "/usr/bin/notify-send"
+
 
 def notify(title: str, body: str, urgency: str = "normal") -> None:
     """Sendet Desktop-Notification. Schlägt still fehl wenn notify-send fehlt.
@@ -17,7 +19,7 @@ def notify(title: str, body: str, urgency: str = "normal") -> None:
     """
     try:
         subprocess.run(
-            ["notify-send", f"--urgency={urgency}", "--app-name=Arbeitszeit", title, body],
+            [_NOTIFY_SEND, f"--urgency={urgency}", "--app-name=Arbeitszeit", title, body],
             timeout=3,
             check=False,
             capture_output=True,
