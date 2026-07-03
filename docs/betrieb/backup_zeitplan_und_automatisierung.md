@@ -116,20 +116,26 @@ Erläuterung:
 
 ### 4.3 Cronjob mit NAS-Spiegelung (optional)
 
-Wenn ein NAS (z. B. über `/mnt/nas/arbeitszeit-backup`) eingebunden ist:
+`scripts/backup.py` kennt kein eigenes CLI-Flag für den NAS-Pfad. Die NAS-Spiegelung
+wird stattdessen automatisch ausgeführt, wenn in der `system_config`-Tabelle die
+Schlüssel `backup.nas_enabled` (aktiviert) und `backup.nas_path` (Zielpfad, z. B.
+`/mnt/nas/arbeitszeit-backup`) gesetzt sind; das Skript liest beide Werte selbst aus
+der Datenbank aus. Der Cronjob-Aufruf unterscheidet sich in diesem Fall nicht vom
+Aufruf ohne NAS-Sync:
 
 ```bash
-# Tägliches arbeitszeit-Backup mit NAS-Sync um 21:00 Uhr
+# Tägliches arbeitszeit-Backup um 21:00 Uhr (NAS-Sync erfolgt automatisch,
+# sofern backup.nas_enabled/backup.nas_path in system_config gesetzt sind)
 0 21 * * 1-5 cd /pfad/zu/arbeitszeit && \
   . .venv/bin/activate && \
   python scripts/backup.py \
     --db /pfad/zu/arbeitszeit.db \
     --backup-dir /var/backups/arbeitszeit \
-    --nas-path /mnt/nas/arbeitszeit-backup \
   >> /var/backups/arbeitszeit/backup_nas.log 2>&1
 ```
 
-Voraussetzung: NAS-Einbindung wurde vorher eingerichtet und getestet.
+Voraussetzung: NAS-Einbindung wurde vorher eingerichtet, getestet und über
+`system_config` (`backup.nas_enabled`, `backup.nas_path`) konfiguriert.
 
 ---
 
