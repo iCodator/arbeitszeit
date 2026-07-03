@@ -96,8 +96,8 @@ Bitte jeweils „Ja/Nein“ markieren und bei Bedarf die konkret verwendete Vers
 
 | Dokument / Referenz | Datum | Ergebnis |
 |---|---|---|
-| `docs/informelles/testmatrix_pruefbericht_v1.md` | __________ | __________________ |
-| `docs/informelles/testmatrix_revision_v1.md` | __________ | __________________ |
+| `docs/betrieb/nachweise/testmatrix_pruefbericht_v1.md` | __________ | __________________ |
+| `docs/betrieb/nachweise/testmatrix_revision_v1.md` | __________ | __________________ |
 | Sonstiger Testbericht | __________ | __________________ |
 
 ---
