@@ -108,9 +108,9 @@ Folgende fachliche Zustände werden im System unterschieden. Sie sind die verbin
 - `POSSIBLE_BREAK_VIOLATION`
 - `POSSIBLE_REST_VIOLATION`
 - `POSSIBLE_MAX_HOURS_VIOLATION`
-- `MANUAL_ENTRY`
+- `MANUAL_ENTRY_REVIEW`
 
-Die fachlichen Hinweislagen `POSSIBLE_BREAK_VIOLATION`, `POSSIBLE_REST_VIOLATION`, `POSSIBLE_MAX_HOURS_VIOLATION` und `MANUAL_ENTRY` werden nicht als Werte der Enum `BookingStatus` implementiert. Stattdessen erfolgt die Modellierung orthogonal: `POSSIBLE_…` als `ReviewCaseType` auf `ReviewCase`-Datensätzen, `MANUAL_ENTRY` als `BookingSource.MANUAL` auf der `TimeBooking`, kombinierbar mit jedem Buchungsstatus.
+Die fachlichen Hinweislagen `POSSIBLE_BREAK_VIOLATION`, `POSSIBLE_REST_VIOLATION`, `POSSIBLE_MAX_HOURS_VIOLATION` und `MANUAL_ENTRY_REVIEW` werden nicht als Werte der Enum `BookingStatus` implementiert. Stattdessen erfolgt die Modellierung orthogonal: `POSSIBLE_…` als `ReviewCaseType` auf `ReviewCase`-Datensätzen, `MANUAL_ENTRY_REVIEW` ebenfalls als `ReviewCaseType` auf `ReviewCase`-Datensätzen; zusätzlich kennzeichnet `BookingSource.MANUAL` auf der `TimeBooking` manuelle Erfassungen, kombinierbar mit jedem Buchungsstatus.
 
 ## 12. Korrekturen
 
