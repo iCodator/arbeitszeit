@@ -439,9 +439,13 @@ class MitarbeiterView(ttk.Frame):
             parent=self,
         ):
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            deactivate_employee(uow, self._app.user_id, emp_id)
+            uow, conn, audit_conn = _make_uow(db_path)
+            deactivate_employee(uow, user_id, emp_id)
             _close(conn, audit_conn)
             self._app.status(f"Mitarbeiter {emp_id} deaktiviert.")
             self.laden()
@@ -493,9 +497,13 @@ class _MitarbeiterAnlegenDialog(tk.Toplevel):
         if not self._nr.wert or not self._vn.wert or not self._nn.wert:
             messagebox.showerror("Fehler", "Alle Felder sind Pflicht.", parent=self)
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = create_employee(uow, self._app.user_id, self._nr.wert, self._vn.wert, self._nn.wert)
+            uow, conn, audit_conn = _make_uow(db_path)
+            result = create_employee(uow, user_id, self._nr.wert, self._vn.wert, self._nn.wert)
             _close(conn, audit_conn)
             self._app.status(f"Mitarbeiter angelegt (ID {result.employee_id}).")
             self.ok = True
@@ -617,9 +625,13 @@ class KartenView(ttk.Frame):
         )
         if not neuer_hash:
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = replace_rfid_card(uow, self._app.user_id, karte_id, neuer_hash.strip())
+            uow, conn, audit_conn = _make_uow(db_path)
+            result = replace_rfid_card(uow, user_id, karte_id, neuer_hash.strip())
             _close(conn, audit_conn)
             self._app.status(f"Karte ersetzt: alt={karte_id}, neu={result.new_card_id}.")
             self.laden()
@@ -632,9 +644,13 @@ class KartenView(ttk.Frame):
             return
         if not messagebox.askyesno("Bestätigen", f"Karte {karte_id} wirklich deaktivieren?", parent=self):
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            deactivate_rfid_card(uow, self._app.user_id, karte_id)
+            uow, conn, audit_conn = _make_uow(db_path)
+            deactivate_rfid_card(uow, user_id, karte_id)
             _close(conn, audit_conn)
             self._app.status(f"Karte {karte_id} deaktiviert.")
             self.laden()
@@ -678,9 +694,13 @@ class _KarteZuweisenDialog(tk.Toplevel):
         if not self._hash.wert:
             messagebox.showerror("Fehler", "UID-Hash darf nicht leer sein.", parent=self)
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = assign_rfid_card(uow, self._app.user_id, emp_id, self._hash.wert)
+            uow, conn, audit_conn = _make_uow(db_path)
+            result = assign_rfid_card(uow, user_id, emp_id, self._hash.wert)
             _close(conn, audit_conn)
             self._app.status(f"Karte zugewiesen (ID {result.card_id}).")
             self.ok = True
@@ -806,6 +826,13 @@ class BenutzerView(ttk.Frame):
         )
         plain = passwort if passwort else secrets.token_urlsafe(12)
         pw_hash = _hash_password(plain)
+        if self._app.db_path is None:
+            messagebox.showwarning(
+                "Nicht verbunden",
+                "Bitte zuerst eine Datenbankverbindung herstellen.",
+                parent=self,
+            )
+            return
         try:
             uow, conn, audit_conn = _make_uow(self._app.db_path)
             result = bootstrap_admin(uow, benutzername, pw_hash)
@@ -828,9 +855,13 @@ class BenutzerView(ttk.Frame):
             return
         if not messagebox.askyesno("Bestätigen", f"Benutzerkonto {uid} deaktivieren?", parent=self):
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            deactivate_user_account(uow, self._app.user_id, uid)
+            uow, conn, audit_conn = _make_uow(db_path)
+            deactivate_user_account(uow, user_id, uid)
             _close(conn, audit_conn)
             self._app.status(f"Benutzerkonto {uid} deaktiviert.")
             self.laden()
@@ -841,9 +872,13 @@ class BenutzerView(ttk.Frame):
         uid = self._ausgewaehlt()
         if uid is None:
             return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            reactivate_user_account(uow, self._app.user_id, uid)
+            uow, conn, audit_conn = _make_uow(db_path)
+            reactivate_user_account(uow, user_id, uid)
             _close(conn, audit_conn)
             self._app.status(f"Benutzerkonto {uid} reaktiviert.")
             self.laden()
@@ -908,10 +943,14 @@ class _BenutzerAnlegenDialog(tk.Toplevel):
             except ValueError:
                 messagebox.showerror("Fehler", "Mitarbeiter-ID muss eine Zahl sein.", parent=self)
                 return
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
             rolle = UserRole(self._rolle_var.get())
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            result = create_user_account(uow, self._app.user_id, self._name.wert, pw_hash, rolle, emp_id)
+            uow, conn, audit_conn = _make_uow(db_path)
+            result = create_user_account(uow, user_id, self._name.wert, pw_hash, rolle, emp_id)
             _close(conn, audit_conn)
             msg = f"Benutzerkonto angelegt (ID {result.user_id})."
             if not self._pw.wert:
@@ -949,9 +988,13 @@ class _RolleAendernDialog(tk.Toplevel):
         ttk.Button(btn_f, text="Abbrechen", command=self.destroy).pack(side=tk.LEFT, padx=6)
 
     def _ok(self) -> None:
+        _c = self._app.require_connection(self)
+        if _c is None:
+            return
+        db_path, user_id = _c
         try:
-            uow, conn, audit_conn = _make_uow(self._app.db_path)
-            change_user_role(uow, self._app.user_id, self._target_id, UserRole(self._var.get()))
+            uow, conn, audit_conn = _make_uow(db_path)
+            change_user_role(uow, user_id, self._target_id, UserRole(self._var.get()))
             _close(conn, audit_conn)
             self._app.status(f"Rolle von Konto {self._target_id} geändert.")
             self.ok = True
@@ -1277,6 +1320,23 @@ class ArbeitszeitApp(tk.Tk):
             self._view_regelzeiten,
         ):
             view.laden()
+
+    def require_connection(self, parent: tk.Misc) -> tuple[Path, int] | None:
+        if self.db_path is None:
+            messagebox.showwarning(
+                "Nicht verbunden",
+                "Bitte zuerst eine Datenbankverbindung herstellen\n(Datei → Verbindung herstellen …).",
+                parent=parent,
+            )
+            return None
+        if self.user_id is None:
+            messagebox.showwarning(
+                "Keine Benutzer-ID",
+                "Bitte Verbindung mit Benutzer-ID herstellen\n(Datei → Verbindung herstellen …).",
+                parent=parent,
+            )
+            return None
+        return self.db_path, self.user_id
 
     def status(self, text: str) -> None:
         self._status_var.set(text)
