@@ -32,17 +32,14 @@ sich im `handbuch_arbeitszeit.md`.
 ### Aufrufmuster
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db <DATENBANKPFAD> \
-  [--user-id <BENUTZER-ID>] \
-  <domäne> <befehl> [argumente]
+admin --db <DATENBANKPFAD> [--user-id <BENUTZER-ID>] <domäne> <befehl> [argumente]
 ```
 
 Alternativ kann die Benutzer-ID über die Umgebungsvariable gesetzt werden:
 
 ```bash
 export ADMIN_USER_ID=1
-python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db employees list
+admin --db arbeitszeit.db employees list
 ```
 
 ### Globale Pflichtargumente
