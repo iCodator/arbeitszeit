@@ -64,7 +64,7 @@ abgefragt, können aber leer gelassen werden.
 python -m arbeitszeit.presentation.admin_cli.main \
   --db arbeitszeit.db \
   users bootstrap \
-  --username NAME --password PASSWORT --full-name "Vollständiger Name"
+  --username NAME --password PASSWORT
 ```
 
 Dieser Pfad erfordert kein `--user-id`, da noch kein Admin existiert. Die Funktion
@@ -75,13 +75,16 @@ Aufruf abgelehnt.
 ### 2.4 Systemcheck nach Einrichtung
 
 ```bash
-python -m arbeitszeit.infrastructure.system_check \
-  --db arbeitszeit.db
+python -m arbeitszeit.presentation.admin_cli.main \
+  --db arbeitszeit.db --user-id <ID> \
+  system check
 ```
 
+`infrastructure/system_check.py` besitzt keinen eigenständigen `__main__`-Einstiegspunkt;
+der Aufruf erfolgt ausschließlich über die Admin-CLI (`system check`).  
 Prüft: DB-Zugriff, Pflicht-Konfigurationskeys, optionale Gerätepfade, NAS-Erreichbarkeit,
-Fremdschlüssel-Konsistenz.  
-**Beleg:** `infrastructure/system_check.py`, `phase4_planung.md Schritt 9`
+Fremdschlüssel-Konsistenz, NTP-Synchronisation.  
+**Beleg:** `infrastructure/system_check.py`, `presentation/admin_cli/system.py`, `phase4_planung.md Schritt 9`
 
 ---
 
@@ -92,14 +95,18 @@ Fremdschlüssel-Konsistenz.
 ```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
   --db arbeitszeit.db \
+  --numpad /dev/input/eventX \
+  --rfid /dev/input/eventY \
   --terminal-id 1
 ```
+
+`--numpad` und `--rfid` sind Pflichtargumente (`presentation/terminal_ui/main.py`).
 
 ### 3.1 Ablauf pro Zyklus
 
 1. RFID-Karte lesen (Hardware oder Simulator)
 2. `device_events`-Record schreiben (Autocommit, vor Transaktion)
-3. `BookUseCase` ausführen (COME/GO/BREAK-Logik, Ruhezeit- und Rollenprüfung)
+3. `BookUseCase` ausführen (COME/GO/BREAK-Logik, Ruhezeitprüfung; keine Rollenprüfung, siehe Designentscheidung unten)
 4. Ergebnis ausgeben; Fehler → APPLICATION_ERROR in `system_events` protokollieren
 
 **Designentscheidung — rollenlose Terminal-Buchung (Regelwerk v5 §16):**  
@@ -112,7 +119,8 @@ Use Cases.
 
 ### 3.2 Zeitmonitor
 
-Läuft parallel im Terminal-UI. Prüft Systemzeitsprünge alle 30 Sekunden.  
+Läuft parallel im Terminal-UI. Prüft Systemzeitsprünge bei jedem Buchungszyklus
+(ereignisgetrieben, kein fester 30-Sekunden-Takt im Code nachweisbar).  
 Schwellenwert: `time_monitor.jump_threshold_seconds` aus `system_config`
 (Standard: 60 Sekunden).
 
@@ -128,13 +136,9 @@ Arbeitszeiterfassung läuft jedoch weiter.
 
 ### 3.3 Gerätesimulator
 
-Für Tests ohne Echthardware:
-
-```bash
-python -m arbeitszeit.presentation.terminal_ui.main \
-  --db arbeitszeit.db --terminal-id 1 --simulator
-```
-
+Für Tests ohne Echthardware: `SimulatedHardwareReader` wird derzeit nur direkt in
+Testcode instanziiert (z. B. `tests/presentation/test_booking_loop.py`); ein CLI-Flag
+zur Aktivierung im Terminal-UI-Einstiegspunkt (etwa `--simulator`) existiert nicht.  
 **Beleg:** `infrastructure/hardware/simulator.py`
 
 ---
@@ -182,20 +186,26 @@ lokale Einzelplatzanwendung der Praxis angemessen. Die konkrete Ausgestaltung
 
 | Befehl | Funktion |
 | --- | --- |
-| `bookings list` | Buchungen (gefiltert nach Mitarbeiter/Zeitraum) |
 | `bookings correct` | Buchungskorrektur (CorrectBookingUseCase) |
-| `bookings supplement register` | Nachtragsantrag einreichen |
-| `bookings supplement approve` | Nachtragsantrag genehmigen (REVIEWER oder ADMIN) |
-| `bookings supplement reject` | Nachtragsantrag ablehnen (REVIEWER oder ADMIN) |
+| `bookings supplement` | Nachtragsantrag einreichen |
+| `bookings approve-supplement` | Nachtragsantrag genehmigen (REVIEWER oder ADMIN) |
+| `bookings reject-supplement` | Nachtragsantrag ablehnen (REVIEWER oder ADMIN) |
+
+Ein eigenständiges Listing-Kommando `bookings list` existiert nicht; Auflistungen
+laufen über `reports open-bookings`, `reports warn-cases`, `reports corrections`
+bzw. `reports supplements`.
 
 ### 4.4 Exporte
 
 | Befehl | Funktion |
 | --- | --- |
-| `export csv` | CSV-Auswertung (filterbar nach Mitarbeiter/Zeitraum) |
-| `export pdf` | PDF-Report (filterbar nach Mitarbeiter/Zeitraum) |
+| `reports export-csv` | CSV-Auswertung (Detail + verdichtet, filterbar nach `--from`/`--to`/`--employee-id`) |
+| `reports export-csv-review-cases` | Offene Prüffälle als CSV exportieren |
+| `reports export-pdf-day` / `export-pdf-week` / `export-pdf-month` / `export-pdf-employee` | PDF-Report (Tag/Woche/Monat/Mitarbeiter) |
 
-**Beleg:** `infrastructure/export/report_queries.py`, `phase4_planung.md Schritt 8`
+Ein eigenständiger `export`-Domain-Befehl mit Unterbefehlen `csv`/`pdf` existiert
+nicht; die tatsächliche Struktur liegt unter der Domain `reports`.  
+**Beleg:** `presentation/admin_cli/reports.py`, `infrastructure/export/report_queries.py`, `phase4_planung.md Schritt 8`
 
 ---
 
@@ -215,16 +225,23 @@ python scripts/backup.py \
 
 - Erzeugt timestamped SQLite-Copy im `--backup-dir`
 - Optional: `--export-dir` kopiert CSV/PDF-Exporte in `backup_dir/exports/`
-- Protokolliert `BACKUP_CREATED` in `system_events`
+- Protokolliert `BACKUP_CREATED` im `audit_log` (Event-Katalog `domain/audit_events.py`); die
+  separate `system_events`-Tabelle sieht für Backup-Vorgänge die Werte `DB_BACKUP_CREATED`/
+  `DB_BACKUP_FAILED` vor, deren produktive Verwendung im Backup-Service nicht nachgewiesen ist
 
 ### 5.2 NAS-Spiegelung
+
+NAS-Sync wird ausschließlich über die `system_config`-Schlüssel `backup.nas_enabled`
+(boolescher Wert) und `backup.nas_path` (Zielpfad) gesteuert, nicht über ein CLI-Flag:
 
 ```bash
 python scripts/backup.py \
   --db arbeitszeit.db \
-  --backup-dir backups/ \
-  --nas-path /mnt/nas/arbeitszeit-backup/
+  --backup-dir backups/
 ```
+
+Sind beide Schlüssel entsprechend gesetzt, synchronisiert der obige Aufruf automatisch
+zum NAS. Ein `--nas-path`-Flag existiert in `scripts/backup.py` nicht.
 
 Nutzt `rsync --archive --delete`: striktes Spiegeln ohne eigenständige Archivfunktion.
 
@@ -236,20 +253,23 @@ ohne `--delete` oder lokale Rotation vor der Spiegelung erforderlich.
 ### 5.3 Restore
 
 ```python
-from arbeitszeit.infrastructure.backup.backup_service import BackupService
-svc = BackupService(db_path, backup_dir)
+from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+svc = SQLiteBackupService(db_path, backup_dir)
 svc.restore_from(backup_path, restore_exports=False)
 ```
 
 - Überschreibt die aktive Datenbank mit dem Backup
 - `restore_exports=True`: stellt auch den Exports-Unterordner wieder her
-- Protokolliert `RESTORE_COMPLETED` in der **wiederhergestellten** Datenbank
+- Protokolliert `RESTORE_COMPLETED` im `audit_log` der wiederhergestellten Datenbank
+  (nicht in `system_events`, wo stattdessen `RESTORE_STARTED`/`RESTORE_FINISHED`/
+  `RESTORE_FAILED` vorgesehen sind, deren produktive Verwendung im Backup-Service
+  nicht nachgewiesen ist)
 
 **Betriebsregel:** `RESTORE_COMPLETED` erscheint ausschließlich in der
 wiederhergestellten Datenbank, nicht im Backup selbst.  
 **Beleg:** `phase4_planung.md Z.373–376`
 
-**Organisatorische Auflage (RW v5 §18):** Restore-Durchführung erfordert Freigabe
+**Organisatorische Auflage (RW v5 §20):** Restore-Durchführung erfordert Freigabe
 durch eine berechtigte Person. Wer das im konkreten Betrieb ist, ist **nicht im Repo
 festgelegt** — diese Zuordnung ist organisatorisch zu klären.
 
@@ -264,8 +284,11 @@ Exportverzeichnis (`export.export_dir`) ist in Zugriffsschutz- und
 Archivierungskonzept einzubeziehen; Exportdateien sind in Backups eingeschlossen
 (s. Abschnitt 5.1).
 
-Aufbewahrungsfrist: **5 Jahre** gemäß ArbZG / RW v5 §20.  
-**Beleg:** `planung_gesamt.md` (V5-/V2-Abgleich, Aufbewahrungsfristen)
+Gesetzliche Mindestaufbewahrungsfrist: **2 Jahre** gemäß Regelwerk v5 §18 (in Anlehnung
+an § 16 Abs. 2 ArbZG für Mehrarbeit). Eine darüber hinausgehende Aufbewahrung von bis
+zu 5 Jahren ist gemäß `docs/betrieb/aufbewahrungs_und_loeschkonzept_arbeitszeit_v1_0.md`
+eine organisatorische Praxisfestlegung ohne technische Durchsetzung im Code.  
+**Beleg:** `regelwerk_arbeitszeit_v5.md` §18, `docs/betrieb/aufbewahrungs_und_loeschkonzept_arbeitszeit_v1_0.md`
 
 Zugriffsrechte auf Exportverzeichnis-Ebene sind auf Betriebssystem-Ebene zu setzen;
 dies ist **nicht Teil des Codes**.
@@ -279,8 +302,11 @@ dies ist **nicht Teil des Codes**.
 Empfohlene Prüfhäufigkeit: täglich oder bei Systemstart.
 
 ```bash
-python -m arbeitszeit.infrastructure.system_check --db arbeitszeit.db
+python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db --user-id <ID> system check
 ```
+
+`infrastructure/system_check.py` besitzt keinen eigenständigen `__main__`-Einstiegspunkt;
+der Aufruf erfolgt ausschließlich über die Admin-CLI.
 
 Prüfbereiche:
 
@@ -288,11 +314,15 @@ Prüfbereiche:
 | --- | --- | --- |
 | DB-Zugriff (WAL, row_factory) | ✓ | Check-Ergebnis FAIL |
 | Pflicht-Config-Keys | ✓ | Check-Ergebnis FAIL |
-| NAS-Erreichbarkeit | ✓ | Check-Ergebnis WARNING (optional) |
+| NAS-Erreichbarkeit | ✓ | Check-Ergebnis FAIL (deaktiviertes NAS-Backup selbst liefert OK) |
 | Fremdschlüssel-Konsistenz | ✓ | Check-Ergebnis FAIL |
+| NTP-Synchronisation | ✓ | Check-Ergebnis FAIL |
 | Gerätepfade (evdev) | ✓ | übersprungen wenn kein Pfad angegeben |
 
-Ergebnisse werden in `system_events` (event_type: SYSTEM_CHECK_*) protokolliert.
+`CheckResult` kennt nur ein binäres `ok`-Feld; einen separaten „WARNING“-Status je
+Einzelprüfung gibt es im Code nicht. Ergebnisse werden in `system_events` mit
+`event_type` `SELFTEST_OK` (Gesamtergebnis erfolgreich) bzw. `SELFTEST_FAIL`
+(mindestens ein Check fehlgeschlagen) protokolliert — nicht als `SYSTEM_CHECK_*`.
 
 ### 7.1 Sichtbare Warnungen beim Systemstart
 
@@ -380,7 +410,7 @@ Idempotenz: Glob-Runner führt jede SQL-Datei nur einmalig aus.
 
 | Thema | Status | Beleg | Offen |
 | --- | --- | --- | --- |
-| Buchungslogik COME/GO/BREAK | technisch vollständig | 406 Tests grün | — |
+| Buchungslogik COME/GO/BREAK | technisch vollständig | 406 Tests grün, Stand Commit `0f20931` (aktueller Repository-Stand: 480 Tests gesamt) | — |
 | ArbZG-Prüfhilfen §3/§4/§5 | technisch vollständig | compliance_checks.py + Tests | Ersetzt keine Einzelfallprüfung |
 | Backup + Restore | technisch vollständig | backup_service.py + e2e-Tests | Restore-Freigabe organisatorisch klären |
 | Systemcheck | technisch vollständig | system_check.py + 17 Tests | Reale Gerätepfade im Betrieb eintragen |
