@@ -291,7 +291,7 @@
   Textbefehle eintippt, statt mit der Maus zu klicken. Das mag zunächst
   ungewohnt wirken, ist aber bei diesem System notwendig, weil es bewusst
   schlank und ohne grafische Oberfläche gebaut wurde. Jeder Befehl in dieser
-  Anleitung wird in einem dunklen Kasten dargestellt und kann durch Markieren
+  Anleitung wird in einem grauen Kasten dargestellt und kann durch Markieren
   und Kopieren übernommen werden.</p>
 
   <p>Das Terminal öffnest du unter Linux Mint oder Lubuntu meist über die
@@ -311,7 +311,7 @@
   <p>In manchen Anleitungen im Internet stehen vor Befehlen Zeichen wie <code>$</code>
   oder <code>#</code>. Diese Zeichen gehören <strong>nicht</strong> zum Befehl und dürfen nicht
   mitkopiert werden. In dieser Anleitung wurden solche Zeichen bewusst
-  weggelassen — du kannst jeden Befehl in den dunklen Kästen exakt so
+  weggelassen — du kannst jeden Befehl in den grauen Kästen exakt so
   kopieren, wie er dort steht.</p>
 
   <!-- ================================================ -->
@@ -319,7 +319,7 @@
 
   <ul>
     <li>Einen Rechner mit <strong>Linux Mint</strong> oder <strong>Lubuntu</strong>, bereits installiert und einsatzbereit</li>
-    <li><strong>LUKS-Festplattenverschlüsselung aktiviert</strong> — zwingend erforderlich (Prüfung und Einrichtung: Schritt 0)</li>
+    <li><strong>LUKS-Festplattenverschlüsselung aktiviert</strong> — zwingend erforderlich (Details und Prüfung: Schritt 0)</li>
     <li>Eine Internetverbindung (nur für die Installation selbst benötigt)</li>
     <li>Administratorrechte auf dem Rechner (also ein Benutzerkonto, mit dem <code>sudo</code>-Befehle funktionieren)</li>
     <li>Ausreichend Zeit — plane für die komplette Ersteinrichtung etwa 30 bis 60 Minuten ein</li>
@@ -446,13 +446,12 @@ sudo apt install -y python3.14 python3.14-venv python3.14-tk python3-pip</code><
   RFID-Leser und das Numpad) benötigen zusätzliche Bausteine, die nicht in
   Python selbst enthalten sind:</p>
 
-  <pre><code>sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev git</code></pre>
+  <pre><code>sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev</code></pre>
 
   <p><strong>Was passiert hier?</strong> Dieser Befehl installiert Werkzeuge zum
   Übersetzen von Programmcode (<code>build-essential</code>), Systemheader für den
-  laufenden Kernel (<code>linux-headers</code>), Entwicklungsdateien für Python
-  (<code>python3-dev</code>) sowie das Versionsverwaltungsprogramm <code>git</code>, mit dem im
-  nächsten Schritt der Programmcode heruntergeladen wird.</p>
+  laufenden Kernel (<code>linux-headers</code>) sowie Entwicklungsdateien für Python
+  (<code>python3-dev</code>).</p>
 
   <!-- ================================================ -->
   <h2 class="schritt" id="schritt4">Schritt 4: Programmcode herunterladen</h2>
@@ -461,6 +460,11 @@ sudo apt install -y python3.14 python3.14-venv python3.14-tk python3-pip</code><
   soll, zum Beispiel dein Home-Verzeichnis:</p>
 
   <pre><code>cd ~</code></pre>
+
+  <p>Falls noch nicht vorhanden, wird zusätzlich das Versionsverwaltungsprogramm
+  <code>git</code> benötigt, mit dem der Programmcode heruntergeladen wird:</p>
+
+  <pre><code>sudo apt install -y git</code></pre>
 
   <p>Lade nun den Programmcode herunter:</p>
 
@@ -762,8 +766,8 @@ Migration 0006 angewendet.</code></pre>
   <pre><code>python3.14 -c "import tkinter; print('tkinter OK')"</code></pre>
 
   <p>Erscheint <code>tkinter OK</code>, kann die GUI gestartet werden. Erscheint
-  stattdessen eine Fehlermeldung (<code>No module named '_tkinter'</code>), lies bitte
-  den Abschnitt „Häufige Probleme" am Ende dieser Anleitung.</p>
+  stattdessen eine Fehlermeldung, lies bitte den Abschnitt „Häufige
+  Probleme" am Ende dieser Anleitung.</p>
 
   <h3>GUI starten</h3>
 
@@ -913,7 +917,7 @@ Migration 0006 angewendet.</code></pre>
   <h2 id="weitere-info">Wo finde ich weitere Informationen?</h2>
 
   <p>Nach erfolgreicher Installation liefert das ausführliche
-  <code>handbuch_arbeitszeit.md</code> eine vollständige
+  <code>handbuch_arbeitszeit.md</code> (bzw. dessen HTML-Version) eine vollständige
   Beschreibung aller Bedienfunktionen, insbesondere der Admin-CLI-Befehle
   für Mitarbeiterverwaltung, Berichte, Systemprüfung und Backups.</p>
 

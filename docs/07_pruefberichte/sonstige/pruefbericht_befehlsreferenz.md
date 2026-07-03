@@ -127,3 +127,53 @@ Die Befehlsreferenz ist in allen geprüften technischen Details (Argumentnamen, 
 ## Offene Punkte (nicht verifizierbar)
 
 - Keine. Alle geprüften Aussagen in diesem Kapitel waren anhand von Code eindeutig entscheidbar.
+
+---
+
+# Nachprüfung: Vollständigkeit (Juli 2026, Commit `9a5cd40`)
+
+**Geprüftes Dokument:** `/docs/03_installation_technik/befehlsreferenz_arbeitszeit.md` (vollständig, 1093 Zeilen vor Anpassung)
+**Geprüft gegen:** Repository-Stand `iCodator/arbeitszeit`, Branch `main`, Commit `9a5cd40`
+**Prüfschwerpunkt:** Vollständigkeit — sind alle CLI-Befehle, Hilfsskripte und Ausgabeformate lückenlos und wortgetreu dokumentiert?
+
+## Gesamteinschätzung
+
+Die Befehlsreferenz deckt alle 30 Admin-CLI-Unterbefehle (`main.py`-Dispatch-Tabelle), die Terminal-UI und alle fünf betriebsrelevanten Hilfsskripte (`init_db.py`, `setup.py`, `backup.py`, `verify_hardware.py`, `show_config.py`) vollständig und mit korrekten Argumenten, Rollenprüfungen und Exit-Codes ab. Es wurde eine Abweichung im dokumentierten Ausgabetext eines Befehls gefunden und korrigiert. Ein zusätzliches, nicht dokumentiertes Skript (`scripts/generate_audit_notes.py`) wurde geprüft und als bewusst nicht referenzrelevant eingestuft, da es sich um internes Entwickler-Tooling zur Auswertung von Codequalitätsberichten handelt, nicht um ein Betriebs-/Admin-Werkzeug im Sinne des Dokumentzwecks.
+
+## Strukturierter Befund
+
+**Aussage:** `reports warn-cases` liefert eine „Tabelle wie `open-bookings`, gefiltert nach Warenstatus" (wörtlicher Dokumentwortlaut vor Korrektur).
+**Status:** inkorrekt (im Wortlaut der Ausgabebeschreibung)
+**Beleg:** `src/arbeitszeit/presentation/admin_cli/reports.py` Zeile 202: `print("Offene Buchungen (Status OPEN) — alle:")` (bei `open-bookings`) gegenüber Zeile 220: `print("Buchungen mit WARN/NEEDS_REVIEW:")` (bei `warn-cases`). Beide nutzen zwar dieselbe Zeilen-/Spaltenformatierung über `_print_bookings_table()`, jedoch mit unterschiedlicher Kopfzeile.
+**Bewertung:** Die Tabellenstruktur (Spalten ID/Mitarbeiter/Art/Zeitpunkt/Status) ist bei beiden Befehlen identisch, da beide dieselbe Hilfsfunktion `_print_bookings_table()` verwenden. Die Formulierung „Tabelle wie open-bookings" ist in Bezug auf die Spaltenstruktur korrekt, aber missverständlich, da sie suggeriert, auch der einleitende Kopftext sei identisch. Das ist laut Code nicht der Fall.
+**Anpassungsvorschlag:** Präzisierung auf „Gleiches Tabellenformat wie `open-bookings`, jedoch mit eigener Kopfzeile `Buchungen mit WARN/NEEDS_REVIEW:` statt `Offene Buchungen (Status OPEN) — alle:`." Umgesetzt.
+
+**Aussage (implizit durch Dokumentumfang):** Alle im Repository vorhandenen Hilfsskripte unter `scripts/` sind in der Befehlsreferenz dokumentiert.
+**Status:** nicht verifizierbar als Vollständigkeitsanspruch — `scripts/generate_audit_notes.py` ist im Repository vorhanden, aber nicht im Dokument enthalten.
+**Beleg:** `scripts/generate_audit_notes.py` (596 Zeilen) — Docstring: „Wandelt Audit-Report-Dateien in docs/audits/reports/audit-notes.md um. Liest die Ausgaben von run_audit.sh und erzeugt eine versionierte Markdown-Datei mit strukturierten Kennzahlen und einem dynamischen Maßnahmenplan." Das Skript verarbeitet ausschließlich `ruff`-, Testabdeckungs- und ähnliche Codequalitätsberichte.
+**Bewertung:** Das Dokument benennt sich selbst als Referenz für Befehle „mit vollständiger Syntax, Argumenten, Rollenanforderungen und Ausgaben" im Kontext des Betriebssystems einer Zahnarztpraxis (Terminal-UI, Admin-CLI, betriebliche Hilfsskripte). `generate_audit_notes.py` ist ein Entwickler-/CI-internes Werkzeug ohne Bezug zum Praxisbetrieb (keine Datenbank-, Buchungs- oder Konfigurationsoperation) und fällt damit erkennbar außerhalb des im Dokument selbst definierten Geltungsbereichs „Hilfsskripte" (die dort gelisteten vier Skripte sind alle unmittelbar betriebsrelevant: Migration, Ersteinrichtung, Backup, Hardwaretest, Konfigurationsanzeige). Eine Ergänzung ist daher nicht zwingend durch den Dokumentzweck geboten; das Fehlen ist keine Lücke im Sinne der Aufgabenstellung, sondern eine plausible Abgrenzung. Da diese Einschätzung auf einer Zweckauslegung und nicht auf einer expliziten Repository-Aussage beruht, wird sie als „nicht verifizierbar" im engeren Sinne markiert; eine manuelle Bestätigung des Geltungsbereichs durch den Autor wird empfohlen.
+**Anpassungsvorschlag:** Keine Änderung vorgenommen. Empfehlung zur manuellen Klärung: Falls `generate_audit_notes.py` künftig auch von Nicht-Entwicklern (z. B. im Rahmen von Audits) ausgeführt werden soll, sollte es ergänzt werden.
+
+**Aussage:** Alle 30 im Dispatch der Admin-CLI registrierten Unterbefehle (`employees`: 3, `cards`: 3, `bookings`: 4, `schedule`: 2, `reports`: 10, `system`: 2, `users`: 6) sind im Dokument mit eigenem Abschnitt vertreten.
+**Status:** korrekt
+**Beleg:** `src/arbeitszeit/presentation/admin_cli/main.py` — vollständige Dispatch-Tabelle; Abgleich mit den Abschnittsüberschriften (`####`) je Unterbefehl im Dokument ergab 1:1-Deckung ohne fehlenden oder überzähligen Eintrag.
+**Bewertung:** Vollständigkeit bestätigt.
+
+**Aussage:** Terminal-UI-Argumente, Numpad-Tastenbelegung (1–4 → Kommen/Gehen/Pause Beginn/Pause Ende) und alle Rückmeldungstexte sind vollständig und wortgetreu dokumentiert.
+**Status:** korrekt
+**Beleg:** `src/arbeitszeit/infrastructure/hardware/evdev_reader.py` Zeilen 49–58 (`_NUMPAD_TO_BOOKING_TYPE`); `src/arbeitszeit/presentation/terminal_ui/booking_loop.py` Zeilen 15–20 (`_STATUS_MESSAGES`); `src/arbeitszeit/presentation/terminal_ui/main.py` Zeilen 31–37 (`_DOMAIN_MESSAGES`) und Zeile 77 (stderr-Ausgabe bei internem Fehler).
+**Bewertung:** Exakte Übereinstimmung, inklusive der Kanalangabe „(stderr)" beim internen Fehlertext.
+
+**Aussage:** Hilfsskripte `init_db.py`, `setup.py`, `backup.py`, `verify_hardware.py`, `show_config.py` — Argumente, Standardwerte, Exit-Codes und Beispielausgaben.
+**Status:** korrekt
+**Beleg:** Direkter Quellcode-Abgleich aller fünf Skripte in `scripts/` — Argumentdefinitionen (`argparse`), Exit-Codes (`sys.exit(...)`), Ausgabeformate (`print(...)`-Anweisungen) stimmen jeweils exakt mit den dokumentierten Tabellen und Beispieltexten überein.
+**Bewertung:** Keine Abweichung gefunden.
+
+## Angewendete Korrektur (diese Nachprüfung)
+
+- Abschnitt `reports warn-cases`, Feld „Ausgabe": Präzisierung des Vergleichs mit `open-bookings` — Hinweis auf die abweichende Kopfzeile ergänzt, statt der pauschalen (missverständlichen) Aussage „Tabelle wie `open-bookings`".
+- Versionsfeld am Dokumentkopf von `1.0` auf `1.1` angehoben (inhaltliche Präzisierung).
+
+## Offene Punkte (nicht verifizierbar, diese Nachprüfung)
+
+- Ob `scripts/generate_audit_notes.py` bewusst aus dem Geltungsbereich der Befehlsreferenz ausgeschlossen wurde oder schlicht vergessen wurde, ist aus dem Repository nicht zweifelsfrei feststellbar. Empfehlung: manuelle Bestätigung durch den Autor, ob eine Ergänzung gewünscht ist.

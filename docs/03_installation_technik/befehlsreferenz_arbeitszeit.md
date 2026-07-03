@@ -1,6 +1,6 @@
 # Befehlsreferenz `arbeitszeit`
 
-**Version:** 1.0  
+**Version:** 1.1  
 **Stand:** Juli 2026  
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -586,7 +586,8 @@ admin --db <PFAD> --user-id <ID> reports warn-cases \
 | `--to` | YYYY-MM-DD | ja | Ende |
 | `--employee-id` | int | nein | Filter |
 
-**Ausgabe:** Tabelle wie `open-bookings`, gefiltert nach Warenstatus.
+**Ausgabe:** Gleiches Tabellenformat wie `open-bookings`, jedoch mit eigener
+Kopfzeile `Buchungen mit WARN/NEEDS_REVIEW:` statt `Offene Buchungen (Status OPEN) — alle:`.
 
 ---
 
