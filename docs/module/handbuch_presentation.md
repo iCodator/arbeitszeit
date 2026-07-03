@@ -211,11 +211,14 @@ Export-Verzeichnis wird aus `system_config` (Schlüssel
 
 | Befehl | Beschreibung |
 | --- | --- |
-| `reports open-bookings [--from … --to …] [--employee-id …]` | Buchungen mit Status `OPEN` |
+| `reports open-bookings [--from … --to …] [--employee-id …]` | Buchungen mit Status `OPEN` ¹ |
 | `reports warn-cases --from … --to … [--employee-id …]` | Buchungen mit Status `WARN` oder `NEEDS_REVIEW` |
 | `reports corrections --from … --to … [--employee-id …]` | Alle Korrekturen im Zeitraum |
 | `reports supplements --from … --to … [--employee-id …]` | Alle Nachträge im Zeitraum |
-| `reports open-review-cases [--from … --to …] [--employee-id …]` | Offene Prüffälle |
+| `reports open-review-cases [--from … --to …] [--employee-id …]` | Offene Prüffälle ¹ |
+
+¹ Wird `--from`/`--to` weggelassen und liefert die Abfrage mehr als 50
+Einträge, erscheint ein Hinweis auf stderr, den Zeitraum einzugrenzen.
 
 ---
 
