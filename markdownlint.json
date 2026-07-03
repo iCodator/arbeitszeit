@@ -1,0 +1,8 @@
+{
+  // Basis: alle Standardregeln
+  "default": true,
+  // Lange Zeilen ok
+  "MD013": false,
+  // Keine Pflicht-H1 am Dokumentanfang
+  "MD041": false
+}
