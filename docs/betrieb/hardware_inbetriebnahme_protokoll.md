@@ -112,7 +112,7 @@ grundsätzlich funktionieren, ohne jedes Detail fachlich zu prüfen.
 
 | Prüfung | Ergebnis | OK? |
 |---|---|---|
-| Testbuchungen im Admin-CLI sichtbar (`bookings list`) | __________________ | ☐ Ja ☐ Nein |
+| Testbuchungen im Admin-CLI sichtbar (`reports open-bookings`) | __________________ | ☐ Ja ☐ Nein |
 | device_events-Einträge vorhanden | __________________ | ☐ Ja ☐ Nein |
 | system_events ohne Fehler während des Tests | __________________ | ☐ Ja ☐ Nein |
 
@@ -124,11 +124,11 @@ grundsätzlich funktionieren, ohne jedes Detail fachlich zu prüfen.
 
 | Test | Befehl | Ergebnis | OK? |
 |---|---|---|---|
-| Systemcheck | `python -m arbeitszeit.infrastructure.system_check --db …` | __________________ | ☐ Ja ☐ Nein |
+| Systemcheck | `python -m arbeitszeit.presentation.admin_cli.main --db … --user-id … system check` | __________________ | ☐ Ja ☐ Nein |
 | Mitarbeiterliste | `python -m arbeitszeit.presentation.admin_cli.main --db … employees list` | __________________ | ☐ Ja ☐ Nein |
-| Buchungsübersicht Test-Mitarbeiter | `… bookings list --employee …` | __________________ | ☐ Ja ☐ Nein |
-| CSV-Export | `… reports export csv …` | __________________ | ☐ Ja ☐ Nein |
-| PDF-Export | `… reports export pdf …` | __________________ | ☐ Ja ☐ Nein |
+| Buchungsübersicht Test-Mitarbeiter | `… reports open-bookings` bzw. `… reports corrections --from … --to …` | __________________ | ☐ Ja ☐ Nein |
+| CSV-Export | `… reports export-csv --employee … --from … --to …` | __________________ | ☐ Ja ☐ Nein |
+| PDF-Export | `… reports export-pdf-day --employee … --date …` (bzw. `export-pdf-week`/`export-pdf-month`/`export-pdf-employee`) | __________________ | ☐ Ja ☐ Nein |
 
 ---
 
@@ -138,7 +138,7 @@ grundsätzlich funktionieren, ohne jedes Detail fachlich zu prüfen.
 |---|---|---|---|
 | Lokales Backup erstellt | `python scripts/backup.py --db … --backup-dir …` | __________________ | ☐ Ja ☐ Nein |
 | Backup-Datei im Backup-Verzeichnis sichtbar |  | __________________ | ☐ Ja ☐ Nein |
-| NAS-Spiegelung (falls konfiguriert) | `python scripts/backup.py … --nas-path …` | __________________ | ☐ Ja ☐ Nein |
+| NAS-Spiegelung (falls konfiguriert) | erfolgt automatisch bei `python scripts/backup.py --db … --backup-dir …`, sofern `backup.nas_enabled`/`backup.nas_path` in `system_config` gesetzt sind (kein eigener CLI-Parameter) | __________________ | ☐ Ja ☐ Nein |
 | NAS-Verzeichnis enthält aktuelle Sicherung |  | __________________ | ☐ Ja ☐ Nein |
 
 ---
