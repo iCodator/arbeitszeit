@@ -1,0 +1,14 @@
+W291 [*] Trailing whitespace
+  --> src/arbeitszeit/infrastructure/db/migrations.py:39:19
+   |
+37 |         # B608: `version` ist durch isdigit()+len==4 auf "0000"-"9999" beschraenkt
+38 |         # (kein SQL-Injektionsvektor moeglich).
+39 |         script = (  
+   |                   ^^
+40 |             f"BEGIN;\n{sql}\n" # nosec B608
+41 |             f"INSERT INTO schema_migrations (version, applied_at)"
+   |
+help: Remove trailing whitespace
+
+Found 1 error.
+[*] 1 fixable with the `--fix` option.
