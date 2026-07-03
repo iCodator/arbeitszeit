@@ -17,14 +17,9 @@ import json
 import os
 import secrets
 import sqlite3
-import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox, simpledialog, ttk
-
-_SRC = Path(__file__).resolve().parents[4]
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
 
 from arbeitszeit.domain.enums import UserRole
 from arbeitszeit.domain.errors import DomainError
