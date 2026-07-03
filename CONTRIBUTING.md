@@ -120,6 +120,7 @@ Struktur von `tests/`:
 - `tests/application/` – Use-Cases, Commands, Ergebnisobjekte.
 - `tests/integration/` – Interaktion zwischen Application und Infrastructure.
 - `tests/e2e/` – End-to-End-Szenarien (z.B. komplette Buchungsläufe).
+- `tests/presentation/` – Tests der Präsentationsschicht (z.B. Terminal-UI-Buchungsschleife).
 - `tests/test_migrations.py` – Prüfung der SQL-Migrationen.
 
 Regel:
@@ -224,7 +225,7 @@ Prüfungen zu ArbZG (Höchstarbeitszeit, Pausen, Ruhezeiten):
 
 - Änderungen nur nach klarer fachlicher Begründung.
 - Immer mit passenden Tests (inkl. Grenzfälle).
-- Änderung kurz in einer Test-/Planungsmatrix dokumentieren (z.B. `docs/informelles/testmatrix_revision_v1.md`).
+- Änderung kurz in einer Test-/Planungsmatrix dokumentieren (z.B. `docs/betrieb/nachweise/testmatrix_revision_v1.md`).
 
 ---
 
@@ -237,7 +238,7 @@ Prüfungen zu ArbZG (Höchstarbeitszeit, Pausen, Ruhezeiten):
 - `handbuch_arbeitszeit.md` wird aus den Kapitel-Quelldateien unter `docs/module/`
   (`handbuch_overview.md`, `handbuch_installation.md`, `handbuch_presentation.md`,
   `handbuch_application_layer.md`, `handbuch_domain.md`, `handbuch_infrastructure.md`,
-  `handbuch_audit.md`) zusammengeführt. Inhaltliche Änderungen erfolgen zuerst im
+  `handbuch_audit.md`, `handbuch_show_config.md`) zusammengeführt. Inhaltliche Änderungen erfolgen zuerst im
   jeweiligen Kapitel-Modul unter `docs/module/` und werden anschließend in die
   zusammengeführte Gesamtdatei `handbuch_arbeitszeit.md` übernommen.
 
