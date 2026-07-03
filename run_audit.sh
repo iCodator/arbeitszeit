@@ -5,7 +5,7 @@
 set -uo pipefail
 
 SRC_DIR="src/arbeitszeit"
-DATE=$(date +%Y-%m-%d)
+DATE=$(date +%Y-%m-%d_%H-%M)
 BASE_DIR="docs/audits/reports"
 RUN_DIR="$BASE_DIR/$DATE"
 

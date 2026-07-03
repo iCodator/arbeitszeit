@@ -572,7 +572,7 @@ def main(argv: list[str] | None = None) -> None:
         sys.exit(1)
 
     timestamp = datetime.now().astimezone()  # lokale Systemzeit mit Offset
-    date_tag = timestamp.strftime("%Y-%m-%d")
+    date_tag = timestamp.strftime("%Y-%m-%d_%H-%M")
     output = args.output or report_dir / f"audit-notes-{date_tag}.md"
 
     data: dict[str, ReportData] = {
