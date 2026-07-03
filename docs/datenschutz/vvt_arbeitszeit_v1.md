@@ -78,10 +78,10 @@ Die Mitarbeiter werden im System durch einen internen Mitarbeiterdatensatz repr�
 | Datenkategorie | Konkrete Daten | Speicherort |
 |---|---|---|
 | Identifikationsdaten | Vorname, Nachname, internes Kürzel | SQLite-Datenbank (`employees`-Tabelle) |
-| Authentifizierungsdaten (Admin/Prüfer) | Benutzername, Passwort-Hash (bcrypt/argon2) | SQLite-Datenbank (`user_accounts`-Tabelle) |
+| Authentifizierungsdaten (Admin/Prüfer) | Benutzername, Passwort-Hash (PBKDF2-HMAC-SHA256, 260.000 Iterationen, Zufallssalt) | SQLite-Datenbank (`user_accounts`-Tabelle) |
 | Zeiterfassungsdaten | Buchungszeitpunkt, Buchungsart (Kommen/Gehen/Pause), Buchungsstatus | SQLite-Datenbank (`time_bookings`-Tabelle) |
 | RFID-Kennung | Gehashte RFID-UID (kein Klartext) | SQLite-Datenbank (`rfid_cards`-Tabelle) |
-| Korrekturen und Nachträge | Alter/neuer Zustand, Begründung, Zeitstempel, ausführende Person | SQLite-Datenbank (`booking_corrections`, `supplement_requests`) |
+| Korrekturen und Nachträge | Alter/neuer Zustand, Begründung, Zeitstempel, ausführende Person | SQLite-Datenbank (`booking_corrections`, `supplements`) |
 | Audit-Log-Daten | Administrationsvorgänge, Rollenänderungen, Systemereignisse | SQLite-Datenbank (`audit_log`, `system_events`) |
 | Hardware-Rohereignisse | Gerätescan-Zeitstempel, Terminal-ID (kein personenbezogener Inhalt im Klartext) | SQLite-Datenbank (`device_events`-Tabelle) |
 
@@ -147,7 +147,7 @@ Drittlandübermittlungen (Art. 44 ff. DSGVO): **Keine.** Das System ist lokal be
 | Maßnahme | Umsetzung im System |
 |---|---|
 | Backup | Regelmäßige lokale Sicherung der SQLite-Datenbank; optionale NAS-Spiegelung |
-| Wiederherstellung | Dokumentiertes Restore-Verfahren (`scripts/backup.py --restore`) mit Protokollierung |
+| Wiederherstellung | Dokumentiertes Restore-Verfahren (`SQLiteBackupService.restore_from()`, programmatisch, kein eigenständiges CLI-Flag) mit Protokollierung |
 | Fallback bei Geräteausfall | Schriftliche Notfallerfassung und gekennzeichneter Nachtrag (Regelwerk v5 §19) |
 | Systemcheck | Regelmäßige Selbstprüfung über `system_check.py` |
 
