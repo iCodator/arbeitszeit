@@ -5,7 +5,7 @@ from arbeitszeit.application.commands import CreateCorrectionCommand
 from arbeitszeit.application.results import CorrectionResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain import audit_events
-from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection
+from arbeitszeit.domain.entities import AuditLogEntry, BookingCorrection, TimeBooking
 from arbeitszeit.domain.enums import (
     BookingStatus,
     ReviewCaseStatus,
@@ -21,6 +21,7 @@ from arbeitszeit.domain.value_objects import (
     AuditLogEntryId,
     BookingCorrectionId,
     ReviewCaseId,
+    UserAccountId,
 )
 
 # Nur Prüffälle, die inhaltlich durch Korrektur der Buchung erledigt sind.
@@ -45,16 +46,7 @@ class CorrectBookingUseCase:
 
     def execute(self, cmd: CreateCorrectionCommand) -> CorrectionResult:
         with self._uow:
-            actor = self._uow.user_account_repo.get_by_id(cmd.corrected_by_user_id)
-            if (
-                actor is None
-                or not actor.is_active
-                or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}
-            ):
-                raise PermissionDeniedError(
-                    f"Benutzer {cmd.corrected_by_user_id} ist nicht berechtigt, "
-                    "Buchungen zu korrigieren."
-                )
+            self._check_permission(cmd.corrected_by_user_id)
 
             booking = self._uow.time_booking_repo.get_by_id(cmd.original_booking_id)
             if booking is None:
@@ -89,18 +81,9 @@ class CorrectBookingUseCase:
                 changed_by_user_id=cmd.corrected_by_user_id,
             )
 
-            open_cases = self._uow.review_case_repo.list_open_for_employee(booking.employee_id)
-            review_case_id: ReviewCaseId | None = None
-            for case in open_cases:
-                if case.booking_id == booking.id and case.case_type in _CORRECTABLE_CASE_TYPES:
-                    self._uow.review_case_repo.resolve(
-                        case.id,
-                        status=ReviewCaseStatus.RESOLVED,
-                        closed_by_user_id=cmd.corrected_by_user_id,
-                        note=cmd.reason,
-                    )
-                    if review_case_id is None:
-                        review_case_id = case.id
+            review_case_id = self._close_correctable_cases(
+                booking, cmd.corrected_by_user_id, cmd.reason
+            )
 
             # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
             self._uow.commit()
@@ -136,3 +119,34 @@ class CorrectBookingUseCase:
                 updated_booking_id=booking.id,
                 review_case_id=review_case_id,
             )
+
+    def _check_permission(self, user_id: UserAccountId) -> None:
+        actor = self._uow.user_account_repo.get_by_id(user_id)
+        if (
+            actor is None
+            or not actor.is_active
+            or actor.role not in {UserRole.ADMIN, UserRole.REVIEWER}
+        ):
+            raise PermissionDeniedError(
+                f"Benutzer {user_id} ist nicht berechtigt, Buchungen zu korrigieren."
+            )
+
+    def _close_correctable_cases(
+        self,
+        booking: TimeBooking,
+        closed_by_user_id: UserAccountId,
+        reason: str,
+    ) -> ReviewCaseId | None:
+        open_cases = self._uow.review_case_repo.list_open_for_employee(booking.employee_id)
+        review_case_id: ReviewCaseId | None = None
+        for case in open_cases:
+            if case.booking_id == booking.id and case.case_type in _CORRECTABLE_CASE_TYPES:
+                self._uow.review_case_repo.resolve(
+                    case.id,
+                    status=ReviewCaseStatus.RESOLVED,
+                    closed_by_user_id=closed_by_user_id,
+                    note=reason,
+                )
+                if review_case_id is None:
+                    review_case_id = case.id
+        return review_case_id
