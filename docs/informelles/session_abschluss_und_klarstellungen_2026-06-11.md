@@ -3,7 +3,7 @@
 **Datum:** 2026-06-11  
 **Zweck:** Dieses Dokument fasst alle Abschlussnotizen, Abschlussprotokolle,
 Klarstellungen und Einordnungsnotizen der Design- und Audit-Session vom 2026-06-11
-zusammen. Es ersetzt die folgenden Einzeldokumente, die in `docs/informelles/archiv/`
+zusammen. Es ersetzt die folgenden Einzeldokumente, die in `docs/archive/`
 archiviert sind:
 
 - `abarbeitung_hoch_abschlussnotiz_v1.md`
@@ -17,9 +17,10 @@ archiviert sind:
 
 **Abgrenzung:** Dieses Dokument enthält keine Freigaben, keine DSFA und keine
 verbindlichen Betriebsanweisungen. Es dokumentiert den technischen und organisatorischen
-Abschlussstand der Session. Verbindliche Referenzdokumente bleiben
-`pflichtenheft_arbeitszeit_v5.md`, `regelwerk_arbeitszeit_v5.md` und
-`docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`.
+Abschlussstand der Session zum Zeitpunkt 2026-06-11. Zum damaligen Zeitpunkt
+verbindliche Referenzdokumente waren `pflichtenheft_arbeitszeit_v5.md` und
+`regelwerk_arbeitszeit_v5.md`; aktuell verbindlich sind `pflichtenheft_arbeitszeit_v6.md`,
+`regelwerk_arbeitszeit_v5.md` und `docs/betrieb/betriebsdokumentation_arbeitszeit_v1_1.md`.
 
 ---
 
