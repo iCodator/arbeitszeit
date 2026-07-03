@@ -58,6 +58,11 @@ Die Checkliste soll sicherstellen, dass ein Restore nur geplant, dokumentiert un
 
 ### 4.2 Wiederherstellung
 
+Hinweis: Für den Restore-Vorgang selbst steht kein Admin-CLI-Befehl (`admin ...`)
+zur Verfügung. Der Restore ist ausschließlich als Methode `restore_from` der Klasse
+`SQLiteBackupService` implementiert (`src/arbeitszeit/infrastructure/backup/backup_service.py`)
+und muss programmatisch aufgerufen werden.
+
 | Schritt | Erledigt | Bemerkung |
 |---|---|---|
 | Restore aus identifiziertem Backup durchgeführt | ☐ Ja ☐ Nein | __________________ |
@@ -73,7 +78,7 @@ Die Checkliste soll sicherstellen, dass ein Restore nur geplant, dokumentiert un
 |---|---|---|
 | Datenbank lässt sich öffnen | __________________ | ☐ Ja ☐ Nein |
 | Terminal-UI startet fehlerfrei | __________________ | ☐ Ja ☐ Nein |
-| Admin-CLI startet fehlerfrei | __________________ | ☐ Ja ☐ Nein |
+| Admin-CLI startet fehlerfrei (allgemeine Funktionsprüfung, kein restore-spezifischer Befehl) | __________________ | ☐ Ja ☐ Nein |
 | Stichprobenhafte Buchungen / Mitarbeiterdaten vorhanden | __________________ | ☐ Ja ☐ Nein |
 | Systemcheck erfolgreich oder plausibel | __________________ | ☐ Ja ☐ Nein |
 | Backup-/Exportpfade weiterhin korrekt | __________________ | ☐ Ja ☐ Nein |
