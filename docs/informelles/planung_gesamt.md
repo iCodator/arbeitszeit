@@ -155,7 +155,7 @@ V4- und Regelwerk-konforme Statusmodellierung:
 - `MANUAL_ENTRY` wird als `BookingSource.MANUAL` modelliert.
 - `report_queries.py` ist die zentrale Wahrheitsquelle für Berichte, Pflichtauswertungen, Filterlogik und Projektionen; direkte abweichende Ad-hoc-Queries sind architektonisch unzulässig.
 
-**`ports/repositories.py`** — 10 `Protocol`-Interfaces für Repositories der Entitäten und Aggregate.
+**`ports/repositories.py`** — 11 `Protocol`-Interfaces für Repositories der Entitäten und Aggregate.
 
 **Tests** (67 gesamt, alle grün):
 - `tests/domain/test_booking_rules.py` – 14 Tests (10 Fehlerfälle + 4 Erfolgsfälle).
@@ -208,6 +208,8 @@ src/arbeitszeit/application/
     └── book_time.py
 ```
 
+Hinweis: Der Verzeichnisbaum zeigt den originären Phase-3-Lieferumfang. Im aktuellen Repository-Stand enthält `use_cases/` zusätzlich `approve_supplement.py`, `reject_supplement.py` (siehe Hinweis unten) sowie `manage_employees.py`, `manage_rfid_cards.py` und `manage_user_accounts.py` (spätere Phasen).
+
 Die in Phase 3 festgelegten Commands, Results, Fakes und Use Cases entsprechen dem dokumentierten Fachmodell und den Prüfregeln. Die in Pflichtenheft v6 geforderten Kernabläufe, Korrektur-/Nachtragsmechanismen und Prüfpfade sind damit in der Anwendungslogik abgebildet.
 
 Hinweis: `approve_supplement.py` und `reject_supplement.py` wurden in Phase 3 vorimplementiert (Phase-4-Inhalt). Detailliert dokumentiert in `phase3_planung.md`.
@@ -220,7 +222,7 @@ Phase 4 schließt Datenbank-Integration, echte Repositorys, Unit of Work, Backup
 
 Wesentliche Punkte:
 - `SQLiteUnitOfWork` mit konsequenter commit-or-rollback-Semantik.
-- 10 SQLite-Repositories mit Parameterized Statements, Roundtrips und Scope-/Statuslogik.
+- 11 SQLite-Repositories mit Parameterized Statements, Roundtrips und Scope-/Statuslogik.
 - `system_events` für Backup, Restore, Selbsttest und später Systemzeitabweichungen.
 - `report_queries.py` als zentrale Ableitungsschicht für CSV, PDF und Pflichtauswertungen.
 - `SQLiteBackupService` mit NAS-Sync, Restore-Test, Integritätsprüfung und optionalem Mitsichern von Exportdateien.
@@ -242,8 +244,8 @@ Wesentliche Punkte:
 - Pflichtauswertungen sind in der Anwendung einsehbar und exportierbar, wie es Pflichtenheft v6 §7.13 verlangt.
 - Systemzeitprotokollierung ist in den Loop integriert und damit auch betrieblich angebunden.
 
-**Offener Architekturpunkt – `device_event_id`-Verkettung:**
-Die Spalte `time_bookings.device_event_id` ist im Schema vorhanden. Die vollständige operative Kette, bei der die Hardware-Schicht vor `process_booking()` einen `device_events`-Datensatz anlegt und dessen ID bis zur Buchung persistiert, ist nach aktuellem Stand noch nicht im Produktionspfad aktiviert. Dieser Punkt ist unverändert offen und bleibt für eine lückenlose Ereignisherkunft relevant.
+**`device_event_id`-Verkettung:**
+Die Spalte `time_bookings.device_event_id` ist im Schema vorhanden. Die vollständige operative Kette, bei der `booking_loop.py` vor dem `BookUseCase`-Aufruf einen `device_events`-Datensatz anlegt und dessen ID bis zur Buchung persistiert, ist implementiert und über `tests/integration/test_device_event_booking.py` abgedeckt. Dieser Punkt ist damit nicht mehr offen; er wird an dieser Stelle nur zur Vollständigkeit der Phase-5-Übersicht wiederholt.
 
 ---
 
@@ -305,5 +307,4 @@ Phasenübergreifende Nachtragsmatrix (vorgezogene/nachgezogene Artefakte, 44 Ein
 | INSERT-Fehler device_events verhindert Buchung | `tests/integration/test_device_event_booking.py::test_fehler_im_device_event_insert_verhindert_buchung` | ✓ |
 
 Diese Tabelle dokumentiert die fachliche Testabdeckung im Projektstand. 
-- Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/informelles/testmatrix_revision_v1.md`.
-+ Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/betrieb/nachweise/testmatrix_revision_v1.md`.
+Die zugehörige revisionsfeste Testmatrix mit vollständiger Anforderungs-zu-Test-Zuordnung befindet sich in `docs/betrieb/nachweise/testmatrix_revision_v1.md`.
