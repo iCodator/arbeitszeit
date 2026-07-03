@@ -72,7 +72,7 @@ Wichtige Einstiegspunkte sind insbesondere [`src/arbeitszeit/presentation/termin
 
 ## Installation und lokales Setup
 
-Für die Inbetriebnahme existiert mit der Datei [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) bereits eine eigene Installationsdokumentation. Für den README-Einstieg reichen die Grundschritte unten.
+Für die Inbetriebnahme existiert mit der Datei [`installationsanleitung_arbeitszeit.md`](docs/03_installation_technik/installationsanleitung_arbeitszeit.md) bereits eine eigene Installationsdokumentation. Für den README-Einstieg reichen die Grundschritte unten.
 
 1. Repository klonen.
 2. In das Projektverzeichnis wechseln.
@@ -186,10 +186,10 @@ aufbewahrt werden.
 
 ## Weiterführende Dokumentation
 
-- [`handbuch_arbeitszeit.md`](handbuch_arbeitszeit.md) / [`handbuch_arbeitszeit.html`](handbuch_arbeitszeit.html) – vollständiges Handbuch (konsolidiert aus `docs/module/`).
-- [`befehlsreferenz_arbeitszeit.md`](befehlsreferenz_arbeitszeit.md) – Schnellreferenz aller Admin-CLI-Befehle, Terminal-UI und Hilfsskripte.
-- [`installationsanleitung_arbeitszeit.md`](installationsanleitung_arbeitszeit.md) / [`installationsanleitung_arbeitszeit.html`](installationsanleitung_arbeitszeit.html) – Installationsanleitung für Laien.
-- [`pflichtenheft_arbeitszeit_v6.md`](pflichtenheft_arbeitszeit_v6.md) – Pflichtenheft zum Projektkontext und Zielbild.
-- [`regelwerk_arbeitszeit_v5.md`](regelwerk_arbeitszeit_v5.md) – Regelwerk mit fachlichem Rahmen.
+- [`handbuch_arbeitszeit.md`](docs/02_anwender/handbuch_arbeitszeit.md) / [`handbuch_arbeitszeit.html`](docs/02_anwender/handbuch_arbeitszeit.html) – vollständiges Handbuch (konsolidiert aus `docs/module/`).
+- [`befehlsreferenz_arbeitszeit.md`](docs/03_installation_technik/befehlsreferenz_arbeitszeit.md) – Schnellreferenz aller Admin-CLI-Befehle, Terminal-UI und Hilfsskripte.
+- [`installationsanleitung_arbeitszeit.md`](docs/03_installation_technik/installationsanleitung_arbeitszeit.md) / [`installationsanleitung_arbeitszeit.html`](docs/03_installation_technik/installationsanleitung_arbeitszeit.html) – Installationsanleitung für Laien.
+- [`pflichtenheft_arbeitszeit_v6.md`](docs/01_normativ/pflichtenheft_arbeitszeit_v6.md) – Pflichtenheft zum Projektkontext und Zielbild.
+- [`regelwerk_arbeitszeit_v5.md`](docs/01_normativ/regelwerk_arbeitszeit_v5.md) – Regelwerk mit fachlichem Rahmen.
 - [`docs/module/`](docs/module) – Kapitel-Quelldateien, aus denen `handbuch_arbeitszeit.md` zusammengeführt wird.
 - [`docs/`](docs) – weiterer Dokumentationsordner mit ergänzenden Unterlagen.
