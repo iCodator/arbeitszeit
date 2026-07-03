@@ -192,14 +192,13 @@ RFID-Leser und das Numpad) benötigen zusätzliche Bausteine, die nicht in
 Python selbst enthalten sind:
 
 ```bash
-sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev git
+sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev
 ```
 
 **Was passiert hier?** Dieser Befehl installiert Werkzeuge zum
 Übersetzen von Programmcode (`build-essential`), Systemheader für den
-laufenden Kernel (`linux-headers`), Entwicklungsdateien für Python
-(`python3-dev`) sowie das Versionsverwaltungsprogramm `git`, mit dem im
-nächsten Schritt der Programmcode heruntergeladen wird.
+laufenden Kernel (`linux-headers`) sowie Entwicklungsdateien für Python
+(`python3-dev`).
 
 ## Schritt 4: Programmcode herunterladen
 
@@ -208,6 +207,13 @@ soll, zum Beispiel dein Home-Verzeichnis:
 
 ```bash
 cd ~
+```
+
+Falls noch nicht vorhanden, wird zusätzlich das Versionsverwaltungsprogramm
+`git` benötigt, mit dem der Programmcode heruntergeladen wird:
+
+```bash
+sudo apt install -y git
 ```
 
 Lade nun den Programmcode herunter:
