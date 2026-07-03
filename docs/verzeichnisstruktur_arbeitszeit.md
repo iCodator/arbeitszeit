@@ -28,21 +28,26 @@ Das Wurzelverzeichnis enthält ausschließlich Dateien, keine weiteren Unterverz
 - `Handbuch - Arbeitszeiterfassung.html` – HTML-Export des Benutzerhandbuchs (browserlesbar)
 - `installationsanleitung_arbeitszeit.md` – Schritt-für-Schritt-Installationsanleitung in Markdown
 - `Installationsanleitung - Arbeitszeit.html` – HTML-Export der Installationsanleitung
+- `befehlsreferenz_arbeitszeit.md` – vollständige Referenz aller Admin-CLI-Befehle
+- `markdownlint.json` – Konfiguration für die Markdown-Lint-Prüfung der Dokumentation
 - `run_audit.sh` – Shell-Skript zum Starten des Audit-Laufs (ruft das Audit-Skript in `scripts/` auf)
+- `test_booking_loop.py` – auf Wurzelebene liegender Testmodul für die Terminal-UI-Buchungsschleife
 
 ---
 
 ## `.claude/`
 
-Konfigurationsverzeichnis für den KI-Assistenten Claude (Anthropic). Enthält ausschließlich die Datei `settings.json` mit projektspezifischen Verhaltenseinstellungen für Claude-gestützte Entwicklungsunterstützung (z. B. Erlaubnisregeln für Bash-Befehle).
+Konfigurationsverzeichnis für den KI-Assistenten Claude (Anthropic). Enthält neben `settings.json` (projektspezifische Verhaltenseinstellungen, z. B. Erlaubnisregeln für Bash-Befehle) auch `claude.md` (projektspezifische Arbeitsanweisungen), die verbindlichen Regelquellen `markdown-Rules.md` und `Markdown Syntax Documentation.pdf` sowie die Unterverzeichnisse `audit/` und `rules/`.
 
 ---
 
 ## `docs/`
 
-Sammlung aller **projektbegleitenden Dokumente**, die über den Quellcode hinausgehen. Das Verzeichnis ist in drei thematische Unterverzeichnisse unterteilt sowie eine lose Datei auf Dokumentenebene:
+Sammlung aller **projektbegleitenden Dokumente**, die über den Quellcode hinausgehen. Das Verzeichnis enthält deutlich mehr als drei Unterverzeichnisse (u. a. `betrieb/`, `datenschutz/`, `informelles/`, `domain/`, `infrastructure/`, `module/`, `adr/`, `archive/`, `audits/`, `pruefberichte/`) sowie mehrere lose Dateien auf Dokumentenebene:
 
 - `handbuch_rollen_cli_ergaenzung_v1_0.md` – Ergänzungsdokument zum Handbuch, das die Rollen und CLI-Kommandos beschreibt (v1.0)
+- `verzeichnisstruktur_arbeitszeit.md` – das vorliegende Dokument zur Verzeichnisstruktur des Projekts
+- `SECURITY.md` – Sicherheitsdokumentation (Härtungsmaßnahmen, Bedrohungsmodell, Audit-Ereignisse)
 
 ### `docs/betrieb/`
 
@@ -66,23 +71,12 @@ Enthält das **Datenschutz-Verzeichnis der Verarbeitungstätigkeiten (VVT)** gem
 
 ### `docs/informelles/`
 
-Enthält **interne Arbeits- und Planungsdokumente**, die den Entwicklungsprozess begleiten, aber keinen normativen Charakter haben. Dazu zählen Phasenpläne, Abschlussnotizen, Architekturentscheidungen und Testmatrizen:
+Enthält **interne Arbeits- und Planungsdokumente**, die den Entwicklungsprozess begleiten, aber keinen normativen Charakter haben. Das Verzeichnis umfasst aktuell nur zwei Dateien:
 
 - `planung_gesamt.md` – Gesamtübersicht aller Entwicklungsphasen und ihrer Meilensteine
-- `phase1_planung.md` bis `phase5_planung.md` – detaillierte Planungsdokumente für jede der fünf Entwicklungsphasen (Aufgaben, Ziele, Abnahmekriterien)
-- `abarbeitung_hoch_abschlussnotiz_v1.md` – Abschlussnotiz für hoch priorisierte Aufgaben
-- `abarbeitung_mittel_abschlussnotiz_v1.md` – Abschlussnotiz für mittel priorisierte Aufgaben
-- `abarbeitung_niedrig_abschlussnotiz_v1.md` – Abschlussnotiz für niedrig priorisierte Aufgaben
-- `audit_evidenzgrenzen_v1.md` – Analyse der Grenzen und Lücken im Audit-Nachweis (was das System belegen kann und was nicht)
-- `audit_klarstellungen_niedrig_v1.md` – Klarstellungen zu Audit-relevanten Sachverhalten mit niedriger Priorität
-- `device_event_architekturentscheidung_v1.md` – dokumentierte Architekturentscheidung zur Einführung des `DeviceEvent`-Konzepts (Trennung von Hardwareereignis und Buchungslogik)
-- `device_event_abschlussprotokoll_v1.md` – Abschlussprotokoll der Implementierung des `DeviceEvent`-Konzepts
-- `migrationsuebersicht_notiz_v1.md` – interne Notiz zur Übersicht aller Datenbankmigrationen und ihrer Reihenfolge
-- `nachtragsmatrix_phasen_v1.md` – Matrix der nachträglich hinzugekommenen Anforderungen geordnet nach Entwicklungsphase
-- `terminologie_harmonisierung_v1.md` – Dokument zur einheitlichen Benennung von Begriffen im Projekt
-- `testmatrix_planabweichungen_v1.md` – Testmatrix mit dokumentierten Abweichungen vom ursprünglichen Testplan
-- `testmatrix_pruefbericht_v1.md` – formaler Prüfbericht auf Basis der Testmatrix
-- `testmatrix_revision_v1.md` – überarbeitete und erweiterte Version der Testmatrix
+- `session_abschluss_und_klarstellungen_2026-06-11.md` – Abschlussnotiz und Klarstellungen zu einer Bearbeitungssitzung
+
+Die ursprünglich hier beschriebenen Dokumente liegen tatsächlich in anderen Verzeichnissen: Phasenpläne, Abschlussnotizen, `audit_evidenzgrenzen_v1.md`, `audit_klarstellungen_niedrig_v1.md`, `device_event_abschlussprotokoll_v1.md`, `migrationsuebersicht_notiz_v1.md` und `terminologie_harmonisierung_v1.md` befinden sich in `docs/archive/`; die Architekturentscheidung `device_event_architekturentscheidung_v1.md` liegt in `docs/adr/`; die Testmatrix- und Nachtragsdokumente `nachtragsmatrix_phasen_v1.md`, `testmatrix_planabweichungen_v1.md`, `testmatrix_pruefbericht_v1.md` und `testmatrix_revision_v1.md` befinden sich in `docs/betrieb/nachweise/`.
 
 ---
 
@@ -107,6 +101,8 @@ Enthält eigenständige **Python-Hilfsskripte** für Betrieb und Einrichtung. Di
 - `setup.py` – interaktives Einrichtungsskript für die Erstinstallation (legt Konfigurationsdateien an, prüft Systemvoraussetzungen)
 - `backup.py` – erstellt ein Backup der SQLite-Datenbankdatei in ein konfigurierbares Zielverzeichnis (inkl. Zeitstempel im Dateinamen)
 - `generate_audit_notes.py` – analysiert die Datenbank und generiert maschinenlesbare Audit-Notizen für die Nachvollziehbarkeit von Buchungen und Korrekturen
+- `show_config.py` – zeigt die aktuellen Schlüssel-Wert-Paare der Systemkonfiguration an
+- `verify_hardware.py` – prüft die Erreichbarkeit und Funktion der angeschlossenen Hardware (RFID-Reader, Numpad)
 
 ---
 
@@ -145,6 +141,7 @@ Enthält **domänenspezifische Dienste**, die Geschäftsregeln kapseln, die sich
 Die **Anwendungsschicht** (Application Layer). Orchestriert die Fachlogik durch Use Cases und kennt weder Datenbankdetails noch Hardware. Sie vermittelt zwischen Domäne und Infrastructure:
 
 - `commands.py` – Eingabedatenklassen (Command Objects) für alle Use Cases: `BookTimeCommand`, `RegisterSupplementCommand`, `ApproveSupplementCommand` usw.
+- `queries.py` – Query-DTOs für die lesende Seite (CQRS-Read): reine Datenstrukturen für Abfrageergebnisse, ohne SQL-Logik
 - `results.py` – Ergebnisdatenklassen (Result Objects), die Use Cases an die aufrufende Schicht zurückgeben
 - `unit_of_work.py` – abstraktes `IUnitOfWork`-Interface: definiert Transaktionsgrenzen und den Zugriff auf alle Repositories
 
@@ -158,6 +155,9 @@ Enthält einen Use Case pro Datei. Jeder Use Case implementiert genau einen fach
 - `approve_supplement.py` – genehmigt einen Nachtrag: validiert, erstellt Korrekturbuchung, schreibt Audit-Log
 - `reject_supplement.py` – lehnt einen Nachtrag ab und speichert den Ablehnungsgrund
 - `manage_work_schedule.py` – legt Soll-Arbeitszeiten (Wochenpläne) für Mitarbeiter an oder aktualisiert sie
+- `manage_employees.py` – verwaltet Mitarbeiterdatensätze (Anlegen, Deaktivieren)
+- `manage_rfid_cards.py` – verwaltet die Zuordnung von RFID-Karten zu Mitarbeitern
+- `manage_user_accounts.py` – verwaltet Admin-Benutzerkonten (Anlegen, Passwortänderung, Rollenzuweisung)
 
 ### `src/arbeitszeit/infrastructure/`
 
@@ -165,6 +165,7 @@ Die **Infrastrukturschicht** (Infrastructure Layer). Enthält alle konkreten Imp
 
 - `system_check.py` – prüft beim Systemstart, ob alle Voraussetzungen erfüllt sind (Datenbankdatei erreichbar, Migrationen aktuell, Hardware erkannt)
 - `time_monitor.py` – Hintergrundüberwachung: erkennt Situationen, in denen Mitarbeiter ohne Ausbuchung die maximale Arbeitszeit überschreiten, und schreibt einen Warneintrag
+- `notification.py` – sendet Desktop-Benachrichtigungen über `notify-send` (Stdlib-`subprocess`, kein zusätzliches Paket); schlägt still fehl, wenn `notify-send` nicht verfügbar ist
 
 #### `src/arbeitszeit/infrastructure/backup/`
 
@@ -209,11 +210,11 @@ Implementierung der **Exportfunktionen** für Berichte und Datenausgaben:
 
 Anbindung der **physischen Eingabegeräte** über das Linux-`evdev`-Subsystem. Abstrahiert die Hardwaredetails hinter einheitlichen Interfaces:
 
-- `ports.py` – abstrakte Hardware-Interfaces: `IDeviceReader` (für RFID-Reader und Numpad) als Port-Definition
-- `evdev_reader.py` – konkrete Implementierung des `IDeviceReader` über `python-evdev`: liest Tastaturereignisse von RFID-Reader (USB-HID) und USB-Numpad, wandelt Scansequenzen in strukturierte Ereignisobjekte um
-- `simulator.py` – Software-Simulator für RFID-Reader und Numpad (ermöglicht Tests und Entwicklung ohne physische Hardware)
-- `uid_hash.py` – erzeugt einen einseitigen Hash der RFID-UID (SHA-256) für die datenschutzkonforme Speicherung in der Datenbank
-- `__init__.py` – exportiert `EvdevReader` und `HardwareSimulator` als öffentliche API des Subpakets
+- `ports.py` – abstrakte Hardware-Interfaces: `HardwareReader` (für RFID-Reader und Numpad) als Port-Definition, u. a. mit den Fehlerklassen `EmptyUidError` und `HardwareTimeoutError`
+- `evdev_reader.py` – konkrete Implementierung `EvdevHardwareReader` des `HardwareReader`-Interfaces über `python-evdev`: liest Tastaturereignisse von RFID-Reader (USB-HID) und USB-Numpad, wandelt Scansequenzen in strukturierte Ereignisobjekte um
+- `simulator.py` – Software-Simulator `SimulatedHardwareReader` für RFID-Reader und Numpad (ermöglicht Tests und Entwicklung ohne physische Hardware)
+- `uid_hash.py` – erzeugt über `hash_uid()` einen einseitigen SHA-256-Hash der RFID-UID für die datenschutzkonforme Speicherung in der Datenbank
+- `__init__.py` – exportiert `SimulatedHardwareReader`, `hash_uid`, `HardwareReader`, `EmptyUidError`, `HardwareTimeoutError` und `RawBookingRequest` als öffentliche API des Subpakets
 
 ### `src/arbeitszeit/presentation/`
 
@@ -228,22 +229,29 @@ Die **Mitarbeiter-Schicht-Oberfläche** für den produktiven Dauerbetrieb am Pra
 
 #### `src/arbeitszeit/presentation/admin_cli/`
 
-Die **Administrator-Kommandozeilenschnittstelle** (CLI) für die Praxisleitung und den Systemadministrator. Implementiert mit `click` oder ähnlichem Framework:
+Die **Administrator-Kommandozeilenschnittstelle** (CLI, Programmname `admin`) für die Praxisleitung und den Systemadministrator:
 
 - `main.py` – Einstiegspunkt und Kommando-Registrierung: fasst alle Befehlsgruppen zusammen, konfiguriert Dependency Injection
 - `employees.py` – CLI-Kommandos zur Mitarbeiterverwaltung: anlegen, deaktivieren, RFID-Karte zuordnen
-- `bookings.py` – CLI-Kommandos zur Buchungsverwaltung: auflisten, korrigieren, Korrekturen anzeigen
-- `reports.py` – CLI-Kommandos zur Berichtsausgabe: Monatsberichte als PDF oder CSV exportieren, Buchungsübersichten anzeigen
+- `bookings.py` – CLI-Kommandos zur Buchungskorrektur und zu Nachträgen: `correct`, `supplement`, `approve-supplement`, `reject-supplement` (kein `list`-Unterbefehl; Buchungsübersichten liefert `reports.py`)
+- `reports.py` – CLI-Kommandos zur Berichtsausgabe: Monatsberichte als PDF oder CSV exportieren (`export-csv`, `export-pdf-day/-week/-month/-employee`), Buchungsübersichten anzeigen (`open-bookings`, `warn-cases`, `corrections`, `supplements`, `open-review-cases`)
 - `schedule.py` – CLI-Kommandos zur Verwaltung von Soll-Arbeitszeitplänen (Anlegen, Anzeigen, Aktualisieren)
-- `system.py` – CLI-Kommandos für Systemfunktionen: Systemcheck ausführen, Backup anstoßen, Migrationsstatus prüfen
+- `system.py` – CLI-Kommandos für Systemfunktionen: Systemcheck ausführen, Backup anstoßen (kein eigenständiger Restore-Unterbefehl)
 - `user_accounts.py` – CLI-Kommandos zur Verwaltung von Admin-Benutzerkonten: anlegen, Passwort ändern, Rollen zuweisen
+- `_auth.py` – CLI-seitige Rollenprüfung für lesende Operationen ohne eigenen Use Case (z. B. `reports`, `schedule show`, `system`); schreibende Operationen prüfen die Rolle über die Use Cases der Anwendungsschicht (nicht öffentliche API)
 - `_intervals.py` – interne Hilfsfunktionen zur Auswertung und Darstellung von Zeitintervallen in der CLI-Ausgabe (nicht öffentliche API)
+
+#### `src/arbeitszeit/presentation/admin_gui/`
+
+Eine **tkinter/ttk-basierte Verwaltungsoberfläche** für Praxisadministratorinnen und -administratoren mit geringerer CLI-Erfahrung. Alle schreibenden Operationen laufen über dieselben Use Cases der Anwendungsschicht wie die Admin-CLI:
+
+- `main.py` – Einstiegspunkt der Admin-GUI (`python -m arbeitszeit.presentation.admin_gui.main`)
 
 ---
 
 ## `tests/`
 
-Enthält die gesamte **Testsuite** des Projekts. Die Struktur spiegelt die Architekturschichten des Quellcodes wider und unterteilt sich in vier Teststufen:
+Enthält die gesamte **Testsuite** des Projekts. Die Struktur spiegelt die Architekturschichten des Quellcodes wider und unterteilt sich in fünf Teststufen:
 
 - `test_migrations.py` – auf Wurzelebene: prüft die korrekte Ausführungsreihenfolge und Idempotenz aller Datenbankmigrationen
 
@@ -267,6 +275,9 @@ Enthält die gesamte **Testsuite** des Projekts. Die Struktur spiegelt die Archi
 - `test_approve_supplement.py` – Tests für den `ApproveSupplement`-Use-Case (inkl. Ablehnungsszenarien)
 - `test_reject_supplement.py` – Tests für den `RejectSupplement`-Use-Case
 - `test_manage_work_schedule.py` – Tests für den `ManageWorkSchedule`-Use-Case
+- `test_manage_employees.py` – Tests für den `ManageEmployees`-Use-Case
+- `test_manage_rfid_cards.py` – Tests für den `ManageRfidCards`-Use-Case
+- `test_manage_user_accounts.py` – Tests für den `ManageUserAccounts`-Use-Case
 - `test_fake_unit_of_work.py` – prüft das korrekte Transaktionsverhalten der Fake-`UnitOfWork`-Implementierung
 
 ### `tests/integration/`
@@ -283,7 +294,7 @@ Enthält die gesamte **Testsuite** des Projekts. Die Struktur spiegelt die Archi
 - `test_export.py` – Integrationstests für den vollständigen Export-Workflow (Report-Queries bis PDF/CSV)
 - `test_csv_export.py` – spezifische Integrationstests für den CSV-Export (Format, Felder, Sonderzeichen)
 - `test_pdf.py` – spezifische Integrationstests für die PDF-Berichtserstellung (Inhalt, Struktur)
-- `test_hardware_evdev.py` – Integrationstests für den `EvdevReader` (mit simulierten evdev-Events)
+- `test_hardware_evdev.py` – Integrationstests für den `EvdevHardwareReader` (mit simulierten evdev-Events)
 - `test_hardware_simulator.py` – Integrationstests für den Hardware-Simulator
 - `test_device_event_booking.py` – Integrationstests für den vollständigen Pfad von Hardware-Ereignis bis Zeitbuchung
 - `test_system_check.py` – Integrationstests für den Systemcheck (erkannte und nicht erkannte Fehlerszenarien)
@@ -296,3 +307,9 @@ Enthält die gesamte **Testsuite** des Projekts. Die Struktur spiegelt die Archi
 - `test_booking_flow.py` – vollständiger Buchungsfluss: RFID-Scan → Buchungsauswahl → Regelprüfung → Persistenz → Audit-Log
 - `test_supplement_flow.py` – vollständiger Nachtragsfluss: Antrag → Genehmigung/Ablehnung → Korrekturbuchung
 - `test_backup.py` – vollständiger Backup-Zyklus: Backup erstellen → Datei prüfen → Restore simulieren
+
+### `tests/presentation/`
+
+**Tests für die Präsentationsschicht:**
+
+- `test_booking_loop.py` – Tests für die Buchungsschleife der Terminal-UI (`booking_loop.py`)
