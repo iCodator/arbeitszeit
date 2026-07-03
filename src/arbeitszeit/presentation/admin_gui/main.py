@@ -277,7 +277,7 @@ class VerbindungsDialog(tk.Toplevel):
 class HilfeDialog(tk.Toplevel):
     """Zeigt einen allgemeinen Hilfetext als scrollbares Textfenster."""
 
-    def __init__(self, parent: tk.Widget, titel: str, inhalt: str) -> None:
+    def __init__(self, parent: tk.Misc, titel: str, inhalt: str) -> None:
         super().__init__(parent)
         self.title(f"Hilfe — {titel}")
         self.resizable(True, True)
