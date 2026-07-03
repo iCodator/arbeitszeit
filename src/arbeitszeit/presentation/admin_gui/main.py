@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Callable
 
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, simpledialog, ttk
 
 _SRC = Path(__file__).resolve().parents[4]
 if str(_SRC) not in sys.path:
