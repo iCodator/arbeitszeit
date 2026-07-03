@@ -175,5 +175,4 @@ eine unnatürliche Erweiterung des Repository-Protokolls.
 - `src/arbeitszeit/presentation/admin_cli/reports.py` — Verwendung in Reports
 - `src/arbeitszeit/presentation/admin_cli/employees.py` — direkte SQL-Zugriffe
 - `src/arbeitszeit/presentation/admin_cli/schedule.py` — gemischtes Muster
-- `docs/adr/ADR-001-migrations-struktur.md` — verwandte ADR (Zwei-Schichten-Muster)
 - Pflichtenheft v5 §7.12 — Pflichtauswertungen
