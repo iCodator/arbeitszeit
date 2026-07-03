@@ -45,7 +45,7 @@ Die Struktur des Repositories legt einen Betrieb auf Linux-Systemen mit SQLite-D
 | Betriebsart | lokal ausgeführtes Python-Projekt mit Dateien, Skripten und lokaler Datenbank |
 | Externe Dienste | keine externen Dienste im `pyproject.toml` ausgewiesen |
 | Kernabhängigkeiten | `evdev`, `reportlab` |
-| Dev-Abhängigkeiten | `pytest`, `pytest-cov`, `pypdf`, `ruff` |
+| Dev-Abhängigkeiten | `pytest`, `pytest-cov`, `pypdf`, `ruff`, `import-linter` |
 
 ## Projektstruktur
 
@@ -66,7 +66,7 @@ Die Struktur des Repositories legt einen Betrieb auf Linux-Systemen mit SQLite-D
 | [`migrations/`](migrations) | SQL-Migrationsdateien zur Schema- und Dateninitialisierung. |
 | [`tests/`](tests) | Teststruktur für Domain, Application, Integration, End-to-End und Migrationen. |
 | [`docs/`](docs) | Zusätzliche Dokumentation im Repository. |
-| [`docs/module/`](docs/module) | Kapitel-Quelldateien des Handbuchs (`handbuch_overview.md`, `handbuch_installation.md`, `handbuch_presentation.md`, `handbuch_application_layer.md`, `handbuch_domain.md`, `handbuch_infrastructure.md`, `handbuch_audit.md`), aus denen `handbuch_arbeitszeit.md` zusammengeführt wird. |
+| [`docs/module/`](docs/module) | Kapitel-Quelldateien des Handbuchs (`handbuch_overview.md`, `handbuch_installation.md`, `handbuch_presentation.md`, `handbuch_application_layer.md`, `handbuch_domain.md`, `handbuch_infrastructure.md`, `handbuch_audit.md`, `handbuch_show_config.md`), aus denen `handbuch_arbeitszeit.md` zusammengeführt wird. |
 
 Wichtige Einstiegspunkte sind insbesondere [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py), [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py), [`src/arbeitszeit/presentation/admin_gui/main.py`](src/arbeitszeit/presentation/admin_gui/main.py), [`scripts/init_db.py`](scripts/init_db.py) und [`scripts/setup.py`](scripts/setup.py).
 
