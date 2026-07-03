@@ -241,12 +241,6 @@ Die **Administrator-Kommandozeilenschnittstelle** (CLI, Programmname `admin`) f�
 - `_auth.py` – CLI-seitige Rollenprüfung für lesende Operationen ohne eigenen Use Case (z. B. `reports`, `schedule show`, `system`); schreibende Operationen prüfen die Rolle über die Use Cases der Anwendungsschicht (nicht öffentliche API)
 - `_intervals.py` – interne Hilfsfunktionen zur Auswertung und Darstellung von Zeitintervallen in der CLI-Ausgabe (nicht öffentliche API)
 
-#### `src/arbeitszeit/presentation/admin_gui/`
-
-Eine **tkinter/ttk-basierte Verwaltungsoberfläche** für Praxisadministratorinnen und -administratoren mit geringerer CLI-Erfahrung. Alle schreibenden Operationen laufen über dieselben Use Cases der Anwendungsschicht wie die Admin-CLI:
-
-- `main.py` – Einstiegspunkt der Admin-GUI (`python -m arbeitszeit.presentation.admin_gui.main`)
-
 ---
 
 ## `tests/`

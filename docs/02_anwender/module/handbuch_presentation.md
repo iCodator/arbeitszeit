@@ -12,11 +12,10 @@ die einzige Schnittstelle zwischen Benutzer (oder Administrator) und der
 darunterliegenden Fach- und Anwendungslogik. Sie enthält keine
 Geschäftslogik, sondern übersetzt ausschließlich Benutzereingaben in
 Kommandos der Anwendungsschicht und gibt Ergebnisse als lesbare Texte
-aus. Das Paket gliedert sich in drei eigenständige Untermodule:
+aus. Das Paket gliedert sich in zwei eigenständige Untermodule:
 
 - `presentation/terminal_ui/` – operativer Buchungsbetrieb (Endlosschleife, RFID + Numpad)
 - `presentation/admin_cli/` – administrative Verwaltung (Kommandozeile, rollenbasiert)
-- `presentation/admin_gui/` – administrative Verwaltung (grafische Oberfläche auf Basis von tkinter/ttk)
 
 ---
 
@@ -252,21 +251,6 @@ gespeichert.
 
 Wird `--password` weggelassen, generiert das System ein sicheres
 zufälliges Passwort und zeigt es **einmalig** auf der Konsole an.
-
----
-
-## Admin-GUI (`admin_gui/`)
-
-### Zweck
-
-Die Admin-GUI ist eine grafische Alternative zur Admin-CLI für
-Administratoren, die keine Kommandozeile verwenden möchten. Sie wird mit
-`python -m arbeitszeit.presentation.admin_gui.main` gestartet und ist auf
-Basis von `tkinter`/`ttk` umgesetzt. Wie die Admin-CLI wickelt sie alle
-schreibenden Operationen über die Use Cases der Anwendungsschicht ab.
-
-Die Anwendung gliedert sich in fünf Reiter (Tabs): Mitarbeiter, Karten,
-Benutzer, Regelzeiten und System.
 
 ---
 

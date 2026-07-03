@@ -203,7 +203,7 @@ Zeiterfassungssystem für eine Zahnarztpraxis. Die Anwendung verwendet
 SQLite als einzige Datenbank und trennt Fachlogik, Infrastruktur und
 Benutzeroberflächen klar voneinander.</p>
 <p>Aus dem Repository eindeutig belegt sind ein Terminalmodus für den
-operativen Buchungsbetrieb sowie eine Admin-CLI und eine Admin-GUI für
+operativen Buchungsbetrieb sowie eine Admin-CLI für
 Verwaltungsaufgaben.</p>
 <h3 id="projektstruktur">Projektstruktur</h3>
 <p>Aus dem Repository klar belegt ist folgende Hauptstruktur:</p>
@@ -226,7 +226,6 @@ Verwaltungsaufgaben.</p>
 │       ├── infrastructure/
 │       └── presentation/
 │           ├── admin_cli/
-│           ├── admin_gui/
 │           └── terminal_ui/
 └── tests/</code></pre>
 <h3 id="schichten">Schichten</h3>
@@ -429,8 +428,6 @@ aus. Das Paket gliedert sich in drei eigenständige Untermodule:</p>
 (Endlosschleife, RFID + Numpad)</li>
 <li><code>presentation/admin_cli/</code> – administrative Verwaltung
 (Kommandozeile, rollenbasiert)</li>
-<li><code>presentation/admin_gui/</code> – administrative Verwaltung
-(grafische Oberfläche auf Basis von tkinter/ttk)</li>
 </ul>
 <hr />
 <h3 id="terminal-ui-terminal_ui">Terminal-UI
@@ -919,17 +916,6 @@ existiert)</td>
 <p>Wird <code>--password</code> weggelassen, generiert das System ein
 sicheres zufälliges Passwort und zeigt es <strong>einmalig</strong> auf
 der Konsole an.</p>
-<hr />
-<h3 id="admin-gui-admin_gui">Admin-GUI (<code>admin_gui/</code>)</h3>
-<h4 id="zweck-2">Zweck</h4>
-<p>Die Admin-GUI ist eine grafische Alternative zur Admin-CLI für
-Administratoren, die keine Kommandozeile verwenden möchten. Sie wird mit
-<code>python -m arbeitszeit.presentation.admin_gui.main</code> gestartet
-und ist auf Basis von <code>tkinter</code>/<code>ttk</code> umgesetzt.
-Wie die Admin-CLI wickelt sie alle schreibenden Operationen über die Use
-Cases der Anwendungsschicht ab.</p>
-<p>Die Anwendung gliedert sich in fünf Reiter (Tabs): Mitarbeiter,
-Karten, Benutzer, Regelzeiten und System.</p>
 <hr />
 <h3 id="zeitraum-hilfsfunktionen-_intervals.py">Zeitraum-Hilfsfunktionen
 (<code>_intervals.py</code>)</h3>

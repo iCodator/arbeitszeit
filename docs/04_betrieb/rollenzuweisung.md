@@ -95,8 +95,8 @@ Der TECH darf keine fachlichen Freigaben, keine Rollenänderungen und keine inha
 
 | Tätigkeit | ADMIN | REVIEWER | TECH | Bemerkung |
 |---|---:|---:|---:|---|
-| Benutzerkonten anlegen/ändern/deaktivieren | Ja | Nein | Nein | Admin-CLI oder Admin-GUI |
-| Rollen ändern | Ja | Nein | Nein | Admin-CLI oder Admin-GUI |
+| Benutzerkonten anlegen/ändern/deaktivieren | Ja | Nein | Nein | Admin-CLI |
+| Rollen ändern | Ja | Nein | Nein | Admin-CLI |
 | Mitarbeitende anlegen/ändern | Ja | Nein | Nein | Nur wenn in der Praxis freigegeben |
 | Offene Fälle prüfen | Ja | Ja | Nein | Fachliche Prüfung |
 | Nachträge freigeben/ablehnen | Ja | Ja | Nein | Ablehnung erfordert Begründung |

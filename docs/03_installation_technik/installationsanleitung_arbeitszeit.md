@@ -523,73 +523,6 @@ Die Einrichtung eines solchen automatischen Starts ist nicht Teil dieser
 Installationsanleitung und sollte gemeinsam mit der technisch
 verantwortlichen Person erfolgen.
 
-## Schritt 14: Grafische Verwaltungsoberfläche (Admin-GUI) starten
-
-Neben der Admin-CLI steht eine **grafische Verwaltungsoberfläche** zur
-Verfügung. Sie zeigt dieselben Funktionen in Fensterform und eignet sich
-besonders für Personen, die lieber mit der Maus als mit Textbefehlen
-arbeiten.
-
-### Voraussetzung prüfen
-
-Das Grafik-Modul `python3.14-tk` wurde bereits in Schritt 2 installiert.
-Prüfe, ob es verfügbar ist:
-
-```bash
-python3.14 -c "import tkinter; print('tkinter OK')"
-```
-
-Erscheint `tkinter OK`, kann die GUI gestartet werden. Erscheint
-stattdessen eine Fehlermeldung, lies bitte den Abschnitt „Häufige
-Probleme" am Ende dieser Anleitung.
-
-### GUI starten
-
-Stelle sicher, dass die virtuelle Umgebung aktiv ist (`(.venv)` im
-Prompt), und führe aus:
-
-```bash
-python -m arbeitszeit.presentation.admin_gui.main
-```
-
-Es öffnet sich ein Fenster mit einem Verbindungsdialog. Trage dort den
-Datenbankpfad und deine Benutzer-ID ein und klicke auf **Verbinden**.
-
-Alternativ kannst du beide Angaben direkt beim Aufruf übergeben:
-
-```bash
-python -m arbeitszeit.presentation.admin_gui.main \
-  --db arbeitszeit.db \
-  --user-id 1
-```
-
-### Bedienung
-
-Die GUI ist in fünf Reiter (Tabs) unterteilt:
-
-| Reiter | Funktion |
-| --- | --- |
-| 👥 Mitarbeiter | Mitarbeitende anlegen und deaktivieren |
-| 💳 Karten | RFID-Karten zuweisen, ersetzen und deaktivieren |
-| 👤 Benutzer | Benutzerkonten anlegen, deaktivieren, reaktivieren, Rolle ändern; Bootstrap für ersten Administrator |
-| 📅 Regelzeiten | Aktive Regelarbeitszeiten anzeigen |
-| ⚙ System | Systemcheck auslösen und Backup erstellen |
-
-**Hilfstext zu jedem Element:** Bewege den Mauszeiger über eine
-Schaltfläche oder ein Eingabefeld und halte ihn kurz still — es erscheint
-automatisch ein ausführlicher Erklärungstext.
-
-**Tastaturkürzel:** Drücke `F1` für die Kurzanleitung oder öffne das
-Menü `Hilfe → Tastenkürzel` für eine vollständige Übersicht.
-
-**Wie beende ich die GUI?** Schließe das Fenster wie jedes andere
-Programm (roter Schließen-Knopf oder `Alt` + `F4`).
-
-> **Hinweis:** Buchungskorrekturen, Nachträge und Berichte sind derzeit
-> nur über die Admin-CLI verfügbar (siehe `befehlsreferenz_arbeitszeit.md`).
-> Die GUI deckt die täglichen Verwaltungsaufgaben ab — für erweiterte
-> Auswertungen nutze die CLI.
-
 ## Häufige Probleme und Lösungen
 
 | Problem | Mögliche Ursache | Lösung |
@@ -600,8 +533,6 @@ Programm (roter Schließen-Knopf oder `Alt` + `F4`).
 | `ModuleNotFoundError` bei Programmstart | Abhängigkeiten wurden nicht installiert oder virtuelle Umgebung ist nicht aktiv | Schritt 5 und Schritt 6 erneut durchgehen |
 | Karte wird nicht erkannt | Karte ist noch keinem Mitarbeiter zugewiesen | Schritt 11 (Kartenzuweisung) durchführen |
 | `pytest` zeigt `failed` an | Installation unvollständig oder fehlerhaft | Schritte 2 bis 6 erneut prüfen, bei Bedarf Hilfe holen |
-| GUI startet nicht / `No module named '_tkinter'` | `python3.14-tk` ist nicht installiert | `sudo apt install python3.14-tk` ausführen, danach GUI erneut starten |
-| GUI-Fenster öffnet sich, aber ist leer | Virtuelle Umgebung war beim GUI-Start nicht aktiv | `source .venv/bin/activate` ausführen, dann GUI neu starten |
 
 ## Kurzglossar für Einsteiger
 
@@ -617,12 +548,6 @@ Programm (roter Schließen-Knopf oder `Alt` + `F4`).
   Mitarbeiterkarte.
 - **Admin-CLI:** Die Verwaltungsoberfläche für Administratorinnen und
   Administratoren, bedienbar über Textbefehle.
-- **Admin-GUI:** Die grafische Verwaltungsoberfläche — dieselben
-  Funktionen wie die Admin-CLI, aber mit Fenstern, Schaltflächen und
-  Hilfstexten statt Textbefehlen.
-- **tkinter:** Das in Python eingebaute Grafik-Modul, das die Admin-GUI
-  antreibt. Auf Linux wird es als separates Paket (`python3.14-tk`)
-  bereitgestellt.
 - **Terminal-UI:** Der dauerhaft laufende Prozess, über den
   Mitarbeitende ihre Arbeitszeiten buchen.
 

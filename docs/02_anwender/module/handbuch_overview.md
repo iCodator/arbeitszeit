@@ -12,7 +12,7 @@ Zahnarztpraxis. Die Anwendung verwendet SQLite als einzige Datenbank und trennt
 Fachlogik, Infrastruktur und Benutzeroberflächen klar voneinander.
 
 Aus dem Repository eindeutig belegt sind ein Terminalmodus für den operativen
-Buchungsbetrieb sowie eine Admin-CLI und eine Admin-GUI für
+Buchungsbetrieb sowie eine Admin-CLI für
 Verwaltungsaufgaben.
 
 ## Projektstruktur
@@ -39,7 +39,6 @@ arbeitszeit/
 │       ├── infrastructure/
 │       └── presentation/
 │           ├── admin_cli/
-│           ├── admin_gui/
 │           └── terminal_ui/
 └── tests/
 ```
