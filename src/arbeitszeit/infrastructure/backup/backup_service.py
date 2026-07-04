@@ -1,7 +1,7 @@
 import json
 import shutil
 import sqlite3
-import subprocess
+import subprocess  # nosec B404
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -72,7 +72,7 @@ class SQLiteBackupService:
     def sync_to_nas(self, nas_path: Path) -> None:
         """Synchronisiert backup_dir → NAS via rsync. Wirft CalledProcessError bei Fehler."""
         try:
-            subprocess.run(
+            subprocess.run(  # nosec B603 — absoluter Pfad (_RSYNC), feste Flags, kein shell=True
                 [
                     _RSYNC,
                     "--archive",

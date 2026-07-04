@@ -7,7 +7,7 @@ Voraussetzung: libnotify-bin (auf Lubuntu/Linux Mint standardmäßig vorhanden).
 """
 
 import logging
-import subprocess
+import subprocess  # nosec B404
 
 _NOTIFY_SEND = "/usr/bin/notify-send"
 
@@ -18,7 +18,7 @@ def notify(title: str, body: str, urgency: str = "normal") -> None:
     urgency: "low" | "normal" | "critical"
     """
     try:
-        subprocess.run(
+        subprocess.run(  # nosec B603 — absoluter Pfad, feste Argumentliste, kein shell=True
             [_NOTIFY_SEND, f"--urgency={urgency}", "--app-name=Arbeitszeit", title, body],
             timeout=3,
             check=False,

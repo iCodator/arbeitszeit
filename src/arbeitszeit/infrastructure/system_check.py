@@ -10,7 +10,7 @@ import json
 import logging
 import os
 import sqlite3
-import subprocess
+import subprocess  # nosec B404
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -222,7 +222,7 @@ def _check_fk_consistency(conn: sqlite3.Connection) -> CheckResult:
 def _check_ntp() -> CheckResult:
     """Prüft via timedatectl, ob NTP aktiv und synchronisiert ist (§9.3)."""
     try:
-        proc = subprocess.run(
+        proc = subprocess.run(  # nosec B603 — absoluter Pfad (_TIMEDATECTL), feste Argumente, kein shell=True
             [_TIMEDATECTL, "show", "--property=NTP", "--property=NTPSynchronized", "--no-pager"],
             capture_output=True,
             text=True,
