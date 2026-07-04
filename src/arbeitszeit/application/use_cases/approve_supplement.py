@@ -6,7 +6,7 @@ from arbeitszeit.application.results import ApproveSupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases._booking_evaluation import evaluate_booking
 from arbeitszeit.domain import audit_events
-from arbeitszeit.domain.entities import AuditLogEntry, ReviewCase, TimeBooking
+from arbeitszeit.domain.entities import AuditLogEntry, Employee, ReviewCase, Supplement, TimeBooking
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingSource,
@@ -41,39 +41,12 @@ class ApproveSupplementUseCase:
     def execute(self, cmd: ApproveSupplementCommand) -> ApproveSupplementResult:
         with self._uow:
             self._check_permission(cmd.approving_user_id)
-
-            supplement = self._uow.supplement_repo.get_by_id(cmd.supplement_id)
-            if supplement is None:
-                raise NotFoundError(f"Nachtrag {cmd.supplement_id} nicht gefunden.")
-            if supplement.approval_status != ApprovalStatus.PENDING:
-                raise ValidationError(
-                    f"Nachtrag {cmd.supplement_id} ist nicht im Status PENDING "
-                    f"(aktuell: {supplement.approval_status.value})."
-                )
-
-            employee = self._uow.employee_repo.get_by_id(supplement.employee_id)
-            if employee is None:
-                raise NotFoundError(f"Mitarbeiter {supplement.employee_id} nicht gefunden.")
-            if not employee.is_active:
-                raise InactiveEmployeeError(f"Mitarbeiter {supplement.employee_id} ist inaktiv.")
+            supplement = self._validate_supplement(cmd.supplement_id)
+            employee = self._validate_employee(supplement.employee_id)
 
             now = datetime.now(timezone.utc)
             self._uow.supplement_repo.approve(supplement.id, cmd.approving_user_id, now)
-
-            review_case_id: ReviewCaseId | None = None
-            open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
-            for case in open_cases:
-                if (
-                    case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW
-                    and case.booking_id == supplement.related_booking_id
-                ):
-                    self._uow.review_case_repo.resolve(
-                        case.id,
-                        status=ReviewCaseStatus.RESOLVED,
-                        closed_by_user_id=cmd.approving_user_id,
-                    )
-                    review_case_id = case.id
-                    break
+            review_case_id = self._close_related_review_case(supplement, cmd.approving_user_id)
 
             day_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 supplement.employee_id, supplement.event_at.date()
@@ -95,19 +68,7 @@ class ApproveSupplementUseCase:
                 device_event_id=None,
                 note=None,
             )
-            schedule_flags: list[ComplianceFlag] = []
-            schedule = self._uow.work_schedule_repo.get_effective(
-                supplement.event_at.isoweekday(),
-                supplement.event_at.date(),
-                employee.id,
-            )
-            if schedule is not None and not (
-                schedule.start_time <= supplement.event_at.time() <= schedule.end_time
-            ):
-                schedule_flags = [
-                    ComplianceFlag(ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN)
-                ]
-
+            schedule_flags = self._build_schedule_flags(supplement, employee)
             prev_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
                 supplement.employee_id,
                 supplement.event_at.date() - timedelta(days=1),
@@ -131,7 +92,6 @@ class ApproveSupplementUseCase:
                     note=None,
                 )
             )
-
             follow_up_case_ids = self._create_follow_up_cases(
                 supplement.employee_id, booking.id, flags, cmd.approving_user_id, now, supplement.id
             )
@@ -179,6 +139,60 @@ class ApproveSupplementUseCase:
             raise PermissionDeniedError(
                 f"Benutzer {user_id} ist nicht berechtigt, Nachträge freizugeben."
             )
+
+    def _validate_supplement(self, supplement_id: SupplementId) -> Supplement:
+        supplement = self._uow.supplement_repo.get_by_id(supplement_id)
+        if supplement is None:
+            raise NotFoundError(f"Nachtrag {supplement_id} nicht gefunden.")
+        if supplement.approval_status != ApprovalStatus.PENDING:
+            raise ValidationError(
+                f"Nachtrag {supplement_id} ist nicht im Status PENDING "
+                f"(aktuell: {supplement.approval_status.value})."
+            )
+        return supplement
+
+    def _validate_employee(self, employee_id: EmployeeId) -> Employee:
+        employee = self._uow.employee_repo.get_by_id(employee_id)
+        if employee is None:
+            raise NotFoundError(f"Mitarbeiter {employee_id} nicht gefunden.")
+        if not employee.is_active:
+            raise InactiveEmployeeError(f"Mitarbeiter {employee_id} ist inaktiv.")
+        return employee
+
+    def _close_related_review_case(
+        self,
+        supplement: Supplement,
+        approving_user_id: UserAccountId,
+    ) -> ReviewCaseId | None:
+        open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
+        for case in open_cases:
+            if (
+                case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW
+                and case.booking_id == supplement.related_booking_id
+            ):
+                self._uow.review_case_repo.resolve(
+                    case.id,
+                    status=ReviewCaseStatus.RESOLVED,
+                    closed_by_user_id=approving_user_id,
+                )
+                return case.id
+        return None
+
+    def _build_schedule_flags(
+        self,
+        supplement: Supplement,
+        employee: Employee,
+    ) -> list[ComplianceFlag]:
+        schedule = self._uow.work_schedule_repo.get_effective(
+            supplement.event_at.isoweekday(),
+            supplement.event_at.date(),
+            employee.id,
+        )
+        if schedule is not None and not (
+            schedule.start_time <= supplement.event_at.time() <= schedule.end_time
+        ):
+            return [ComplianceFlag(ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN)]
+        return []
 
     def _create_follow_up_cases(
         self,
