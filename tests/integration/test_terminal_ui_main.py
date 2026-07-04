@@ -1,6 +1,8 @@
 """Tests für presentation/terminal_ui/main.py."""
 
 import logging
+import os
+import signal
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -16,7 +18,20 @@ from arbeitszeit.domain.errors import (
 )
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
-from arbeitszeit.presentation.terminal_ui.main import _log_system_event, _run_one_cycle
+from arbeitszeit.infrastructure.system_check import CheckResult, SystemCheckResult
+from arbeitszeit.presentation.terminal_ui.main import _log_system_event, _run_one_cycle, run
+
+_MAIN = "arbeitszeit.presentation.terminal_ui.main"
+
+
+def _ok_system_result() -> SystemCheckResult:
+    return SystemCheckResult(checks=(CheckResult("db_access", True, "OK"),))
+
+
+def _fail_system_result() -> SystemCheckResult:
+    return SystemCheckResult(
+        checks=(CheckResult("ntp_sync", False, "NTP nicht aktiv (NTP=no)"),)
+    )
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -172,3 +187,87 @@ def test_run_one_cycle_open_phase_conflict_druckt_meldung(
 
     out = capsys.readouterr().out
     assert "Offene Phase" in out
+
+
+# ---------------------------------------------------------------------------
+# run()
+# ---------------------------------------------------------------------------
+
+
+def test_run_schliesst_reader_in_finally(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    with (
+        patch(f"{_MAIN}.run_system_check", return_value=_ok_system_result()),
+        patch(f"{_MAIN}.EvdevHardwareReader") as mock_reader_cls,
+        patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
+    ):
+        with pytest.raises(StopIteration):
+            run(db, "/dev/null", "/dev/null", 1)
+    mock_reader_cls.return_value.close.assert_called_once()
+
+
+def test_run_systemcheck_fehlerhaft_druckt_systemwarnung(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    db = _make_db(tmp_path)
+    with (
+        patch(f"{_MAIN}.run_system_check", return_value=_fail_system_result()),
+        patch(f"{_MAIN}.notify"),
+        patch(f"{_MAIN}.EvdevHardwareReader"),
+        patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
+    ):
+        with pytest.raises(StopIteration):
+            run(db, "/dev/null", "/dev/null", 1)
+    out = capsys.readouterr().out
+    assert "SYSTEMWARNUNG" in out
+    assert "NTP" in out
+
+
+def test_run_systemcheck_fehlerhaft_ruft_notify_critical_auf(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    with (
+        patch(f"{_MAIN}.run_system_check", return_value=_fail_system_result()),
+        patch(f"{_MAIN}.notify") as mock_notify,
+        patch(f"{_MAIN}.EvdevHardwareReader"),
+        patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
+    ):
+        with pytest.raises(StopIteration):
+            run(db, "/dev/null", "/dev/null", 1)
+    mock_notify.assert_called_once()
+    assert mock_notify.call_args.kwargs.get("urgency") == "critical"
+
+
+def test_run_initialisiert_reader_mit_gerätepfaden(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    with (
+        patch(f"{_MAIN}.run_system_check", return_value=_ok_system_result()),
+        patch(f"{_MAIN}.EvdevHardwareReader") as mock_reader_cls,
+        patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
+    ):
+        with pytest.raises(StopIteration):
+            run(db, "/dev/numpad", "/dev/rfid", 1)
+    mock_reader_cls.assert_called_once()
+    kwargs = mock_reader_cls.call_args.kwargs
+    assert kwargs.get("numpad_path") == "/dev/numpad"
+    assert kwargs.get("rfid_path") == "/dev/rfid"
+    assert isinstance(kwargs.get("rfid_timeout"), float)
+
+
+def test_run_sigterm_beendet_schleife_sauber(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    cycle_count = [0]
+
+    def fake_cycle(*_args: object, **_kwargs: object) -> None:
+        cycle_count[0] += 1
+        if cycle_count[0] == 1:
+            os.kill(os.getpid(), signal.SIGTERM)
+
+    with (
+        patch(f"{_MAIN}.run_system_check", return_value=_ok_system_result()),
+        patch(f"{_MAIN}.EvdevHardwareReader") as mock_reader_cls,
+        patch(f"{_MAIN}._run_one_cycle", side_effect=fake_cycle),
+    ):
+        run(db, "/dev/null", "/dev/null", 1)
+
+    assert cycle_count[0] == 1
+    mock_reader_cls.return_value.close.assert_called_once()
