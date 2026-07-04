@@ -1,0 +1,888 @@
+src/arbeitszeit/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/time_monitor.py
+    LOC: 106
+    LLOC: 57
+    SLOC: 79
+    Comments: 2
+    Single comments: 3
+    Multi: 9
+    Blank: 15
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 3%
+        (C + M % L): 10%
+src/arbeitszeit/infrastructure/notification.py
+    LOC: 30
+    LLOC: 12
+    SLOC: 15
+    Comments: 2
+    Single comments: 0
+    Multi: 8
+    Blank: 7
+    - Comment Stats
+        (C % L): 7%
+        (C % S): 13%
+        (C + M % L): 33%
+src/arbeitszeit/infrastructure/system_check.py
+    LOC: 307
+    LLOC: 136
+    SLOC: 235
+    Comments: 29
+    Single comments: 28
+    Multi: 4
+    Blank: 40
+    - Comment Stats
+        (C % L): 9%
+        (C % S): 12%
+        (C + M % L): 11%
+src/arbeitszeit/infrastructure/db/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/connection.py
+    LOC: 16
+    LLOC: 10
+    SLOC: 10
+    Comments: 4
+    Single comments: 4
+    Multi: 0
+    Blank: 2
+    - Comment Stats
+        (C % L): 25%
+        (C % S): 40%
+        (C + M % L): 25%
+src/arbeitszeit/infrastructure/db/unit_of_work.py
+    LOC: 84
+    LLOC: 43
+    SLOC: 67
+    Comments: 9
+    Single comments: 9
+    Multi: 0
+    Blank: 8
+    - Comment Stats
+        (C % L): 11%
+        (C % S): 13%
+        (C + M % L): 11%
+src/arbeitszeit/infrastructure/db/migrations.py
+    LOC: 54
+    LLOC: 31
+    SLOC: 38
+    Comments: 7
+    Single comments: 6
+    Multi: 0
+    Blank: 10
+    - Comment Stats
+        (C % L): 13%
+        (C % S): 18%
+        (C + M % L): 13%
+src/arbeitszeit/infrastructure/db/repositories/_helpers.py
+    LOC: 14
+    LLOC: 8
+    SLOC: 8
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 6
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/repositories/booking_correction.py
+    LOC: 84
+    LLOC: 23
+    SLOC: 72
+    Comments: 3
+    Single comments: 3
+    Multi: 0
+    Blank: 9
+    - Comment Stats
+        (C % L): 4%
+        (C % S): 4%
+        (C + M % L): 4%
+src/arbeitszeit/infrastructure/db/repositories/system_config.py
+    LOC: 46
+    LLOC: 12
+    SLOC: 41
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 5
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/repositories/supplement.py
+    LOC: 105
+    LLOC: 29
+    SLOC: 92
+    Comments: 1
+    Single comments: 1
+    Multi: 0
+    Blank: 12
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 1%
+        (C + M % L): 1%
+src/arbeitszeit/infrastructure/db/repositories/review_case.py
+    LOC: 95
+    LLOC: 24
+    SLOC: 83
+    Comments: 2
+    Single comments: 2
+    Multi: 0
+    Blank: 10
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 2%
+        (C + M % L): 2%
+src/arbeitszeit/infrastructure/db/repositories/work_schedule.py
+    LOC: 128
+    LLOC: 38
+    SLOC: 114
+    Comments: 2
+    Single comments: 2
+    Multi: 0
+    Blank: 12
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 2%
+        (C + M % L): 2%
+src/arbeitszeit/infrastructure/db/repositories/time_booking.py
+    LOC: 124
+    LLOC: 37
+    SLOC: 109
+    Comments: 2
+    Single comments: 2
+    Multi: 0
+    Blank: 13
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 2%
+        (C + M % L): 2%
+src/arbeitszeit/infrastructure/db/repositories/audit_log.py
+    LOC: 45
+    LLOC: 8
+    SLOC: 35
+    Comments: 6
+    Single comments: 6
+    Multi: 0
+    Blank: 4
+    - Comment Stats
+        (C % L): 13%
+        (C % S): 17%
+        (C + M % L): 13%
+src/arbeitszeit/infrastructure/db/repositories/__init__.py
+    LOC: 25
+    LLOC: 12
+    SLOC: 24
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 1
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/repositories/device_event.py
+    LOC: 31
+    LLOC: 9
+    SLOC: 27
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 4
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/repositories/employee.py
+    LOC: 52
+    LLOC: 21
+    SLOC: 43
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 9
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/repositories/rfid_card.py
+    LOC: 83
+    LLOC: 26
+    SLOC: 72
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 11
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/db/repositories/user_account.py
+    LOC: 71
+    LLOC: 29
+    SLOC: 59
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 12
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/hardware/uid_hash.py
+    LOC: 6
+    LLOC: 4
+    SLOC: 3
+    Comments: 0
+    Single comments: 1
+    Multi: 0
+    Blank: 2
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/hardware/simulator.py
+    LOC: 39
+    LLOC: 20
+    SLOC: 29
+    Comments: 0
+    Single comments: 1
+    Multi: 0
+    Blank: 9
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/hardware/ports.py
+    LOC: 26
+    LLOC: 22
+    SLOC: 15
+    Comments: 0
+    Single comments: 2
+    Multi: 0
+    Blank: 9
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/hardware/__init__.py
+    LOC: 17
+    LLOC: 4
+    SLOC: 16
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 1
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/hardware/evdev_reader.py
+    LOC: 188
+    LLOC: 95
+    SLOC: 119
+    Comments: 7
+    Single comments: 7
+    Multi: 37
+    Blank: 25
+    - Comment Stats
+        (C % L): 4%
+        (C % S): 6%
+        (C + M % L): 23%
+src/arbeitszeit/infrastructure/backup/__init__.py
+    LOC: 3
+    LLOC: 2
+    SLOC: 2
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 1
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/backup/backup_service.py
+    LOC: 179
+    LLOC: 97
+    SLOC: 145
+    Comments: 5
+    Single comments: 5
+    Multi: 13
+    Blank: 16
+    - Comment Stats
+        (C % L): 3%
+        (C % S): 3%
+        (C + M % L): 10%
+src/arbeitszeit/infrastructure/export/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/infrastructure/export/pdf_report_service.py
+    LOC: 450
+    LLOC: 153
+    SLOC: 372
+    Comments: 11
+    Single comments: 15
+    Multi: 8
+    Blank: 55
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 3%
+        (C + M % L): 4%
+src/arbeitszeit/infrastructure/export/csv_exporter.py
+    LOC: 349
+    LLOC: 137
+    SLOC: 239
+    Comments: 22
+    Single comments: 20
+    Multi: 31
+    Blank: 59
+    - Comment Stats
+        (C % L): 6%
+        (C % S): 9%
+        (C + M % L): 15%
+src/arbeitszeit/infrastructure/export/report_queries.py
+    LOC: 365
+    LLOC: 117
+    SLOC: 270
+    Comments: 6
+    Single comments: 8
+    Multi: 44
+    Blank: 43
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 2%
+        (C + M % L): 14%
+src/arbeitszeit/domain/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/domain/enums.py
+    LOC: 81
+    LLOC: 59
+    SLOC: 59
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 22
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/domain/errors.py
+    LOC: 43
+    LLOC: 25
+    SLOC: 24
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 19
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/domain/value_objects.py
+    LOC: 28
+    LLOC: 13
+    SLOC: 12
+    Comments: 0
+    Single comments: 0
+    Multi: 11
+    Blank: 5
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 39%
+src/arbeitszeit/domain/entities.py
+    LOC: 225
+    LLOC: 238
+    SLOC: 187
+    Comments: 9
+    Single comments: 8
+    Multi: 0
+    Blank: 30
+    - Comment Stats
+        (C % L): 4%
+        (C % S): 5%
+        (C + M % L): 4%
+src/arbeitszeit/domain/audit_events.py
+    LOC: 38
+    LLOC: 21
+    SLOC: 21
+    Comments: 10
+    Single comments: 10
+    Multi: 0
+    Blank: 7
+    - Comment Stats
+        (C % L): 26%
+        (C % S): 48%
+        (C + M % L): 26%
+src/arbeitszeit/domain/ports/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/domain/ports/repositories.py
+    LOC: 171
+    LLOC: 96
+    SLOC: 134
+    Comments: 13
+    Single comments: 13
+    Multi: 0
+    Blank: 24
+    - Comment Stats
+        (C % L): 8%
+        (C % S): 10%
+        (C + M % L): 8%
+src/arbeitszeit/domain/services/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/domain/services/compliance_checks.py
+    LOC: 102
+    LLOC: 72
+    SLOC: 66
+    Comments: 4
+    Single comments: 4
+    Multi: 6
+    Blank: 26
+    - Comment Stats
+        (C % L): 4%
+        (C % S): 6%
+        (C + M % L): 10%
+src/arbeitszeit/domain/services/booking_rules.py
+    LOC: 84
+    LLOC: 51
+    SLOC: 61
+    Comments: 4
+    Single comments: 4
+    Multi: 0
+    Blank: 19
+    - Comment Stats
+        (C % L): 5%
+        (C % S): 7%
+        (C + M % L): 5%
+src/arbeitszeit/application/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/unit_of_work.py
+    LOC: 40
+    LLOC: 34
+    SLOC: 36
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 4
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/commands.py
+    LOC: 143
+    LLOC: 156
+    SLOC: 104
+    Comments: 3
+    Single comments: 3
+    Multi: 0
+    Blank: 36
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 3%
+        (C + M % L): 2%
+src/arbeitszeit/application/results.py
+    LOC: 79
+    LLOC: 69
+    SLOC: 56
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 23
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/queries.py
+    LOC: 92
+    LLOC: 104
+    SLOC: 63
+    Comments: 2
+    Single comments: 4
+    Multi: 9
+    Blank: 16
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 3%
+        (C + M % L): 12%
+src/arbeitszeit/application/use_cases/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/use_cases/register_supplement.py
+    LOC: 126
+    LLOC: 33
+    SLOC: 114
+    Comments: 1
+    Single comments: 1
+    Multi: 0
+    Blank: 11
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 1%
+        (C + M % L): 1%
+src/arbeitszeit/application/use_cases/reject_supplement.py
+    LOC: 98
+    LLOC: 37
+    SLOC: 88
+    Comments: 1
+    Single comments: 1
+    Multi: 0
+    Blank: 9
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 1%
+        (C + M % L): 1%
+src/arbeitszeit/application/use_cases/manage_work_schedule.py
+    LOC: 127
+    LLOC: 38
+    SLOC: 113
+    Comments: 1
+    Single comments: 1
+    Multi: 0
+    Blank: 13
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 1%
+        (C + M % L): 1%
+src/arbeitszeit/application/use_cases/manage_employees.py
+    LOC: 104
+    LLOC: 42
+    SLOC: 86
+    Comments: 0
+    Single comments: 1
+    Multi: 0
+    Blank: 17
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/use_cases/manage_rfid_cards.py
+    LOC: 183
+    LLOC: 66
+    SLOC: 153
+    Comments: 0
+    Single comments: 1
+    Multi: 0
+    Blank: 29
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/use_cases/manage_user_accounts.py
+    LOC: 260
+    LLOC: 95
+    SLOC: 217
+    Comments: 0
+    Single comments: 1
+    Multi: 0
+    Blank: 42
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/use_cases/_booking_evaluation.py
+    LOC: 51
+    LLOC: 23
+    SLOC: 42
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 9
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/application/use_cases/correct_booking.py
+    LOC: 152
+    LLOC: 47
+    SLOC: 132
+    Comments: 4
+    Single comments: 4
+    Multi: 0
+    Blank: 16
+    - Comment Stats
+        (C % L): 3%
+        (C % S): 3%
+        (C + M % L): 3%
+src/arbeitszeit/application/use_cases/book_time.py
+    LOC: 208
+    LLOC: 54
+    SLOC: 176
+    Comments: 15
+    Single comments: 15
+    Multi: 0
+    Blank: 17
+    - Comment Stats
+        (C % L): 7%
+        (C % S): 9%
+        (C + M % L): 7%
+src/arbeitszeit/application/use_cases/approve_supplement.py
+    LOC: 209
+    LLOC: 67
+    SLOC: 191
+    Comments: 1
+    Single comments: 1
+    Multi: 0
+    Blank: 17
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 1%
+        (C + M % L): 0%
+src/arbeitszeit/presentation/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/presentation/terminal_ui/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/presentation/terminal_ui/booking_loop.py
+    LOC: 72
+    LLOC: 30
+    SLOC: 51
+    Comments: 6
+    Single comments: 7
+    Multi: 4
+    Blank: 10
+    - Comment Stats
+        (C % L): 8%
+        (C % S): 12%
+        (C + M % L): 14%
+src/arbeitszeit/presentation/terminal_ui/main.py
+    LOC: 152
+    LLOC: 83
+    SLOC: 129
+    Comments: 3
+    Single comments: 4
+    Multi: 0
+    Blank: 19
+    - Comment Stats
+        (C % L): 2%
+        (C % S): 2%
+        (C + M % L): 2%
+src/arbeitszeit/presentation/admin_cli/__init__.py
+    LOC: 0
+    LLOC: 0
+    SLOC: 0
+    Comments: 0
+    Single comments: 0
+    Multi: 0
+    Blank: 0
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/presentation/admin_cli/_intervals.py
+    LOC: 32
+    LLOC: 19
+    SLOC: 15
+    Comments: 0
+    Single comments: 3
+    Multi: 6
+    Blank: 8
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 19%
+src/arbeitszeit/presentation/admin_cli/employees.py
+    LOC: 161
+    LLOC: 85
+    SLOC: 129
+    Comments: 2
+    Single comments: 2
+    Multi: 4
+    Blank: 26
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 2%
+        (C + M % L): 4%
+src/arbeitszeit/presentation/admin_cli/_auth.py
+    LOC: 33
+    LLOC: 13
+    SLOC: 22
+    Comments: 0
+    Single comments: 0
+    Multi: 5
+    Blank: 6
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 15%
+src/arbeitszeit/presentation/admin_cli/bookings.py
+    LOC: 183
+    LLOC: 85
+    SLOC: 154
+    Comments: 0
+    Single comments: 1
+    Multi: 5
+    Blank: 23
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 3%
+src/arbeitszeit/presentation/admin_cli/schedule.py
+    LOC: 154
+    LLOC: 84
+    SLOC: 127
+    Comments: 0
+    Single comments: 0
+    Multi: 6
+    Blank: 21
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 4%
+src/arbeitszeit/presentation/admin_cli/system.py
+    LOC: 101
+    LLOC: 58
+    SLOC: 88
+    Comments: 0
+    Single comments: 1
+    Multi: 0
+    Blank: 12
+    - Comment Stats
+        (C % L): 0%
+        (C % S): 0%
+        (C + M % L): 0%
+src/arbeitszeit/presentation/admin_cli/reports.py
+    LOC: 329
+    LLOC: 202
+    SLOC: 264
+    Comments: 4
+    Single comments: 5
+    Multi: 0
+    Blank: 60
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 2%
+        (C + M % L): 1%
+src/arbeitszeit/presentation/admin_cli/main.py
+    LOC: 177
+    LLOC: 72
+    SLOC: 159
+    Comments: 1
+    Single comments: 2
+    Multi: 0
+    Blank: 16
+    - Comment Stats
+        (C % L): 1%
+        (C % S): 1%
+        (C + M % L): 1%
+src/arbeitszeit/presentation/admin_cli/user_accounts.py
+    LOC: 211
+    LLOC: 109
+    SLOC: 165
+    Comments: 9
+    Single comments: 9
+    Multi: 4
+    Blank: 33
+    - Comment Stats
+        (C % L): 4%
+        (C % S): 5%
+        (C + M % L): 6%
