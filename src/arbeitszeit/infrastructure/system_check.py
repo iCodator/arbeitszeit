@@ -27,6 +27,7 @@ _REQUIRED_CONFIG_KEYS = (
 )
 
 _MIGRATIONS_DIR = Path(__file__).resolve().parents[3] / "migrations"
+_TIMEDATECTL = "/usr/bin/timedatectl"
 
 
 @dataclass(frozen=True)
@@ -222,7 +223,7 @@ def _check_ntp() -> CheckResult:
     """Prüft via timedatectl, ob NTP aktiv und synchronisiert ist (§9.3)."""
     try:
         proc = subprocess.run(
-            ["timedatectl", "show", "--property=NTP", "--property=NTPSynchronized", "--no-pager"],
+            [_TIMEDATECTL, "show", "--property=NTP", "--property=NTPSynchronized", "--no-pager"],
             capture_output=True,
             text=True,
             timeout=5,
