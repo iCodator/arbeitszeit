@@ -70,6 +70,9 @@ _HEX_KEY_CHAR_SHIFT: dict[str, str] = {k: v.upper() for k, v in _HEX_KEY_CHAR.it
 # Timeout (Sekunden) für den RFID-Lesevorgang nach Buchungstyp-Auswahl.
 _RFID_READ_TIMEOUT: float = 5.0
 
+_SHIFT_KEYS = ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT")
+_ENTER_KEYS = ("KEY_ENTER", "KEY_KPENTER")
+
 
 def map_rfid_key(keycode: str, shift_active: bool) -> str | None:
     """Bildet einen HID-Keycode auf ein Hex-Zeichen ab, oder None bei Nicht-Hex.
@@ -78,6 +81,48 @@ def map_rfid_key(keycode: str, shift_active: bool) -> str | None:
     """
     char_map = _HEX_KEY_CHAR_SHIFT if shift_active else _HEX_KEY_CHAR
     return char_map.get(keycode)
+
+
+def _normalize_keycode(keycode: str | tuple[str, ...]) -> str:
+    """Normalisiert evdev-Keycodes: Tupel-Varianten werden auf das erste Element reduziert."""
+    return keycode[0] if isinstance(keycode, tuple) else keycode
+
+
+def _apply_rfid_key_down(
+    keycode: str,
+    chars: list[str],
+    shift_active: bool,
+) -> tuple[str | None, bool]:
+    """Verarbeitet einen Key-Down-Event: Shift, Enter oder Hex-Zeichen."""
+    if keycode in _SHIFT_KEYS:
+        return None, True
+    if keycode in _ENTER_KEYS:
+        return "".join(chars), shift_active
+    c = map_rfid_key(keycode, shift_active)
+    if c is not None:
+        chars.append(c)
+    return None, shift_active
+
+
+def _apply_rfid_key_up(keycode: str, shift_active: bool) -> bool:
+    """Gibt den neuen Shift-Status nach einem Key-Up-Event zurück."""
+    if keycode in _SHIFT_KEYS:
+        return False
+    return shift_active
+
+
+def _process_rfid_key(
+    key_event: KeyEvent,
+    keycode: str,
+    chars: list[str],
+    shift_active: bool,
+) -> tuple[str | None, bool]:
+    """Dispatcht ein einzelnes Key-Event auf Key-Down oder Key-Up-Verarbeitung."""
+    if key_event.keystate == key_event.key_down:
+        return _apply_rfid_key_down(keycode, chars, shift_active)
+    if key_event.keystate == key_event.key_up:
+        return None, _apply_rfid_key_up(keycode, shift_active)
+    return None, shift_active
 
 
 class EvdevHardwareReader(HardwareReader):
@@ -126,13 +171,42 @@ class EvdevHardwareReader(HardwareReader):
             key_event = cast(KeyEvent, categorize(event))
             if key_event.keystate != key_event.key_down:
                 continue
-            keycode = key_event.keycode
-            if isinstance(keycode, tuple):
-                keycode = keycode[0]
+            keycode = _normalize_keycode(key_event.keycode)
             bt = _NUMPAD_TO_BOOKING_TYPE.get(keycode)
             if bt is not None:
                 return bt
         raise OSError("Numpad-Gerät unerwartet geschlossen.")
+
+    def _wait_rfid_ready(self, deadline: float, timeout: float) -> None:
+        """Wartet auf ein RFID-Event innerhalb der Deadline.
+
+        Wirft HardwareTimeoutError wenn die Deadline abgelaufen ist oder select() nicht antwortet.
+        """
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
+        ready, _, _ = select.select([self._rfid.fd], [], [], remaining)
+        if not ready:
+            raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
+
+    def _read_rfid_batch(
+        self,
+        chars: list[str],
+        shift_active: bool,
+    ) -> tuple[str | None, bool]:
+        """Verarbeitet eine Charge von RFID-Events aus einem read()-Aufruf.
+
+        Gibt (UID, shift_active) zurück wenn Enter erkannt, sonst (None, shift_active).
+        """
+        for event in self._rfid.read():
+            if event.type != ecodes.EV_KEY:
+                continue
+            key_event = cast(KeyEvent, categorize(event))
+            keycode = _normalize_keycode(key_event.keycode)
+            uid, shift_active = _process_rfid_key(key_event, keycode, chars, shift_active)
+            if uid is not None:
+                return uid, shift_active
+        return None, shift_active
 
     def _read_rfid_uid(self, timeout: float) -> str:
         """Liest Hex-UID vom RFID-Reader bis Enter oder Timeout.
@@ -144,33 +218,11 @@ class EvdevHardwareReader(HardwareReader):
         chars: list[str] = []
         shift_active = False
         deadline = time.monotonic() + timeout
-
         while True:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
-            ready, _, _ = select.select([self._rfid.fd], [], [], remaining)
-            if not ready:
-                raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
-            for event in self._rfid.read():
-                if event.type != ecodes.EV_KEY:
-                    continue
-                key_event = cast(KeyEvent, categorize(event))
-                keycode = key_event.keycode
-                if isinstance(keycode, tuple):
-                    keycode = keycode[0]
-                if key_event.keystate == key_event.key_down:
-                    if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):
-                        shift_active = True
-                    elif keycode in ("KEY_ENTER", "KEY_KPENTER"):
-                        return "".join(chars)
-                    else:
-                        c = map_rfid_key(keycode, shift_active)
-                        if c is not None:
-                            chars.append(c)
-                elif key_event.keystate == key_event.key_up:
-                    if keycode in ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT"):
-                        shift_active = False
+            self._wait_rfid_ready(deadline, timeout)
+            result, shift_active = self._read_rfid_batch(chars, shift_active)
+            if result is not None:
+                return result
 
     def close(self) -> None:
         for dev in (self._numpad, self._rfid):
