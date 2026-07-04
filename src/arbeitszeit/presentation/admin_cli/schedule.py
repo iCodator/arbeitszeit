@@ -88,6 +88,45 @@ def cmd_schedule_set(
         print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
 
 
+def _partition_by_scope(rows: list) -> tuple[list, list]:
+    global_rows = [r for r in rows if r["scope_type"] == "GLOBAL"]
+    employee_rows = [r for r in rows if r["scope_type"] == "EMPLOYEE"]
+    return global_rows, employee_rows
+
+
+def _print_global_section(global_rows: list) -> None:
+    if not global_rows:
+        return
+    print("Globale Regelarbeitszeit (gültige Versionen):")
+    print(f"  {'ID':>4}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
+    for r in global_rows:
+        day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
+        print(
+            f"  {r['id']:>4}  {day_name:3}  "
+            f"{r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+        )
+
+
+def _print_employee_section(employee_rows: list) -> None:
+    if not employee_rows:
+        return
+    print("\nMitarbeiterspezifische Regelarbeitszeit:")
+    print(f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
+    for r in employee_rows:
+        day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
+        print(
+            f"  {r['id']:>4}  {r['scope_employee_id']:>7}  "
+            f"{day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+        )
+
+
+def _print_scope_hint(global_rows: list, employee_rows: list) -> None:
+    if not global_rows and employee_rows:
+        print("\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt.")
+    elif global_rows and not employee_rows:
+        print("\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).")
+
+
 def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_id: int) -> None:
     require_admin_or_reviewer(conn, user_id)
     rows = conn.execute(
@@ -100,34 +139,10 @@ def cmd_schedule_show(conn: sqlite3.Connection, args: argparse.Namespace, user_i
     if not rows:
         print("Keine aktiven Regelarbeitszeitversionen vorhanden.")
         return
-
-    global_rows = [r for r in rows if r["scope_type"] == "GLOBAL"]
-    employee_rows = [r for r in rows if r["scope_type"] == "EMPLOYEE"]
-
-    if global_rows:
-        print("Globale Regelarbeitszeit (gültige Versionen):")
-        print(f"  {'ID':>4}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
-        for r in global_rows:
-            day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
-            print(
-                f"  {r['id']:>4}  {day_name:3}  "
-                f"{r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
-            )
-
-    if employee_rows:
-        print("\nMitarbeiterspezifische Regelarbeitszeit:")
-        print(f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
-        for r in employee_rows:
-            day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
-            print(
-                f"  {r['id']:>4}  {r['scope_employee_id']:>7}  "
-                f"{day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
-            )
-
-    if not global_rows and employee_rows:
-        print("\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt.")
-    elif global_rows and not employee_rows:
-        print("\nHinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).")
+    global_rows, employee_rows = _partition_by_scope(rows)
+    _print_global_section(global_rows)
+    _print_employee_section(employee_rows)
+    _print_scope_hint(global_rows, employee_rows)
 
 
 def register_subcommands(
