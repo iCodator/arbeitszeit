@@ -1,6 +1,6 @@
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.1
+**Version:** 1.0
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
@@ -170,12 +170,13 @@ gefunden), muss Python 3.14 noch installiert werden:
 
 ```bash
 sudo apt update
-sudo apt install -y python3.14 python3.14-venv python3-pip
+sudo apt install -y python3.14 python3.14-venv python3.14-tk python3-pip
 ```
 
-**Was passiert hier?** Es werden drei Programmteile installiert:
+**Was passiert hier?** Es werden vier Programmteile installiert:
 Python selbst, ein Werkzeug zum Anlegen isolierter „virtueller
-Umgebungen" (dazu gleich mehr) und der Python-Paketmanager `pip`, mit
+Umgebungen" (dazu gleich mehr), das Grafik-Modul `tkinter` für die
+grafische Verwaltungsoberfläche und der Python-Paketmanager `pip`, mit
 dem später zusätzliche Software-Bausteine installiert werden.
 
 Anschließend die Version erneut prüfen:
@@ -454,10 +455,8 @@ python scripts/verify_hardware.py \
 ```
 
 (`eventX` und `eventY` durch die in Schritt 9 ermittelten Gerätepfade
-ersetzen. Werden **beide** Gerätepfade angegeben, müssen auch beide
-Argumente gesetzt sein — das Script bricht ab, wenn nur eines angegeben
-wird. Werden **keine** Gerätepfade angegeben, startet stattdessen eine
-interaktive Geräteauswahl.)
+ersetzen. **Beide Argumente sind Pflicht** — das Script bricht ab, wenn
+nur eines angegeben wird.)
 
 Das Script durchläuft drei Stufen:
 
@@ -515,8 +514,8 @@ Ersetze `eventX` und `eventY` durch die in Schritt 9 ermittelten
 tatsächlichen Gerätepfade für Numpad und RFID-Reader.
 
 **Wie beende ich den Terminal-Betrieb?** Mit der Tastenkombination
-`Strg` + `C` im entsprechenden Terminal-Fenster. Das Programm behandelt
-`SIGINT` und `SIGTERM` ausdrücklich und beendet sich kontrolliert.
+`Strg` + `C` im entsprechenden Terminal-Fenster. Das Programm beendet
+sich dabei sauber, ohne Daten zu verlieren.
 
 Für den echten Praxisbetrieb sollte dieser Befehl automatisch beim
 Systemstart ausgeführt werden (zum Beispiel über einen systemd-Dienst).

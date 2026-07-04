@@ -226,7 +226,7 @@
   <h1>Installationsanleitung <code>arbeitszeit</code></h1>
 
   <div class="meta">
-    <p><strong>Version:</strong> 1.1</p>
+    <p><strong>Version:</strong> 1.0</p>
     <p><strong>Stand:</strong> Juli 2026</p>
     <p><strong>Zielgruppe:</strong> Laien ohne Linux- oder Programmiererfahrung</p>
     <p><strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine Zahnarztpraxis</p>
@@ -426,11 +426,12 @@ sudo apt upgrade -y</code></pre>
   gefunden), muss Python 3.14 noch installiert werden:</p>
 
   <pre><code>sudo apt update
-sudo apt install -y python3.14 python3.14-venv python3-pip</code></pre>
+sudo apt install -y python3.14 python3.14-venv python3.14-tk python3-pip</code></pre>
 
-  <p><strong>Was passiert hier?</strong> Es werden drei Programmteile installiert:
+  <p><strong>Was passiert hier?</strong> Es werden vier Programmteile installiert:
   Python selbst, ein Werkzeug zum Anlegen isolierter „virtueller
-  Umgebungen" (dazu gleich mehr) und der Python-Paketmanager <code>pip</code>, mit
+  Umgebungen" (dazu gleich mehr), das Grafik-Modul <code>tkinter</code> für die
+  grafische Verwaltungsoberfläche und der Python-Paketmanager <code>pip</code>, mit
   dem später zusätzliche Software-Bausteine installiert werden.</p>
 
   <p>Anschließend die Version erneut prüfen:</p>
@@ -682,10 +683,8 @@ Migration 0006 angewendet.</code></pre>
   --rfid /dev/input/eventY</code></pre>
 
   <p>(<code>eventX</code> und <code>eventY</code> durch die in Schritt 9 ermittelten Gerätepfade
-  ersetzen. Werden <strong>beide</strong> Gerätepfade angegeben, müssen auch beide
-  Argumente gesetzt sein — das Script bricht ab, wenn nur eines angegeben
-  wird. Werden <strong>keine</strong> Gerätepfade angegeben, startet stattdessen eine
-  interaktive Geräteauswahl.)</p>
+  ersetzen. <strong>Beide Argumente sind Pflicht</strong> — das Script bricht ab, wenn
+  nur eines angegeben wird.)</p>
 
   <p>Das Script durchläuft drei Stufen:</p>
 
@@ -739,8 +738,8 @@ Migration 0006 angewendet.</code></pre>
   tatsächlichen Gerätepfade für Numpad und RFID-Reader.</p>
 
   <p><strong>Wie beende ich den Terminal-Betrieb?</strong> Mit der Tastenkombination
-  <code>Strg</code>&nbsp;+&nbsp;<code>C</code> im entsprechenden Terminal-Fenster. Das Programm behandelt
-  <code>SIGINT</code> und <code>SIGTERM</code> ausdrücklich und beendet sich kontrolliert.</p>
+  <code>Strg</code>&nbsp;+&nbsp;<code>C</code> im entsprechenden Terminal-Fenster. Das Programm beendet
+  sich dabei sauber, ohne Daten zu verlieren.</p>
 
   <p>Für den echten Praxisbetrieb sollte dieser Befehl automatisch beim
   Systemstart ausgeführt werden (zum Beispiel über einen systemd-Dienst).
