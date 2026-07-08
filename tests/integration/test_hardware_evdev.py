@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from evdev import ecodes
 
 from arbeitszeit.domain.enums import BookingType
-from arbeitszeit.infrastructure.hardware import HardwareTimeoutError
+from arbeitszeit.infrastructure.hardware import EmptyUidError, HardwareTimeoutError
 from arbeitszeit.infrastructure.hardware.evdev_reader import (
     DeviceNotFoundError,
     EvdevHardwareReader,
@@ -302,3 +302,71 @@ class TestResolveEvdevDevice:
         ):
             result = resolve_evdev_device("USB Numpad")
         assert result == "/dev/input/event1"
+
+
+# --- scan_rfid_uid_hash() ---
+
+from arbeitszeit.infrastructure.hardware.evdev_reader import scan_rfid_uid_hash  # noqa: E402
+from arbeitszeit.infrastructure.hardware.uid_hash import hash_uid  # noqa: E402
+
+
+def _make_enter_event() -> SimpleNamespace:
+    return _raw_ev("KEY_KPENTER", _KEY_DOWN)
+
+
+class TestScanRfidUidHash:
+    def _run_scan(
+        self,
+        mock_device: MagicMock,
+        events: list[SimpleNamespace],
+        *,
+        select_ready: bool = True,
+        timeout: float = 5.0,
+    ) -> str:
+        mock_device.read.return_value = events
+        select_ret = ([mock_device.fd], [], []) if select_ready else ([], [], [])
+        with (
+            patch(f"{_EVDEV_READER}.InputDevice", return_value=mock_device),
+            patch("select.select", return_value=select_ret),
+            patch(_CATEGORIZE, side_effect=_categorize_mock),
+            patch("time.monotonic", return_value=0.0),
+        ):
+            return scan_rfid_uid_hash("/dev/input/event5", timeout=timeout)
+
+    def test_erfolgreicher_scan_gibt_hash_zurück(self) -> None:
+        dev = MagicMock()
+        dev.fd = 42
+        result = self._run_scan(
+            dev,
+            [_raw_ev("KEY_A", _KEY_DOWN), _raw_ev("KEY_1", _KEY_DOWN), _make_enter_event()],
+        )
+        assert result == hash_uid("a1")
+
+    def test_timeout_wirft_hardware_timeout_error(self) -> None:
+        dev = MagicMock()
+        dev.fd = 42
+        with pytest.raises(HardwareTimeoutError):
+            self._run_scan(dev, [], select_ready=False)
+
+    def test_leere_uid_wirft_empty_uid_error(self) -> None:
+        dev = MagicMock()
+        dev.fd = 42
+        with pytest.raises(EmptyUidError):
+            self._run_scan(dev, [_make_enter_event()])
+
+    def test_device_wird_in_finally_geschlossen(self) -> None:
+        dev = MagicMock()
+        dev.fd = 42
+        try:
+            self._run_scan(dev, [], select_ready=False)
+        except HardwareTimeoutError:
+            pass
+        dev.close.assert_called_once()
+
+    def test_ungrab_oserror_wird_ignoriert(self) -> None:
+        dev = MagicMock()
+        dev.fd = 42
+        dev.ungrab.side_effect = OSError("ungrab fehlgeschlagen")
+        with pytest.raises(HardwareTimeoutError):
+            self._run_scan(dev, [], select_ready=False)
+        dev.close.assert_called_once()

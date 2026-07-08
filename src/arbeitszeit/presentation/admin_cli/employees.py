@@ -27,6 +27,12 @@ from arbeitszeit.application.use_cases.manage_rfid_cards import (
 from arbeitszeit.domain.errors import DomainError
 from arbeitszeit.domain.value_objects import EmployeeId, RfidCardId, UserAccountId
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
+from arbeitszeit.infrastructure.hardware import EmptyUidError, HardwareTimeoutError
+from arbeitszeit.infrastructure.hardware.evdev_reader import (
+    DeviceNotFoundError,
+    resolve_evdev_device,
+    scan_rfid_uid_hash,
+)
 
 
 def _make_uow(conn: sqlite3.Connection, audit_conn: sqlite3.Connection) -> SQLiteUnitOfWork:
@@ -84,10 +90,38 @@ def cmd_employees_deactivate(
 def cmd_cards_assign(
     conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
+    if args.uid_hash and args.scan:
+        print("Fehler: --uid-hash und --scan schließen sich aus.", file=sys.stderr)
+        sys.exit(1)
+    if not args.uid_hash and not args.scan:
+        print("Fehler: --uid-hash oder --scan ist erforderlich.", file=sys.stderr)
+        sys.exit(1)
+    if args.scan and not args.rfid:
+        print("Fehler: --scan erfordert --rfid.", file=sys.stderr)
+        sys.exit(1)
+
+    if args.scan:
+        try:
+            rfid_path = resolve_evdev_device(args.rfid)
+        except DeviceNotFoundError as exc:
+            print(f"Fehler: {exc}", file=sys.stderr)
+            sys.exit(1)
+        print("Bitte Karte an den RFID-Reader halten …")
+        try:
+            uid_hash = scan_rfid_uid_hash(rfid_path)
+        except HardwareTimeoutError as exc:
+            print(f"Fehler: Timeout – {exc}", file=sys.stderr)
+            sys.exit(1)
+        except (EmptyUidError, OSError) as exc:
+            print(f"Fehler: {exc}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        uid_hash = args.uid_hash
+
     cmd = AssignRfidCardCommand(
         acting_user_id=UserAccountId(user_id),
         employee_id=EmployeeId(args.employee_id),
-        uid_hash=args.uid_hash,
+        uid_hash=uid_hash,
     )
     try:
         result = AssignRfidCardUseCase(_make_uow(conn, audit_conn)).execute(cmd)
@@ -151,7 +185,17 @@ def register_subcommands(
 
     assign = cards_sub.add_parser("assign", help="Neue RFID-Karte einem Mitarbeiter zuweisen")
     assign.add_argument("--employee-id", type=int, required=True)
-    assign.add_argument("--uid-hash", required=True)
+    assign.add_argument("--uid-hash", help="Fertig berechneter SHA-256-Hash der Karten-UID")
+    assign.add_argument(
+        "--rfid",
+        metavar="RFID_GERÄT",
+        help="Gerätename oder -pfad des RFID-Readers (für --scan)",
+    )
+    assign.add_argument(
+        "--scan",
+        action="store_true",
+        help="UID direkt vom RFID-Reader lesen (erfordert --rfid)",
+    )
 
     replace = cards_sub.add_parser("replace", help="Verlorene/defekte Karte ersetzen")
     replace.add_argument("--old-card-id", type=int, required=True)

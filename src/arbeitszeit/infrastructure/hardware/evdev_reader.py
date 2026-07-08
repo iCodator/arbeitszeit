@@ -148,6 +148,45 @@ def _process_rfid_key(
     return None, shift_active
 
 
+def scan_rfid_uid_hash(rfid_path: str, timeout: float = 15.0) -> str:
+    """Liest einmalig eine RFID-UID und gibt deren SHA-256-Hash zurück.
+
+    Öffnet nur das RFID-Gerät (kein Numpad). Wirft HardwareTimeoutError wenn
+    innerhalb von `timeout` Sekunden keine vollständige UID gescannt wird,
+    EmptyUidError wenn die UID nach dem Lesen leer ist.
+    """
+    device = InputDevice(rfid_path)
+    try:
+        device.grab()
+        chars: list[str] = []
+        shift_active = False
+        deadline = time.monotonic() + timeout
+        while True:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise HardwareTimeoutError(f"RFID-Scan überschritt {timeout}s-Zeitlimit.")
+            ready, _, _ = select.select([device.fd], [], [], remaining)
+            if not ready:
+                raise HardwareTimeoutError(f"RFID-Scan überschritt {timeout}s-Zeitlimit.")
+            for event in device.read():
+                if event.type != ecodes.EV_KEY:
+                    continue
+                key_event = cast(KeyEvent, categorize(event))
+                keycode = _normalize_keycode(key_event.keycode)
+                uid, shift_active = _process_rfid_key(key_event, keycode, chars, shift_active)
+                if uid is not None:
+                    raw_uid = uid.strip()
+                    if not raw_uid:
+                        raise EmptyUidError("RFID-Gerät lieferte leere UID.")
+                    return hash_uid(raw_uid)
+    finally:
+        try:
+            device.ungrab()
+        except OSError:
+            pass
+        device.close()
+
+
 class EvdevHardwareReader(HardwareReader):
     """Liest Buchungsanfragen von physischen evdev-Geräten.
 
