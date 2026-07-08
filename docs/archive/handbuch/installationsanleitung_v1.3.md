@@ -1,6 +1,6 @@
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.4
+**Version:** 1.3
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
@@ -303,13 +303,10 @@ Migration 0003 angewendet.
 Migration 0004 angewendet.
 Migration 0005 angewendet.
 Migration 0006 angewendet.
-⚠  Ersteinrichtung noch erforderlich:
-   python scripts/setup.py --db arbeitszeit.db
 ```
 
-**Wichtig:** Das `⚠`-Symbol in dieser Ausgabe bedeutet hier **keinen
-Fehler**. Es ist ein erwarteter Hinweis darauf, dass nach dem Anlegen
-der Datenbank noch die Ersteinrichtung ausgeführt werden muss.
+Am Ende erscheint zusätzlich ein Hinweis, dass eine Ersteinrichtung noch
+erforderlich ist — das ist der nächste Schritt.
 
 ## Schritt 8: Ersteinrichtung durchführen
 
@@ -403,13 +400,6 @@ Ersetze `adminname` durch einen Benutzernamen deiner Wahl (zum Beispiel
 den Namen der Praxisleitung). Wird kein Passwort mit angegeben, erzeugt
 das System automatisch ein sicheres Passwort und zeigt es **einmalig**
 im Terminal an.
-
-Dabei erscheint eine Ausgabe in dieser Form:
-
-```text
-Erstes Administratorkonto angelegt (ID 1).
-Generiertes Passwort (einmalig sichtbar): <zufälliges Passwort>
-```
 
 **Sehr wichtig:** Notiere dieses angezeigte Passwort sofort an einem
 sicheren Ort (zum Beispiel in einem Passwort-Manager oder einem
