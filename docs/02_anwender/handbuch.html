@@ -1,92 +1,238 @@
 <!DOCTYPE html>
-<html lang="de">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handbuch arbeitszeit</title>
-<style>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Handbuch arbeitszeit</title>
+  <style>
 
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+  <style type="text/css">*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-  line-height: 1.65;
-  color: #1a1a1a;
-  background: #ffffff;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+font-size: 16px;
+line-height: 1.7;
+color: #1a1a1a;
+background: #ffffff;
+padding: 2rem 1rem;
+max-width: 820px;
+margin: 0 auto;
 }
-h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  line-height: 1.3;
-  margin-top: 2em;
-  margin-bottom: 0.6em;
-  scroll-margin-top: 1rem;
+
+h1 {
+font-size: 2rem;
+font-weight: 700;
+color: #111;
+border-bottom: 3px solid #2563eb;
+padding-bottom: 0.5rem;
+margin-bottom: 1.5rem;
 }
-h1 { font-size: 2.1em; border-bottom: 3px solid #2563eb; padding-bottom: 0.3em; }
-h2 { font-size: 1.6em; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25em; color: #1d4ed8; }
-h3 { font-size: 1.3em; color: #1e3a8a; }
-h4 { font-size: 1.1em; color: #334155; }
-p { margin: 0.8em 0; }
+h2 {
+font-size: 1.4rem;
+font-weight: 700;
+color: #1e3a6e;
+margin-top: 2.5rem;
+margin-bottom: 0.8rem;
+padding-left: 0.6rem;
+border-left: 4px solid #2563eb;
+}
+h3 {
+font-size: 1.1rem;
+font-weight: 600;
+color: #374151;
+margin-top: 1.5rem;
+margin-bottom: 0.5rem;
+}
+h4 {
+font-size: 1rem;
+font-weight: 600;
+color: #4b5563;
+margin-top: 1.2rem;
+margin-bottom: 0.4rem;
+}
+h5, h6 {
+font-size: 0.95rem;
+font-weight: 600;
+color: #6b7280;
+margin-top: 1rem;
+margin-bottom: 0.3rem;
+}
+
+p {
+margin-bottom: 0.9rem;
+}
+
 code {
-  background: #f1f5f9;
-  color: #b91c1c;
-  padding: 0.15em 0.4em;
-  border-radius: 4px;
-  font-size: 0.92em;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+font-size: 0.875em;
+background: #f1f5f9;
+color: #be185d;
+padding: 0.1em 0.35em;
+border-radius: 4px;
+border: 1px solid #e2e8f0;
 }
+
 pre {
-  background: #0f172a;
-  color: #e2e8f0;
-  padding: 1em 1.2em;
-  border-radius: 8px;
-  overflow-x: auto;
-  font-size: 0.88em;
-  line-height: 1.5;
+background: #1e293b;
+color: #e2e8f0;
+border-radius: 8px;
+padding: 1rem 1.2rem;
+overflow-x: auto;
+margin: 0.8rem 0 1.2rem 0;
+font-size: 0.875rem;
+line-height: 1.6;
 }
 pre code {
-  background: none;
-  color: inherit;
-  padding: 0;
+background: none;
+color: inherit;
+padding: 0;
+border: none;
+font-size: inherit;
 }
+
+ul, ol {
+margin: 0.5rem 0 1rem 1.5rem;
+}
+li {
+margin-bottom: 0.35rem;
+}
+
 table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 1.2em 0;
-  font-size: 0.93em;
-}
-th, td {
-  border: 1px solid #cbd5e1;
-  padding: 0.5em 0.8em;
-  text-align: left;
+width: 100%;
+border-collapse: collapse;
+margin: 1rem 0 1.5rem 0;
+font-size: 0.93rem;
 }
 th {
-  background: #f1f5f9;
-  font-weight: 600;
+background: #1e3a6e;
+color: #ffffff;
+text-align: left;
+padding: 0.6rem 0.8rem;
+font-weight: 600;
 }
-tr:nth-child(even) { background: #f8fafc; }
-blockquote {
-  border-left: 4px solid #2563eb;
-  margin: 1em 0;
-  padding: 0.4em 1em;
-  color: #475569;
-  background: #f8fafc;
+td {
+padding: 0.55rem 0.8rem;
+border-bottom: 1px solid #e5e7eb;
+vertical-align: top;
 }
-ul, ol { margin: 0.6em 0; padding-left: 1.6em; }
-li { margin: 0.25em 0; }
-a { color: #2563eb; text-decoration: none; }
+tr:nth-child(even) td { background: #f9fafb; }
+tr:hover td { background: #eff6ff; }
+
+hr {
+border: none;
+border-top: 1px solid #e5e7eb;
+margin: 2rem 0;
+}
+
+a {
+color: #2563eb;
+text-decoration: none;
+}
 a:hover { text-decoration: underline; }
-hr { border: none; border-top: 1px solid #e2e8f0; margin: 2.5em 0; }
-strong { color: #0f172a; }
-.meta { color: #64748b; font-size: 0.95em; }
-::selection { background: #bfdbfe; }
 
+dl { margin: 0.5rem 0 1rem 0; }
+dt {
+font-weight: 600;
+color: #1e3a6e;
+margin-top: 0.7rem;
+}
+dd {
+margin-left: 1.5rem;
+color: #374151;
+}
+
+@media print {
+pre { background: #f1f5f9; color: #111; border: 1px solid #ccc; }
+a { color: #111; }
+}
 </style>
-
 </head>
 <body>
+<header id="title-block-header">
+<h1 class="title">Handbuch arbeitszeit</h1>
+</header>
 <h1 id="handbuch-arbeitszeit">Handbuch <code>arbeitszeit</code></h1>
-<p><strong>Version:</strong> 1.0 <strong>Stand:</strong> Juli 2026
+<p><strong>Version:</strong> 1.4 <strong>Stand:</strong> Juli 2026
 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine
 Zahnarztpraxis</p>
 <p>Dieses Handbuch fasst alle sieben Kapiteldateien des Projekts
@@ -127,8 +273,7 @@ und <code>cards</code></a></li>
 <li><a href="#domain-reports">Domain: <code>reports</code></a></li>
 <li><a href="#domain-system">Domain: <code>system</code></a></li>
 <li><a href="#domain-users">Domain: <code>users</code></a></li>
-<li><a
-href="#zeitraum-hilfsfunktionen-intervalspy">Zeitraum-Hilfsfunktionen
+<li><a href="#zeitraum-hilfsfunktionen-intervalspy">Zeitraum-Hilfsfunktionen
 (<code>_intervals.py</code>)</a></li>
 </ul></li>
 <li><a href="#kapitel-4-anwendungsschicht">Kapitel 4:
@@ -138,8 +283,7 @@ Anwendungsschicht</a>
 Einordnung</a></li>
 <li><a href="#42-commands-eingabe-dtos-commandspy">4.2 Commands —
 Eingabe-DTOs (<code>commands.py</code>)</a></li>
-<li><a
-href="#43-results-ausgabe-dtos-schreibender-operationen-resultspy">4.3
+<li><a href="#43-results-ausgabe-dtos-schreibender-operationen-resultspy">4.3
 Results — Ausgabe-DTOs schreibender Operationen
 (<code>results.py</code>)</a></li>
 <li><a href="#44-queries-lesende-abfrage-dtos-queriespy">4.4 Queries —
@@ -182,8 +326,7 @@ Infrastrukturschicht</a>
 <li><a href="#backup-backupbackupservicepy">Backup
 (<code>backup/backup_service.py</code>)</a></li>
 <li><a href="#systemüberwachung">Systemüberwachung</a></li>
-<li><a
-href="#querverbindungen-und-architekturprinzipien">Querverbindungen und
+<li><a href="#querverbindungen-und-architekturprinzipien">Querverbindungen und
 Architekturprinzipien</a></li>
 </ul></li>
 <li><a href="#kapitel-7-audit-und-prüfstatus">Kapitel 7: Audit und
@@ -214,8 +357,8 @@ Verwaltungsaufgaben.</p>
 ├── CONTRIBUTING.md
 ├── run_audit.sh
 ├── test_booking_loop.py
-├── installationsanleitung_arbeitszeit.md
-├── handbuch_arbeitszeit.md
+├── installationsanleitung.md
+├── handbuch.md
 ├── migrations/
 ├── scripts/
 ├── docs/
@@ -250,12 +393,10 @@ sich auf Linux Mint und Lubuntu.</p>
 <h4 id="python-version">Python-Version</h4>
 <p>Die verbindliche Python-Anforderung steht in
 <code>pyproject.toml</code>:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode toml"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">requires-python</span> <span class="op">=</span> <span class="st">&quot;&gt;=3.14,&lt;3.15&quot;</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode toml"><code class="sourceCode toml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">requires-python</span> <span class="op">=</span> <span class="st">&quot;&gt;=3.14,&lt;3.15&quot;</span></span></code></pre></div>
 <p>Damit ist für die Installation Python 3.14 erforderlich.</p>
 <p>Prüfung der installierten Version:</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.14</span> <span class="at">--version</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.14</span> <span class="at">--version</span></span></code></pre></div>
 <p><code>python3 --version</code> allein ist nicht ausreichend, wenn auf
 dem System eine andere Python-Hauptversion als 3.14 als Standard
 eingerichtet ist.</p>
@@ -320,8 +461,7 @@ eingerichtet ist.</p>
 </tbody>
 </table>
 <h4 id="zusätzliche-systempakete">Zusätzliche Systempakete</h4>
-<div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt update</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt install <span class="at">-y</span> build-essential linux-headers-<span class="va">$(</span><span class="fu">uname</span> <span class="at">-r</span><span class="va">)</span> python3-dev</span></code></pre></div>
 <h4 id="hardware">Hardware</h4>
 <p>Sicher belegt sind folgende Hardware-Komponenten im
@@ -334,19 +474,15 @@ Projektkontext:</p>
 <code>/dev/input/event*</code> angesprochen.</p>
 <h3 id="installation">Installation</h3>
 <p>Repository klonen:</p>
-<div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/iCodator/arbeitszeit.git</span>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/iCodator/arbeitszeit.git</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> arbeitszeit</span></code></pre></div>
 <p>Virtuelle Umgebung erstellen:</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.14</span> <span class="at">-m</span> venv .venv</span>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python3.14</span> <span class="at">-m</span> venv .venv</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="bu">source</span> .venv/bin/activate</span></code></pre></div>
 <p>Abhängigkeiten installieren:</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .<span class="pp">[</span><span class="ss">dev</span><span class="pp">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-e</span> .<span class="pp">[</span><span class="ss">dev</span><span class="pp">]</span></span></code></pre></div>
 <p>Datenbank initialisieren:</p>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/init_db.py</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/init_db.py</span></code></pre></div>
 <p>Der Datenbankpfad kann optional mit <code>--db</code> angegeben
 werden. Standard ist <code>arbeitszeit.db</code>.</p>
 <p>Typische Ausgabe:</p>
@@ -365,11 +501,9 @@ Migration 0006 angewendet.
 <li><code>scripts/setup.py</code></li>
 </ol>
 <p>Interaktiver Aufruf:</p>
-<div class="sourceCode" id="cb10"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="at">--db</span> arbeitszeit.db</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="at">--db</span> arbeitszeit.db</span></code></pre></div>
 <p>Nicht-interaktiver Aufruf:</p>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="dt">\</span></span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="dt">\</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--backup-dir</span> /var/backups/arbeitszeit <span class="dt">\</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--export-dir</span> /var/exports/arbeitszeit</span></code></pre></div>
@@ -377,22 +511,19 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href=
 übersprungen.</p>
 <h3 id="erste-konten-und-stammdaten">Erste Konten und Stammdaten</h3>
 <p>Ersten ADMIN anlegen:</p>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  users bootstrap <span class="dt">\</span></span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> adminname</span></code></pre></div>
 <p>Weiteres Benutzerkonto anlegen:</p>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> 1 <span class="dt">\</span></span>
 <span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  users add <span class="dt">\</span></span>
 <span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> pruefer01 <span class="dt">\</span></span>
 <span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> REVIEWER</span></code></pre></div>
 <p>Mitarbeiter anlegen:</p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> 1 <span class="dt">\</span></span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  employees add <span class="dt">\</span></span>
@@ -400,16 +531,14 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href=
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--first-name</span> Maria <span class="dt">\</span></span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--last-name</span> Mustermann</span></code></pre></div>
 <p>RFID-Karte zuweisen:</p>
-<div class="sourceCode" id="cb15"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> 1 <span class="dt">\</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  cards assign <span class="dt">\</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> 1 <span class="dt">\</span></span>
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>HASH<span class="op">&gt;</span></span></code></pre></div>
 <h3 id="funktionstest">Funktionstest</h3>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span></span>
+<div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> tests/test_migrations.py</span>
 <span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> <span class="at">--cov</span><span class="op">=</span>arbeitszeit</span></code></pre></div>
 <hr />
@@ -422,7 +551,7 @@ bildet die einzige Schnittstelle zwischen Benutzer (oder Administrator)
 und der darunterliegenden Fach- und Anwendungslogik. Sie enthält keine
 Geschäftslogik, sondern übersetzt ausschließlich Benutzereingaben in
 Kommandos der Anwendungsschicht und gibt Ergebnisse als lesbare Texte
-aus. Das Paket gliedert sich in drei eigenständige Untermodule:</p>
+aus. Das Paket gliedert sich in zwei eigenständige Untermodule:</p>
 <ul>
 <li><code>presentation/terminal_ui/</code> – operativer Buchungsbetrieb
 (Endlosschleife, RFID + Numpad)</li>
@@ -441,18 +570,17 @@ kontinuierlich auf Hardware-Eingaben: zuerst Auswahl der Buchungsart
 Graceful Shutdown.</p>
 <h4 id="startparameter">Startparameter</h4>
 <p>Die Terminal-UI wird mit vier Pflichtargumenten gestartet:</p>
-<div class="sourceCode" id="cb17"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
+<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> /pfad/zur/datenbank.db <span class="dt">\</span></span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> /dev/input/eventX <span class="dt">\</span></span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> /dev/input/eventY <span class="dt">\</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> <span class="st">&quot;Gerätename des Numpads&quot;</span> <span class="dt">\</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;Gerätename des RFID-Readers&quot;</span> <span class="dt">\</span></span>
 <span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--terminal-id</span> 1</span></code></pre></div>
 <h4 id="startverhalten-und-systemcheck">Startverhalten und
 Systemcheck</h4>
 <p>Vor dem Eintritt in die Buchungsschleife führt <code>run()</code>
 automatisch einen Systemcheck durch. Schlägt der Check fehl, wird eine
 Desktop-Benachrichtigung ausgelöst
-(<code>notify(…, urgency="critical")</code>), aber der Buchungsbetrieb
+(<code>notify(…, urgency=&quot;critical&quot;)</code>), aber der Buchungsbetrieb
 wird <strong>nicht</strong> abgebrochen — die Praxis soll arbeitsfähig
 bleiben. Fehlerdetails werden in der Tabelle <code>system_events</code>
 gespeichert.</p>
@@ -551,8 +679,7 @@ eine Benutzer-ID (<code>--user-id</code> oder Umgebungsvariable
 <code>ADMIN_USER_ID</code>), und verteilt alle Aufrufe über eine
 zentrale Dispatch-Tabelle an spezialisierte Handler-Module.</p>
 <h4 id="grundaufruf">Grundaufruf</h4>
-<div class="sourceCode" id="cb18"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> /pfad/zur/datenbank.db <span class="at">--user-id</span> 1 <span class="op">&lt;</span>domain<span class="op">&gt;</span> <span class="op">&lt;</span>subcommand<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">optionen</span><span class="pp">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> /pfad/zur/datenbank.db <span class="at">--user-id</span> 1 <span class="op">&lt;</span>domain<span class="op">&gt;</span> <span class="op">&lt;</span>subcommand<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">optionen</span><span class="pp">]</span></span></code></pre></div>
 <p>Alternativ zur <code>--user-id</code>-Option kann die
 Umgebungsvariable <code>ADMIN_USER_ID</code> gesetzt werden. Die einzige
 Ausnahme ist <code>users bootstrap</code> — dieser Befehl benötigt keine
@@ -1196,8 +1323,7 @@ Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</h3>
 (strukturelles Typing, kein Erben nötig). Es fasst alle
 Repository-Referenzen unter einem gemeinsamen Transaktionskontext
 zusammen und garantiert atomare Schreiboperationen.</p>
-<div class="sourceCode" id="cb20"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="va">self</span>._uow:</span>
+<div class="sourceCode" id="cb20"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> <span class="va">self</span>._uow:</span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Alle Lese- und Schreiboperationen hier</span></span>
 <span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>    <span class="va">self</span>._uow.commit()</span></code></pre></div>
 <p>Die in <code>UnitOfWork</code> definierten Repositories:</p>
@@ -1287,8 +1413,7 @@ auf der Hauptverbindung stattgefunden haben. Nur SELECTs sind vor dem
 ersten Audit-Write erlaubt. Diese Invariante muss bei Erweiterungen
 gewahrt bleiben.</p>
 <hr />
-<h4
-id="correctbookingusecase-buchungskorrektur-correct_booking.py">4.6.2
+<h4 id="correctbookingusecase-buchungskorrektur-correct_booking.py">4.6.2
 <code>CorrectBookingUseCase</code> — Buchungskorrektur
 (<code>correct_booking.py</code>)</h4>
 <p>Ermöglicht berechtigten Benutzern (Rolle <code>ADMIN</code> oder
@@ -1321,8 +1446,7 @@ schreiben</li>
 <code>MANUAL_ENTRY_REVIEW</code>, <code>UNKNOWN_CARD_ATTEMPT</code>,
 <code>INACTIVE_CARD_ATTEMPT</code>, <code>TIME_ANOMALY</code>.</p>
 <hr />
-<h4
-id="registersupplementusecase-nachtrag-erfassen-register_supplement.py">4.6.3
+<h4 id="registersupplementusecase-nachtrag-erfassen-register_supplement.py">4.6.3
 <code>RegisterSupplementUseCase</code> — Nachtrag erfassen
 (<code>register_supplement.py</code>)</h4>
 <p>Erfasst eine nachträglich einzutragende Buchung (z. B. vergessenes
@@ -1345,8 +1469,7 @@ schreiben</li>
 <li><code>SupplementResult</code> zurückgeben</li>
 </ol>
 <hr />
-<h4
-id="approvesupplementusecase-nachtrag-freigeben-approve_supplement.py">4.6.4
+<h4 id="approvesupplementusecase-nachtrag-freigeben-approve_supplement.py">4.6.4
 <code>ApproveSupplementUseCase</code> — Nachtrag freigeben
 (<code>approve_supplement.py</code>)</h4>
 <p>Genehmigt einen ausstehenden Nachtrag und überführt ihn in eine echte
@@ -1372,8 +1495,7 @@ schreiben</li>
 <li><code>ApproveSupplementResult</code> zurückgeben</li>
 </ol>
 <hr />
-<h4
-id="rejectsupplementusecase-nachtrag-ablehnen-reject_supplement.py">4.6.5
+<h4 id="rejectsupplementusecase-nachtrag-ablehnen-reject_supplement.py">4.6.5
 <code>RejectSupplementUseCase</code> — Nachtrag ablehnen
 (<code>reject_supplement.py</code>)</h4>
 <p>Lehnt einen ausstehenden Nachtrag ab, ohne eine Buchung zu
@@ -1393,8 +1515,7 @@ schreiben</li>
 <li><code>RejectSupplementResult</code> zurückgeben</li>
 </ol>
 <hr />
-<h4
-id="manageworkscheduleusecase-regelarbeitszeit-manage_work_schedule.py">4.6.6
+<h4 id="manageworkscheduleusecase-regelarbeitszeit-manage_work_schedule.py">4.6.6
 <code>ManageWorkScheduleUseCase</code> — Regelarbeitszeit
 (<code>manage_work_schedule.py</code>)</h4>
 <p>Ändert die Regelarbeitszeit für einen Wochentag, entweder global
@@ -1714,7 +1835,7 @@ Konvertierung als SQL-Parameter übergeben werden.</p>
 <p>Alle Zustands- und Klassenangaben des Systems sind als
 <code>StrEnum</code> definiert. Das bedeutet: Die Enum-Werte sind
 gleichzeitig ihre eigene String-Darstellung (z. B.
-<code>BookingType.COME == "COME"</code>), was die direkte Speicherung in
+<code>BookingType.COME == &quot;COME&quot;</code>), was die direkte Speicherung in
 SQLite ohne separate Konvertierung ermöglicht.</p>
 <h4 id="buchungstypen-bookingtype">Buchungstypen
 (<code>BookingType</code>)</h4>
@@ -2143,8 +2264,7 @@ Pause) erzeugt eine <code>TimeBooking</code>-Instanz.</p>
 </tbody>
 </table>
 <hr />
-<h4
-id="workscheduleversion-regelarbeitszeit"><code>WorkScheduleVersion</code>
+<h4 id="workscheduleversion-regelarbeitszeit"><code>WorkScheduleVersion</code>
 – Regelarbeitszeit</h4>
 <p>Speichert die Soll-Arbeitszeiten, die entweder global für alle
 Mitarbeiter oder individuell pro Mitarbeiter für einen bestimmten
@@ -2312,8 +2432,7 @@ müssen die entsprechenden Felder (<code>approved_by_user_id</code>,
 <code>approved_at</code> und <code>rejected_at</code> dürfen nicht vor
 <code>recorded_at</code> liegen.</p>
 <hr />
-<h4
-id="bookingcorrection-buchungskorrektur"><code>BookingCorrection</code>
+<h4 id="bookingcorrection-buchungskorrektur"><code>BookingCorrection</code>
 – Buchungskorrektur</h4>
 <p>Speichert den vollständigen Vorher-/Nachher-Vergleich einer
 Buchungskorrektur als unveränderlichen Audit-Trail.</p>
@@ -2594,8 +2713,7 @@ als Implementierungshinweis dokumentiert.</p>
 scope_employee_id=&lt;id&gt;  → ausschließlich EMPLOYEE-Versionen für diesen MA
 Niemals beide Scopes gemischt.
 Rückgabe aufsteigend nach valid_from sortiert.</code></pre>
-<h4
-id="besonderheit-timebookingrepository.list_for_employee_on_day">Besonderheit
+<h4 id="besonderheit-timebookingrepository.list_for_employee_on_day">Besonderheit
 <code>TimeBookingRepository.list_for_employee_on_day</code></h4>
 <p>Die Rückgabe muss <strong>aufsteigend nach
 <code>booked_at</code></strong> sortiert sein, da alle nachgelagerten
@@ -2707,8 +2825,7 @@ Schwellwerte überschritten werden. Jedes Flag enthält einen
 abzüglich aller erfassten Pausen). Sie ersetzen keine rechtsverbindliche
 Einzelfallbewertung, sondern dienen als fachliche Prüfhilfe.</p>
 </blockquote>
-<h5
-id="check_break_complianceday_bookings-4-arbzg"><code>check_break_compliance(day_bookings)</code>
+<h5 id="check_break_complianceday_bookings-4-arbzg"><code>check_break_compliance(day_bookings)</code>
 – §4 ArbZG</h5>
 <table>
 <thead>
@@ -2732,8 +2849,7 @@ id="check_break_complianceday_bookings-4-arbzg"><code>check_break_compliance(day
 </tr>
 </tbody>
 </table>
-<h5
-id="check_max_hoursday_bookings-3-arbzg"><code>check_max_hours(day_bookings)</code>
+<h5 id="check_max_hoursday_bookings-3-arbzg"><code>check_max_hours(day_bookings)</code>
 – §3 ArbZG</h5>
 <table>
 <thead>
@@ -2753,8 +2869,7 @@ id="check_max_hoursday_bookings-3-arbzg"><code>check_max_hours(day_bookings)</co
 </tr>
 </tbody>
 </table>
-<h5
-id="check_rest_periodlast_go-next_come-5-arbzg"><code>check_rest_period(last_go, next_come)</code>
+<h5 id="check_rest_periodlast_go-next_come-5-arbzg"><code>check_rest_period(last_go, next_come)</code>
 – §5 ArbZG</h5>
 <table>
 <thead>
@@ -3007,7 +3122,7 @@ Haupt-Transaktion)</td>
 </tbody>
 </table>
 <p>Die Verbindung liefert immer <code>sqlite3.Row</code>-Objekte zurück,
-sodass Spalten per Namen abrufbar sind (<code>row["employee_id"]</code>
+sodass Spalten per Namen abrufbar sind (<code>row[&quot;employee_id&quot;]</code>
 statt <code>row[0]</code>).</p>
 <h4 id="migrationen-dbmigrations.py">Migrationen —
 <code>db/migrations.py</code></h4>
@@ -3035,8 +3150,7 @@ in den SQL-String eingebettet wird (kein SQL-Injection-Risiko).</p>
 <p><code>SQLiteUnitOfWork</code> ist der einzige Einstiegspunkt für
 Use-Cases, die Datenbankänderungen vornehmen. Er bündelt alle elf
 Repositories unter einem gemeinsamen Transaktions-Context-Manager:</p>
-<div class="sourceCode" id="cb26"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> SQLiteUnitOfWork(conn, audit_conn<span class="op">=</span>audit_conn) <span class="im">as</span> uow:</span>
+<div class="sourceCode" id="cb26"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> SQLiteUnitOfWork(conn, audit_conn<span class="op">=</span>audit_conn) <span class="im">as</span> uow:</span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    uow.time_booking_repo.add(booking)</span>
 <span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    uow.audit_log_repo.add(entry)</span>
 <span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    uow.commit()   <span class="co"># explizit notwendig — __exit__ rollt sonst zurück</span></span></code></pre></div>
@@ -3171,8 +3285,7 @@ Aufruf in UTC zu normalisieren.</p>
 <p>Alle Hardware-Komponenten kommunizieren ausschließlich über das
 <code>HardwareReader</code>-Protocol (PEP 544). Der Rückgabetyp jeder
 Buchungsanforderung ist <code>RawBookingRequest</code>:</p>
-<div class="sourceCode" id="cb27"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="at">@dataclass</span>(frozen<span class="op">=</span><span class="va">True</span>)</span>
+<div class="sourceCode" id="cb27"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="at">@dataclass</span>(frozen<span class="op">=</span><span class="va">True</span>)</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> RawBookingRequest:</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    booking_type: BookingType  <span class="co"># COME | GO | BREAK_START | BREAK_END</span></span>
 <span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    uid_hash: <span class="bu">str</span>              <span class="co"># SHA-256-Hash der Karten-UID</span></span>
@@ -3186,8 +3299,7 @@ mappbare UID. - <code>HardwareTimeoutError</code>: UID-Lesung
 <p>Die Roh-UID des RFID-Lesers (Hex-String oder Dezimalfolge) wird
 <strong>nie direkt gespeichert</strong>. <code>hash_uid(raw_uid)</code>
 berechnet den SHA-256-Hash als Hex-String:</p>
-<div class="sourceCode" id="cb28"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>hashlib.sha256(raw_uid.encode()).hexdigest()</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>hashlib.sha256(raw_uid.encode()).hexdigest()</span></code></pre></div>
 <p>Dieser Hash ist der einzige Bezeichner, der in die Datenbank gelangt
 (<code>rfid_cards.uid_hash</code>). Damit ist die physische Karten-UID
 aus dem Datenbankinhalt nicht rückrechenbar.</p>
@@ -3225,8 +3337,7 @@ Filterlogik).</p>
 <p><code>SimulatedHardwareReader</code> implementiert dasselbe
 <code>HardwareReader</code>-Protocol wie der physische Reader und
 ermöglicht Tests ohne Hardware:</p>
-<div class="sourceCode" id="cb29"><pre
-class="sourceCode python"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>reader <span class="op">=</span> SimulatedHardwareReader()</span>
+<div class="sourceCode" id="cb29"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>reader <span class="op">=</span> SimulatedHardwareReader()</span>
 <span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>reader.inject(BookingType.COME, uid_hash<span class="op">=</span><span class="st">&quot;abc123...&quot;</span>)</span>
 <span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>request <span class="op">=</span> reader.read_next()  <span class="co"># liefert das injizierte Ereignis</span></span></code></pre></div>
 <p>Die interne Queue ist eine <code>deque</code>; <code>pending</code>
@@ -3523,15 +3634,14 @@ Sekunden.</p>
 <p>Beide Clock-Funktionen sind per Dependency-Injection ersetzbar
 (<code>_wall_clock</code>, <code>_mono_clock</code>), was Unit-Tests
 ohne Systemzeit-Manipulation ermöglicht.</p>
-<h4
-id="desktop-benachrichtigung-notification.py">Desktop-Benachrichtigung —
+<h4 id="desktop-benachrichtigung-notification.py">Desktop-Benachrichtigung —
 <code>notification.py</code></h4>
 <p><code>notify(title, body, urgency?)</code> sendet eine
 Desktop-Benachrichtigung via <code>notify-send</code> (Pflichtenheft
 §7.10: Systemzustand muss dem Betreiber sichtbar sein).</p>
 <ul>
-<li>Dringlichkeitsstufen: <code>"low"</code> | <code>"normal"</code> |
-<code>"critical"</code></li>
+<li>Dringlichkeitsstufen: <code>&quot;low&quot;</code> | <code>&quot;normal&quot;</code> |
+<code>&quot;critical&quot;</code></li>
 <li><strong>Fail-Safe:</strong> <code>FileNotFoundError</code>
 (notify-send nicht installiert) und <code>TimeoutExpired</code> werden
 still ignoriert; ein <code>logging.debug</code>-Eintrag wird
@@ -3579,8 +3689,7 @@ Datenbanken über <code>tmp_path</code> (nicht verifizierbar).</p>
 <h2 id="kapitel-7-audit-und-prüfstatus">Kapitel 7: Audit und
 Prüfstatus</h2>
 <p><strong>Quelle:</strong> <code>handbuch_audit.md</code></p>
-<h3
-id="code-audit-run_audit.sh-und-scriptsgenerate_audit_notes.py">Code-Audit
+<h3 id="code-audit-run_audit.sh-und-scriptsgenerate_audit_notes.py">Code-Audit
 (<code>run_audit.sh</code> und
 <code>scripts/generate_audit_notes.py</code>)</h3>
 <p><code>run_audit.sh</code> ist ein ausführbares Shell-Skript im
@@ -3642,8 +3751,7 @@ Rohausgaben in ein datumsbezogenes Unterverzeichnis
 </tbody>
 </table>
 <p>Aufruf:</p>
-<div class="sourceCode" id="cb33"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> run_audit.sh</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> run_audit.sh</span></code></pre></div>
 <p>Das Skript verwendet <code>set -uo pipefail</code> und bewusst
 <strong>nicht</strong> <code>set -e</code>: Ein Kommentar im Skript
 begründet dies damit, dass die Analyse-Tools bei Befunden mit Exit-Code
@@ -3655,8 +3763,7 @@ jeweils mit <code>|| true</code> abgesichert; lediglich die beiden
 <p>Am Ende jedes Laufs ruft <code>run_audit.sh</code> automatisch
 <code>scripts/generate_audit_notes.py</code> auf, das die Rohdaten
 einliest und eine versionierte Markdown-Zusammenfassung erzeugt:</p>
-<div class="sourceCode" id="cb34"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/generate_audit_notes.py <span class="dt">\</span></span>
+<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/generate_audit_notes.py <span class="dt">\</span></span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>    <span class="at">--report-dir</span> docs/audits/reports/<span class="op">&lt;</span>DATUM<span class="op">&gt;</span> <span class="dt">\</span></span>
 <span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">--output</span> docs/audits/reports/audit-notes-<span class="op">&lt;</span>DATUM<span class="op">&gt;</span>.md</span></code></pre></div>
 <p><code>scripts/generate_audit_notes.py</code> (596 Zeilen) unterstützt
@@ -3688,7 +3795,7 @@ folgende Parameter:</p>
 </tbody>
 </table>
 <p>Jeder Parser des Skripts liefert bei fehlender Quelldatei
-<code>{"available": False}</code> zurück, statt Werte zu schätzen oder
+<code>{&quot;available&quot;: False}</code> zurück, statt Werte zu schätzen oder
 zu erfinden. Der erzeugte Bericht ist in folgender fester
 Abschnittsreihenfolge aufgebaut:</p>
 <ol type="1">
@@ -3747,12 +3854,12 @@ nicht als Pflichtabhängigkeiten geführt sind. Dort sind nur
 <code>pyproject.toml</code> hinterlegt:</p>
 <ul>
 <li><code>[tool.ruff]</code>: <code>line-length = 100</code>,
-<code>target-version = "py314"</code>,
-<code>[tool.ruff.lint] select = ["E", "F", "W", "I", "B"]</code>,
+<code>target-version = &quot;py314&quot;</code>,
+<code>[tool.ruff.lint] select = [&quot;E&quot;, &quot;F&quot;, &quot;W&quot;, &quot;I&quot;, &quot;B&quot;]</code>,
 <code>ignore = []</code>; ausgeschlossen sind <code>.git</code>,
 <code>.venv</code>, <code>__pycache__</code> und
 <code>docs/audits/reports</code>.</li>
-<li><code>[tool.mypy]</code>: <code>python_version = "3.14"</code>,
+<li><code>[tool.mypy]</code>: <code>python_version = &quot;3.14&quot;</code>,
 <code>strict = true</code>,
 <code>disallow_incomplete_defs = true</code>,
 <code>disallow_untyped_defs = true</code>,
@@ -3776,7 +3883,7 @@ eines abgeschlossenen Laufs vom 16.06.2026
 <code>import-linter.txt</code>, <code>bandit-report.json</code>,
 <code>coverage.xml</code>, <code>pytest.txt</code>) – dieser Pfad
 entspricht weiterhin dem in <code>run_audit.sh</code> fest codierten
-<code>BASE_DIR="docs/audits/reports"</code>.
+<code>BASE_DIR=&quot;docs/audits/reports&quot;</code>.
 <code>docs/08_planung_intern/audits/</code> enthält demgegenüber ältere,
 manuell erstellte Audit-Berichte
 (<code>audit_arbeitszeit_v1_*.md</code>) sowie eine bereits gerenderte

@@ -6,7 +6,7 @@
 
 Dieses Dokument listet alle verfügbaren Befehle mit vollständiger Syntax,
 Argumenten, Rollenanforderungen und Ausgaben. Architekturhintergründe finden
-sich im `handbuch_arbeitszeit.md`.
+sich im `handbuch.md`.
 
 ---
 

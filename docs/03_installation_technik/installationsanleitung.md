@@ -565,6 +565,6 @@ verantwortlichen Person erfolgen.
 ## Wo finde ich weitere Informationen?
 
 Nach erfolgreicher Installation liefert das ausführliche
-`handbuch_arbeitszeit.md` (bzw. dessen HTML-Version) eine vollständige
+`handbuch.md` (bzw. dessen HTML-Version) eine vollständige
 Beschreibung aller Bedienfunktionen, insbesondere der Admin-CLI-Befehle
 für Mitarbeiterverwaltung, Berichte, Systemprüfung und Backups.

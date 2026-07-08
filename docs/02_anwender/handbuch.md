@@ -92,8 +92,8 @@ arbeitszeit/
 ├── CONTRIBUTING.md
 ├── run_audit.sh
 ├── test_booking_loop.py
-├── installationsanleitung_arbeitszeit.md
-├── handbuch_arbeitszeit.md
+├── installationsanleitung.md
+├── handbuch.md
 ├── migrations/
 ├── scripts/
 ├── docs/
