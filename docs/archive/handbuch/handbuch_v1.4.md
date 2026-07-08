@@ -1,6 +1,6 @@
 # Handbuch `arbeitszeit`
 
-**Version:** 1.5
+**Version:** 1.4
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -289,7 +289,7 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --last-name Mustermann
 ```
 
-RFID-Karte zuweisen (direkt einlesen):
+RFID-Karte zuweisen:
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -297,12 +297,8 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --user-id 1 \
   cards assign \
   --employee-id 1 \
-  --scan \
-  --rfid "HID 1234:5678"
+  --uid-hash <HASH>
 ```
-
-Alternativ mit vorab berechnetem Hash: `--uid-hash <HASH>` statt
-`--scan --rfid "..."` (siehe Befehlsreferenz).
 
 ### Funktionstest
 
@@ -456,7 +452,7 @@ Rolleneinschränkung nutzbar.
 
 | Befehl | Beschreibung | Rolle |
 | --- | --- | --- |
-| `cards assign --employee-id … --scan --rfid …` | Neue RFID-Karte zuweisen (direkt scannen oder mit `--uid-hash …`) | `ADMIN` |
+| `cards assign --employee-id … --uid-hash …` | Neue RFID-Karte einem Mitarbeiter zuweisen | `ADMIN` |
 | `cards replace --old-card-id … --uid-hash …` | Verlorene/defekte Karte ersetzen (alte Karte erhält Status `REPLACED`) | `ADMIN` |
 | `cards deactivate <id>` | Karte auf Status `INACTIVE` setzen | `ADMIN` |
 

@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Installationsanleitung arbeitszeit</title>
+  <title>installationsanleitung</title>
   <style>
 
 code{white-space: pre-wrap;}
@@ -228,12 +228,9 @@ a { color: #111; }
 </style>
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">Installationsanleitung arbeitszeit</h1>
-</header>
 <h1 id="installationsanleitung-arbeitszeit">Installationsanleitung
 <code>arbeitszeit</code></h1>
-<p><strong>Version:</strong> 1.2 <strong>Stand:</strong> Juli 2026
+<p><strong>Version:</strong> 1.3 <strong>Stand:</strong> Juli 2026
 <strong>Zielgruppe:</strong> Laien ohne Linux- oder Programmiererfahrung
 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine
 Zahnarztpraxis</p>
@@ -508,10 +505,11 @@ Pfad (<code>/dev/input/event...</code>). Beispiel:</p>
 <li>Numpad: <code>USB Numpad</code></li>
 <li>RFID-Reader: <code>HID 1234:5678</code></li>
 </ul>
-<p>Diese Namen verwendest du in Schritt 13, wenn du die Terminal-UI
-startest. Notiere außerdem den <strong>Pfad</strong>
-(<code>/dev/input/event...</code>): er wird in Schritt 11 für das
-Hardware-Testscript benötigt.</p>
+<p>Diese Namen verwendest du in Schritt 11 (Kartenzuweisung) und in
+Schritt 13 (Terminal-UI-Start). Notiere außerdem den
+<strong>Pfad</strong> (<code>/dev/input/event...</code>) für den Fall,
+dass du den Hash mit dem Hardware-Testscript ermittelst (optionale
+Methode in Schritt 11).</p>
 <p>Damit dein Benutzerkonto diese Geräte lesen darf, muss es zur Gruppe
 <code>input</code> hinzugefügt werden:</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> usermod <span class="at">-aG</span> input <span class="va">$USER</span></span></code></pre></div>
@@ -570,36 +568,35 @@ und jeden Mitarbeiter einzeln wiederholt werden.</p>
 <span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> 1 <span class="dt">\</span></span>
 <span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  cards assign <span class="dt">\</span></span>
 <span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> 1 <span class="dt">\</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>HASH<span class="op">&gt;</span></span></code></pre></div>
-<p>Den benötigten <code>&lt;HASH&gt;</code>-Wert für eine bestimmte
-Karte ermittelst du mit dem Hardware-Testscript. Stelle sicher, dass die
-virtuelle Umgebung aktiv ist (<code>(.venv)</code> im Prompt), und führe
-aus:</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/verify_hardware.py <span class="dt">\</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> /dev/input/eventX <span class="dt">\</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> /dev/input/eventY</span></code></pre></div>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--scan</span> <span class="dt">\</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;HID 1234:5678&quot;</span></span></code></pre></div>
+<p>Ersetze <code>&quot;HID 1234:5678&quot;</code> durch den in Schritt 9 notierten
+<strong>Gerätenamen</strong> des RFID-Readers (den Text nach dem
+Doppelpunkt, nicht den Pfad). Der Befehl wartet mit der Meldung:</p>
+<pre class="text"><code>Bitte Karte an den RFID-Reader halten …</code></pre>
+<p>Halte die RFID-Karte an den Leser. Das System liest die UID
+automatisch ein. Bei Erfolg erscheint:</p>
+<pre class="text"><code>Karte zugewiesen (ID 1).</code></pre>
+<p><strong>Wenn kein direktes Einlesen möglich ist</strong> (z. B. der
+RFID-Reader ist gerade nicht angeschlossen), kann der Hash auch mit dem
+Hardware-Testscript ermittelt werden. Stelle sicher, dass die virtuelle
+Umgebung aktiv ist (<code>(.venv)</code> im Prompt), und führe aus:</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/verify_hardware.py <span class="dt">\</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> /dev/input/eventX <span class="dt">\</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> /dev/input/eventY</span></code></pre></div>
 <p>(<code>eventX</code> und <code>eventY</code> durch die in Schritt 9
-notierten Gerätepfade ersetzen. Werden <strong>beide</strong>
-Gerätepfade angegeben, müssen auch beide Argumente gesetzt sein — das
-Script bricht ab, wenn nur eines angegeben wird. Werden
-<strong>keine</strong> Gerätepfade angegeben, startet stattdessen eine
-interaktive Geräteauswahl.)</p>
-<p>Das Script durchläuft drei Stufen:</p>
-<ol type="1">
-<li>Gerätezugriff prüfen</li>
-<li>Numpad-Test: Drücke eine der Tasten 1–4 auf dem Numpad.</li>
-<li>RFID-Test: Halte die Karte an den RFID-Leser.</li>
-</ol>
-<p>Nach dem Karten-Scan zeigt das Script unter anderem:</p>
+notierten Gerätepfade ersetzen.)</p>
+<p>Das Script gibt am Ende u. a. den SHA-256-Hash der gescannten Karte
+aus:</p>
 <pre class="text"><code>SHA-256-Hash:    abc123def456…  (wie in DB gespeichert)</code></pre>
-<p>Kopiere diesen Hash-Wert und setze ihn als <code>&lt;HASH&gt;</code>
-im obigen <code>cards assign</code>-Befehl ein.</p>
+<p>Diesen Hash-Wert dann mit <code>--uid-hash &lt;HASH&gt;</code> statt
+<code>--scan --rfid …</code> übergeben.</p>
 <h2 id="schritt-12-funktionstest-durchführen">Schritt 12: Funktionstest
 durchführen</h2>
 <p>Um sicherzugehen, dass die Installation vollständig und korrekt
 abgeschlossen ist, kannst du die automatisierten Tests des Projekts
 ausführen:</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span></span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span></span></code></pre></div>
 <p><strong>Woran erkennst du Erfolg?</strong> Am Ende der Ausgabe steht
 eine Zusammenfassung wie <code>X passed</code> (grün dargestellt). Steht
 dort stattdessen <code>failed</code> (rot), ist etwas bei der
@@ -607,17 +604,17 @@ Installation schiefgelaufen — wende dich in diesem Fall an die im
 Abschnitt „Häufige Probleme” beschriebenen Lösungen oder an die
 technisch verantwortliche Person.</p>
 <p>Gezielt nur die Datenbank-Migrationen testen:</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> tests/test_migrations.py</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> tests/test_migrations.py</span></code></pre></div>
 <h2 id="schritt-13-terminal-betrieb-starten">Schritt 13:
 Terminal-Betrieb starten</h2>
 <p>Für den täglichen Buchungsbetrieb wird ein eigener Prozess gestartet,
 der dauerhaft im Hintergrund läuft und auf Numpad- und RFID-Eingaben
 wartet:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> <span class="st">&quot;USB Numpad&quot;</span> <span class="dt">\</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;HID 1234:5678&quot;</span> <span class="dt">\</span></span>
-<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--terminal-id</span> 1</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> <span class="st">&quot;USB Numpad&quot;</span> <span class="dt">\</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;HID 1234:5678&quot;</span> <span class="dt">\</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--terminal-id</span> 1</span></code></pre></div>
 <p>Ersetze <code>&quot;USB Numpad&quot;</code> und <code>&quot;HID 1234:5678&quot;</code>
 durch die in Schritt 9 notierten Gerätenamen für Numpad und RFID-Reader.
 Das System sucht beim Start den passenden Gerätepfad automatisch — der

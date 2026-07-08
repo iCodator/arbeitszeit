@@ -1,6 +1,6 @@
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.3
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
@@ -365,10 +365,9 @@ Doppelpunkt) — nicht den Pfad (`/dev/input/event...`). Beispiel:
 - Numpad: `USB Numpad`
 - RFID-Reader: `HID 1234:5678`
 
-Diese Namen verwendest du in Schritt 11 (Kartenzuweisung) und in
-Schritt 13 (Terminal-UI-Start). Notiere außerdem den **Pfad**
-(`/dev/input/event...`) für den Fall, dass du den Hash mit dem
-Hardware-Testscript ermittelst (optionale Methode in Schritt 11).
+Diese Namen verwendest du in Schritt 13, wenn du die Terminal-UI
+startest. Notiere außerdem den **Pfad** (`/dev/input/event...`): er wird
+in Schritt 11 für das Hardware-Testscript benötigt.
 
 Damit dein Benutzerkonto diese Geräte lesen darf, muss es zur Gruppe
 `input` hinzugefügt werden:
@@ -448,29 +447,12 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --user-id 1 \
   cards assign \
   --employee-id 1 \
-  --scan \
-  --rfid "HID 1234:5678"
+  --uid-hash <HASH>
 ```
 
-Ersetze `"HID 1234:5678"` durch den in Schritt 9 notierten **Gerätenamen**
-des RFID-Readers (den Text nach dem Doppelpunkt, nicht den Pfad). Der
-Befehl wartet mit der Meldung:
-
-```text
-Bitte Karte an den RFID-Reader halten …
-```
-
-Halte die RFID-Karte an den Leser. Das System liest die UID automatisch
-ein. Bei Erfolg erscheint:
-
-```text
-Karte zugewiesen (ID 1).
-```
-
-**Wenn kein direktes Einlesen möglich ist** (z. B. der RFID-Reader ist
-gerade nicht angeschlossen), kann der Hash auch mit dem
-Hardware-Testscript ermittelt werden. Stelle sicher, dass die virtuelle
-Umgebung aktiv ist (`(.venv)` im Prompt), und führe aus:
+Den benötigten `<HASH>`-Wert für eine bestimmte Karte ermittelst du mit
+dem Hardware-Testscript. Stelle sicher, dass die virtuelle Umgebung aktiv
+ist (`(.venv)` im Prompt), und führe aus:
 
 ```bash
 python scripts/verify_hardware.py \
@@ -479,16 +461,25 @@ python scripts/verify_hardware.py \
 ```
 
 (`eventX` und `eventY` durch die in Schritt 9 notierten Gerätepfade
-ersetzen.)
+ersetzen. Werden **beide** Gerätepfade angegeben, müssen auch beide
+Argumente gesetzt sein — das Script bricht ab, wenn nur eines angegeben
+wird. Werden **keine** Gerätepfade angegeben, startet stattdessen eine
+interaktive Geräteauswahl.)
 
-Das Script gibt am Ende u. a. den SHA-256-Hash der gescannten Karte aus:
+Das Script durchläuft drei Stufen:
+
+1. Gerätezugriff prüfen
+2. Numpad-Test: Drücke eine der Tasten 1–4 auf dem Numpad.
+3. RFID-Test: Halte die Karte an den RFID-Leser.
+
+Nach dem Karten-Scan zeigt das Script unter anderem:
 
 ```text
 SHA-256-Hash:    abc123def456…  (wie in DB gespeichert)
 ```
 
-Diesen Hash-Wert dann mit `--uid-hash <HASH>` statt `--scan --rfid …`
-übergeben.
+Kopiere diesen Hash-Wert und setze ihn als `<HASH>` im obigen
+`cards assign`-Befehl ein.
 
 ## Schritt 12: Funktionstest durchführen
 

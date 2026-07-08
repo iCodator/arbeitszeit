@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Handbuch arbeitszeit</title>
+  <title>handbuch</title>
   <style>
 
 code{white-space: pre-wrap;}
@@ -228,11 +228,8 @@ a { color: #111; }
 </style>
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">Handbuch arbeitszeit</h1>
-</header>
 <h1 id="handbuch-arbeitszeit">Handbuch <code>arbeitszeit</code></h1>
-<p><strong>Version:</strong> 1.4 <strong>Stand:</strong> Juli 2026
+<p><strong>Version:</strong> 1.5 <strong>Stand:</strong> Juli 2026
 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine
 Zahnarztpraxis</p>
 <p>Dieses Handbuch fasst alle sieben Kapiteldateien des Projekts
@@ -530,13 +527,17 @@ Migration 0006 angewendet.
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--personnel-no</span> M001 <span class="dt">\</span></span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--first-name</span> Maria <span class="dt">\</span></span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--last-name</span> Mustermann</span></code></pre></div>
-<p>RFID-Karte zuweisen:</p>
+<p>RFID-Karte zuweisen (direkt einlesen):</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.admin_cli.main <span class="dt">\</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> arbeitszeit.db <span class="dt">\</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> 1 <span class="dt">\</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  cards assign <span class="dt">\</span></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> 1 <span class="dt">\</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>HASH<span class="op">&gt;</span></span></code></pre></div>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">--scan</span> <span class="dt">\</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;HID 1234:5678&quot;</span></span></code></pre></div>
+<p>Alternativ mit vorab berechnetem Hash:
+<code>--uid-hash &lt;HASH&gt;</code> statt
+<code>--scan --rfid &quot;...&quot;</code> (siehe Befehlsreferenz).</p>
 <h3 id="funktionstest">Funktionstest</h3>
 <div class="sourceCode" id="cb16"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">pytest</span> tests/test_migrations.py</span>
@@ -768,8 +769,9 @@ drei Rollen:</p>
 </thead>
 <tbody>
 <tr>
-<td><code>cards assign --employee-id … --uid-hash …</code></td>
-<td>Neue RFID-Karte einem Mitarbeiter zuweisen</td>
+<td><code>cards assign --employee-id … --scan --rfid …</code></td>
+<td>Neue RFID-Karte zuweisen (direkt scannen oder mit
+<code>--uid-hash …</code>)</td>
 <td><code>ADMIN</code></td>
 </tr>
 <tr>

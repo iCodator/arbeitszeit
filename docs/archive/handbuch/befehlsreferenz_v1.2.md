@@ -1,6 +1,6 @@
 # Befehlsreferenz `arbeitszeit`
 
-**Version:** 1.3  
+**Version:** 1.2  
 **Stand:** Juli 2026  
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -167,21 +167,7 @@ RFID-Kartenverwaltung. Alle Schreibzugriffe erfordern `ADMIN`-Rolle.
 
 #### `cards assign`
 
-Weist einem Mitarbeiter eine neue RFID-Karte zu. Die UID kann direkt
-vom RFID-Reader eingelesen (`--scan --rfid`) oder als vorab berechneter
-Hash übergeben werden (`--uid-hash`). Beide Optionen schließen sich
-gegenseitig aus.
-
-**Methode 1 – Direkt scannen (empfohlen):**
-
-```bash
-admin --db <PFAD> --user-id <ID> cards assign \
-  --employee-id <MITARBEITER-ID> \
-  --scan \
-  --rfid "HID 1234:5678"
-```
-
-**Methode 2 – Hash manuell angeben:**
+Weist einem Mitarbeiter eine neue RFID-Karte zu.
 
 ```bash
 admin --db <PFAD> --user-id <ID> cards assign \
@@ -192,17 +178,11 @@ admin --db <PFAD> --user-id <ID> cards assign \
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
 | `--employee-id` | int | ja | ID des zugehörigen Mitarbeiters |
-| `--scan` | flag | nein¹ | UID direkt vom RFID-Reader einlesen (15 s Timeout) |
-| `--rfid` | string | nein¹ | Gerätename oder -pfad des RFID-Readers (für `--scan`) |
-| `--uid-hash` | string | nein¹ | SHA-256-Hash der Karten-UID (siehe `scripts/verify_hardware.py`) |
-
-¹ Entweder `--uid-hash` oder `--scan` (zusammen mit `--rfid`) muss
-angegeben werden.
+| `--uid-hash` | string | ja | SHA-256-Hash der Karten-UID (siehe `scripts/verify_hardware.py`) |
 
 **Rolle:** ADMIN  
 **Ausgabe:** `Karte zugewiesen (ID 5).`  
-**Fehler:** UID-Hash bereits vergeben, Mitarbeiter nicht gefunden,
-RFID-Scan-Timeout, Gerät nicht gefunden → Exit 1
+**Fehler:** UID-Hash bereits vergeben, Mitarbeiter nicht gefunden → Exit 1
 
 ---
 
@@ -1019,8 +999,8 @@ NAS-Sync: /mnt/nas/backups/arbeitszeit | deaktiviert
 ### `scripts/verify_hardware.py`
 
 Interaktiver Hardware-Smoke-Test für Numpad und RFID-Leser. Gibt den
-SHA-256-Hash einer gescannten Karte aus — nützlich zur Diagnose und als
-Alternative zu `cards assign --scan --rfid`.
+SHA-256-Hash einer gescannten Karte aus — dieser Hash wird für
+`cards assign --uid-hash` benötigt.
 
 ```bash
 python scripts/verify_hardware.py \
@@ -1041,9 +1021,8 @@ python scripts/verify_hardware.py \
 **Exit-Codes:** `0` = alle Tests bestanden, `1` = mindestens ein Test fehlgeschlagen,
 `2` = evdev nicht installiert
 
-**Hinweis:** Der angezeigte SHA-256-Hash (`wie in DB gespeichert`) entspricht
-dem Wert für `cards assign --uid-hash`. Die einfachere Alternative ist
-`cards assign --scan --rfid`, die die UID direkt einliest.
+**Wichtig:** Der angezeigte SHA-256-Hash (`wie in DB gespeichert`) ist der Wert,
+der bei `cards assign --uid-hash` angegeben werden muss.
 
 ---
 

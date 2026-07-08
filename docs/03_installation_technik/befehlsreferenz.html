@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>Befehlsreferenz arbeitszeit</title>
+  <title>befehlsreferenz</title>
   <style>
 
 code{white-space: pre-wrap;}
@@ -228,12 +228,9 @@ a { color: #111; }
 </style>
 </head>
 <body>
-<header id="title-block-header">
-<h1 class="title">Befehlsreferenz arbeitszeit</h1>
-</header>
 <h1 id="befehlsreferenz-arbeitszeit">Befehlsreferenz
 <code>arbeitszeit</code></h1>
-<p><strong>Version:</strong> 1.2<br />
+<p><strong>Version:</strong> 1.3<br />
 <strong>Stand:</strong> Juli 2026<br />
 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine
 Zahnarztpraxis</p>
@@ -489,10 +486,19 @@ Anwendungsschicht.</p>
 <code>ADMIN</code>-Rolle.</p>
 <hr />
 <h4 id="cards-assign"><code>cards assign</code></h4>
-<p>Weist einem Mitarbeiter eine neue RFID-Karte zu.</p>
+<p>Weist einem Mitarbeiter eine neue RFID-Karte zu. Die UID kann direkt
+vom RFID-Reader eingelesen (<code>--scan --rfid</code>) oder als vorab
+berechneter Hash übergeben werden (<code>--uid-hash</code>). Beide
+Optionen schließen sich gegenseitig aus.</p>
+<p><strong>Methode 1 – Direkt scannen (empfohlen):</strong></p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards assign <span class="dt">\</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>HASH<span class="op">&gt;</span></span></code></pre></div>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--scan</span> <span class="dt">\</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;HID 1234:5678&quot;</span></span></code></pre></div>
+<p><strong>Methode 2 – Hash manuell angeben:</strong></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards assign <span class="dt">\</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>HASH<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -516,25 +522,40 @@ Anwendungsschicht.</p>
 <td>ID des zugehörigen Mitarbeiters</td>
 </tr>
 <tr>
+<td><code>--scan</code></td>
+<td>flag</td>
+<td>nein¹</td>
+<td>UID direkt vom RFID-Reader einlesen (15 s Timeout)</td>
+</tr>
+<tr>
+<td><code>--rfid</code></td>
+<td>string</td>
+<td>nein¹</td>
+<td>Gerätename oder -pfad des RFID-Readers (für
+<code>--scan</code>)</td>
+</tr>
+<tr>
 <td><code>--uid-hash</code></td>
 <td>string</td>
-<td>ja</td>
+<td>nein¹</td>
 <td>SHA-256-Hash der Karten-UID (siehe
 <code>scripts/verify_hardware.py</code>)</td>
 </tr>
 </tbody>
 </table>
+<p>¹ Entweder <code>--uid-hash</code> oder <code>--scan</code> (zusammen
+mit <code>--rfid</code>) muss angegeben werden.</p>
 <p><strong>Rolle:</strong> ADMIN<br />
 <strong>Ausgabe:</strong> <code>Karte zugewiesen (ID 5).</code><br />
 <strong>Fehler:</strong> UID-Hash bereits vergeben, Mitarbeiter nicht
-gefunden → Exit 1</p>
+gefunden, RFID-Scan-Timeout, Gerät nicht gefunden → Exit 1</p>
 <hr />
 <h4 id="cards-replace"><code>cards replace</code></h4>
 <p>Ersetzt eine verlorene oder defekte Karte durch eine neue. Die alte
 Karte erhält den Status <code>REPLACED</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards replace <span class="dt">\</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--old-card-id</span> <span class="op">&lt;</span>ALTE-KARTEN-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>NEUER-HASH<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards replace <span class="dt">\</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--old-card-id</span> <span class="op">&lt;</span>ALTE-KARTEN-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>NEUER-HASH<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -567,7 +588,7 @@ bereits vergeben → Exit 1</p>
 <hr />
 <h4 id="cards-deactivate"><code>cards deactivate</code></h4>
 <p>Deaktiviert eine RFID-Karte (Status → <code>INACTIVE</code>).</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards deactivate <span class="op">&lt;</span>KARTEN-ID<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards deactivate <span class="op">&lt;</span>KARTEN-ID<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -596,11 +617,11 @@ in der Anwendungsschicht.</p>
 <hr />
 <h4 id="bookings-correct"><code>bookings correct</code></h4>
 <p>Korrigiert eine bestehende Buchung (ändert Typ oder Zeitstempel).</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings correct <span class="dt">\</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--booking-id</span> <span class="op">&lt;</span>BUCHUNGS-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type</span> <span class="op">&lt;</span>BUCHUNGSTYP<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--at</span> <span class="op">&lt;</span>ISO-DATETIME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings correct <span class="dt">\</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--booking-id</span> <span class="op">&lt;</span>BUCHUNGS-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type</span> <span class="op">&lt;</span>BUCHUNGSTYP<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--at</span> <span class="op">&lt;</span>ISO-DATETIME<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -653,12 +674,12 @@ Buchung nicht gefunden → Exit 1</p>
 <h4 id="bookings-supplement"><code>bookings supplement</code></h4>
 <p>Erfasst eine nachträgliche Buchung (Nachtrag). Erzeugt automatisch
 einen Prüffall.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings supplement <span class="dt">\</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type</span> <span class="op">&lt;</span>BUCHUNGSTYP<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--at</span> <span class="op">&lt;</span>ISO-DATETIME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  [--related-booking-id <span class="op">&lt;</span>BUCHUNGS-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings supplement <span class="dt">\</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type</span> <span class="op">&lt;</span>BUCHUNGSTYP<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--at</span> <span class="op">&lt;</span>ISO-DATETIME<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  [--related-booking-id <span class="op">&lt;</span>BUCHUNGS-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -709,8 +730,8 @@ gefunden → Exit 1</p>
 <hr />
 <h4 id="bookings-approve-supplement"><code>bookings approve-supplement</code></h4>
 <p>Genehmigt einen Nachtrag. Erstellt eine wirksame Buchung.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings approve-supplement <span class="dt">\</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--supplement-id</span> <span class="op">&lt;</span>NACHTRAGS-ID<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings approve-supplement <span class="dt">\</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--supplement-id</span> <span class="op">&lt;</span>NACHTRAGS-ID<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -737,9 +758,9 @@ Exit 1</p>
 <hr />
 <h4 id="bookings-reject-supplement"><code>bookings reject-supplement</code></h4>
 <p>Lehnt einen Nachtrag ab.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings reject-supplement <span class="dt">\</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--supplement-id</span> <span class="op">&lt;</span>NACHTRAGS-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings reject-supplement <span class="dt">\</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--supplement-id</span> <span class="op">&lt;</span>NACHTRAGS-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -776,12 +797,12 @@ Exit 1</p>
 <p>Setzt die Regelarbeitszeit für einen Wochentag — global (alle
 Mitarbeiter) oder mitarbeiterspezifisch. Jede Änderung erzeugt eine neue
 Version und schließt die Vorgängerversion.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> schedule set <span class="dt">\</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--weekday</span> <span class="op">&lt;</span>1-7<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--start</span> <span class="op">&lt;</span>HH:MM<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--end</span> <span class="op">&lt;</span>HH:MM<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> schedule set <span class="dt">\</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--weekday</span> <span class="op">&lt;</span>1-7<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--start</span> <span class="op">&lt;</span>HH:MM<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--end</span> <span class="op">&lt;</span>HH:MM<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -842,7 +863,7 @@ Exit 1</p>
 <hr />
 <h4 id="schedule-show"><code>schedule show</code></h4>
 <p>Zeigt alle aktiven Regelarbeitszeitversionen.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> schedule show</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> schedule show</span></code></pre></div>
 <p><strong>Rolle:</strong> ADMIN, REVIEWER (Prüfung in CLI via
 <code>require_admin_or_reviewer</code>)<br />
 <strong>Ausgabe:</strong></p>
@@ -869,10 +890,10 @@ Exportverzeichnis wird aus <code>system_config</code> (Schlüssel
 <hr />
 <h4 id="reports-export-csv"><code>reports export-csv</code></h4>
 <p>Exportiert Detailbuchungen und verdichtete Übersicht als CSV.</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-csv <span class="dt">\</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-csv <span class="dt">\</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -910,10 +931,10 @@ Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_202
 <h4 id="reports-export-csv-review-cases"><code>reports export-csv-review-cases</code></h4>
 <p>Exportiert offene Prüffälle im Zeitraum als CSV (Pflichtenheft
 §7.13).</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-csv-review-cases <span class="dt">\</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-csv-review-cases <span class="dt">\</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -949,8 +970,8 @@ Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_202
 <hr />
 <h4 id="reports-export-pdf-day"><code>reports export-pdf-day</code></h4>
 <p>Erstellt einen Tagesbericht als PDF.</p>
-<div class="sourceCode" id="cb23"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-day <span class="dt">\</span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--date</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-day <span class="dt">\</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--date</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -974,9 +995,9 @@ Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_202
 <hr />
 <h4 id="reports-export-pdf-week"><code>reports export-pdf-week</code></h4>
 <p>Erstellt einen Wochenbericht (ISO-Woche) als PDF.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-week <span class="dt">\</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--year</span> <span class="op">&lt;</span>YYYY<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--week</span> <span class="op">&lt;</span>1-53<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-week <span class="dt">\</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--year</span> <span class="op">&lt;</span>YYYY<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--week</span> <span class="op">&lt;</span>1-53<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1006,9 +1027,9 @@ Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_202
 <hr />
 <h4 id="reports-export-pdf-month"><code>reports export-pdf-month</code></h4>
 <p>Erstellt einen Monatsbericht als PDF.</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-month <span class="dt">\</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--year</span> <span class="op">&lt;</span>YYYY<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--month</span> <span class="op">&lt;</span>1-12<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-month <span class="dt">\</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--year</span> <span class="op">&lt;</span>YYYY<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--month</span> <span class="op">&lt;</span>1-12<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1039,10 +1060,10 @@ Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_202
 <h4 id="reports-export-pdf-employee"><code>reports export-pdf-employee</code></h4>
 <p>Erstellt einen Mitarbeiterbericht für einen freien Zeitraum als
 PDF.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-employee <span class="dt">\</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-employee <span class="dt">\</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1079,9 +1100,9 @@ PDF.</p>
 <h4 id="reports-open-bookings"><code>reports open-bookings</code></h4>
 <p>Listet alle Buchungen mit Status <code>OPEN</code>, optional im
 Zeitraum gefiltert.</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports open-bookings <span class="dt">\</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  [--from <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> --to <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports open-bookings <span class="dt">\</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  [--from <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> --to <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1126,10 +1147,10 @@ Zeitraumfilter gefunden, erscheint ein Hinweis auf stderr,
 <h4 id="reports-warn-cases"><code>reports warn-cases</code></h4>
 <p>Listet Buchungen mit Status <code>WARN</code> oder
 <code>NEEDS_REVIEW</code> im Zeitraum.</p>
-<div class="sourceCode" id="cb29"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports warn-cases <span class="dt">\</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports warn-cases <span class="dt">\</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1167,10 +1188,10 @@ Zeitraumfilter gefunden, erscheint ein Hinweis auf stderr,
 <hr />
 <h4 id="reports-corrections"><code>reports corrections</code></h4>
 <p>Listet Buchungskorrekturen im Zeitraum.</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports corrections <span class="dt">\</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports corrections <span class="dt">\</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <p><strong>Ausgabe:</strong></p>
 <pre class="text"><code>Buchungskorrekturen:
 [12] Maria Mustermann (M001): COME @ 2026-07-01T08:00:00Z → COME @ 2026-07-01T08:05:00Z (Grund: Zeitstempel korrigiert)
@@ -1179,10 +1200,10 @@ Zeitraumfilter gefunden, erscheint ein Hinweis auf stderr,
 <hr />
 <h4 id="reports-supplements"><code>reports supplements</code></h4>
 <p>Listet Nachträge (Nachtragsbuchungen) im Zeitraum.</p>
-<div class="sourceCode" id="cb32"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports supplements <span class="dt">\</span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports supplements <span class="dt">\</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <p><strong>Ausgabe:</strong></p>
 <pre class="text"><code>Nachträge:
 [8] Maria Mustermann (M001): GO @ 2026-07-01T17:00:00Z (APPROVED) — Vergessen zu stempeln
@@ -1191,9 +1212,9 @@ Zeitraumfilter gefunden, erscheint ein Hinweis auf stderr,
 <hr />
 <h4 id="reports-open-review-cases"><code>reports open-review-cases</code></h4>
 <p>Listet offene Prüffälle, optional im Zeitraum gefiltert.</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports open-review-cases <span class="dt">\</span></span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  [--from <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> --to <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports open-review-cases <span class="dt">\</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  [--from <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> --to <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1238,7 +1259,7 @@ bei &gt;50 ungefilterten Einträgen.</p>
 <h4 id="system-check"><code>system check</code></h4>
 <p>Führt einen Systemcheck durch und gibt den Status aller Prüfpunkte
 aus.</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> system check</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> system check</span></code></pre></div>
 <p><strong>Rolle:</strong> ADMIN, TECH (Prüfung in CLI via
 <code>require_admin_or_tech</code>)<br />
 <strong>Exit-Code:</strong> <code>0</code> = alles OK, <code>1</code> =
@@ -1257,7 +1278,7 @@ mindestens ein Check fehlgeschlagen<br />
 <h4 id="system-backup"><code>system backup</code></h4>
 <p>Erstellt manuell ein Datenbank-Backup und synchronisiert optional auf
 den NAS.</p>
-<div class="sourceCode" id="cb38"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> system backup</span></code></pre></div>
+<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> system backup</span></code></pre></div>
 <p><strong>Rolle:</strong> ADMIN, TECH (Prüfung in CLI via
 <code>require_admin_or_tech</code>)<br />
 <strong>Ausgabe (Erfolg, NAS aktiv):</strong></p>
@@ -1278,9 +1299,9 @@ nach der einmaligen Anzeige nirgends gespeichert.</p>
 <h4 id="users-bootstrap"><code>users bootstrap</code></h4>
 <p>Legt das erste Administratorkonto an. Schlägt fehl, wenn bereits ein
 aktives Administratorkonto existiert.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> users bootstrap <span class="dt">\</span></span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> <span class="op">&lt;</span>BENUTZERNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>  [--password <span class="op">&lt;</span>PASSWORT<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> users bootstrap <span class="dt">\</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> <span class="op">&lt;</span>BENUTZERNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  [--password <span class="op">&lt;</span>PASSWORT<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -1321,11 +1342,11 @@ bereits vergeben → Exit 1</p>
 <hr />
 <h4 id="users-add"><code>users add</code></h4>
 <p>Legt ein neues Benutzerkonto an.</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users add <span class="dt">\</span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> <span class="op">&lt;</span>BENUTZERNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> <span class="op">&lt;</span>ROLLE<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>  [--password <span class="op">&lt;</span>PASSWORT<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users add <span class="dt">\</span></span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> <span class="op">&lt;</span>BENUTZERNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> <span class="op">&lt;</span>ROLLE<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  [--password <span class="op">&lt;</span>PASSWORT<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -1376,7 +1397,7 @@ Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w</code></pre>
 <hr />
 <h4 id="users-list"><code>users list</code></h4>
 <p>Listet alle Benutzerkonten (ADMIN, REVIEWER, TECH) auf.</p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> users list</span></code></pre></div>
+<div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> users list</span></code></pre></div>
 <p><strong>Rolle:</strong> keine<br />
 <strong>Ausgabe:</strong></p>
 <pre class="text"><code>  ID  Benutzername          Rolle       Status
@@ -1388,8 +1409,8 @@ Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w</code></pre>
 <hr />
 <h4 id="users-deactivate"><code>users deactivate</code></h4>
 <p>Deaktiviert ein Benutzerkonto.</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users deactivate <span class="dt">\</span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users deactivate <span class="dt">\</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1415,8 +1436,8 @@ Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w</code></pre>
 <hr />
 <h4 id="users-reactivate"><code>users reactivate</code></h4>
 <p>Reaktiviert ein deaktiviertes Benutzerkonto.</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users reactivate <span class="dt">\</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users reactivate <span class="dt">\</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1442,9 +1463,9 @@ Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w</code></pre>
 <hr />
 <h4 id="users-change-role"><code>users change-role</code></h4>
 <p>Ändert die Rolle eines Benutzerkontos.</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users change-role <span class="dt">\</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> <span class="op">&lt;</span>NEUE-ROLLE<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users change-role <span class="dt">\</span></span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> <span class="op">&lt;</span>NEUE-ROLLE<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1478,11 +1499,11 @@ Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w</code></pre>
 <p>Die Terminal-UI läuft dauerhaft am Buchungsgerät und verarbeitet
 RFID-Scans und Numpad-Eingaben.</p>
 <h3 id="aufruf">Aufruf</h3>
-<div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> <span class="op">&lt;</span>DATENBANKPFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> <span class="op">&lt;</span>GERÄTENAME_ODER_PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="op">&lt;</span>GERÄTENAME_ODER_PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--terminal-id</span> <span class="op">&lt;</span>ID<span class="op">&gt;</span></span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> <span class="op">&lt;</span>DATENBANKPFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> <span class="op">&lt;</span>GERÄTENAME_ODER_PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="op">&lt;</span>GERÄTENAME_ODER_PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--terminal-id</span> <span class="op">&lt;</span>ID<span class="op">&gt;</span></span></code></pre></div>
 <table>
 <colgroup>
 <col style="width: 25%" />
@@ -1618,7 +1639,7 @@ RFID-Scans und Numpad-Eingaben.</p>
 <hr />
 <h3 id="scriptsinit_db.py"><code>scripts/init_db.py</code></h3>
 <p>Führt alle ausstehenden Datenbankmigrationen aus.</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/init_db.py [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/init_db.py [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1642,10 +1663,10 @@ nicht ausgeführt wurde.</p>
 <h3 id="scriptssetup.py"><code>scripts/setup.py</code></h3>
 <p>Konfiguriert Backup- und Exportverzeichnis (idempotent — bereits
 gesetzte Werte werden nicht überschrieben).</p>
-<div class="sourceCode" id="cb52"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="dt">\</span></span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  [--backup-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  [--export-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="dt">\</span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  [--backup-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  [--export-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1676,10 +1697,10 @@ gesetzte Werte werden nicht überschrieben).</p>
 <h3 id="scriptsbackup.py"><code>scripts/backup.py</code></h3>
 <p>Erstellt ein lokales Backup und synchronisiert optional auf den
 NAS.</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/backup.py <span class="dt">\</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  [--backup-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  [--export-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/backup.py <span class="dt">\</span></span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  [--backup-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  [--export-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1712,12 +1733,12 @@ NAS-Sync: /mnt/nas/backups/arbeitszeit | deaktiviert</code></pre>
 <hr />
 <h3 id="scriptsverify_hardware.py"><code>scripts/verify_hardware.py</code></h3>
 <p>Interaktiver Hardware-Smoke-Test für Numpad und RFID-Leser. Gibt den
-SHA-256-Hash einer gescannten Karte aus — dieser Hash wird für
-<code>cards assign --uid-hash</code> benötigt.</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/verify_hardware.py <span class="dt">\</span></span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  [--numpad <span class="op">&lt;</span>GERÄTEPFAD<span class="op">&gt;</span> --rfid <span class="op">&lt;</span>GERÄTEPFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">list</span><span class="pp">]</span> <span class="dt">\</span></span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">skip</span><span class="pp">-</span><span class="ss">interactive</span><span class="pp">]</span></span></code></pre></div>
+SHA-256-Hash einer gescannten Karte aus — nützlich zur Diagnose und als
+Alternative zu <code>cards assign --scan --rfid</code>.</p>
+<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/verify_hardware.py <span class="dt">\</span></span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  [--numpad <span class="op">&lt;</span>GERÄTEPFAD<span class="op">&gt;</span> --rfid <span class="op">&lt;</span>GERÄTEPFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">list</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">skip</span><span class="pp">-</span><span class="ss">interactive</span><span class="pp">]</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
@@ -1751,16 +1772,18 @@ weggelassen, startet eine interaktive Geräteauswahl.</p>
 <p><strong>Exit-Codes:</strong> <code>0</code> = alle Tests bestanden,
 <code>1</code> = mindestens ein Test fehlgeschlagen, <code>2</code> =
 evdev nicht installiert</p>
-<p><strong>Wichtig:</strong> Der angezeigte SHA-256-Hash
-(<code>wie in DB gespeichert</code>) ist der Wert, der bei
-<code>cards assign --uid-hash</code> angegeben werden muss.</p>
+<p><strong>Hinweis:</strong> Der angezeigte SHA-256-Hash
+(<code>wie in DB gespeichert</code>) entspricht dem Wert für
+<code>cards assign --uid-hash</code>. Die einfachere Alternative ist
+<code>cards assign --scan --rfid</code>, die die UID direkt
+einliest.</p>
 <hr />
 <h3 id="scriptsshow_config.py"><code>scripts/show_config.py</code></h3>
 <p>Zeigt die aktuellen Systemkonfigurationswerte an.</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/show_config.py <span class="dt">\</span></span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">all</span><span class="pp">-</span><span class="ss">versions</span><span class="pp">]</span> <span class="dt">\</span></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">json</span><span class="pp">]</span></span></code></pre></div>
+<div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/show_config.py <span class="dt">\</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">all</span><span class="pp">-</span><span class="ss">versions</span><span class="pp">]</span> <span class="dt">\</span></span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">json</span><span class="pp">]</span></span></code></pre></div>
 <table>
 <thead>
 <tr>
