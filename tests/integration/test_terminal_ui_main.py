@@ -241,6 +241,7 @@ def test_run_initialisiert_reader_mit_gerätepfaden(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     with (
         patch(f"{_MAIN}.run_system_check", return_value=_ok_system_result()),
+        patch(f"{_MAIN}.resolve_evdev_device", side_effect=lambda x: x),
         patch(f"{_MAIN}.EvdevHardwareReader") as mock_reader_cls,
         patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
     ):

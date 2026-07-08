@@ -33,7 +33,7 @@ import time
 from datetime import datetime, timezone
 from typing import cast
 
-from evdev import InputDevice, categorize, ecodes
+from evdev import InputDevice, categorize, ecodes, list_devices
 from evdev.events import KeyEvent
 
 from arbeitszeit.domain.enums import BookingType
@@ -45,6 +45,10 @@ from .ports import (
     RawBookingRequest,
 )
 from .uid_hash import hash_uid
+
+class DeviceNotFoundError(OSError):
+    """Kein evdev-Gerät mit dem angegebenen Namen gefunden."""
+
 
 # Numpad-Tasten 1–4 (KP-Variante und normale Ziffern) → BookingType
 _NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType] = {
@@ -72,6 +76,25 @@ _RFID_READ_TIMEOUT: float = 5.0
 
 _SHIFT_KEYS = ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT")
 _ENTER_KEYS = ("KEY_ENTER", "KEY_KPENTER")
+
+
+def resolve_evdev_device(name_or_path: str) -> str:
+    """Gibt den /dev/input/eventX-Pfad für ein Gerät zurück.
+
+    Beginnt der Wert mit '/dev/', wird er direkt zurückgegeben (Pfad-Modus).
+    Sonst werden alle evdev-Geräte nach device.name durchsucht.
+    Wirft DeviceNotFoundError wenn kein Gerät mit dem Namen gefunden wird.
+    """
+    if name_or_path.startswith("/dev/"):
+        return name_or_path
+    for path in list_devices():
+        try:
+            dev = InputDevice(path)
+            if dev.name == name_or_path:
+                return path
+        except OSError:
+            continue
+    raise DeviceNotFoundError(f"Evdev-Gerät '{name_or_path}' nicht gefunden.")
 
 
 def map_rfid_key(keycode: str, shift_active: bool) -> str | None:

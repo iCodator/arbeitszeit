@@ -17,7 +17,12 @@ from evdev import ecodes
 
 from arbeitszeit.domain.enums import BookingType
 from arbeitszeit.infrastructure.hardware import HardwareTimeoutError
-from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader, map_rfid_key
+from arbeitszeit.infrastructure.hardware.evdev_reader import (
+    DeviceNotFoundError,
+    EvdevHardwareReader,
+    map_rfid_key,
+    resolve_evdev_device,
+)
 
 # Keystate-Konstanten wie in evdev.events.KeyEvent
 _KEY_DOWN = 1
@@ -239,3 +244,61 @@ class TestReadBookingType:
         reader._numpad.read_loop.return_value = iter([])
         with pytest.raises(OSError):
             reader._read_booking_type()
+
+
+# --- resolve_evdev_device() ---
+
+_EVDEV_READER = "arbeitszeit.infrastructure.hardware.evdev_reader"
+
+
+class TestResolveEvdevDevice:
+    def test_pfad_wird_direkt_zurückgegeben(self) -> None:
+        with patch(f"{_EVDEV_READER}.list_devices") as mock_list:
+            result = resolve_evdev_device("/dev/input/event3")
+        assert result == "/dev/input/event3"
+        mock_list.assert_not_called()
+
+    def test_name_wird_aufgelöst(self) -> None:
+        mock_dev_a = MagicMock()
+        mock_dev_a.name = "Other Device"
+        mock_dev_b = MagicMock()
+        mock_dev_b.name = "USB Numpad"
+
+        def fake_input_device(path: str) -> MagicMock:
+            return mock_dev_a if path == "/dev/input/event0" else mock_dev_b
+
+        with (
+            patch(f"{_EVDEV_READER}.list_devices", return_value=["/dev/input/event0", "/dev/input/event1"]),
+            patch(f"{_EVDEV_READER}.InputDevice", side_effect=fake_input_device),
+        ):
+            result = resolve_evdev_device("USB Numpad")
+        assert result == "/dev/input/event1"
+
+    def test_name_nicht_gefunden_wirft_exception(self) -> None:
+        mock_dev = MagicMock()
+        mock_dev.name = "Other Device"
+        with (
+            patch(f"{_EVDEV_READER}.list_devices", return_value=["/dev/input/event0"]),
+            patch(f"{_EVDEV_READER}.InputDevice", return_value=mock_dev),
+        ):
+            with pytest.raises(DeviceNotFoundError):
+                resolve_evdev_device("Unbekanntes Gerät")
+
+    def test_oserror_beim_öffnen_wird_übersprungen(self) -> None:
+        mock_dev = MagicMock()
+        mock_dev.name = "USB Numpad"
+
+        call_count = [0]
+
+        def fake_input_device(path: str) -> MagicMock:
+            call_count[0] += 1
+            if call_count[0] == 1:
+                raise OSError("Gerät nicht lesbar")
+            return mock_dev
+
+        with (
+            patch(f"{_EVDEV_READER}.list_devices", return_value=["/dev/input/event0", "/dev/input/event1"]),
+            patch(f"{_EVDEV_READER}.InputDevice", side_effect=fake_input_device),
+        ):
+            result = resolve_evdev_device("USB Numpad")
+        assert result == "/dev/input/event1"

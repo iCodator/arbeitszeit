@@ -18,7 +18,11 @@ from arbeitszeit.domain.errors import (
 )
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
-from arbeitszeit.infrastructure.hardware.evdev_reader import EvdevHardwareReader
+from arbeitszeit.infrastructure.hardware.evdev_reader import (
+    DeviceNotFoundError,
+    EvdevHardwareReader,
+    resolve_evdev_device,
+)
 from arbeitszeit.infrastructure.hardware.ports import HardwareReader
 from arbeitszeit.infrastructure.notification import notify
 from arbeitszeit.infrastructure.system_check import run_system_check
@@ -90,10 +94,17 @@ def run(
     terminal_id: int,
 ) -> None:
     """Endlosschleife mit Systemcheck, Buchungsverarbeitung und Graceful Shutdown."""
+    try:
+        numpad_path = resolve_evdev_device(numpad_device)
+        rfid_path = resolve_evdev_device(rfid_device)
+    except DeviceNotFoundError as exc:
+        notify("Arbeitszeit — Gerät nicht gefunden", str(exc), urgency="critical")
+        sys.exit(1)
+
     result = run_system_check(
         db_path,
-        numpad_path=Path(numpad_device),
-        rfid_path=Path(rfid_device),
+        numpad_path=Path(numpad_path),
+        rfid_path=Path(rfid_path),
     )
     if not result.overall_ok:
         print("=" * 50)
@@ -129,8 +140,8 @@ def run(
     rfid_timeout = float(json.loads(grace_json)) if grace_json is not None else 5.0
 
     reader = EvdevHardwareReader(
-        numpad_path=numpad_device,
-        rfid_path=rfid_device,
+        numpad_path=numpad_path,
+        rfid_path=rfid_path,
         rfid_timeout=rfid_timeout,
     )
     try:
@@ -145,8 +156,16 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Arbeitszeit Terminal-UI")
     parser.add_argument("--db", required=True, type=Path)
-    parser.add_argument("--numpad", required=True)
-    parser.add_argument("--rfid", required=True)
+    parser.add_argument(
+        "--numpad",
+        required=True,
+        help='Gerätename (z.B. "USB Numpad") oder Pfad (/dev/input/eventX)',
+    )
+    parser.add_argument(
+        "--rfid",
+        required=True,
+        help='Gerätename (z.B. "RFID Reader") oder Pfad (/dev/input/eventX)',
+    )
     parser.add_argument("--terminal-id", required=True, type=int)
     args = parser.parse_args()
     run(args.db, args.numpad, args.rfid, args.terminal_id)
