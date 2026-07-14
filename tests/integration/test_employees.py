@@ -1,7 +1,11 @@
 """Integrationstests für admin_cli employees- und cards-Befehle."""
 
+__version__ = "1.0"
+
+import argparse
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -9,7 +13,12 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
+from arbeitszeit.infrastructure.hardware import EmptyUidError, HardwareTimeoutError
+from arbeitszeit.infrastructure.hardware.evdev_reader import DeviceNotFoundError
+from arbeitszeit.presentation.admin_cli.employees import _resolve_uid_hash, _validate_uid_source
 from arbeitszeit.presentation.admin_cli.main import run as cli_run
+
+_MOD = "arbeitszeit.presentation.admin_cli.employees"
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -29,7 +38,7 @@ def _seed_admin(db: Path) -> int:
         "RETURNING id"
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _seed_employee(db: Path, admin_id: int, personnel_no: str = "E001") -> int:
@@ -54,7 +63,7 @@ def _seed_employee(db: Path, admin_id: int, personnel_no: str = "E001") -> int:
         "SELECT id FROM employees WHERE personnel_no = ?", (personnel_no,)
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _seed_rfid_card(db: Path, employee_id: int, admin_id: int, uid_hash: str = "aabbcc") -> int:
@@ -77,10 +86,10 @@ def _seed_rfid_card(db: Path, employee_id: int, admin_id: int, uid_hash: str = "
         "SELECT id FROM rfid_cards WHERE uid_hash = ?", (uid_hash,)
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
-def _get_employee(db: Path, employee_id: int) -> dict | None:
+def _get_employee(db: Path, employee_id: int) -> dict[str, object] | None:
     conn = open_connection(db)
     row = conn.execute(
         "SELECT id, personnel_no, active FROM employees WHERE id = ?", (employee_id,)
@@ -89,7 +98,7 @@ def _get_employee(db: Path, employee_id: int) -> dict | None:
     return dict(row) if row else None
 
 
-def _get_card(db: Path, card_id: int) -> dict | None:
+def _get_card(db: Path, card_id: int) -> dict[str, object] | None:
     conn = open_connection(db)
     row = conn.execute(
         "SELECT id, status, employee_id FROM rfid_cards WHERE id = ?", (card_id,)
@@ -111,7 +120,7 @@ def _audit_events(db: Path, object_type: str) -> list[str]:
 # --- employees add ---
 
 
-def test_employees_add_legt_mitarbeiter_an(tmp_path):
+def test_employees_add_legt_mitarbeiter_an(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
 
@@ -142,7 +151,7 @@ def test_employees_add_legt_mitarbeiter_an(tmp_path):
     assert "EMPLOYEE_CREATED" in _audit_events(db, "employees")
 
 
-def test_employees_add_doppelte_personalnummer_schlaegt_fehl(tmp_path):
+def test_employees_add_doppelte_personalnummer_schlaegt_fehl(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     _seed_employee(db, admin_id, "E001")
@@ -174,7 +183,7 @@ def test_employees_add_doppelte_personalnummer_schlaegt_fehl(tmp_path):
 # --- employees list ---
 
 
-def test_employees_list_laeuft_ohne_fehler(tmp_path):
+def test_employees_list_laeuft_ohne_fehler(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     _seed_employee(db, admin_id)
@@ -185,7 +194,7 @@ def test_employees_list_laeuft_ohne_fehler(tmp_path):
 # --- employees deactivate ---
 
 
-def test_employees_deactivate_setzt_active_0(tmp_path):
+def test_employees_deactivate_setzt_active_0(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     emp_id = _seed_employee(db, admin_id)
@@ -208,7 +217,7 @@ def test_employees_deactivate_setzt_active_0(tmp_path):
     assert "EMPLOYEE_DEACTIVATED" in _audit_events(db, "employees")
 
 
-def test_employees_deactivate_unbekannte_id_schlaegt_fehl(tmp_path):
+def test_employees_deactivate_unbekannte_id_schlaegt_fehl(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
 
@@ -229,7 +238,7 @@ def test_employees_deactivate_unbekannte_id_schlaegt_fehl(tmp_path):
 # --- cards assign ---
 
 
-def test_cards_assign_legt_rfid_karte_an(tmp_path):
+def test_cards_assign_legt_rfid_karte_an(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     emp_id = _seed_employee(db, admin_id)
@@ -263,7 +272,7 @@ def test_cards_assign_legt_rfid_karte_an(tmp_path):
 # --- cards replace ---
 
 
-def test_cards_replace_deaktiviert_alte_karte(tmp_path):
+def test_cards_replace_deaktiviert_alte_karte(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     emp_id = _seed_employee(db, admin_id)
@@ -299,7 +308,7 @@ def test_cards_replace_deaktiviert_alte_karte(tmp_path):
 # --- cards deactivate ---
 
 
-def test_cards_deactivate_setzt_status_inactive(tmp_path):
+def test_cards_deactivate_setzt_status_inactive(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     emp_id = _seed_employee(db, admin_id)
@@ -321,3 +330,185 @@ def test_cards_deactivate_setzt_status_inactive(tmp_path):
     assert card is not None
     assert card["status"] == "INACTIVE"
     assert "CARD_DEACTIVATED" in _audit_events(db, "rfid_cards")
+
+
+# ---------------------------------------------------------------------------
+# employees list – Leerfall
+# ---------------------------------------------------------------------------
+
+
+def test_employees_list_keine_mitarbeiter(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run(["--db", str(db), "--user-id", str(admin_id), "employees", "list"])
+    assert "Keine Mitarbeiter" in capsys.readouterr().out
+
+
+# ---------------------------------------------------------------------------
+# _validate_uid_source – Einheitstests
+# ---------------------------------------------------------------------------
+
+
+def _args(**kwargs: object) -> argparse.Namespace:
+    ns = argparse.Namespace(uid_hash=None, scan=False, rfid=None, employee_id=1)
+    for key, val in kwargs.items():
+        setattr(ns, key, val)
+    return ns
+
+
+def test_validate_uid_source_uid_hash_und_scan_schliessen_sich_aus(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        _validate_uid_source(_args(uid_hash="abc", scan=True))
+    assert exc_info.value.code == 1
+    assert "schließen sich aus" in capsys.readouterr().err
+
+
+def test_validate_uid_source_kein_uid_quelle_fehler(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        _validate_uid_source(_args(uid_hash=None, scan=False))
+    assert exc_info.value.code == 1
+    assert "erforderlich" in capsys.readouterr().err
+
+
+def test_validate_uid_source_scan_ohne_rfid_fehler(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        _validate_uid_source(_args(scan=True, rfid=None))
+    assert exc_info.value.code == 1
+    assert "--rfid" in capsys.readouterr().err
+
+
+def test_validate_uid_source_uid_hash_gueltig_kein_fehler() -> None:
+    _validate_uid_source(_args(uid_hash="deadbeef"))  # darf nicht werfen
+
+
+def test_validate_uid_source_scan_mit_rfid_gueltig() -> None:
+    _validate_uid_source(_args(scan=True, rfid="/dev/input/event0"))  # darf nicht werfen
+
+
+# ---------------------------------------------------------------------------
+# _resolve_uid_hash – Einheitstests
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_uid_hash_uid_hash_direkt() -> None:
+    assert _resolve_uid_hash(_args(scan=False, uid_hash="abc123")) == "abc123"
+
+
+def test_resolve_uid_hash_scan_device_not_found(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", side_effect=DeviceNotFoundError("Nicht gefunden")),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+    assert exc_info.value.code == 1
+    assert "Nicht gefunden" in capsys.readouterr().err
+
+
+def test_resolve_uid_hash_scan_timeout(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0"),
+        patch(f"{_MOD}.scan_rfid_uid_hash", side_effect=HardwareTimeoutError("Timeout")),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+    assert exc_info.value.code == 1
+    assert "Timeout" in capsys.readouterr().err
+
+
+def test_resolve_uid_hash_scan_empty_uid(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0"),
+        patch(f"{_MOD}.scan_rfid_uid_hash", side_effect=EmptyUidError("Leere UID")),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+    assert exc_info.value.code == 1
+
+
+def test_resolve_uid_hash_scan_os_error(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0"),
+        patch(f"{_MOD}.scan_rfid_uid_hash", side_effect=OSError("Gerätedatei fehlt")),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+    assert exc_info.value.code == 1
+    assert "Gerätedatei" in capsys.readouterr().err
+
+
+def test_resolve_uid_hash_scan_erfolg() -> None:
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0"),
+        patch(f"{_MOD}.scan_rfid_uid_hash", return_value="cafebabe"),
+    ):
+        result = _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+    assert result == "cafebabe"
+
+
+# ---------------------------------------------------------------------------
+# cmd_cards_assign / replace / deactivate – DomainError-Pfade
+# ---------------------------------------------------------------------------
+
+
+def test_cards_assign_unbekannte_employee_id_fehler(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    with pytest.raises(SystemExit) as exc_info:
+        cli_run(
+            [
+                "--db", str(db), "--user-id", str(admin_id),
+                "cards", "assign", "--employee-id", "9999", "--uid-hash", "abc",
+            ]
+        )
+    assert exc_info.value.code == 1
+    assert "Fehler" in capsys.readouterr().err
+
+
+def test_cards_replace_unbekannte_karte_fehler(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    with pytest.raises(SystemExit) as exc_info:
+        cli_run(
+            [
+                "--db", str(db), "--user-id", str(admin_id),
+                "cards", "replace", "--old-card-id", "9999", "--uid-hash", "newhash",
+            ]
+        )
+    assert exc_info.value.code == 1
+    assert "Fehler" in capsys.readouterr().err
+
+
+def test_cards_deactivate_unbekannte_karte_fehler(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    with pytest.raises(SystemExit) as exc_info:
+        cli_run(
+            [
+                "--db", str(db), "--user-id", str(admin_id),
+                "cards", "deactivate", "9999",
+            ]
+        )
+    assert exc_info.value.code == 1
+    assert "Fehler" in capsys.readouterr().err

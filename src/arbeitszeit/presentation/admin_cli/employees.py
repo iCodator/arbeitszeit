@@ -4,7 +4,7 @@ Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import sqlite3
@@ -89,37 +89,47 @@ def cmd_employees_deactivate(
     print(f"Mitarbeiter {args.id} deaktiviert.")
 
 
-def cmd_cards_assign(
-    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
-) -> None:
-    if args.uid_hash and args.scan:
-        print("Fehler: --uid-hash und --scan schließen sich aus.", file=sys.stderr)
-        sys.exit(1)
-    if not args.uid_hash and not args.scan:
+def _validate_uid_source(args: argparse.Namespace) -> None:
+    """Prüft, dass genau eine UID-Quelle angegeben ist."""
+    if args.uid_hash:
+        if args.scan:
+            print("Fehler: --uid-hash und --scan schließen sich aus.", file=sys.stderr)
+            sys.exit(1)
+        return
+    if not args.scan:
         print("Fehler: --uid-hash oder --scan ist erforderlich.", file=sys.stderr)
         sys.exit(1)
-    if args.scan and not args.rfid:
+    if not args.rfid:
         print("Fehler: --scan erfordert --rfid.", file=sys.stderr)
         sys.exit(1)
 
-    if args.scan:
-        try:
-            rfid_path = resolve_evdev_device(args.rfid)
-        except DeviceNotFoundError as exc:
-            print(f"Fehler: {exc}", file=sys.stderr)
-            sys.exit(1)
-        print("Bitte Karte an den RFID-Reader halten …")
-        try:
-            uid_hash = scan_rfid_uid_hash(rfid_path)
-        except HardwareTimeoutError as exc:
-            print(f"Fehler: Timeout – {exc}", file=sys.stderr)
-            sys.exit(1)
-        except (EmptyUidError, OSError) as exc:
-            print(f"Fehler: {exc}", file=sys.stderr)
-            sys.exit(1)
-    else:
-        uid_hash = args.uid_hash
 
+def _resolve_uid_hash(args: argparse.Namespace) -> str:
+    """Gibt uid_hash zurück: direkt aus --uid-hash oder via RFID-Scan."""
+    if not args.scan:
+        return args.uid_hash  # type: ignore[no-any-return]
+    try:
+        rfid_path = resolve_evdev_device(args.rfid)
+    except DeviceNotFoundError as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        sys.exit(1)
+    print("Bitte Karte an den RFID-Reader halten …")
+    try:
+        uid_hash = scan_rfid_uid_hash(rfid_path)
+    except HardwareTimeoutError as exc:
+        print(f"Fehler: Timeout – {exc}", file=sys.stderr)
+        sys.exit(1)
+    except (EmptyUidError, OSError) as exc:
+        print(f"Fehler: {exc}", file=sys.stderr)
+        sys.exit(1)
+    return uid_hash
+
+
+def cmd_cards_assign(
+    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+) -> None:
+    _validate_uid_source(args)
+    uid_hash = _resolve_uid_hash(args)
     cmd = AssignRfidCardCommand(
         acting_user_id=UserAccountId(user_id),
         employee_id=EmployeeId(args.employee_id),

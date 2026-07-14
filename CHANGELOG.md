@@ -5,6 +5,27 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring + Tests: admin_cli/employees.py CC 12 → 5, Coverage 71% → 100%] – 2026-07-14
+
+### Geändert
+
+- `presentation/admin_cli/employees.py`: `cmd_cards_assign` (CC 12) in drei
+  Funktionen aufgeteilt: `_validate_uid_source` (CC 5, Eingangsvalidierung),
+  `_resolve_uid_hash` (CC 5, Kartensuche/Scan), `cmd_cards_assign` (CC 2,
+  Koordinator). `__version__` auf 1.1 erhöht.
+
+### Hinzugefügt
+
+- `tests/integration/test_employees.py`: 15 neue Tests (23 gesamt, vorher 8).
+  Abgedeckte Pfade: `employees list` leer, alle 3 Validierungsfehler in
+  `_validate_uid_source`, alle Hardware-Fehlerpfade in `_resolve_uid_hash`
+  (DeviceNotFoundError, HardwareTimeoutError, EmptyUidError, OSError) sowie
+  der Scan-Erfolgspfad, DomainError in `cmd_cards_assign`/`replace`/`deactivate`.
+  Vorbestehende mypy-Fehler (fehlende Annotationen, `dict` ohne Typparameter,
+  `Returning Any`) mitbehoben. `__version__ = "1.0"` ergänzt.
+
+---
+
 ## [Tests: terminal_ui/main.py Coverage 66% → 99%] – 2026-07-14
 
 ### Geändert
