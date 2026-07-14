@@ -5,6 +5,17 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Typkorrektur reject_supplement.py: int → UserAccountId] – 2026-07-14
+
+### Geändert
+
+- `application/use_cases/reject_supplement.py`: Parameter `user_id` in
+  `_assert_can_reject` und `rejected_by_user_id` in `_resolve_review_case` von
+  `int` auf `UserAccountId` korrigiert. Import von `UserAccountId` ergänzt.
+  `__version__` auf 1.2 erhöht.
+
+---
+
 ## [Tests: Domain-Coverage 97% → 99%] – 2026-07-14
 
 ### Hinzugefügt

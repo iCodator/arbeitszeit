@@ -1,4 +1,4 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 import json
 from datetime import datetime, timezone
@@ -22,6 +22,7 @@ from arbeitszeit.domain.errors import (
 from arbeitszeit.domain.value_objects import (
     AuditLogEntryId,
     ReviewCaseId,
+    UserAccountId,
 )
 
 
@@ -77,7 +78,7 @@ class RejectSupplementUseCase:
                 review_case_id=review_case_id,
             )
 
-    def _assert_can_reject(self, user_id: int) -> None:
+    def _assert_can_reject(self, user_id: UserAccountId) -> None:
         rejector = self._uow.user_account_repo.get_by_id(user_id)
         if (
             rejector is None
@@ -92,7 +93,7 @@ class RejectSupplementUseCase:
     def _resolve_review_case(
         self,
         supplement: Supplement,
-        rejected_by_user_id: int,
+        rejected_by_user_id: UserAccountId,
         reason: str,
     ) -> ReviewCaseId | None:
         open_cases = self._uow.review_case_repo.list_open_for_employee(
