@@ -1,5 +1,7 @@
 """Admin-CLI: PDF/CSV-Export und Pflichtauswertungen (ADMIN/REVIEWER-Rolle)."""
 
+__version__ = "1.0"
+
 import argparse
 import json
 import sqlite3

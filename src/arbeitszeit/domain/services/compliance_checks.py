@@ -6,6 +6,8 @@ die Brutto-Anwesenheitszeit; die Netto-Betrachtung ist als fachliche Prüfhilfe
 konzipiert und ersetzt keine rechtsverbindliche Einzelfallbewertung.
 """
 
+__version__ = "1.0"
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Sequence

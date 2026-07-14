@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from collections import deque
 from datetime import datetime, timezone
 

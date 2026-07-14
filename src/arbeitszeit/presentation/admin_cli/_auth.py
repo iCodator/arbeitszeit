@@ -5,6 +5,8 @@ Anwendungsschicht. Lesende Operationen (reports, schedule show, system) haben
 keine Use Cases und prüfen die Rolle deshalb hier auf CLI-Ebene.
 """
 
+__version__ = "1.0"
+
 import sqlite3
 import sys
 

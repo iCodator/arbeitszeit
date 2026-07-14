@@ -8,6 +8,8 @@ Der export_dir-Pfad wird vom aufrufenden Code aus system_config gelesen
 und hier direkt übergeben (system_config.get_current('export.export_dir')).
 """
 
+__version__ = "1.0"
+
 import csv
 import sqlite3
 from collections import defaultdict

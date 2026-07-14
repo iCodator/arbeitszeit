@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from .audit_log import SQLiteAuditLogRepository
 from .booking_correction import SQLiteBookingCorrectionRepository
 from .device_event import SQLiteDeviceEventRepository

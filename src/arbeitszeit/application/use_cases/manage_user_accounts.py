@@ -1,5 +1,7 @@
 """Use Cases für Benutzerkontenverwaltung (ADMIN-Rolle, Ausnahme: Bootstrap)."""
 
+__version__ = "1.0"
+
 import json
 from datetime import datetime, timezone
 

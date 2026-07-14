@@ -9,6 +9,8 @@ Dateinamen:
   bericht_mitarbeiter_NNNN_YYYYMMDD_YYYYMMDD_YYYYMMDDTHHMMSSZ.pdf
 """
 
+__version__ = "1.0"
+
 import sqlite3
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path

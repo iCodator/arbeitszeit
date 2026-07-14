@@ -6,6 +6,8 @@ da UTC-Normalisierung und halboffene Intervalle [from_dt, to_dt) sonst nicht
 garantiert werden können.
 """
 
+__version__ = "1.0"
+
 from datetime import date, datetime, timedelta, timezone
 
 

@@ -4,6 +4,8 @@ Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
+__version__ = "1.0"
+
 import argparse
 import binascii
 import hashlib

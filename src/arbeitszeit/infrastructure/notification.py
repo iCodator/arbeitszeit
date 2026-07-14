@@ -6,6 +6,8 @@ Stilles Fail-Safe: wenn notify-send nicht verfügbar, passiert nichts.
 Voraussetzung: libnotify-bin (auf Lubuntu/Linux Mint standardmäßig vorhanden).
 """
 
+__version__ = "1.0"
+
 import logging
 import subprocess  # nosec B404
 

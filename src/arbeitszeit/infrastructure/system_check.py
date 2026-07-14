@@ -6,6 +6,8 @@ in system_events. Aufrufbar manuell und beim Systemstart.
 
 from __future__ import annotations
 
+__version__ = "1.0"
+
 import json
 import logging
 import os

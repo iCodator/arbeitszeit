@@ -1,5 +1,7 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
+__version__ = "1.0"
+
 import json
 import logging
 import signal

@@ -27,6 +27,8 @@ Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutz
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 
+__version__ = "1.0"
+
 import logging
 import select
 import time
@@ -45,6 +47,7 @@ from .ports import (
     RawBookingRequest,
 )
 from .uid_hash import hash_uid
+
 
 class DeviceNotFoundError(OSError):
     """Kein evdev-Gerät mit dem angegebenen Namen gefunden."""

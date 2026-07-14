@@ -11,6 +11,8 @@ Die NTP-Synchronisation ist Betriebsvoraussetzung und nicht Aufgabe dieser Schic
 NTP-Drift (< 1s/Stunde) wird durch den konfigurierbaren Schwellenwert herausgefiltert.
 """
 
+__version__ = "1.0"
+
 import json
 import logging
 import time

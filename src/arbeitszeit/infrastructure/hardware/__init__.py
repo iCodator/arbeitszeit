@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from .ports import (
     EmptyUidError,
     HardwareReader,

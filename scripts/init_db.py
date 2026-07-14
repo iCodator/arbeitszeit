@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """CLI-Einstieg für Datenbankinitialisierung. Delegiert alles an migrations.py."""
 
+__version__ = "1.0"
+
 import argparse
 import sys
 from pathlib import Path

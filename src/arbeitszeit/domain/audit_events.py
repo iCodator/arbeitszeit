@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 # Zentraler Katalog aller Audit-Log-Eventnamen (event_type in AuditLogEntry).
 # Alle Use Cases und Infrastrukturkomponenten importieren hier — keine freien
 # String-Literale, damit Tippfehler zur Compile-Zeit auffallen.

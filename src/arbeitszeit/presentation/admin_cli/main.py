@@ -1,5 +1,7 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
 
+__version__ = "1.0"
+
 import argparse
 import os
 import sqlite3

@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from arbeitszeit.domain.entities import TimeBooking
 from arbeitszeit.domain.enums import BookingStatus, BookingType, ReviewSeverity
 from arbeitszeit.domain.services.compliance_checks import (

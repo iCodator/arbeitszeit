@@ -1,5 +1,7 @@
 """Use Cases für Mitarbeiterverwaltung (ADMIN-Rolle erforderlich)."""
 
+__version__ = "1.0"
+
 import json
 from datetime import datetime, timezone
 

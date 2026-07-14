@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 class DomainError(Exception):
     code: str = "DOMAIN_ERROR"
 

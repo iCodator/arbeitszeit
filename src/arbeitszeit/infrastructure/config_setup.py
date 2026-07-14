@@ -7,6 +7,8 @@ setup_config() auf — keine doppelte Interaktions- oder Merge-Logik.
 
 from __future__ import annotations
 
+__version__ = "1.0"
+
 import json
 import sys
 from pathlib import Path

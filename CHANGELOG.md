@@ -5,6 +5,36 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Konfigurationspflege & Versionierung] – 2026-07-14
+
+### Hinzugefügt
+- `src/arbeitszeit/infrastructure/config_setup.py` mit gemeinsamer
+  Interaktionslogik für `scripts/setup.py` und `admin_cli system setup`.
+- `admin_cli system setup` als neuer Subcommand zur interaktiven Pflege der
+  `config.toml` (ADMIN/TECH); nutzt dieselbe Logik wie `scripts/setup.py`.
+- `setup_config()` verarbeitet DB-Migrationspfade (`backup.backup_dir`,
+  `export.export_dir`, `logging.log_dir`) als optionale Hinweise.
+- `resolve_config_write_path()` bestimmt den Schreibpfad nach der Priorität:
+  explizit → vorhandene Datei → XDG-Standard (`~/.config/arbeitszeit/config.toml`).
+- `__version__ = "1.0"` in allen 70 Produktionsmodulen und Skripten.
+- 3 neue Integrationstests in `tests/integration/test_system_cli.py`:
+  `test_app_config_backup_dir_wird_verwendet`,
+  `test_app_config_hat_vorrang_vor_db_backup_dir`,
+  `test_setup_schreibt_config_toml`.
+
+### Geändert
+- `scripts/setup.py` vollständig neu geschrieben: schreibt ausschließlich
+  `config.toml`, liest keine DB-Werte mehr — nur noch als Migrationshinweise.
+- `scripts/backup.py` liest `backup_dir` und `export_dir` bevorzugt aus
+  `config.toml` statt aus der DB.
+- `scripts/show_config.py` zeigt jetzt zwei klar getrennte Abschnitte:
+  `config.toml` und `DB (system_config)`.
+- `cmd_system_backup()` bevorzugt `app_config.backup.backup_dir` vor dem
+  DB-Wert `backup.backup_dir`.
+- `cmd_system_check()` akzeptiert jetzt `app_config` als Keyword-Parameter.
+
+---
+
 ## [Konfiguration & Terminalbetrieb] – 2026-07-14
 
 ### Hinzugefügt

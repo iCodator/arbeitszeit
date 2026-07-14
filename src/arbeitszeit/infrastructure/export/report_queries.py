@@ -16,6 +16,8 @@ DB-Spalten-Mapping (Schema ↔ Entity):
   employees.active                      → is_active (INTEGER 0/1)
 """
 
+__version__ = "1.0"
+
 import json
 import sqlite3
 from datetime import datetime

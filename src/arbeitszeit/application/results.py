@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from dataclasses import dataclass
 from datetime import datetime
 

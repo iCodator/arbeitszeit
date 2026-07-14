@@ -6,6 +6,8 @@ schedule show: ADMIN und REVIEWER; Rollenprüfung auf CLI-Ebene via
                require_admin_or_reviewer() aus _auth.py.
 """
 
+__version__ = "1.0"
+
 import argparse
 import sqlite3
 import sys

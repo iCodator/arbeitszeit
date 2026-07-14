@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from types import TracebackType
 from typing import Protocol, Self
 

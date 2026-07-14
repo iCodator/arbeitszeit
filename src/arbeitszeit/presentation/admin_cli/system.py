@@ -1,5 +1,7 @@
 """Admin-CLI: Systemcheck, Backup und Konfiguration (ADMIN/TECH-Rolle)."""
 
+__version__ = "1.0"
+
 import argparse
 import json
 import sqlite3

@@ -5,6 +5,8 @@ Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und
 Ausgabe gemacht.
 """
 
+__version__ = "1.0"
+
 import argparse
 import sqlite3
 import sys

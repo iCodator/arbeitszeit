@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from typing import Callable, Sequence
 
 from arbeitszeit.domain.enums import BookingType

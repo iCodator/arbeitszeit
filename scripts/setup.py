@@ -18,6 +18,8 @@ Wenn --db angegeben wird, liest das Script vorhandene DB-Werte als
 Migrationsvorschläge ein (Migrationspfad für Bestandsinstallationen).
 """
 
+__version__ = "1.0"
+
 import argparse
 import sys
 from pathlib import Path

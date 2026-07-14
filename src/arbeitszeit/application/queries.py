@@ -10,6 +10,8 @@ selbst sind reine Datenstrukturen ohne DB-Abhängigkeit und werden hier definier
 damit Presentation-Module keine Infrastructure-Klassen als Typen importieren müssen.
 """
 
+__version__ = "1.0"
+
 from dataclasses import dataclass
 from datetime import datetime
 

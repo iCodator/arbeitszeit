@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 from datetime import date, datetime
 from typing import Literal, Protocol
 

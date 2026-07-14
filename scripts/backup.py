@@ -11,6 +11,8 @@ NAS-Sync wird weiterhin über die system_config-Einträge
 'backup.nas_enabled' und 'backup.nas_path' gesteuert.
 """
 
+__version__ = "1.0"
+
 import argparse
 import json
 import sys

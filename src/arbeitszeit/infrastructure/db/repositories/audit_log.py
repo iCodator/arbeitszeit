@@ -1,3 +1,5 @@
+__version__ = "1.0"
+
 import sqlite3
 
 from arbeitszeit.domain.entities import AuditLogEntry

@@ -13,6 +13,8 @@ Wichtig: Alle IDs sind Subtypen von `int` — NewType-Werte sind überall
 dort verwendbar, wo `int` erwartet wird (z. B. SQL-Parameter).
 """
 
+__version__ = "1.0"
+
 from typing import NewType
 
 EmployeeId = NewType("EmployeeId", int)

@@ -11,6 +11,8 @@ Suchreihenfolge:
 
 from __future__ import annotations
 
+__version__ = "1.0"
+
 import os
 import tomllib
 from dataclasses import dataclass, field
