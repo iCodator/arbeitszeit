@@ -5,6 +5,18 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Typkorrektur & Abschluss] – 2026-07-14
+
+### Behoben
+- 4 mypy-Fehler (`[type-arg]`) in `schedule.py`: bare `list`-Annotationen in
+  `_partition_by_scope`, `_print_global_section`, `_print_employee_section`
+  und `_print_scope_hint` durch `list[sqlite3.Row]` ersetzt.
+
+### Geändert
+- `schedule.py`: `__version__` auf `1.1` erhöht.
+
+---
+
 ## [Konfigurationspflege & Versionierung] – 2026-07-14
 
 ### Hinzugefügt
