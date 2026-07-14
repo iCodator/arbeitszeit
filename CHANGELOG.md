@@ -5,6 +5,29 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring: config_file.py write_config CC 11 → 3] – 2026-07-14
+
+### Geändert
+
+- `infrastructure/config_file.py`: `write_config` (CC 11) in drei Teilfunktionen
+  aufgeteilt. `_q()` als `_toml_string` auf Modulebene gehoben (CC 1).
+  `_terminal_section(config)` (CC 5) kapselt die drei Terminal-Felder plus
+  Leerabschnitt-Prüfung. `_backup_section(config)` (CC 5) analog für
+  Backup-Felder. `write_config` selbst ist damit CC 3. `__version__` auf 1.1
+  erhöht.
+- `tests/infrastructure/test_config_file.py`: Typannotationen auf alle
+  vorbestehenden Testfunktionen nachgerüstet; `__version__ = "1.0"` und
+  Modulkommentar ergänzt.
+
+### Hinzugefügt
+
+- `tests/infrastructure/test_config_file.py`: 11 neue Tests für die extrahierten
+  Hilfsfunktionen — 4× `_toml_string` (Normalwert, Anführungszeichen, Backslash,
+  Path-Objekt), 4× `_terminal_section` (leer, nur id, alle Felder, ohne id),
+  3× `_backup_section` (leer, nur backup_dir, alle Felder). Coverage bleibt 100%.
+
+---
+
 ## [Tests: admin_cli/main.py Coverage 74% → 100%] – 2026-07-14
 
 ### Geändert

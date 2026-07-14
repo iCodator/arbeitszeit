@@ -11,7 +11,7 @@ Suchreihenfolge:
 
 from __future__ import annotations
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import os
 import tomllib
@@ -103,39 +103,51 @@ def _parse(data: dict[str, Any]) -> AppConfig:
     )
 
 
+def _toml_string(val: Path | str) -> str:
+    """Gibt val als TOML-String-Literal zurück (Backslashes und Anführungszeichen escaped)."""
+    escaped = str(val).replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+def _terminal_section(config: AppConfig) -> list[str]:
+    """Gibt TOML-Zeilen für [terminal] zurück; leere Liste wenn kein Feld gesetzt."""
+    lines: list[str] = []
+    if config.terminal.id is not None:
+        lines.append(f"id = {config.terminal.id!r}")
+    if config.terminal.numpad is not None:
+        lines.append(f"numpad = {_toml_string(config.terminal.numpad)}")
+    if config.terminal.rfid is not None:
+        lines.append(f"rfid = {_toml_string(config.terminal.rfid)}")
+    if lines:
+        return ["[terminal]"] + lines + [""]
+    return []
+
+
+def _backup_section(config: AppConfig) -> list[str]:
+    """Gibt TOML-Zeilen für [backup] zurück; leere Liste wenn kein Feld gesetzt."""
+    lines: list[str] = []
+    if config.backup.backup_dir is not None:
+        lines.append(f"backup_dir = {_toml_string(config.backup.backup_dir)}")
+    if config.backup.export_dir is not None:
+        lines.append(f"export_dir = {_toml_string(config.backup.export_dir)}")
+    if config.backup.log_dir is not None:
+        lines.append(f"log_dir = {_toml_string(config.backup.log_dir)}")
+    if lines:
+        return ["[backup]"] + lines + [""]
+    return []
+
+
 def write_config(config: AppConfig, path: Path) -> None:
     """Schreibt AppConfig als TOML-Datei. Nur gesetzte Felder werden ausgegeben."""
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    def _q(val: Path | str) -> str:
-        """Gibt den Wert als TOML-String-Literal zurück."""
-        escaped = str(val).replace("\\", "\\\\").replace('"', '\\"')
-        return f'"{escaped}"'
-
     lines: list[str] = []
 
     if config.database.path is not None:
-        lines += ["[database]", f"path = {_q(config.database.path)}", ""]
+        lines += ["[database]", f"path = {_toml_string(config.database.path)}", ""]
 
-    term_lines: list[str] = []
-    if config.terminal.id is not None:
-        term_lines.append(f"id = {config.terminal.id!r}")
-    if config.terminal.numpad is not None:
-        term_lines.append(f"numpad = {_q(config.terminal.numpad)}")
-    if config.terminal.rfid is not None:
-        term_lines.append(f"rfid = {_q(config.terminal.rfid)}")
-    if term_lines:
-        lines += ["[terminal]"] + term_lines + [""]
-
-    backup_lines: list[str] = []
-    if config.backup.backup_dir is not None:
-        backup_lines.append(f"backup_dir = {_q(config.backup.backup_dir)}")
-    if config.backup.export_dir is not None:
-        backup_lines.append(f"export_dir = {_q(config.backup.export_dir)}")
-    if config.backup.log_dir is not None:
-        backup_lines.append(f"log_dir = {_q(config.backup.log_dir)}")
-    if backup_lines:
-        lines += ["[backup]"] + backup_lines + [""]
+    lines += _terminal_section(config)
+    lines += _backup_section(config)
 
     if config.admin.user_id is not None:
         lines += ["[admin]", f"user_id = {config.admin.user_id!r}", ""]
