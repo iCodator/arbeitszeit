@@ -5,6 +5,21 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Bugfix: ResourceWarning SQLite-Verbindungen] – 2026-07-14
+
+### Behoben
+
+- `tests/e2e/test_supplement_flow.py`: `_make_uow()` öffnete pro Aufruf 2 SQLite-Verbindungen
+  ohne sie zu schließen (13 Aufrufe = 26 `ResourceWarning: unclosed database` in pytest).
+  `_make_uow` wurde zu einem `@contextmanager` umgebaut, der beide Verbindungen im
+  `finally`-Block schließt. Alle 10 Aufrufstellen auf `with _make_uow(db) as uow:` umgestellt.
+
+### Geändert
+
+- `tests/e2e/test_supplement_flow.py`: `__version__ = "1.0"` ergänzt.
+
+---
+
 ## [Codequalität: ruff-Bereinigung] – 2026-07-14
 
 ### Behoben

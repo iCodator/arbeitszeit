@@ -4,9 +4,13 @@ Verwendet echte dateibasierte SQLite-DB (tmp_path / "arbeitszeit.db")
 und reale Use-Case-Implementierungen ohne Mocks.
 """
 
+__version__ = "1.0"
+
 import sys
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
@@ -108,10 +112,15 @@ def employee_user_id(db: Path) -> int:
     return row["id"]
 
 
-def _make_uow(db: Path) -> SQLiteUnitOfWork:
+@contextmanager
+def _make_uow(db: Path) -> Generator[SQLiteUnitOfWork, None, None]:
     conn = open_connection(db)
     audit_conn = open_connection(db)
-    return SQLiteUnitOfWork(conn, audit_conn)
+    try:
+        yield SQLiteUnitOfWork(conn, audit_conn)
+    finally:
+        audit_conn.close()
+        conn.close()
 
 
 def _create_supplement(db: Path, employee_id: int, user_id: int) -> int:
@@ -124,7 +133,8 @@ def _create_supplement(db: Path, employee_id: int, user_id: int) -> int:
         reason="Vergessen einzustempeln",
         recorded_by_user_id=user_id,
     )
-    result = RegisterSupplementUseCase(_make_uow(db)).execute(cmd)
+    with _make_uow(db) as uow:
+        result = RegisterSupplementUseCase(uow).execute(cmd)
     return result.supplement_id
 
 
@@ -138,7 +148,8 @@ def test_nachtrag_erfassen_reviewer(db: Path, employee_id: int, reviewer_user_id
         reason="Vergessen einzustempeln",
         recorded_by_user_id=reviewer_user_id,
     )
-    result = RegisterSupplementUseCase(_make_uow(db)).execute(cmd)
+    with _make_uow(db) as uow:
+        result = RegisterSupplementUseCase(uow).execute(cmd)
 
     assert result.supplement_id > 0
     assert result.review_case_id is not None
@@ -163,8 +174,9 @@ def test_nachtrag_erfassen_employee_verweigert(
         reason="Test",
         recorded_by_user_id=employee_user_id,
     )
-    with pytest.raises(PermissionDeniedError):
-        RegisterSupplementUseCase(_make_uow(db)).execute(cmd)
+    with _make_uow(db) as uow:
+        with pytest.raises(PermissionDeniedError):
+            RegisterSupplementUseCase(uow).execute(cmd)
 
 
 def test_nachtrag_erfassen_unbekannter_mitarbeiter(db: Path, reviewer_user_id: int) -> None:
@@ -177,8 +189,9 @@ def test_nachtrag_erfassen_unbekannter_mitarbeiter(db: Path, reviewer_user_id: i
         reason="Test",
         recorded_by_user_id=reviewer_user_id,
     )
-    with pytest.raises(NotFoundError):
-        RegisterSupplementUseCase(_make_uow(db)).execute(cmd)
+    with _make_uow(db) as uow:
+        with pytest.raises(NotFoundError):
+            RegisterSupplementUseCase(uow).execute(cmd)
 
 
 def test_nachtrag_genehmigen_erzeugt_buchung(
@@ -190,7 +203,8 @@ def test_nachtrag_genehmigen_erzeugt_buchung(
         supplement_id=supplement_id,
         approving_user_id=admin_user_id,
     )
-    result = ApproveSupplementUseCase(_make_uow(db)).execute(cmd)
+    with _make_uow(db) as uow:
+        result = ApproveSupplementUseCase(uow).execute(cmd)
 
     assert result.booking_id > 0
     assert result.booking_status in (
@@ -221,7 +235,8 @@ def test_nachtrag_ablehnen_reviewer(db: Path, employee_id: int, reviewer_user_id
         rejected_by_user_id=reviewer_user_id,
         reason="Nicht nachvollziehbar",
     )
-    result = RejectSupplementUseCase(_make_uow(db)).execute(cmd)
+    with _make_uow(db) as uow:
+        result = RejectSupplementUseCase(uow).execute(cmd)
 
     assert result.supplement_id == supplement_id
 
@@ -237,20 +252,22 @@ def test_nachtrag_genehmigen_nach_ablehnung_verweigert(
     db: Path, employee_id: int, reviewer_user_id: int, admin_user_id: int
 ) -> None:
     supplement_id = _create_supplement(db, employee_id, reviewer_user_id)
-    RejectSupplementUseCase(_make_uow(db)).execute(
-        RejectSupplementCommand(
-            supplement_id=supplement_id,
-            rejected_by_user_id=reviewer_user_id,
-            reason="Abgelehnt",
-        )
-    )
-    with pytest.raises(ValidationError):
-        ApproveSupplementUseCase(_make_uow(db)).execute(
-            ApproveSupplementCommand(
+    with _make_uow(db) as uow:
+        RejectSupplementUseCase(uow).execute(
+            RejectSupplementCommand(
                 supplement_id=supplement_id,
-                approving_user_id=admin_user_id,
+                rejected_by_user_id=reviewer_user_id,
+                reason="Abgelehnt",
             )
         )
+    with _make_uow(db) as uow:
+        with pytest.raises(ValidationError):
+            ApproveSupplementUseCase(uow).execute(
+                ApproveSupplementCommand(
+                    supplement_id=supplement_id,
+                    approving_user_id=admin_user_id,
+                )
+            )
 
 
 def test_nachtrag_genehmigen_inaktiver_mitarbeiter(
@@ -273,23 +290,25 @@ def test_nachtrag_genehmigen_inaktiver_mitarbeiter(
     conn.close()
 
     supplement_id = row["id"]
-    with pytest.raises(InactiveEmployeeError):
-        ApproveSupplementUseCase(_make_uow(db)).execute(
-            ApproveSupplementCommand(
-                supplement_id=supplement_id,
-                approving_user_id=admin_user_id,
+    with _make_uow(db) as uow:
+        with pytest.raises(InactiveEmployeeError):
+            ApproveSupplementUseCase(uow).execute(
+                ApproveSupplementCommand(
+                    supplement_id=supplement_id,
+                    approving_user_id=admin_user_id,
+                )
             )
-        )
 
 
 def test_nachtrag_genehmigen_unbekannter_benutzer(
     db: Path, employee_id: int, reviewer_user_id: int
 ) -> None:
     supplement_id = _create_supplement(db, employee_id, reviewer_user_id)
-    with pytest.raises(PermissionDeniedError):
-        ApproveSupplementUseCase(_make_uow(db)).execute(
-            ApproveSupplementCommand(
-                supplement_id=supplement_id,
-                approving_user_id=9999,
+    with _make_uow(db) as uow:
+        with pytest.raises(PermissionDeniedError):
+            ApproveSupplementUseCase(uow).execute(
+                ApproveSupplementCommand(
+                    supplement_id=supplement_id,
+                    approving_user_id=9999,
+                )
             )
-        )
