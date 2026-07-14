@@ -5,6 +5,25 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Tests: terminal_ui/main.py Coverage 66% → 99%] – 2026-07-14
+
+### Geändert
+
+- `presentation/terminal_ui/main.py`: `__main__`-Block in `def main()` extrahiert,
+  damit Unit-Tests möglich sind. `if __name__ == "__main__":` mit `# pragma: no cover`.
+  `import argparse` auf Modulebene verschoben. `__version__` auf 1.1 erhöht.
+
+### Hinzugefügt
+
+- `tests/integration/test_terminal_ui_main.py`: 13 neue Tests ergänzt (25 gesamt,
+  vorher 12). Abgedeckte Pfade: `_resolve_or_exit` (alle 3 Zweige), `_setup_file_logging`
+  (DB-Pfad, JSON-null-Wert, app_config-Vorrang, Fehlerbehandlung), `run()` mit
+  `DeviceNotFoundError`, `main()` (CLI-Argumente, config.toml-Laden, defekte Config,
+  fehlender Pflichtparameter). `CaptureFixture`-Annotationen auf `[str]` präzisiert
+  (vorbestehende mypy-Fehler mitbehoben). `__version__ = "1.0"` ergänzt.
+
+---
+
 ## [Refactoring: cmd_system_backup CC 15 → max. 6] – 2026-07-14
 
 ### Geändert

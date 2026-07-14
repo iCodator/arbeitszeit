@@ -1,7 +1,8 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
+import argparse
 import json
 import logging
 import signal
@@ -222,9 +223,8 @@ def run(
         reader.close()
 
 
-if __name__ == "__main__":
-    import argparse
-
+def main() -> None:
+    """Einstiegspunkt: Argumente parsen, Konfiguration laden, run() aufrufen."""
     parser = argparse.ArgumentParser(description="Arbeitszeit Terminal-UI")
     parser.add_argument(
         "--config",
@@ -245,38 +245,42 @@ if __name__ == "__main__":
         help='Gerätename (z.B. "RFID Reader") oder Pfad (/dev/input/eventX)',
     )
     parser.add_argument("--terminal-id", type=int, default=None)
-    _args = parser.parse_args()
+    args = parser.parse_args()
 
     # Config laden: explizit > ENV ARBEITSZEIT_CONFIG > XDG > lokal
-    _app_config: AppConfig | None = None
-    _cfg_src: Path | None = _args.config if _args.config is not None else find_config()
-    if _cfg_src is not None:
+    app_config: AppConfig | None = None
+    cfg_src: Path | None = args.config if args.config is not None else find_config()
+    if cfg_src is not None:
         try:
-            _app_config = load_config(_cfg_src)
-        except Exception as _exc:
-            print(f"Fehler beim Laden von {_cfg_src}: {_exc}", file=sys.stderr)
+            app_config = load_config(cfg_src)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Fehler beim Laden von {cfg_src}: {exc}", file=sys.stderr)
             sys.exit(1)
 
     # Werte auflösen: CLI > config.toml > Fehler
-    _db_path = _resolve_or_exit(
-        _args.db,
-        _app_config.database.path if _app_config else None,
+    db_path = _resolve_or_exit(
+        args.db,
+        app_config.database.path if app_config else None,
         "--db / [database] path in config.toml",
     )
-    _numpad = _resolve_or_exit(
-        _args.numpad,
-        _app_config.terminal.numpad if _app_config else None,
+    numpad = _resolve_or_exit(
+        args.numpad,
+        app_config.terminal.numpad if app_config else None,
         "--numpad / [terminal] numpad in config.toml",
     )
-    _rfid = _resolve_or_exit(
-        _args.rfid,
-        _app_config.terminal.rfid if _app_config else None,
+    rfid = _resolve_or_exit(
+        args.rfid,
+        app_config.terminal.rfid if app_config else None,
         "--rfid / [terminal] rfid in config.toml",
     )
-    _terminal_id = _resolve_or_exit(
-        _args.terminal_id,
-        _app_config.terminal.id if _app_config else None,
+    terminal_id = _resolve_or_exit(
+        args.terminal_id,
+        app_config.terminal.id if app_config else None,
         "--terminal-id / [terminal] id in config.toml",
     )
 
-    run(_db_path, _numpad, _rfid, _terminal_id, app_config=_app_config)
+    run(db_path, numpad, rfid, terminal_id, app_config=app_config)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()

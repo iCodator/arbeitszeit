@@ -1,10 +1,14 @@
 """Tests für presentation/terminal_ui/main.py."""
 
+__version__ = "1.0"
+
+import json
 import logging
 import os
 import signal
 import sys
 from pathlib import Path
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -16,10 +20,19 @@ from arbeitszeit.domain.errors import (
     OpenPhaseConflictError,
     UnknownCardError,
 )
+from arbeitszeit.infrastructure.config_file import AppConfig, BackupConfig
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
+from arbeitszeit.infrastructure.hardware.evdev_reader import DeviceNotFoundError
 from arbeitszeit.infrastructure.system_check import CheckResult, SystemCheckResult
-from arbeitszeit.presentation.terminal_ui.main import _log_system_event, _run_one_cycle, run
+from arbeitszeit.presentation.terminal_ui.main import (
+    _log_system_event,
+    _resolve_or_exit,
+    _run_one_cycle,
+    _setup_file_logging,
+    main,
+    run,
+)
 
 _MAIN = "arbeitszeit.presentation.terminal_ui.main"
 
@@ -87,7 +100,7 @@ def _make_mock_reader() -> MagicMock:
 
 
 def test_run_one_cycle_erfolg_druckt_feedback(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -112,7 +125,7 @@ def test_run_one_cycle_erfolg_druckt_feedback(
 
 
 def test_run_one_cycle_domain_error_bekannt_druckt_meldung(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -129,7 +142,7 @@ def test_run_one_cycle_domain_error_bekannt_druckt_meldung(
 
 
 def test_run_one_cycle_domain_error_unbekannt_zeigt_fehlermeldung(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -149,7 +162,7 @@ def test_run_one_cycle_domain_error_unbekannt_zeigt_fehlermeldung(
 
 
 def test_run_one_cycle_generic_exception_loggt_und_faehrt_fort(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -173,7 +186,7 @@ def test_run_one_cycle_generic_exception_loggt_und_faehrt_fort(
 
 
 def test_run_one_cycle_open_phase_conflict_druckt_meldung(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -207,7 +220,7 @@ def test_run_schliesst_reader_in_finally(tmp_path: Path) -> None:
 
 
 def test_run_systemcheck_fehlerhaft_druckt_systemwarnung(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     with (
@@ -272,3 +285,215 @@ def test_run_sigterm_beendet_schleife_sauber(tmp_path: Path) -> None:
 
     assert cycle_count[0] == 1
     mock_reader_cls.return_value.close.assert_called_once()
+
+
+def test_run_device_not_found_ruft_notify_auf_und_beendet(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    with (
+        patch(
+            f"{_MAIN}.resolve_evdev_device",
+            side_effect=DeviceNotFoundError("Gerät nicht gefunden"),
+        ),
+        patch(f"{_MAIN}.notify") as mock_notify,
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        run(db, "USB Numpad", "RFID Reader", 1)
+
+    assert exc_info.value.code == 1
+    mock_notify.assert_called_once()
+    assert mock_notify.call_args.kwargs.get("urgency") == "critical"
+
+
+# ---------------------------------------------------------------------------
+# _resolve_or_exit
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_or_exit_gibt_cli_val_zurueck() -> None:
+    assert _resolve_or_exit(42, 7, "label") == 42
+
+
+def test_resolve_or_exit_gibt_cfg_val_als_fallback() -> None:
+    assert _resolve_or_exit(None, 7, "label") == 7
+
+
+def test_resolve_or_exit_beendet_programm_wenn_beide_none(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        _resolve_or_exit(None, None, "mein-parameter")
+    assert exc_info.value.code == 1
+    assert "mein-parameter" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# _setup_file_logging
+# ---------------------------------------------------------------------------
+
+
+def _insert_log_dir(db: Path, log_dir_str: str | None) -> None:
+    conn = open_connection(db)
+    try:
+        conn.execute(
+            "INSERT INTO system_config "
+            "(config_key, config_value_json, version, change_origin, "
+            "changed_by_user_id, changed_at, reason) "
+            "VALUES ('logging.log_dir', ?, 1, 'MIGRATION', NULL, '2025-01-01T00:00:00', NULL)",
+            (json.dumps(log_dir_str),),
+        )
+    finally:
+        conn.close()
+
+
+@pytest.fixture
+def clean_root_logger() -> Generator[logging.Logger, None, None]:
+    """Root-Logger-State nach dem Test wiederherstellen."""
+    root = logging.getLogger()
+    handlers_before = list(root.handlers)
+    level_before = root.level
+    yield root
+    for handler in list(root.handlers):
+        if handler not in handlers_before:
+            handler.close()
+            root.removeHandler(handler)
+    root.setLevel(level_before)
+
+
+def test_setup_file_logging_ohne_konfiguration_kein_handler(
+    tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    db = _make_db(tmp_path)
+    handlers_before = list(clean_root_logger.handlers)
+    _setup_file_logging(db)
+    assert clean_root_logger.handlers == handlers_before
+
+
+def test_setup_file_logging_db_mit_log_dir_erstellt_file_handler(
+    tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    db = _make_db(tmp_path)
+    log_dir = tmp_path / "logs"
+    _insert_log_dir(db, str(log_dir))
+
+    _setup_file_logging(db)
+
+    file_handlers = [
+        h for h in clean_root_logger.handlers
+        if isinstance(h, logging.FileHandler)
+        and "terminal_ui.log" in getattr(h, "baseFilename", "")
+    ]
+    assert len(file_handlers) == 1
+    assert str(log_dir) in file_handlers[0].baseFilename
+
+
+def test_setup_file_logging_db_null_value_kein_handler(
+    tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    db = _make_db(tmp_path)
+    _insert_log_dir(db, None)  # JSON null
+    handlers_before = list(clean_root_logger.handlers)
+
+    _setup_file_logging(db)
+
+    assert clean_root_logger.handlers == handlers_before
+
+
+def test_setup_file_logging_app_config_log_dir_vorrang_vor_db(
+    tmp_path: Path, clean_root_logger: logging.Logger
+) -> None:
+    db = _make_db(tmp_path)
+    log_dir = tmp_path / "config_logs"
+    app_config = AppConfig(backup=BackupConfig(log_dir=log_dir))
+
+    _setup_file_logging(db, app_config=app_config)
+
+    file_handlers = [
+        h for h in clean_root_logger.handlers
+        if isinstance(h, logging.FileHandler)
+        and "terminal_ui.log" in getattr(h, "baseFilename", "")
+    ]
+    assert len(file_handlers) == 1
+    assert str(log_dir) in file_handlers[0].baseFilename
+
+
+def test_setup_file_logging_fehler_loggt_warnung_kein_crash(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+    clean_root_logger: logging.Logger,
+) -> None:
+    db = _make_db(tmp_path)
+    _insert_log_dir(db, str(tmp_path / "logs"))
+
+    with (
+        caplog.at_level(logging.WARNING),
+        patch("logging.FileHandler", side_effect=OSError("Permission denied")),
+    ):
+        _setup_file_logging(db)  # darf nicht werfen
+
+    assert any("Logging-Konfiguration" in r.message for r in caplog.records)
+
+
+# ---------------------------------------------------------------------------
+# main()
+# ---------------------------------------------------------------------------
+
+
+def test_main_alle_cli_args_ruft_run_auf(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    with (
+        patch(
+            "sys.argv",
+            ["prog", "--db", str(db), "--numpad", "Numpad", "--rfid", "RFID", "--terminal-id", "1"],
+        ),
+        patch(f"{_MAIN}.find_config", return_value=None),
+        patch(f"{_MAIN}.run") as mock_run,
+    ):
+        main()
+
+    mock_run.assert_called_once_with(db, "Numpad", "RFID", 1, app_config=None)
+
+
+def test_main_config_datei_laedt_werte_und_ruft_run_auf(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    config_toml = tmp_path / "config.toml"
+    config_toml.write_text(
+        f'[database]\npath = "{db}"\n\n[terminal]\nnumpad = "Numpad"\nrfid = "RFID"\nid = 1\n'
+    )
+    with (
+        patch("sys.argv", ["prog", "--config", str(config_toml)]),
+        patch(f"{_MAIN}.run") as mock_run,
+    ):
+        main()
+
+    mock_run.assert_called_once()
+    call_args = mock_run.call_args
+    assert call_args.args[0] == db
+    assert call_args.kwargs["app_config"] is not None
+
+
+def test_main_defekte_config_datei_beendet_programm(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    bad_config = tmp_path / "bad.toml"
+    bad_config.write_text("[ungueltig toml")
+    with (
+        patch("sys.argv", ["prog", "--config", str(bad_config)]),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        main()
+
+    assert exc_info.value.code == 1
+    assert bad_config.name in capsys.readouterr().err
+
+
+def test_main_fehlender_db_arg_beendet_programm(capsys: pytest.CaptureFixture[str]) -> None:
+    with (
+        patch("sys.argv", ["prog", "--numpad", "Numpad", "--rfid", "RFID", "--terminal-id", "1"]),
+        patch(f"{_MAIN}.find_config", return_value=None),
+        pytest.raises(SystemExit) as exc_info,
+    ):
+        main()
+
+    assert exc_info.value.code == 1
+    err = capsys.readouterr().err
+    assert "database" in err or "--db" in err
