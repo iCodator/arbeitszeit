@@ -1,0 +1,249 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
+rootdir: /media/heimwerker/Work-Data/Coding/arbeitszeit
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0
+collected 627 items
+
+tests/application/test_approve_supplement.py .....................       [  3%]
+tests/application/test_book_time.py .....................                [  6%]
+tests/application/test_correct_booking.py ...............                [  9%]
+tests/application/test_fake_unit_of_work.py ..                           [  9%]
+tests/application/test_manage_employees.py ........                      [ 10%]
+tests/application/test_manage_rfid_cards.py ............                 [ 12%]
+tests/application/test_manage_user_accounts.py ................          [ 15%]
+tests/application/test_manage_work_schedule.py ....................      [ 18%]
+tests/application/test_register_supplement.py .................          [ 21%]
+tests/application/test_reject_supplement.py .............                [ 23%]
+tests/domain/test_audit_events.py ..                                     [ 23%]
+tests/domain/test_booking_rules.py ..............                        [ 25%]
+tests/domain/test_compliance_checks.py .........                         [ 27%]
+tests/domain/test_entities.py .......................................... [ 33%]
+                                                                         [ 33%]
+tests/e2e/test_backup.py ......................                          [ 37%]
+tests/e2e/test_booking_flow.py ............                              [ 39%]
+tests/e2e/test_supplement_flow.py ........                               [ 40%]
+tests/infrastructure/test_config_file.py ...............                 [ 42%]
+tests/infrastructure/test_config_setup.py ........                       [ 44%]
+tests/integration/test_bookings_cli.py ..............                    [ 46%]
+tests/integration/test_csv_export.py ...............                     [ 48%]
+tests/integration/test_device_event_booking.py ...                       [ 49%]
+tests/integration/test_employees.py ........                             [ 50%]
+tests/integration/test_export.py .....................                   [ 53%]
+tests/integration/test_hardware_evdev.py .............................   [ 58%]
+tests/integration/test_hardware_simulator.py ..............              [ 60%]
+tests/integration/test_init_db.py .....                                  [ 61%]
+tests/integration/test_intervals_auth.py .............                   [ 63%]
+tests/integration/test_notification.py .....                             [ 64%]
+tests/integration/test_pdf.py ....................                       [ 67%]
+tests/integration/test_reports_cli.py ..........................         [ 71%]
+tests/integration/test_repositories.py ...............                   [ 74%]
+tests/integration/test_repositories_roundtrip.py ....................... [ 77%]
+                                                                         [ 77%]
+tests/integration/test_schedule_cli.py ............                      [ 79%]
+tests/integration/test_system_check.py .....................             [ 83%]
+tests/integration/test_system_cli.py ..............                      [ 85%]
+tests/integration/test_terminal_ui_main.py ............                  [ 87%]
+tests/integration/test_time_monitor.py ........                          [ 88%]
+tests/integration/test_unit_of_work.py ..........                        [ 90%]
+tests/integration/test_user_accounts.py ..................               [ 92%]
+tests/presentation/test_booking_loop.py ................................ [ 98%]
+                                                                         [ 98%]
+tests/test_migrations.py ............                                    [100%]
+
+=============================== warnings summary ===============================
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e1e40>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e3b50>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e0040>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e2020>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e22f0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e1d50>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e2f20>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e04f0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e2200>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e2e30>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f6e1b70>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444040>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444130>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444220>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444310>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444400>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f4444f0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f4445e0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f4446d0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f4447c0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f4449a0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444a90>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f4448b0>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444b80>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444c70>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+tests/infrastructure/test_config_file.py::test_find_config_gibt_none_wenn_kein_file
+  /home/heimwerker/.local/share/uv/python/cpython-3.14.5-linux-x86_64-gnu/lib/python3.14/ast.py:46: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7b7c3f444d60>
+    return compile(source, filename, mode, flags,
+  Enable tracemalloc to get traceback where the object was allocated.
+  See https://docs.pytest.org/en/stable/how-to/capture-warnings.html#resource-warnings for more info.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.5-final-0 ________________
+
+Name                                                              Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------------------------------
+src/arbeitszeit/application/use_cases/_booking_evaluation.py         24      0     10      1    97%   24->27
+src/arbeitszeit/application/use_cases/approve_supplement.py          73      0     18      1    99%   171->170
+src/arbeitszeit/application/use_cases/manage_rfid_cards.py           64      2     16      2    95%   90, 160
+src/arbeitszeit/application/use_cases/manage_user_accounts.py        90      6     24      6    89%   45, 97, 135, 142, 173, 179
+src/arbeitszeit/domain/entities.py                                   86      0     46      2    98%   137->exit, 167->exit
+src/arbeitszeit/domain/services/booking_rules.py                     51      2     32      2    93%   23->exit, 35-36
+src/arbeitszeit/domain/services/compliance_checks.py                 60      0     28      4    95%   84->89, 92->95, 97->76, 98->76
+src/arbeitszeit/infrastructure/backup/backup_service.py              79      3     16      3    94%   123, 133->143, 156-157
+src/arbeitszeit/infrastructure/config_setup.py                       89      9     26      3    90%   61->49, 66-67, 133, 139, 146-147, 175-177
+src/arbeitszeit/infrastructure/db/migrations.py                      31      1      8      1    95%   34
+src/arbeitszeit/infrastructure/db/repositories/supplement.py         30      2      4      0    94%   68-71
+src/arbeitszeit/infrastructure/db/repositories/work_schedule.py      38      1     10      1    96%   111
+src/arbeitszeit/infrastructure/export/csv_exporter.py               122     17     52     12    81%   59, 63, 72->77, 75->72, 113->116, 121->124, 126->132, 128->132, 135, 137, 184, 252, 325-351
+src/arbeitszeit/infrastructure/export/pdf_report_service.py         142      4     24      4    95%   305, 340, 381, 423
+src/arbeitszeit/infrastructure/export/report_queries.py              99      5     18      3    93%   184-185, 212-213, 367
+src/arbeitszeit/infrastructure/hardware/evdev_reader.py             146     19     56     10    84%   137, 151, 170, 174->167, 176, 210-215, 218-226, 235, 241->233, 268, 274, 289->286
+src/arbeitszeit/infrastructure/system_check.py                      135     20     32      5    83%   86-87, 166, 170-171, 181, 189-190, 193, 206-212, 233-247, 280-286
+src/arbeitszeit/infrastructure/time_monitor.py                       48      4      6      0    93%   83-84, 101-102
+src/arbeitszeit/presentation/admin_cli/employees.py                 112     31     12      5    71%   50-51, 96-97, 99-100, 102-103, 106-119, 130-132, 146-148, 161-163
+src/arbeitszeit/presentation/admin_cli/main.py                       88     18     20      8    74%   23, 26-28, 34, 36-41, 49-58, 60, 62-67, 223->exit, 228
+src/arbeitszeit/presentation/admin_cli/reports.py                   198      2     26      2    98%   206, 266
+src/arbeitszeit/presentation/admin_cli/schedule.py                   88      7     20      4    90%   54-55, 73-75, 79, 90, 128->exit
+src/arbeitszeit/presentation/admin_cli/system.py                     68      0     20      4    95%   74->84, 81->84, 105->exit, 107->exit
+src/arbeitszeit/presentation/admin_cli/user_accounts.py             107     26      8      2    72%   58-60, 77, 81-92, 104-106, 119-121, 130-132, 141-143, 162
+src/arbeitszeit/presentation/terminal_ui/main.py                    135     42     20      4    66%   46-50, 112-124, 167-169, 181->180, 226-282
+-------------------------------------------------------------------------------------------------------------
+TOTAL                                                              3215    221    658     89    91%
+
+51 files skipped due to complete coverage.
+Coverage HTML written to dir docs/audits/reports/2026-07-14_20-19/htmlcov
+Coverage XML written to file docs/audits/reports/2026-07-14_20-19/coverage.xml
+====================== 627 passed, 26 warnings in 11.56s =======================
