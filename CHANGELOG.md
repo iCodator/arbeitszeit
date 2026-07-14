@@ -5,6 +5,29 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring: config_setup.py setup_config CC 10 → 5] – 2026-07-14
+
+### Geändert
+
+- `infrastructure/config_setup.py`: `setup_config` (CC 10) in fünf Teilfunktionen
+  aufgeteilt. Die drei vorhandenen Closures `_path_field` (CC 4), `_str_field`
+  (CC 3), `_int_field` (CC 6) auf Modulebene gehoben. Zwei neue Extraktionen:
+  `_init_config(config_path)` (CC 3) kapselt das Laden der bestehenden Config
+  mit Status-Label; `_collect_db_hints(db_path)` (CC 4) liest Migrations­hinweise
+  aus DB und gibt Statusmeldung aus. `setup_config` selbst ist damit CC 5.
+  `__version__` auf 1.1 erhöht.
+
+### Hinzugefügt
+
+- `tests/infrastructure/test_config_setup.py`: 18 neue Tests (26 gesamt) für die
+  fünf extrahierten Funktionen sowie zuvor unabgedeckte Pfade: CLI-Override für
+  `_str_field` und `_int_field`, `except ValueError` in `_int_field`,
+  `_collect_db_hints` ohne Einträge (False-Zweig), `_read_db_hints` mit Exception
+  und falschem Wert, `setup_config` mit `KeyboardInterrupt`. Coverage 89% → 100%.
+  `import pytest`, `__version__` auf 1.1 erhöht.
+
+---
+
 ## [Refactoring: config_file.py write_config CC 11 → 3] – 2026-07-14
 
 ### Geändert

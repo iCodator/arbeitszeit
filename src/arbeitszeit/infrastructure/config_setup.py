@@ -7,7 +7,7 @@ setup_config() auf — keine doppelte Interaktions- oder Merge-Logik.
 
 from __future__ import annotations
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 import sys
@@ -83,6 +83,57 @@ def _ask(label: str, current: str | None, hint: str | None = None) -> str | None
     return raw or None
 
 
+def _path_field(
+    label: str, cur: Path | None, cli: Path | None, hint: str | None = None
+) -> Path | None:
+    """Fragt einen Pfad interaktiv ab; CLI-Override überspringt den Prompt."""
+    if cli is not None:
+        return cli
+    inp = _ask(label, str(cur) if cur else None, hint)
+    return Path(inp) if inp else cur
+
+
+def _str_field(
+    label: str, cur: str | None, cli: str | None, hint: str | None = None
+) -> str | None:
+    """Fragt einen Stringwert interaktiv ab; CLI-Override überspringt den Prompt."""
+    if cli is not None:
+        return cli
+    inp = _ask(label, cur, hint)
+    return inp if inp else cur
+
+
+def _int_field(label: str, cur: int | None, cli: int | None) -> int | None:
+    """Fragt eine Ganzzahl interaktiv ab; CLI-Override überspringt den Prompt."""
+    if cli is not None:
+        return cli
+    while True:
+        inp = _ask(label, str(cur) if cur is not None else None)
+        if inp is None:
+            return cur
+        try:
+            return int(inp)
+        except ValueError:
+            print("    Bitte eine ganze Zahl eingeben.")
+
+
+def _init_config(config_path: Path) -> tuple[AppConfig, str]:
+    """Lädt vorhandene Config (oder Default) und gibt Status-Label zurück."""
+    existing = load_config(config_path) if config_path.exists() else AppConfig()
+    status = "geladen" if config_path.exists() else "wird neu erstellt"
+    return existing, status
+
+
+def _collect_db_hints(db_path: Path | None) -> dict[str, str]:
+    """Liest DB-Migrationshinweise und druckt Statusmeldung bei Fund."""
+    if db_path is not None and db_path.exists():
+        hints = _read_db_hints(db_path)
+        if hints:
+            print("  (Migrationshinweise aus DB eingelesen)")
+        return hints
+    return {}
+
+
 def setup_config(
     config_path: Path,
     db_path: Path | None = None,
@@ -105,46 +156,13 @@ def setup_config(
     - DB-Migrationshinweise werden als Vorschlagswert angezeigt wenn das Feld
       in config.toml noch nicht gesetzt ist.
     """
-    existing = load_config(config_path) if config_path.exists() else AppConfig()
-    status = "geladen" if config_path.exists() else "wird neu erstellt"
+    existing, status = _init_config(config_path)
     print(f"Konfigurationsdatei: {config_path}  [{status}]")
 
-    db_hints: dict[str, str] = {}
-    if db_path is not None and db_path.exists():
-        db_hints = _read_db_hints(db_path)
-        if db_hints:
-            print("  (Migrationshinweise aus DB eingelesen)")
+    db_hints = _collect_db_hints(db_path)
 
     print("Leere Eingabe → Wert unverändert lassen.  Strg+C zum Abbrechen.")
     print("-" * 60)
-
-    def _path_field(
-        label: str, cur: Path | None, cli: Path | None, hint: str | None = None
-    ) -> Path | None:
-        if cli is not None:
-            return cli
-        inp = _ask(label, str(cur) if cur else None, hint)
-        return Path(inp) if inp else cur
-
-    def _str_field(
-        label: str, cur: str | None, cli: str | None, hint: str | None = None
-    ) -> str | None:
-        if cli is not None:
-            return cli
-        inp = _ask(label, cur, hint)
-        return inp if inp else cur
-
-    def _int_field(label: str, cur: int | None, cli: int | None) -> int | None:
-        if cli is not None:
-            return cli
-        while True:
-            inp = _ask(label, str(cur) if cur is not None else None)
-            if inp is None:
-                return cur
-            try:
-                return int(inp)
-            except ValueError:
-                print("    Bitte eine ganze Zahl eingeben.")
 
     try:
         db_path_val = _path_field("database.path", existing.database.path, cli_db_path)
