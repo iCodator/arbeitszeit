@@ -8,7 +8,7 @@ Der export_dir-Pfad wird vom aufrufenden Code aus system_config gelesen
 und hier direkt übergeben (system_config.get_current('export.export_dir')).
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import csv
 import sqlite3
@@ -86,56 +86,74 @@ def _group_by_employee_day(
     return groups
 
 
-def _day_stats(day: list[BookingRow]) -> dict[str, object]:
-    """Berechnet Tagesstatistiken als Zustandsmaschine.
+def _close_work_phase(
+    b: BookingRow, work_phase_start: datetime | None
+) -> tuple[float, datetime | None]:
+    """Schließt laufende Arbeitsphase; gibt (delta_seconds, None) zurück."""
+    if work_phase_start is None:
+        return 0.0, None
+    return (b.booked_at - work_phase_start).total_seconds(), None
+
+
+def _close_break_phase(
+    b: BookingRow, break_phase_start: datetime | None
+) -> tuple[float, datetime | None]:
+    """Schließt laufende Pausenphase; gibt (delta_seconds, None) zurück."""
+    if break_phase_start is None:
+        return 0.0, None
+    return (b.booked_at - break_phase_start).total_seconds(), None
+
+
+def _accumulate_phase_times(day: list[BookingRow]) -> tuple[float, float, int]:
+    """Summiert Arbeitszeit, Pausenzeit und Pausenanzahl per Zustandsmaschine.
 
     Nettoarbeitszeit = Summe aller Arbeitsphasen (COME→BREAK_START + BREAK_END→GO).
-    Pausen werden nicht zur Arbeitszeit gezählt — der BREAK_START unterbricht
-    die laufende Arbeitsphase, BREAK_END setzt sie fort.
-
-    Korrekturen zählen am corrected_at-Tag, Nachträge am event_at-Tag.
+    Pausen werden nicht zur Arbeitszeit gezählt.
     """
     work_seconds = 0.0
     break_seconds = 0.0
     pause_count = 0
-    open_count = 0
-    warn_count = 0
-    needs_review_count = 0
-    work_phase_start: datetime | None = None  # gesetzt zwischen COME/BREAK_END und BREAK_START/GO
-    break_phase_start: datetime | None = None  # gesetzt zwischen BREAK_START und BREAK_END
+    work_phase_start: datetime | None = None
+    break_phase_start: datetime | None = None
 
     for b in sorted(day, key=lambda x: x.booked_at):
         if b.booking_type == BookingType.COME:
             work_phase_start = b.booked_at
-
         elif b.booking_type == BookingType.BREAK_START:
-            # Arbeitsphase endet hier
-            if work_phase_start is not None:
-                work_seconds += (b.booked_at - work_phase_start).total_seconds()
-                work_phase_start = None
+            delta, work_phase_start = _close_work_phase(b, work_phase_start)
+            work_seconds += delta
             break_phase_start = b.booked_at
             pause_count += 1
-
         elif b.booking_type == BookingType.BREAK_END:
-            # Pause endet, neue Arbeitsphase beginnt
-            if break_phase_start is not None:
-                break_seconds += (b.booked_at - break_phase_start).total_seconds()
-                break_phase_start = None
+            delta, break_phase_start = _close_break_phase(b, break_phase_start)
+            break_seconds += delta
             work_phase_start = b.booked_at
-
         elif b.booking_type == BookingType.GO:
-            # Arbeitsphase endet hier
-            if work_phase_start is not None:
-                work_seconds += (b.booked_at - work_phase_start).total_seconds()
-                work_phase_start = None
+            delta, work_phase_start = _close_work_phase(b, work_phase_start)
+            work_seconds += delta
 
+    return work_seconds, break_seconds, pause_count
+
+
+def _count_booking_statuses(day: list[BookingRow]) -> tuple[int, int, int]:
+    """Zählt OPEN-, WARN- und NEEDS_REVIEW-Buchungen im Tages-Block."""
+    open_count = 0
+    warn_count = 0
+    needs_review_count = 0
+    for b in day:
         if b.status == BookingStatus.OPEN:
             open_count += 1
         elif b.status == BookingStatus.WARN:
             warn_count += 1
         elif b.status == BookingStatus.NEEDS_REVIEW:
             needs_review_count += 1
+    return open_count, warn_count, needs_review_count
 
+
+def _day_stats(day: list[BookingRow]) -> dict[str, object]:
+    """Berechnet Tagesstatistiken aus Buchungsliste."""
+    work_seconds, break_seconds, pause_count = _accumulate_phase_times(day)
+    open_count, warn_count, needs_review_count = _count_booking_statuses(day)
     return {
         "nettoarbeitszeit_minuten": int(work_seconds // 60),
         "nettopausenzeit_minuten": int(break_seconds // 60),
@@ -326,6 +344,7 @@ def export_review_cases(
         now = datetime.now(timezone.utc)
 
     rows = list_open_review_cases_in_period(conn, from_dt, to_dt, employee_id=employee_id)
+    export_dir.mkdir(parents=True, exist_ok=True)
     filename = _make_filename("export_prueffaelle", from_dt, to_dt, now)
     path = export_dir / filename
 

@@ -5,6 +5,30 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring + Tests: export/csv_exporter.py CC 12 → 6, Coverage 81% → 99%] – 2026-07-14
+
+### Geändert
+
+- `infrastructure/export/csv_exporter.py`: `_day_stats` (CC 12) in vier Funktionen
+  aufgeteilt: `_close_work_phase` (CC 2), `_close_break_phase` (CC 2),
+  `_accumulate_phase_times` (CC 6, Zustandsmaschine), `_count_booking_statuses`
+  (CC 5, Statuszählung), `_day_stats` (CC 1, Koordinator). Außerdem fehlendes
+  `export_dir.mkdir()` in `export_review_cases` ergänzt. `__version__` auf 1.1 erhöht.
+
+### Hinzugefügt
+
+- `tests/integration/test_csv_export.py`: 16 neue Tests (31 gesamt, vorher 15).
+  Abgedeckte Pfade: BREAK_END-Dauer aus BREAK_START, BREAK_END ohne BREAK_START
+  (opener=None), WARN- und NEEDS_REVIEW-Statuszählung, Phasenwechsel ohne
+  vorangehende öffnende Buchung (BREAK_START ohne COME, BREAK_END ohne BREAK_START,
+  GO ohne COME), `now=None`-Zweige in allen drei Export-Funktionen, vollständige
+  Abdeckung von `export_review_cases` (Dateiname, Inhalt, Leerfall,
+  fehlender Buchungsbezug, Hinweistext, employee_id-Filter). Vorbestehende
+  mypy-Fehler (28 fehlende Annotationen, `dict` ohne Typparameter, `Returning Any`)
+  mitbehoben. `__version__ = "1.0"` ergänzt.
+
+---
+
 ## [Refactoring + Tests: admin_cli/employees.py CC 12 → 5, Coverage 71% → 100%] – 2026-07-14
 
 ### Geändert
