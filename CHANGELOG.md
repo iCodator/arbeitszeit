@@ -5,6 +5,295 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Konfiguration & Terminalbetrieb] – 2026-07-14
+
+### Hinzugefügt
+- `src/arbeitszeit/infrastructure/config_file.py` mit `AppConfig` sowie den
+  Teilkonfigurationen `DatabaseConfig`, `TerminalConfig`, `BackupConfig` und
+  `AdminConfig`.
+- Funktionen `load_config()`, `find_config()` und `write_config()` für eine
+  dateibasierte TOML-Konfiguration.
+- `config.toml.example` als Vorlage für die lokale Konfiguration.
+- `tests/infrastructure/test_config_file.py` mit 15 Tests für Lade-, Such- und
+  Schreibverhalten der neuen Konfigurationsdatei.
+- Dateibasierte Fehlerprotokollierung der Terminal-UI in
+  `terminal_ui.log` über `logging.log_dir`.
+- Detailliertere Buchungsrückmeldungen in der Terminal-UI mit Vorname,
+  Nachname, Buchungsart und Buchungszeitpunkt.
+- `setup.py --log-dir` zur Konfiguration des Log-Verzeichnisses.
+
+### Geändert
+- `terminal_ui` unterstützt jetzt `--config`; `--db`, `--numpad`, `--rfid` und
+  `--terminal-id` können aus `config.toml` übernommen werden.
+- `terminal_ui.run()` akzeptiert jetzt den Keyword-Parameter `app_config`.
+- `_setup_file_logging()` bevorzugt das Log-Verzeichnis aus `config.toml`.
+- `admin_cli` unterstützt jetzt `--config`; `--db` kann aus `config.toml`
+  übernommen werden.
+- `_resolve_user_id()` nutzt jetzt die Priorität
+  CLI → `ADMIN_USER_ID` → `config.toml`.
+- `system_check.py` liest Pfadkonfigurationen nicht mehr aus
+  `_REQUIRED_CONFIG_KEYS`, sondern prüft sie über einen eigenen
+  `_check_config_file_paths()`-Schritt.
+- `test_system_check._make_db()` wurde von nicht mehr benötigten
+  Deployment-Schlüsseln bereinigt.
+
+### Behoben
+- Fremdschlüsselproblem der Terminal-UI bei leerer `terminals`-Tabelle:
+  `_ensure_terminal_exists()` legt den Terminal-Datensatz jetzt per
+  `INSERT OR IGNORE` an.
+- Fehlerbehandlung in `_run_one_cycle()`: Exceptions werden jetzt mit
+  `logging.exception()` und vollständigem Traceback protokolliert.
+- `_log_system_event()` enthält jetzt mehr Detailinformationen für
+  Fehleranalysen im Betrieb.
+
+---
+
+## [Hardware & Dokumentation] – 2026-07-08 bis 2026-07-14
+
+### Hinzugefügt
+- `resolve_evdev_device()` zur Auflösung von evdev-Geräten über stabile
+  Gerätenamen statt nur über `/dev/input/eventX`-Pfade.
+- Direkter RFID-Scan für `cards assign` über `--scan --rfid` als Alternative
+  zu `--uid-hash`.
+- `scan_rfid_uid_hash()` in `evdev_reader.py` zum einmaligen Einlesen eines
+  RFID-Hashes direkt vom Lesegerät.
+- `docs/03_installation_technik/hardware.md` zur Dokumentation lokaler
+  evdev-Gerätepfade und Gerätenamen.
+- `docs/04_betrieb/handbuch_backup_restore.md` als Betriebshandbuch für
+  Backup- und Restore-Abläufe.
+- Neue HTML-Exporte der zentralen Dokumente mit gemeinsamer CSS-Datei
+  `docs/arbeitszeit_docs.css`.
+
+### Geändert
+- `--numpad` und `--rfid` akzeptieren jetzt sowohl stabile Gerätenamen als auch
+  direkte Gerätepfade.
+- Handbuch, Befehlsreferenz und Installationsanleitung wurden auf die Nutzung
+  stabiler evdev-Gerätenamen aktualisiert.
+- Die Dokumentation von `cards assign` beschreibt jetzt den direkten RFID-Scan
+  sowie den bisherigen Weg über `--uid-hash`.
+- Installationsanleitungen und Handbücher wurden versioniert fortgeschrieben;
+  ältere Fassungen wurden in `docs/archive/` abgelegt.
+- Die Datei
+  `docs/03_installation_technik/handbuch_rollen_cli_ergaenzung_v1_0.md`
+  wurde in
+  `docs/03_installation_technik/handbuch_rollen_cli_ergaenzung.md`
+  umbenannt.
+- Veraltete HTML-Dateien mit `*_arbeitszeit.html` wurden entfernt und durch
+  aktuelle Exporte ersetzt.
+- Dateireferenzen in mehreren Markdown-Dokumenten wurden an aktuelle
+  Dateinamen angepasst.
+
+### Behoben
+- Veraltete oder inkonsistente Dokumentationspfade in Handbuch und
+  Installationsanleitung wurden bereinigt.
+
+---
+
+## [Qualität, Refactoring & Tests] – 2026-07-03 bis 2026-07-05
+
+### Hinzugefügt
+- Deutlich ausgebaute Testabdeckung für mehrere unterabgedeckte Module,
+  darunter `_intervals.py`, `_auth.py`, `reports.py`, `schedule.py`,
+  `bookings.py`, `terminal_ui/main.py`, `notification.py`,
+  `admin_cli/system.py` und `evdev_reader.py`.
+- Isolierte Tests für `_check_ntp()` über gemockte `timedatectl`-Aufrufe.
+- Zusätzliche Tests für `terminal_ui/main.run()` mit Fokus auf Systemcheck,
+  Reader-Lebenszyklus und Signalbehandlung.
+
+### Geändert
+- Mehrere Methoden und Funktionen wurden zur Reduktion zyklomatischer
+  Komplexität refaktoriert, unter anderem:
+  - `ManageWorkScheduleUseCase.execute`
+  - `ApproveSupplementUseCase.execute`
+  - `CorrectBookingUseCase.execute`
+  - `validate_booking_sequence`
+  - `_read_rfid_uid`
+  - `cmd_schedule_show`
+- Doppelte Bewertungslogik für Buchungen wurde in das neue Modul
+  `application/use_cases/_booking_evaluation.py` ausgelagert.
+- Die Audit-Benennung wurde so geändert, dass Uhrzeitanteile in Verzeichnis-
+  und Dateinamen aufgenommen werden.
+- Subprocess-Aufrufe wurden durch dokumentierte `# nosec`-Begründungen für
+  Bandit-Funde ergänzt.
+
+### Behoben
+- Bare-`except: pass`-Stellen wurden durch explizites Warning-Logging mit
+  `exc_info=True` ersetzt.
+- Sicherheitsproblem durch partielle Executable-Pfade: `rsync`, `notify-send`
+  und `timedatectl` werden jetzt über absolute Pfade aufgerufen.
+- NTP-abhängige Testinstabilität in Container- und CI-Umgebungen wurde durch
+  Testisolation beseitigt.
+- Weitere kleinere Qualitätsprobleme wie Whitespace-Fehler,
+  Import-Reihenfolgen und nicht benötigte Suppressionen wurden bereinigt.
+
+---
+
+## [Dokumentationsprüfung & Bereinigung] – 2026-07-03
+
+### Hinzugefügt
+- Umfangreiche Prüfberichte für Handbuch, Präsentationsschicht,
+  Installationskapitel, Audit-Status, `show_config.py`, CONTRIBUTING,
+  Regelwerk, Pflichtenheft-Anlage, Datenbankschema, Domain-,
+  Application- und Infrastructure-Handbuch sowie Datenschutz- und
+  Betriebsdokumente.
+- `docs/07_pruefberichte/dokumentations_inventar.md` als vollständige
+  Übersicht aller Markdown- und HTML-Dokumentationsdateien.
+- Wiederherstellung des Archivdokuments
+  `docs/archive/pflichtenheft_arbeitszeit_v5.md`.
+- Prüfberichte zur Migration von Pflichtenheft-Referenzen und zur Korrektur
+  dokumentarischer Widersprüche.
+
+### Geändert
+- Die Dokumentationsstruktur unter `docs/` wurde umfassend in nummerierte
+  Themenordner neu gegliedert.
+- 100+ interne Querverweise wurden an die neue Struktur angepasst.
+- Das Gesamthandbuch wurde schrittweise mit den geprüften Modulhandbüchern
+  synchronisiert.
+- ADR-Referenzen, Betriebsdokumentation, VVT, Sicherheitsdokumentation,
+  Restore-Checkliste, Rollenzuweisung, Hardware-Inbetriebnahme-Protokoll,
+  Aufbewahrungs- und Löschkonzept sowie Planungsdokumente wurden auf den
+  tatsächlichen Code- und Dokumentationsstand korrigiert.
+- Relative Pfade zu `.claude/`-Dateien im Prüfbericht-Inventar wurden
+  berichtigt.
+- HTML-Versionen von Handbuch, Befehlsreferenz und Installationsanleitung
+  wurden neu erzeugt und gegen ihre Markdown-Quellen geprüft.
+
+### Behoben
+- Doppelte Prüfberichtsverzeichnisse mit Encoding-Fehlern wurden bereinigt.
+- Tote oder falsche Referenzen in ADRs, Sicherheitsdokumentation und
+  Inventarlisten wurden entfernt oder korrigiert.
+- Mehrere fachliche Fehlbehauptungen in der Dokumentation wurden durch
+  belegte, vorsichtigere Formulierungen ersetzt.
+
+---
+
+## [Admin-GUI, CLI & Fachlogik] – 2026-07-01 bis 2026-07-03
+
+### Hinzugefügt
+- Admin-GUI auf Basis von `tkinter/ttk` zur Verwaltung ohne Kommandozeile,
+  mit Tabs für Mitarbeiter, Karten, Benutzer, Regelzeiten und System.
+- `tests/presentation/test_admin_gui_controller.py` mit 21 Tests nach
+  Controller-Extraktion.
+- Neue Use Cases für schreibende Operationen in den Bereichen Mitarbeiter,
+  RFID-Karten und Benutzerkonten:
+  - `manage_employees.py`
+  - `manage_rfid_cards.py`
+  - `manage_user_accounts.py`
+- Neue Query-DTOs in `application/queries.py` zur CQRS-Symmetrie.
+- `export-csv-review-cases` zum CSV-Export offener Prüffälle.
+- NTP-Prüfung im `system_check` via `timedatectl`.
+- `docs/domain/enums.md` und `docs/infrastructure/evdev_reader.md`.
+
+### Geändert
+- Schreibende Admin-CLI-Operationen für Mitarbeiter, Karten und Benutzerkonten
+  laufen jetzt über die Anwendungsschicht statt über direkte SQL-Zugriffe.
+- `schedule set` unterstützt jetzt optional `--employee-id`.
+- PDF-Exportbefehle nutzen jetzt benannte Optionen (`--date`, `--year`,
+  `--week`, `--month`) statt Positionsargumente.
+- Rollenprüfungen wurden in `presentation/admin_cli/_auth.py`
+  zentralisiert.
+- Dokumentation von README, CONTRIBUTING, Handbuch,
+  Installationsanleitung und Befehlsreferenz wurde auf den aktuellen
+  Funktionsstand gebracht.
+- `verify_hardware.py` zeigt den vollständigen SHA-256-Hash an und nutzt
+  projektweit konsistente Hash-Bildung.
+- `show_config.py` wurde dokumentiert.
+
+### Behoben
+- `system backup` signalisiert NAS-Sync-Fehler jetzt mit `sys.exit(1)`.
+- Warnhinweis bei ungefilterten Großmengen in `open-bookings` und
+  `open-review-cases` ergänzt.
+- Mehrere Python-2-artige `except`-Schreibweisen wurden auf den
+  Python-3-Stil umgestellt.
+- Fehlender `simpledialog`-Import in `admin_gui/main.py` ergänzt.
+- Typprobleme und Verbindungsprüfungen in `admin_gui/main.py` abgesichert.
+- Hilfe-Dialog-Typannotation von `tk.Widget` auf `tk.Misc` korrigiert.
+- Lücken und Fehler in Befehlsreferenz und Installationsanleitung wurden
+  schrittweise korrigiert.
+
+### Entfernt
+- Die Admin-GUI wurde am 2026-07-03 aus dem `main`-Zweig entfernt und in den
+  separaten Entwicklungszweig `admin_gui` ausgelagert.
+- Zugehörige GUI-Verweise wurden aus README, CONTRIBUTING, Handbuch,
+  Installationsanleitung und Verzeichnisstruktur entfernt.
+
+---
+
+## [Pflichtenheft v6 & Dokumentationsaufbau] – 2026-06-30 bis 2026-07-01
+
+### Hinzugefügt
+- Vollständige Befehlsreferenz als `befehlsreferenz_arbeitszeit.md`.
+- HTML-Version der Installationsanleitung.
+- Modularisierte Handbuchstruktur mit getrennten Kapiteldateien für
+  Overview, Installation, Presentation, Application Layer, Domain,
+  Infrastructure und Audit.
+- `docs/SECURITY.md` zur Beschreibung des Sicherheitsmodells.
+- ADR-Dokumente für CQRS-Lesezugriffe und Presentation/Infrastructure-
+  Importregeln.
+- `docs/informelles/session_abschluss_und_klarstellungen_2026-06-11.md`
+  als Zusammenführung mehrerer Einzeldokumente.
+
+### Geändert
+- Pflichtenheft wurde von Version 5 auf Version 6 angehoben.
+- Aktive Referenzen im Repository wurden von `pflichtenheft_arbeitszeit_v5.md`
+  auf `pflichtenheft_arbeitszeit_v6.md` umgestellt; historische Artefakte
+  blieben bewusst unverändert.
+- Installationsanleitung wurde laienverständlicher ausgebaut und um
+  LUKS-Festplattenverschlüsselung als Pflichtvoraussetzung ergänzt.
+- README und CONTRIBUTING wurden auf aktuelle Struktur, Skripte,
+  Dev-Abhängigkeiten und Dokumentationsdateien aktualisiert.
+- `planung_gesamt.md` und weitere Planungsdokumente wurden von Diff-Artefakten
+  und veralteten Pfaden bereinigt.
+- Die `docs/`-Struktur wurde reorganisiert; ADRs und Nachweise wurden in
+  eigene Unterverzeichnisse verschoben.
+
+### Behoben
+- Die Installationsanleitung wurde mehrfach gegen den tatsächlichen Ablauf
+  korrigiert, unter anderem für `verify_hardware.py`, UID-Hash-Beschaffung,
+  `setup.py` und `evtest`.
+- Fehlende oder falsche Befehlsaufrufe in der Dokumentation wurden berichtigt.
+
+---
+
+## [Audit-Tooling & Entwicklerwerkzeuge] – 2026-06-16 bis 2026-06-29
+
+### Hinzugefügt
+- `scripts/generate_audit_notes.py` zur automatischen Auswertung von
+  Audit-Reportdateien.
+- `run_audit.sh` ruft am Ende automatisch `generate_audit_notes.py` auf.
+- Datierte Unterverzeichnisse für Audit-Reports unter `docs/audits/reports/`.
+- `scripts/verify_hardware.py` als Hardware-Smoke-Test für RFID-Reader und
+  Numpad.
+- `scripts/show_config.py` zur Anzeige von `system_config`-Einträgen.
+- `domain/value_objects.py` mit starken `NewType`-IDs für zentrale Domänen-
+  und Infrastrukturobjekte.
+- `tests/presentation/` mit Unit-Tests für `terminal_ui/booking_loop.py`.
+- `import-linter`-Konfiguration zur Verifikation des Layer-Contracts.
+- `ruff`, `black`, `isort` und strikte `mypy`-Konfiguration in
+  `pyproject.toml`.
+
+### Geändert
+- `run_audit.sh` läuft jetzt trotz Befunden vollständig durch und erzeugt
+  alle Reports zuverlässig.
+- Report-Dateinamen und Coverage-/Lint-Konfigurationen wurden vereinheitlicht.
+- `docs/audits/` wurde aus dem Git-Tracking entfernt und in `.gitignore`
+  aufgenommen.
+- `.claude/` wurde aktiviert, bereinigt und um Frontmatter ergänzt.
+- Die Admin-CLI-Dispatch-Logik wurde von einer tiefen `if/elif`-Kette auf
+  eine Dispatch-Tabelle umgestellt.
+
+### Behoben
+- Bandit-Warnung in `migrations.py` durch korrekte `nosec`-Schreibweise
+  beseitigt.
+- 40 mypy-Fehler und weitere Typprobleme wurden systematisch behoben.
+- 14 Ruff-Fehler sowie spätere Line-Length-, Import- und Stilprobleme
+  wurden beseitigt.
+- Mehrere Audit-Empfehlungen zu B017, B608 und E501 wurden umgesetzt.
+- Duplizierte TOML-Sektionen und Konfigurationsfehler in `pyproject.toml`
+  wurden bereinigt.
+
+---
+
 ## [Audit & Dokumentation] – 2026-06-13
 
 ### Hinzugefügt
