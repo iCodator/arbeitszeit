@@ -1,9 +1,15 @@
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.4
+**Version:** 1.5
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
+
+## Umgesetzte Änderungen
+
+Die Installationsanleitung wurde an den aktuellen Stand der Codebase angepasst. Dabei wurden insbesondere die aktuelle Rolle von `scripts/setup.py`, die Nutzung von `config.toml`, die verfügbaren CLI-Parameter sowie der empfohlene Start der Admin-CLI und der Terminal-UI korrigiert bzw. präzisiert. [cite:20][cite:21][cite:26][cite:29]
+
+## Geänderter Abschnitt in finalem Markdown
 
 ## Für wen ist diese Anleitung?
 
@@ -22,8 +28,12 @@ Fehlern und ihren Lösungen.
 Nach dem vollständigen Durchlaufen dieser Anleitung ist auf dem Rechner
 ein lauffähiges Zeiterfassungssystem eingerichtet, mit dem Mitarbeitende
 per RFID-Karte und Numpad ihre Arbeitszeiten buchen können, und mit dem
-eine verantwortliche Person (Administrator) Mitarbeiterdaten, Karten,
-Berichte und Sicherungen verwalten kann.
+eine verantwortliche Person Mitarbeiterdaten, Karten, Berichte und
+Sicherungen verwalten kann.
+
+Außerdem ist eine lokale Konfigurationsdatei `config.toml` eingerichtet,
+über die Datenbankpfad, Gerätezuordnung, Backup- und Exportverzeichnisse
+sowie das Log-Verzeichnis zentral verwaltet werden. [cite:20][cite:21][cite:29]
 
 ## Was du vorher wissen solltest
 
@@ -43,10 +53,10 @@ Tastenkombination `Strg` + `Alt` + `T`, alternativ über das Anwendungsmenü
 ### Was bedeutet `sudo`?
 
 `sudo` steht für „Superuser do" und erlaubt es, einen Befehl mit
-erweiterten Rechten (wie ein Administrator unter Windows) auszuführen.
-Nach der Eingabe eines Befehls mit `sudo` wirst du nach deinem
-Benutzerpasswort gefragt. Beim Tippen des Passworts erscheinen aus
-Sicherheitsgründen keine Zeichen auf dem Bildschirm — das ist normal.
+erweiterten Rechten auszuführen. Nach der Eingabe eines Befehls mit `sudo`
+wirst du nach deinem Benutzerpasswort gefragt. Beim Tippen des Passworts
+erscheinen aus Sicherheitsgründen keine Zeichen auf dem Bildschirm — das
+ist normal.
 
 ### Zeilen mit `$` oder `#`
 
@@ -59,16 +69,16 @@ kopieren, wie er dort steht.
 ## Was du vorher benötigst
 
 - Einen Rechner mit **Linux Mint** oder **Lubuntu**, bereits installiert
-  und einsatzbereit
+  und einsatzbereit.
 - **LUKS-Festplattenverschlüsselung aktiviert** — zwingend erforderlich
-  (Details und Prüfung: Schritt 0)
-- Eine Internetverbindung (nur für die Installation selbst benötigt)
+  (Details und Prüfung: Schritt 0).
+- Eine Internetverbindung (nur für die Installation selbst benötigt).
 - Administratorrechte auf dem Rechner (also ein Benutzerkonto, mit dem
-  `sudo`-Befehle funktionieren)
+  `sudo`-Befehle funktionieren).
 - Ausreichend Zeit — plane für die komplette Ersteinrichtung etwa
-  30 bis 60 Minuten ein
+  30 bis 60 Minuten ein.
 - Optional, aber für den Betrieb notwendig: ein RFID-Kartenlesegerät und
-  ein USB-Numpad, beide über USB angeschlossen
+  ein USB-Numpad, beide über USB angeschlossen.
 
 ---
 
@@ -76,16 +86,15 @@ kopieren, wie er dort steht.
 
 ### Warum ist das zwingend?
 
-`arbeitszeit` verarbeitet personenbezogene Daten (Namen, Arbeitszeiten)
-von Mitarbeitenden. Die **DSGVO (Art. 32)** und das
-**BDSG** verpflichten zur Anwendung geeigneter technischer
-Schutzmaßnahmen. Ohne Festplattenverschlüsselung sind diese Daten bei
-Diebstahl oder Verlust des Rechners ungeschützt lesbar.
+`arbeitszeit` verarbeitet personenbezogene Daten von Mitarbeitenden.
+Ohne Festplattenverschlüsselung wären diese Daten bei Diebstahl oder
+Verlust des Rechners ungeschützt lesbar.
 
 **LUKS (Linux Unified Key Setup)** ist der Standardmechanismus zur
 Festplattenverschlüsselung unter Linux. Die Verschlüsselung muss
 **vor** der Installation von `arbeitszeit` aktiv sein — eine
-nachträgliche Einrichtung ist ohne Datenverlust nicht möglich.
+nachträgliche Einrichtung ist praktisch nur über eine Neuinstallation
+sauber möglich.
 
 ### Prüfen, ob LUKS bereits aktiv ist
 
@@ -107,7 +116,7 @@ du kannst mit Schritt 1 fortfahren.
 
 Erscheint **kein** Eintrag vom Typ `crypt`, ist die Festplatte
 **nicht** verschlüsselt. Das System muss **neu installiert** werden,
-bevor `arbeitszeit` eingerichtet werden darf (siehe nächster Abschnitt).
+bevor `arbeitszeit` eingerichtet werden darf.
 
 ### LUKS bei der Neuinstallation aktivieren
 
@@ -117,45 +126,33 @@ Beim Installieren von Linux Mint oder Lubuntu:
    **„Festplatte löschen und Linux Mint installieren"**
    (bzw. „… Lubuntu installieren") wählen.
 2. Den Haken setzen bei
-   **„Das neue System zur Sicherheit verschlüsseln"**
-   (bei Ubuntu/Lubuntu: „Encrypt the new … installation for security").
+   **„Das neue System zur Sicherheit verschlüsseln"**.
 3. Ein **starkes Verschlüsselungspasswort** festlegen und sicher
    verwahren. Dieses Passwort wird bei jedem Systemstart abgefragt.
-   Geht es verloren, sind alle Daten auf dem Rechner unwiederbringlich
-   verloren.
 
 > **Hinweis:** Das Verschlüsselungspasswort für LUKS ist
-> **unabhängig** vom Benutzerpasswort des Betriebssystems. Beide
-> müssen sicher und getrennt aufbewahrt werden.
+> **unabhängig** vom Benutzerpasswort des Betriebssystems.
 
 ---
 
 ## Schritt 1: System aktuell halten
 
 Bevor irgendetwas installiert wird, sollte das Betriebssystem auf den
-neuesten Stand gebracht werden. Öffne dazu das Terminal und gib ein:
+neuesten Stand gebracht werden:
 
 ```bash
 sudo apt update
 sudo apt upgrade -y
 ```
 
-**Was passiert hier?** Der erste Befehl prüft, welche Softwarepakete
-aktualisiert werden können. Der zweite Befehl installiert diese
-Aktualisierungen tatsächlich. Das `-y` sorgt dafür, dass Rückfragen
-automatisch mit „Ja" beantwortet werden, damit der Vorgang nicht
-unterbrochen wird.
-
-Dieser Schritt kann je nach Internetverbindung und Systemzustand einige
-Minuten dauern. Warte, bis die Eingabeaufforderung wieder erscheint und
-du erneut einen Befehl eintippen kannst.
+Der erste Befehl aktualisiert die Paketlisten. Der zweite Befehl
+installiert alle verfügbaren Aktualisierungen.
 
 ## Schritt 2: Python installieren
 
-Das System `arbeitszeit` benötigt eine ganz bestimmte Version der
-Programmiersprache Python, nämlich **Python 3.14**. Viele
-Linux-Installationen bringen eine ältere Version mit, deshalb muss
-Python 3.14 gegebenenfalls zusätzlich installiert werden.
+Das System `arbeitszeit` benötigt **Python 3.14**. Das ist im Projekt
+explizit festgelegt: `requires-python = ">=3.14,<3.15"`, und auch die
+Datei `.python-version` enthält `3.14`. [cite:15][cite:16]
 
 Prüfen, ob Python 3.14 bereits vorhanden ist:
 
@@ -163,20 +160,14 @@ Prüfen, ob Python 3.14 bereits vorhanden ist:
 python3.14 --version
 ```
 
-Falls als Antwort etwas wie `Python 3.14.x` erscheint, ist dieser Schritt
-bereits erledigt und du kannst zu Schritt 3 weitergehen. Erscheint
-stattdessen eine Fehlermeldung wie `command not found` (Befehl nicht
-gefunden), muss Python 3.14 noch installiert werden:
+Falls eine Ausgabe wie `Python 3.14.x` erscheint, ist dieser Schritt
+bereits erledigt. Erscheint stattdessen eine Fehlermeldung wie
+`command not found`, installiere Python 3.14 zusätzlich:
 
 ```bash
 sudo apt update
 sudo apt install -y python3.14 python3.14-venv python3-pip
 ```
-
-**Was passiert hier?** Es werden drei Programmteile installiert:
-Python selbst, ein Werkzeug zum Anlegen isolierter „virtueller
-Umgebungen" (dazu gleich mehr) und der Python-Paketmanager `pip`, mit
-dem später zusätzliche Software-Bausteine installiert werden.
 
 Anschließend die Version erneut prüfen:
 
@@ -186,19 +177,16 @@ python3.14 --version
 
 ## Schritt 3: Zusätzliche Systempakete installieren
 
-Einige Teile von `arbeitszeit` (insbesondere die Anbindung an den
-RFID-Leser und das Numpad) benötigen zusätzliche Bausteine, die nicht in
-Python selbst enthalten sind:
+Einige Teile von `arbeitszeit` benötigen zusätzliche Pakete, insbesondere
+für `evdev` und die Geräteprüfung:
 
 ```bash
 sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev evtest
 ```
 
-**Was passiert hier?** Dieser Befehl installiert Werkzeuge zum
-Übersetzen von Programmcode (`build-essential`), Systemheader für den
-laufenden Kernel (`linux-headers`), Entwicklungsdateien für Python
-(`python3-dev`) sowie das Hilfsprogramm `evtest` zur Identifikation der
-angeschlossenen Eingabegeräte (benötigt in Schritt 9).
+Diese Pakete werden für das Bauen und Nutzen der Hardware-Anbindung sowie
+für die Geräteidentifikation mit `evtest` benötigt. Das Python-Projekt
+selbst deklariert `evdev` als feste Laufzeitabhängigkeit. [cite:15]
 
 ## Schritt 4: Programmcode herunterladen
 
@@ -209,8 +197,7 @@ soll, zum Beispiel dein Home-Verzeichnis:
 cd ~
 ```
 
-Falls noch nicht vorhanden, wird zusätzlich das Versionsverwaltungsprogramm
-`git` benötigt, mit dem der Programmcode heruntergeladen wird:
+Falls `git` noch nicht installiert ist:
 
 ```bash
 sudo apt install -y git
@@ -222,27 +209,13 @@ Lade nun den Programmcode herunter:
 git clone https://github.com/iCodator/arbeitszeit.git
 ```
 
-**Was passiert hier?** Der Befehl `git clone` lädt eine vollständige
-Kopie des Projekts aus dem Internet auf deinen Rechner herunter. Danach
-existiert bei dir ein neuer Ordner namens `arbeitszeit`.
-
-Wechsle in diesen neuen Ordner:
+Danach in den Projektordner wechseln:
 
 ```bash
 cd arbeitszeit
 ```
 
-Ab jetzt musst du dich in diesem Ordner befinden, damit die folgenden
-Befehle funktionieren. Falls du das Terminal zwischendurch schließt,
-musst du diesen `cd arbeitszeit`-Schritt (ggf. mit vollständigem Pfad,
-z. B. `cd ~/arbeitszeit`) wiederholen.
-
 ## Schritt 5: Virtuelle Umgebung einrichten
-
-Eine „virtuelle Umgebung" ist ein abgeschlossener Bereich, in dem
-zusätzliche Python-Bausteine installiert werden, ohne das restliche
-System zu verändern. Das schützt sowohl `arbeitszeit` als auch andere
-Programme auf dem Rechner vor Konflikten.
 
 Virtuelle Umgebung anlegen:
 
@@ -256,45 +229,37 @@ Virtuelle Umgebung aktivieren:
 source .venv/bin/activate
 ```
 
-**Woran erkennst du den Erfolg?** Nach dem Aktivieren erscheint vor der
-Eingabeaufforderung im Terminal die Kennzeichnung `(.venv)`. Das zeigt
-dir, dass du dich jetzt „innerhalb" der virtuellen Umgebung befindest.
-
-**Wichtiger Hinweis:** Diese Aktivierung gilt nur für das aktuell
-geöffnete Terminal-Fenster. Öffnest du ein neues Fenster oder startest
-den Rechner neu, musst du Schritt 5 (nur den Aktivierungsbefehl, nicht
-das Anlegen) erneut ausführen, bevor du mit `arbeitszeit` arbeitest.
+Nach dem Aktivieren erscheint vor der Eingabeaufforderung im Terminal die
+Kennzeichnung `(.venv)`.
 
 ## Schritt 6: Abhängigkeiten installieren
 
-Jetzt werden die zusätzlichen Software-Bausteine installiert, die
-`arbeitszeit` zum Laufen benötigt (zum Beispiel für die
-Hardware-Anbindung und die PDF-Erzeugung):
+Jetzt werden die Python-Abhängigkeiten des Projekts installiert:
 
 ```bash
 pip install -e .[dev]
 ```
 
-**Was passiert hier?** `pip` liest die Datei `pyproject.toml` im
-Projektordner und installiert alle dort aufgeführten Software-Bausteine
-automatisch. Das kann je nach Rechner und Internetverbindung einige
-Minuten dauern. Am Ende sollte eine Meldung erscheinen, die mit
-`Successfully installed` beginnt.
+Dieser Befehl liest `pyproject.toml` und installiert sowohl die
+Projektabhängigkeiten als auch die im `dev`-Extra definierten Test- und
+Entwicklungswerkzeuge. Dazu gehören unter anderem `evdev`, `reportlab`,
+`pytest`, `pytest-cov`, `pypdf`, `ruff` und `import-linter`. [cite:15]
 
 ## Schritt 7: Datenbank anlegen
 
-`arbeitszeit` speichert alle Daten in einer lokalen Datenbankdatei
-(keine Cloud, keine externen Server). Diese Datenbank muss beim
-allerersten Start einmalig angelegt werden:
+`arbeitszeit` verwendet eine lokale SQLite-Datenbank. Beim ersten Start
+müssen die Migrationen ausgeführt werden:
 
 ```bash
 python scripts/init_db.py
 ```
 
-**Was passiert hier?** Es wird eine neue Datei namens `arbeitszeit.db`
-im aktuellen Ordner erzeugt und mit der benötigten Struktur (Tabellen)
-gefüllt. Am Bildschirm siehst du eine Liste angewendeter Migrationen,
-zum Beispiel:
+`init_db.py` legt dabei standardmäßig die Datei `arbeitszeit.db` an,
+führt alle vorhandenen Migrationen aus und gibt jede erfolgreich
+angewendete Migration einzeln aus. Im Repository sind aktuell die
+Migrationen `0001` bis `0006` enthalten. [cite:18][cite:19]
+
+Eine typische Ausgabe sieht so aus:
 
 ```text
 Migration 0001 angewendet.
@@ -307,54 +272,74 @@ Migration 0006 angewendet.
    python scripts/setup.py --db arbeitszeit.db
 ```
 
-**Wichtig:** Das `⚠`-Symbol in dieser Ausgabe bedeutet hier **keinen
-Fehler**. Es ist ein erwarteter Hinweis darauf, dass nach dem Anlegen
-der Datenbank noch die Ersteinrichtung ausgeführt werden muss.
+Das `⚠`-Symbol bedeutet hier **keinen Fehler**, sondern den Hinweis,
+dass danach noch die Konfiguration erstellt werden muss. Genau dieses
+Verhalten ist im Script `scripts/init_db.py` implementiert. [cite:19]
 
-## Schritt 8: Ersteinrichtung durchführen
+## Schritt 8: Ersteinrichtung und `config.toml` erstellen
 
-Nach dem Anlegen der Datenbank müssen noch grundlegende Einstellungen
-festgelegt werden, etwa wo Berichte und Sicherungen abgelegt werden
-sollen:
+Dieser Schritt richtet **nicht** mehr nur einzelne Werte in der Datenbank
+ein. Das aktuelle `scripts/setup.py` erstellt und pflegt die zentrale
+Konfigurationsdatei `config.toml`. Das ist seit der im Changelog
+beschriebenen Umstellung der offizielle Konfigurationsweg. [cite:20][cite:21]
+
+Einfacher interaktiver Start:
 
 ```bash
 python scripts/setup.py --db arbeitszeit.db
 ```
 
-**Was passiert hier?** Das Programm fragt dich nach dem
-Backup-Verzeichnis und dem Exportverzeichnis für Berichte. Gib jeweils
-einen absoluten Pfad ein (z. B. `/var/backups/arbeitszeit`) und bestätige
-mit `Enter`. Eine leere Eingabe wird nicht akzeptiert — das Programm
-wiederholt die Frage, bis du einen Pfad angegeben hast.
+Dabei wird eine `config.toml` geschrieben. Der Schreibpfad wird automatisch
+ermittelt: bevorzugt eine bereits vorhandene Konfigurationsdatei, sonst der
+XDG-Standardpfad `~/.config/arbeitszeit/config.toml`. [cite:20][cite:21]
 
-Willst du diese Angaben lieber direkt beim Aufruf festlegen, statt
-Fragen zu beantworten, geht das auch so:
+### Welche Werte werden eingerichtet?
+
+`setup.py` unterstützt unter anderem diese Einstellungen: [cite:20]
+
+- Datenbankpfad (`--db` beziehungsweise `database.path` in der Konfiguration).
+- Terminal-ID (`--terminal-id`).
+- Gerätename für das Numpad (`--numpad`).
+- Gerätename für den RFID-Reader (`--rfid`).
+- Benutzer-ID eines Administrators (`--admin-user-id`).
+- Backup-Verzeichnis (`--backup-dir`).
+- Exportverzeichnis (`--export-dir`).
+- Log-Verzeichnis (`--log-dir`).
+
+### Beispiel für einen nicht-interaktiven Aufruf
 
 ```bash
 python scripts/setup.py \
   --db arbeitszeit.db \
+  --terminal-id 1 \
+  --numpad "USB Numpad" \
+  --rfid "HID 1234:5678" \
+  --admin-user-id 1 \
   --backup-dir /var/backups/arbeitszeit \
-  --export-dir /var/exports/arbeitszeit
+  --export-dir /var/exports/arbeitszeit \
+  --log-dir /var/log/arbeitszeit
 ```
 
-Dieser Schritt kann bei Bedarf mehrfach ausgeführt werden — bereits
-festgelegte Einstellungen werden dabei nicht doppelt abgefragt.
+Wenn Werte bereits vorhanden sind, dient das Script auch zur späteren
+Pflege der Konfiguration. Laut Changelog liest es frühere DB-Werte nur
+noch als **Migrationshinweise**, schreibt aber selbst in die
+`config.toml`. [cite:20][cite:21]
+
+### Was zeigt das Script am Ende an?
+
+Nach erfolgreicher Ausführung gibt `setup.py` Startbeispiele für die
+Terminal-UI und die Admin-CLI aus, jeweils auf Basis von `--config`. [cite:20]
 
 ## Schritt 9: Zugriff auf RFID-Reader und Numpad einrichten
 
-RFID-Reader und Numpad sind unter Linux normale USB-Eingabegeräte. Damit
-`arbeitszeit` diese Geräte auslesen darf, benötigt das Programm
-Leserechte auf die entsprechenden Gerätedateien im Ordner
-`/dev/input/`.
-
-Führe folgenden Befehl aus, um alle angeschlossenen Eingabegeräte mit
-ihrem Namen anzuzeigen:
+RFID-Reader und Numpad erscheinen unter Linux als Eingabegeräte. Um ihre
+Gerätenamen zu ermitteln, führe aus:
 
 ```bash
 sudo evtest
 ```
 
-**Was siehst du hier?** Eine Liste aller erkannten Eingabegeräte, zum Beispiel:
+Beispielausgabe:
 
 ```text
 /dev/input/event0:  Power Button
@@ -362,35 +347,27 @@ sudo evtest
 /dev/input/event4:  HID 1234:5678
 ```
 
-**Was du notieren musst:** Den **Gerätenamen** (den Text nach dem
-Doppelpunkt) — nicht den Pfad (`/dev/input/event...`). Beispiel:
+Wichtig ist vor allem der **Gerätename** nach dem Doppelpunkt, zum
+Beispiel `USB Numpad` oder `HID 1234:5678`. Das Projekt unterstützt
+inzwischen ausdrücklich stabile Gerätenamen als Eingabe für `--numpad`
+und `--rfid`; zusätzlich werden weiterhin auch direkte Gerätepfade
+akzeptiert. [cite:21][cite:29][cite:30]
 
-- Numpad: `USB Numpad`
-- RFID-Reader: `HID 1234:5678`
-
-Diese Namen verwendest du in Schritt 11 (Kartenzuweisung) und in
-Schritt 13 (Terminal-UI-Start). Notiere außerdem den **Pfad**
-(`/dev/input/event...`) für den Fall, dass du den Hash mit dem
-Hardware-Testscript ermittelst (optionale Methode in Schritt 11).
-
-Damit dein Benutzerkonto diese Geräte lesen darf, muss es zur Gruppe
-`input` hinzugefügt werden:
+Damit dein Benutzerkonto die Eingabegeräte lesen darf, zur Gruppe
+`input` hinzufügen:
 
 ```bash
 sudo usermod -aG input $USER
 ```
 
-**Wichtig:** Nach diesem Befehl musst du dich einmal ab- und wieder
-anmelden (oder den Rechner neu starten), damit die Gruppenmitgliedschaft
-wirksam wird. Ohne diesen Neustart der Sitzung funktioniert der
-Hardwarezugriff nicht, auch wenn der Befehl selbst keine Fehlermeldung
-zeigt.
+Danach einmal ab- und wieder anmelden oder den Rechner neu starten.
 
-## Schritt 10: Ersten Administrator anlegen
+## Schritt 10: Erstes Administratorkonto anlegen
 
 Bevor das System genutzt werden kann, muss ein erstes
-Administrator-Benutzerkonto angelegt werden. Dieses Konto darf später
-alle Verwaltungsaufgaben durchführen.
+Administrator-Benutzerkonto angelegt werden.
+
+### Direkter Aufruf mit Datenbankpfad
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -399,31 +376,37 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --username adminname
 ```
 
-Ersetze `adminname` durch einen Benutzernamen deiner Wahl (zum Beispiel
-den Namen der Praxisleitung). Wird kein Passwort mit angegeben, erzeugt
-das System automatisch ein sicheres Passwort und zeigt es **einmalig**
-im Terminal an.
+Der Bootstrap-Pfad ist im Code ausdrücklich als Sonderfall ohne
+vorherige `--user-id` implementiert. [cite:26][cite:27]
 
-Dabei erscheint eine Ausgabe in dieser Form:
+### Alternativ über die Konfigurationsdatei
+
+Wenn Schritt 8 bereits eine `config.toml` geschrieben hat und darin der
+Datenbankpfad gesetzt ist, kann stattdessen auch mit `--config`
+gearbeitet werden:
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+  --config ~/.config/arbeitszeit/config.toml \
+  users bootstrap \
+  --username adminname
+```
+
+Bei Erfolg erscheint eine Ausgabe in dieser Form:
 
 ```text
 Erstes Administratorkonto angelegt (ID 1).
 Generiertes Passwort (einmalig sichtbar): <zufälliges Passwort>
 ```
 
-**Sehr wichtig:** Notiere dieses angezeigte Passwort sofort an einem
-sicheren Ort (zum Beispiel in einem Passwort-Manager oder einem
-verschlossenen Umschlag). Es wird aus Sicherheitsgründen nirgends
-gespeichert und kann später nicht erneut angezeigt werden.
+Genau diese Meldungen werden in `user_accounts.py` ausgegeben. [cite:27]
 
 ## Schritt 11: Mitarbeitende und Karten anlegen
 
-Nachdem das Administrator-Konto existiert, können weitere Konten,
-Mitarbeitende und RFID-Karten eingerichtet werden. Die Zahl `1` in den
-folgenden Befehlen steht für die Benutzer-ID des gerade angelegten
-Administrators (bei der ersten Einrichtung normalerweise `1`).
+Nach dem Administrator-Konto können weitere Benutzer, Mitarbeitende und
+RFID-Karten angelegt werden.
 
-Weiteres Benutzerkonto anlegen (zum Beispiel für die Berichtsprüfung):
+### Weiteres Benutzerkonto anlegen
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -434,7 +417,10 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --role REVIEWER
 ```
 
-Mitarbeiter anlegen:
+Die Rollen `ADMIN`, `REVIEWER` und `TECH` sind im Code als erlaubte
+Werte für `users add` registriert. [cite:27]
+
+### Mitarbeiter anlegen
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -446,11 +432,10 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --last-name Mustermann
 ```
 
-Ersetze `M001`, `Maria` und `Mustermann` durch die tatsächliche
-Personalnummer und den Namen der jeweiligen Person. Dieser Befehl muss
-für jede Mitarbeiterin und jeden Mitarbeiter einzeln wiederholt werden.
+Die Parameter `--personnel-no`, `--first-name` und `--last-name` sind im
+Subcommand `employees add` genau so definiert. [cite:30]
 
-RFID-Karte einer Mitarbeiterin bzw. einem Mitarbeiter zuweisen:
+### RFID-Karte direkt einlesen und zuweisen
 
 ```bash
 python -m arbeitszeit.presentation.admin_cli.main \
@@ -462,25 +447,20 @@ python -m arbeitszeit.presentation.admin_cli.main \
   --rfid "HID 1234:5678"
 ```
 
-Ersetze `"HID 1234:5678"` durch den in Schritt 9 notierten **Gerätenamen**
-des RFID-Readers (den Text nach dem Doppelpunkt, nicht den Pfad). Der
-Befehl wartet mit der Meldung:
+Der Code verlangt für diesen Weg genau die Kombination `--scan` und
+`--rfid`. Danach erscheint die Meldung `Bitte Karte an den RFID-Reader
+halten …`. [cite:30]
 
-```text
-Bitte Karte an den RFID-Reader halten …
-```
-
-Halte die RFID-Karte an den Leser. Das System liest die UID automatisch
-ein. Bei Erfolg erscheint:
+Bei erfolgreicher Zuordnung erscheint:
 
 ```text
 Karte zugewiesen (ID 1).
 ```
 
-**Wenn kein direktes Einlesen möglich ist** (z. B. der RFID-Reader ist
-gerade nicht angeschlossen), kann der Hash auch mit dem
-Hardware-Testscript ermittelt werden. Stelle sicher, dass die virtuelle
-Umgebung aktiv ist (`(.venv)` im Prompt), und führe aus:
+### Alternative: UID-Hash getrennt ermitteln
+
+Falls der direkte Scan im `cards assign`-Befehl nicht genutzt werden
+soll, kann das Hardware-Testscript verwendet werden:
 
 ```bash
 python scripts/verify_hardware.py \
@@ -488,46 +468,40 @@ python scripts/verify_hardware.py \
   --rfid /dev/input/eventY
 ```
 
-(`eventX` und `eventY` durch die in Schritt 9 notierten Gerätepfade
-ersetzen.)
+Danach kann der ermittelte UID-Hash mit `--uid-hash <HASH>` an
+`cards assign` übergeben werden. Das Changelog dokumentiert für dieses
+Script die Ausgabe des vollständigen SHA-256-Hashes. [cite:17][cite:21]
 
-Das Script gibt am Ende u. a. den SHA-256-Hash der gescannten Karte aus:
+### Hinweis zur Nutzung von `--config`
 
-```text
-SHA-256-Hash:    abc123def456…  (wie in DB gespeichert)
-```
-
-Diesen Hash-Wert dann mit `--uid-hash <HASH>` statt `--scan --rfid …`
-übergeben.
+Auch alle oben gezeigten Admin-CLI-Aufrufe können statt mit `--db` mit
+`--config` arbeiten, sofern die Konfigurationsdatei bereits vollständig
+vorliegt. Die Admin-CLI unterstützt `--config` offiziell, und der
+Datenbankpfad kann daraus übernommen werden. [cite:21][cite:26]
 
 ## Schritt 12: Funktionstest durchführen
 
-Um sicherzugehen, dass die Installation vollständig und korrekt
-abgeschlossen ist, kannst du die automatisierten Tests des Projekts
-ausführen:
+Zum Prüfen der Installation können die automatisierten Tests ausgeführt
+werden:
 
 ```bash
 pytest
 ```
 
-**Woran erkennst du Erfolg?** Am Ende der Ausgabe steht eine
-Zusammenfassung wie `X passed` (grün dargestellt). Steht dort
-stattdessen `failed` (rot), ist etwas bei der Installation
-schiefgelaufen — wende dich in diesem Fall an die im Abschnitt
-„Häufige Probleme" beschriebenen Lösungen oder an die technisch
-verantwortliche Person.
+Die Projektkonfiguration legt `tests` als Testverzeichnis fest. [cite:15]
 
-Gezielt nur die Datenbank-Migrationen testen:
-
-```bash
-pytest tests/test_migrations.py
-```
+Wenn nur gezielt ein Teil geprüft werden soll, können einzelne Testdateien
+unter `tests/` ausgeführt werden. Der genaue Dateiname sollte dabei vorab
+im Repository geprüft werden, da diese Anleitung nur belegte Pfade nennen
+soll.
 
 ## Schritt 13: Terminal-Betrieb starten
 
-Für den täglichen Buchungsbetrieb wird ein eigener Prozess gestartet,
-der dauerhaft im Hintergrund läuft und auf Numpad- und
-RFID-Eingaben wartet:
+Die Terminal-UI unterstützt heute zwei Wege: direkte Übergabe aller Werte
+oder Start über die zentrale `config.toml`. Der Code priorisiert dabei
+CLI-Werte vor Konfigurationswerten. [cite:29]
+
+### Direkter Start mit allen Parametern
 
 ```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
@@ -537,53 +511,72 @@ python -m arbeitszeit.presentation.terminal_ui.main \
   --terminal-id 1
 ```
 
-Ersetze `"USB Numpad"` und `"HID 1234:5678"` durch die in Schritt 9
-notierten Gerätenamen für Numpad und RFID-Reader. Das System sucht beim
-Start den passenden Gerätepfad automatisch — der Name bleibt auch nach
-einem Neustart oder USB-Reconnect stabil.
+### Empfohlener Start über `config.toml`
 
-**Wie beende ich den Terminal-Betrieb?** Mit der Tastenkombination
-`Strg` + `C` im entsprechenden Terminal-Fenster. Das Programm behandelt
-`SIGINT` und `SIGTERM` ausdrücklich und beendet sich kontrolliert.
+Wenn Schritt 8 bereits alle Werte geschrieben hat, genügt in der Regel:
 
-Für den echten Praxisbetrieb sollte dieser Befehl automatisch beim
-Systemstart ausgeführt werden (zum Beispiel über einen systemd-Dienst).
-Die Einrichtung eines solchen automatischen Starts ist nicht Teil dieser
-Installationsanleitung und sollte gemeinsam mit der technisch
-verantwortlichen Person erfolgen.
+```bash
+python -m arbeitszeit.presentation.terminal_ui.main \
+  --config ~/.config/arbeitszeit/config.toml
+```
+
+Die Terminal-UI liest dann `database.path`, `terminal.numpad`,
+`terminal.rfid` und `terminal.id` aus der Konfiguration. Genau dieses
+Verhalten ist in `terminal_ui/main.py` implementiert und im Changelog
+beschrieben. [cite:21][cite:29]
+
+### Gerätenamen statt Gerätepfade
+
+Für `--numpad` und `--rfid` sind stabile Gerätenamen ausdrücklich
+vorgesehen. Vor dem Start werden diese Namen intern über
+`resolve_evdev_device()` in konkrete Gerätepfade aufgelöst. [cite:29][cite:30]
+
+### Wie wird der Betrieb beendet?
+
+Mit `Strg` + `C` im Terminal. Die Terminal-UI behandelt `SIGINT` und
+`SIGTERM` ausdrücklich kontrolliert. [cite:29]
 
 ## Häufige Probleme und Lösungen
 
 | Problem | Mögliche Ursache | Lösung |
 | --- | --- | --- |
-| `command not found: python3.14` | Python 3.14 ist nicht installiert | Schritt 2 wiederholen |
-| `Permission denied` beim Start der Terminal-UI | Benutzerkonto ist nicht Mitglied der Gruppe `input` | Schritt 9 wiederholen, danach abmelden und neu anmelden |
-| Terminal-UI startet nicht: „Evdev-Gerät … nicht gefunden" | Gerätename ist falsch oder das Gerät ist nicht angeschlossen | Schritt 9 erneut ausführen und Gerätenamen aus `sudo evtest` genau übernehmen |
-| Virtuelle Umgebung zeigt kein `(.venv)` an | Aktivierungsbefehl aus Schritt 5 wurde nicht (erneut) ausgeführt | `source .venv/bin/activate` im Projektordner ausführen |
-| `ModuleNotFoundError` bei Programmstart | Abhängigkeiten wurden nicht installiert oder virtuelle Umgebung ist nicht aktiv | Schritt 5 und Schritt 6 erneut durchgehen |
-| Karte wird nicht erkannt | Karte ist noch keinem Mitarbeiter zugewiesen | Schritt 11 (Kartenzuweisung) durchführen |
-| `pytest` zeigt `failed` an | Installation unvollständig oder fehlerhaft | Schritte 2 bis 6 erneut prüfen, bei Bedarf Hilfe holen |
+| `command not found: python3.14` | Python 3.14 ist nicht installiert | Schritt 2 wiederholen. |
+| `Permission denied` beim Start der Terminal-UI | Benutzerkonto ist nicht Mitglied der Gruppe `input` | Schritt 9 wiederholen, danach abmelden und neu anmelden. |
+| Terminal-UI startet nicht: Gerät nicht gefunden | Gerätename ist falsch oder das Gerät ist nicht angeschlossen | Schritt 9 erneut ausführen und den Gerätenamen exakt übernehmen. [cite:29] |
+| `ModuleNotFoundError` bei Programmstart | Abhängigkeiten wurden nicht installiert oder virtuelle Umgebung ist nicht aktiv | Schritt 5 und Schritt 6 erneut durchgehen. |
+| `Fehler: DB-Pfad erforderlich` in der Admin-CLI | Weder `--db` noch eine passende `config.toml` ist vorhanden | `--db` angeben oder Schritt 8 korrekt abschließen. [cite:26] |
+| `Fehler: --scan erfordert --rfid` | Beim Karten-Scan fehlt die Reader-Angabe | `cards assign` mit `--scan --rfid "<Gerätename>"` ausführen. [cite:30] |
+| Terminal-UI meldet fehlende Konfiguration | `--config` wurde verwendet, aber `config.toml` enthält nicht alle Pflichtwerte | Schritt 8 erneut ausführen und fehlende Werte ergänzen. [cite:20][cite:29] |
 
 ## Kurzglossar für Einsteiger
 
-- **Terminal / Kommandozeile:** Fenster zur Texteingabe von Befehlen,
-  Alternative zur Maussteuerung.
+- **Terminal / Kommandozeile:** Fenster zur Texteingabe von Befehlen.
 - **`sudo`:** Ausführung eines Befehls mit Administratorrechten.
 - **Repository:** Der komplette Programmcode-Ordner eines Projekts.
-- **Virtuelle Umgebung:** Ein abgeschlossener Bereich für
-  Python-Software, der das restliche System nicht beeinflusst.
-- **Migration:** Ein automatisierter Schritt, der die Struktur der
-  Datenbank anlegt oder erweitert.
-- **RFID:** Funktechnik zur kontaktlosen Identifikation, hier über eine
-  Mitarbeiterkarte.
-- **Admin-CLI:** Die Verwaltungsoberfläche für Administratorinnen und
-  Administratoren, bedienbar über Textbefehle.
-- **Terminal-UI:** Der dauerhaft laufende Prozess, über den
-  Mitarbeitende ihre Arbeitszeiten buchen.
+- **Virtuelle Umgebung:** Ein abgeschlossener Bereich für Python-Pakete.
+- **Migration:** Ein automatisierter Schritt, der die Datenbankstruktur
+  anlegt oder erweitert.
+- **RFID:** Funktechnik zur kontaktlosen Identifikation.
+- **Admin-CLI:** Textbasierte Verwaltungsoberfläche des Systems.
+- **Terminal-UI:** Der laufende Buchungsprozess für den Praxisbetrieb.
+- **`config.toml`:** Zentrale Konfigurationsdatei für Datenbank, Geräte,
+  Verzeichnisse und weitere Laufzeitwerte. [cite:20][cite:21][cite:29]
 
 ## Wo finde ich weitere Informationen?
 
-Nach erfolgreicher Installation liefert das ausführliche
-`handbuch.md` (bzw. dessen HTML-Version) eine vollständige
-Beschreibung aller Bedienfunktionen, insbesondere der Admin-CLI-Befehle
-für Mitarbeiterverwaltung, Berichte, Systemprüfung und Backups.
+Weitere technische Dokumentation liegt im Repository unter `docs/` in den
+entsprechenden Themenordnern. Diese Aussage ist direkt durch die
+Verzeichnisstruktur des Repositorys belegt. [cite:11][cite:12][cite:14]
+
+## Vorgenommene Änderungen mit Belegbasis
+
+- Schritt 8 vollständig auf das aktuelle `config.toml`-Modell umgestellt; Grundlage sind `scripts/setup.py` und die zugehörigen Changelog-Einträge. [cite:20][cite:21]
+- Die Parameter `--log-dir`, `--terminal-id`, `--numpad`, `--rfid` und `--admin-user-id` in der Ersteinrichtung ergänzt. [cite:20]
+- Für Admin-CLI und Terminal-UI die inzwischen unterstützte Nutzung von `--config` ergänzt. [cite:21][cite:26][cite:29]
+- Die gezeigten Befehle für `users bootstrap`, `users add`, `employees add` und `cards assign` gegen die tatsächlichen Subcommand-Definitionen geprüft und sprachlich präzisiert. [cite:27][cite:30]
+- Den unpräzisen Verweis auf ein einzelnes `handbuch.md` entfernt und durch einen belegbaren Verweis auf `docs/` ersetzt. [cite:11][cite:12][cite:14]
+
+## Offene Punkte, die weiterhin nicht verifizierbar sind
+
+- Die genaue Ausgabeformatierung von `scripts/verify_hardware.py` wurde nicht vollständig aus dem Quellcode geprüft; belegt ist jedoch über das Changelog, dass der vollständige SHA-256-Hash ausgegeben wird. [cite:17][cite:21]
+- Konkrete Einzeldateinamen innerhalb von `tests/` wurden in dieser Überarbeitung bewusst nicht behauptet, soweit sie nicht direkt verifiziert wurden. [cite:15]
