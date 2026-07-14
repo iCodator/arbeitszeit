@@ -109,12 +109,71 @@ Ob zusätzlich `scripts/setup.py` oder weitere Installationsschritte nötig sind
 | Testabdeckung mit Coverage | `pytest --cov=arbeitszeit` | Nutzt die im Projekt vorgesehenen Dev-Abhängigkeiten für Coverage-Auswertung. |
 | Nur Migrationstests | `pytest tests/test_migrations.py` | Prüft die Migrationen gezielt über die vorhandene Testdatei. |
 
+## Konfiguration (config.toml)
+
+Laufzeitkonfiguration wird in einer TOML-Datei abgelegt. Als Vorlage dient [`config.toml.example`](config.toml.example).
+
+### Suchpfade (in Reihenfolge)
+
+| Priorität | Quelle | Beispiel |
+|---|---|---|
+| 1 | `--config`-CLI-Argument | `--config /etc/arbeitszeit/config.toml` |
+| 2 | ENV `ARBEITSZEIT_CONFIG` | `export ARBEITSZEIT_CONFIG=/pfad/config.toml` |
+| 3 | `~/.config/arbeitszeit/config.toml` | XDG-Standard |
+| 4 | `./config.toml` | Working-Directory (z. B. in systemd-Unit via `WorkingDirectory=`) |
+
+### Unterstützte Schlüssel
+
+| Schlüssel | Typ | Pflicht für Terminal-UI | Beschreibung |
+|---|---|---|---|
+| `database.path` | Pfad | ja | Pfad zur SQLite-Datenbankdatei |
+| `terminal.id` | int | ja | Eindeutige Terminal-ID |
+| `terminal.numpad` | str | ja | evdev-Gerätename des Numpads |
+| `terminal.rfid` | str | ja | evdev-Gerätename des RFID-Lesers |
+| `backup.backup_dir` | Pfad | nein | Zielverzeichnis für Backups |
+| `backup.export_dir` | Pfad | nein | Exportverzeichnis (CSV/PDF) |
+| `backup.log_dir` | Pfad | nein | Verzeichnis für Terminal-UI-Logs |
+| `admin.user_id` | int | nein | Fallback-User-ID für `admin_cli` (Priorität: CLI → ENV `ADMIN_USER_ID` → config.toml) |
+
+### Prioritätsregeln
+
+```
+CLI-Argument  >  config.toml  >  ENV-Variable  >  Fehler (Pflichtfelder)
+```
+
+`ADMIN_USER_ID` (ENV) gilt nur für `admin.user_id` und liegt zwischen CLI und config.toml.
+
+### Ersteinrichtung und Pflege
+
+```bash
+python scripts/setup.py                                  # eigenständiges Skript
+python -m arbeitszeit.presentation.admin_cli.main \
+    --db <pfad> system setup                             # Admin-CLI (ADMIN oder TECH)
+```
+
+Beide nutzen dieselbe Logik:
+
+- **Leere Eingabe** lässt bestehende Werte unverändert — die Datei ist idempotent editierbar.
+- **DB-Migrationshinweis**: Ist ein Pfadwert in config.toml noch nicht gesetzt, aber in der alten DB-Konfiguration vorhanden (`backup.backup_dir`, `export.export_dir`, `logging.log_dir`), wird er als Vorschlag angezeigt (`← DB-Migrationshinweis`). Leere Eingabe übernimmt ihn **nicht** automatisch — erst eine explizite Eingabe setzt den Wert.
+- **Schreibpfad**: `--config`-Argument → vorhandene Datei (via Suchpfade) → `~/.config/arbeitszeit/config.toml`.
+
+Nicht-interaktive Einrichtung (alle Felder als Flags):
+
+```bash
+python scripts/setup.py \
+    --db /pfad/arbeitszeit.db \
+    --terminal-id 1 \
+    --numpad "USB Numpad Name" \
+    --rfid "RFID Reader Name" \
+    --backup-dir /var/backups/arbeitszeit
+```
+
 ## Wichtige Skripte und Einstiegspunkte
 
 | Datei/Modul | Zweck | Wann relevant |
 |---|---|---|
 | [`scripts/init_db.py`](scripts/init_db.py) | Initialisiert die Datenbank bzw. stößt den Migrationspfad für ein neues System an. | Beim ersten lokalen Setup oder bei Neuaufbau einer Instanz. |
-| [`scripts/setup.py`](scripts/setup.py) | Bündelt Setup-Aufgaben außerhalb des eigentlichen Paketstarts. | Beim vorbereitenden Einrichten eines Systems. |
+| [`scripts/setup.py`](scripts/setup.py) | Erstellt und pflegt `config.toml` interaktiv; alle 8 Felder konfigurierbar, leere Eingabe lässt Bestehendes unverändert. | Ersteinrichtung und spätere Konfigurationspflege. |
 | [`scripts/backup.py`](scripts/backup.py) | Startet den Backup-Ablauf per Hilfsskript. | Für manuelle oder geplante Sicherungen. |
 | [`src/arbeitszeit/presentation/terminal_ui/main.py`](src/arbeitszeit/presentation/terminal_ui/main.py) | Einstiegspunkt des operativen Terminalbetriebs. | Für den laufenden Buchungsbetrieb mit Hardware. |
 | [`src/arbeitszeit/presentation/admin_cli/main.py`](src/arbeitszeit/presentation/admin_cli/main.py) | Einstiegspunkt der administrativen CLI. | Für Pflege, Auswertung und Systemverwaltung über Kommandozeile. |
