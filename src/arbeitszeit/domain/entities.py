@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from dataclasses import dataclass
 from datetime import date, datetime, time
@@ -100,10 +100,17 @@ class WorkScheduleVersion:
     changed_by_user_id: UserAccountId | None
 
     def __post_init__(self) -> None:
+        self._validate_scope()
+        self._validate_time_window()
+
+    def _validate_scope(self) -> None:
+        """Prüft Konsistenz von scope_type und scope_employee_id."""
         if self.scope_type == ScopeType.GLOBAL and self.scope_employee_id is not None:
             raise ValueError("Globale Regelarbeitszeit darf keinen Mitarbeiterbezug haben.")
         if self.scope_type == ScopeType.EMPLOYEE and self.scope_employee_id is None:
             raise ValueError("Mitarbeiterbezogene Regelarbeitszeit muss scope_employee_id haben.")
+
+    def _validate_time_window(self) -> None:
         # weekday 1–7 entspricht ISO-Wochentag (1=Mo, 7=So), konsistent mit
         # Python datetime.isoweekday() und dem Schema-CHECK in work_schedule_versions.
         if not (1 <= self.weekday <= 7):
@@ -132,13 +139,21 @@ class ReviewCase:
         open_statuses = {ReviewCaseStatus.OPEN, ReviewCaseStatus.IN_REVIEW}
         closed_statuses = {ReviewCaseStatus.RESOLVED, ReviewCaseStatus.CLOSED_WITH_NOTE}
         if self.status in open_statuses:
-            if self.closed_at is not None or self.closed_by_user_id is not None:
-                raise ValueError("Offener Prüffall darf keine Schließungsdaten haben.")
+            self._validate_open_status()
         elif self.status in closed_statuses:
-            if self.closed_at is None or self.closed_by_user_id is None:
-                raise ValueError("Geschlossener Prüffall muss Schließungsdaten haben.")
-            if self.status == ReviewCaseStatus.CLOSED_WITH_NOTE and not (self.note or "").strip():
-                raise ValueError("CLOSED_WITH_NOTE erfordert eine nicht-leere Begründung (note).")
+            self._validate_closed_status()
+
+    def _validate_open_status(self) -> None:
+        """Offener Prüffall darf keine Schließungsdaten haben."""
+        if self.closed_at is not None or self.closed_by_user_id is not None:
+            raise ValueError("Offener Prüffall darf keine Schließungsdaten haben.")
+
+    def _validate_closed_status(self) -> None:
+        """Geschlossener Prüffall muss Schließungsdaten haben; CLOSED_WITH_NOTE erfordert note."""
+        if self.closed_at is None or self.closed_by_user_id is None:
+            raise ValueError("Geschlossener Prüffall muss Schließungsdaten haben.")
+        if self.status == ReviewCaseStatus.CLOSED_WITH_NOTE and not (self.note or "").strip():
+            raise ValueError("CLOSED_WITH_NOTE erfordert eine nicht-leere Begründung (note).")
 
 
 @dataclass(frozen=True)

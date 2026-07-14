@@ -5,6 +5,21 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring: domain/entities.py ReviewCase CC 11 → 6, WorkScheduleVersion CC 10 → 5] – 2026-07-14
+
+### Geändert
+
+- `domain/entities.py`: Validierungslogik aus `__post_init__` in private Methoden
+  ausgelagert — analog zum bestehenden `Supplement`-Muster.
+  `WorkScheduleVersion.__post_init__` (CC 9) → `_validate_scope` (CC 5) +
+  `_validate_time_window` (CC 5) + `__post_init__` (CC 1).
+  `ReviewCase.__post_init__` (CC 10) → `_validate_open_status` (CC 3) +
+  `_validate_closed_status` (CC 6) + `__post_init__` (CC 3).
+  Fachliche Semantik vollständig unverändert. Coverage 98% bleibt erhalten.
+  `__version__` auf 1.1 erhöht.
+
+---
+
 ## [Refactoring + Tests: export/csv_exporter.py CC 12 → 6, Coverage 81% → 99%] – 2026-07-14
 
 ### Geändert
