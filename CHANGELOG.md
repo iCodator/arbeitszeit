@@ -5,6 +5,19 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring: reject_supplement.py execute CC 10 → 3] – 2026-07-14
+
+### Geändert
+
+- `application/use_cases/reject_supplement.py`: `execute` (CC 10) in drei
+  Methoden aufgeteilt. `_assert_can_reject(user_id)` (CC 4) kapselt die
+  Berechtigungsprüfung (Existenz, Aktivität, Rolle). `_resolve_review_case(
+  supplement, rejected_by_user_id, reason)` (CC 5) kapselt die For-Schleife
+  über offene ReviewCases und deren Schließung. `execute` selbst ist damit CC 3.
+  `Supplement` zur Entity-Importliste ergänzt. `__version__` auf 1.1 erhöht.
+
+---
+
 ## [Refactoring: config_setup.py setup_config CC 10 → 5] – 2026-07-14
 
 ### Geändert

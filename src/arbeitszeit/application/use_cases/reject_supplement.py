@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timezone
@@ -7,7 +7,7 @@ from arbeitszeit.application.commands import RejectSupplementCommand
 from arbeitszeit.application.results import RejectSupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.domain import audit_events
-from arbeitszeit.domain.entities import AuditLogEntry
+from arbeitszeit.domain.entities import AuditLogEntry, Supplement
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     ReviewCaseStatus,
@@ -31,16 +31,7 @@ class RejectSupplementUseCase:
 
     def execute(self, cmd: RejectSupplementCommand) -> RejectSupplementResult:
         with self._uow:
-            rejector = self._uow.user_account_repo.get_by_id(cmd.rejected_by_user_id)
-            if (
-                rejector is None
-                or not rejector.is_active
-                or rejector.role not in {UserRole.REVIEWER, UserRole.ADMIN}
-            ):
-                raise PermissionDeniedError(
-                    f"Benutzer {cmd.rejected_by_user_id} ist nicht berechtigt, "
-                    "Nachträge abzulehnen."
-                )
+            self._assert_can_reject(cmd.rejected_by_user_id)
 
             supplement = self._uow.supplement_repo.get_by_id(cmd.supplement_id)
             if supplement is None:
@@ -54,22 +45,9 @@ class RejectSupplementUseCase:
             now = datetime.now(timezone.utc)
             self._uow.supplement_repo.reject(supplement.id, cmd.rejected_by_user_id, now)
 
-            review_case_id: ReviewCaseId | None = None
-            open_cases = self._uow.review_case_repo.list_open_for_employee(supplement.employee_id)
-            for case in open_cases:
-                if (
-                    case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW
-                    and supplement.related_booking_id is not None
-                    and case.booking_id == supplement.related_booking_id
-                ):
-                    self._uow.review_case_repo.resolve(
-                        case.id,
-                        status=ReviewCaseStatus.CLOSED_WITH_NOTE,
-                        closed_by_user_id=cmd.rejected_by_user_id,
-                        note=cmd.reason,
-                    )
-                    review_case_id = case.id
-                    break
+            review_case_id = self._resolve_review_case(
+                supplement, cmd.rejected_by_user_id, cmd.reason
+            )
 
             # Erst commit, dann Audit-Log schreiben (siehe BookUseCase für Begründung).
             self._uow.commit()
@@ -98,3 +76,39 @@ class RejectSupplementUseCase:
                 supplement_id=supplement.id,
                 review_case_id=review_case_id,
             )
+
+    def _assert_can_reject(self, user_id: int) -> None:
+        rejector = self._uow.user_account_repo.get_by_id(user_id)
+        if (
+            rejector is None
+            or not rejector.is_active
+            or rejector.role not in {UserRole.REVIEWER, UserRole.ADMIN}
+        ):
+            raise PermissionDeniedError(
+                f"Benutzer {user_id} ist nicht berechtigt, "
+                "Nachträge abzulehnen."
+            )
+
+    def _resolve_review_case(
+        self,
+        supplement: Supplement,
+        rejected_by_user_id: int,
+        reason: str,
+    ) -> ReviewCaseId | None:
+        open_cases = self._uow.review_case_repo.list_open_for_employee(
+            supplement.employee_id
+        )
+        for case in open_cases:
+            if (
+                case.case_type == ReviewCaseType.MANUAL_ENTRY_REVIEW
+                and supplement.related_booking_id is not None
+                and case.booking_id == supplement.related_booking_id
+            ):
+                self._uow.review_case_repo.resolve(
+                    case.id,
+                    status=ReviewCaseStatus.CLOSED_WITH_NOTE,
+                    closed_by_user_id=rejected_by_user_id,
+                    note=reason,
+                )
+                return case.id
+        return None
