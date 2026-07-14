@@ -16,7 +16,8 @@
       "Bash(python -m ruff format src/ tests/ --check)",
       "Bash(python -m mypy src/)",
       "Bash(python -m lint-imports)",
-      "Bash(python -m pytest --cov=arbeitszeit --cov-report=term-missing tests/)"
+      "Bash(python -m pytest --cov=arbeitszeit --cov-report=term-missing tests/)",
+      "Bash(python -m pytest tests/integration/test_csv_export.py --cov=arbeitszeit.infrastructure.export.csv_exporter --cov-report=term-missing -q)"
     ],
     "deny": [
       "Bash(rm -rf *)",
