@@ -1,0 +1,25 @@
+# Konfigurationsdatei für das Zeiterfassungssystem arbeitszeit.
+#
+# Benennung: config.toml
+# Suchpfade (in Reihenfolge):
+#   1. --config /pfad/config.toml  (explizites CLI-Argument)
+#   2. ENV ARBEITSZEIT_CONFIG=/pfad/config.toml
+#   3. ~/.config/arbeitszeit/config.toml
+#   4. ./config.toml  (Working-Directory, z. B. in systemd-Unit setzen)
+
+[database]
+path = "/home/user/data/arbeitszeit.db"
+
+[terminal]
+id = 1
+numpad = "Usb KeyBoard Usb KeyBoard"
+rfid = "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader"
+
+[backup]
+backup_dir = "/var/backups/arbeitszeit"
+export_dir = "/var/exports/arbeitszeit"
+log_dir = "/var/log/arbeitszeit"
+
+[admin]
+# Fallback für --user-id, entspricht ENV ADMIN_USER_ID
+# user_id = 1
