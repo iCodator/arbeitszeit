@@ -205,4 +205,8 @@ class BookUseCase:
                 booking_id=booking.id,
                 status=status,
                 follow_up_case_ids=tuple(follow_up_case_ids),
+                employee_first_name=employee.first_name,
+                employee_last_name=employee.last_name,
+                booking_type=booking.booking_type,
+                booked_at=booking.booked_at,
             )

@@ -6,7 +6,7 @@ from pathlib import Path
 from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.results import BookResult
 from arbeitszeit.application.use_cases.book_time import BookUseCase
-from arbeitszeit.domain.enums import BookingSource, BookingStatus
+from arbeitszeit.domain.enums import BookingSource, BookingStatus, BookingType
 from arbeitszeit.domain.value_objects import TerminalId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
@@ -17,6 +17,13 @@ _STATUS_MESSAGES = {
     BookingStatus.OK: "Buchung erfasst.",
     BookingStatus.WARN: "Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.",
     BookingStatus.NEEDS_REVIEW: "Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.",
+}
+
+_BOOKING_TYPE_DISPLAY: dict[BookingType, str] = {
+    BookingType.COME: "Beginn",
+    BookingType.GO: "Ende",
+    BookingType.BREAK_START: "Pausenbeginn",
+    BookingType.BREAK_END: "Pausenende",
 }
 
 
@@ -69,4 +76,10 @@ def process_booking(
 
 
 def format_feedback(result: BookResult) -> str:
-    return _STATUS_MESSAGES.get(result.status, f"Status: {result.status.value}")
+    name = f"{result.employee_first_name} {result.employee_last_name}"
+    art = _BOOKING_TYPE_DISPLAY.get(result.booking_type, result.booking_type.value)
+    local = result.booked_at.astimezone()
+    datum = local.strftime("%d.%m.%Y")
+    uhrzeit = local.strftime("%H:%M")
+    status_msg = _STATUS_MESSAGES.get(result.status, f"Status: {result.status.value}")
+    return f"{name}, {art}, {datum}, {uhrzeit}: {status_msg}"

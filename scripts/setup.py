@@ -10,7 +10,8 @@ Verwendung (interaktiv):
 Verwendung (nicht-interaktiv):
     python scripts/setup.py --db arbeitszeit.db \\
         --backup-dir /var/backups/arbeitszeit \\
-        --export-dir /var/exports/arbeitszeit
+        --export-dir /var/exports/arbeitszeit \\
+        --log-dir /var/log/arbeitszeit
 """
 
 import argparse
@@ -84,6 +85,12 @@ def main() -> None:
         default=None,
         help="Exportverzeichnis für CSV/PDF (nicht-interaktiv)",
     )
+    parser.add_argument(
+        "--log-dir",
+        type=Path,
+        default=None,
+        help="Verzeichnis für Logdateien (nicht-interaktiv)",
+    )
     args = parser.parse_args()
 
     db_path: Path = args.db
@@ -112,6 +119,13 @@ def main() -> None:
             "export.export_dir",
             "Exportverzeichnis für CSV/PDF (absoluter Pfad)",
             args.export_dir,
+            now,
+        )
+        _configure_key(
+            config,
+            "logging.log_dir",
+            "Verzeichnis für Logdateien (absoluter Pfad)",
+            args.log_dir,
             now,
         )
     finally:

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
+from datetime import datetime
 
-from arbeitszeit.domain.enums import BookingStatus
+from arbeitszeit.domain.enums import BookingStatus, BookingType
 from arbeitszeit.domain.value_objects import (
     BookingCorrectionId,
     EmployeeId,
@@ -18,6 +19,10 @@ class BookResult:
     booking_id: TimeBookingId
     status: BookingStatus
     follow_up_case_ids: tuple[ReviewCaseId, ...]
+    employee_first_name: str
+    employee_last_name: str
+    booking_type: BookingType
+    booked_at: datetime
 
 
 @dataclass(frozen=True, slots=True)

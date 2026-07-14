@@ -395,13 +395,23 @@ class TestProcessBookingFehler:
 class TestFormatFeedback:
 
     def _result(self, status: BookingStatus) -> BookResult:
-        return BookResult(booking_id=1, status=status, follow_up_case_ids=())
+        return BookResult(
+            booking_id=1,
+            status=status,
+            follow_up_case_ids=(),
+            employee_first_name="Test",
+            employee_last_name="Mitarbeiter",
+            booking_type=BookingType.COME,
+            booked_at=datetime(2025, 6, 16, 8, 0, tzinfo=timezone.utc),
+        )
 
     def test_status_open_gibt_buchung_erfasst(self):
-        assert format_feedback(self._result(BookingStatus.OPEN)) == "Buchung erfasst."
+        msg = format_feedback(self._result(BookingStatus.OPEN))
+        assert "Buchung erfasst." in msg
 
     def test_status_ok_gibt_buchung_erfasst(self):
-        assert format_feedback(self._result(BookingStatus.OK)) == "Buchung erfasst."
+        msg = format_feedback(self._result(BookingStatus.OK))
+        assert "Buchung erfasst." in msg
 
     def test_status_warn_enthaelt_hinweis(self):
         msg = format_feedback(self._result(BookingStatus.WARN))
@@ -413,11 +423,19 @@ class TestFormatFeedback:
 
     def test_warn_meldung_beginnt_mit_buchung_erfasst(self):
         msg = format_feedback(self._result(BookingStatus.WARN))
-        assert msg.startswith("Buchung erfasst")
+        assert "Buchung erfasst" in msg
 
     def test_needs_review_meldung_beginnt_mit_buchung_erfasst(self):
         msg = format_feedback(self._result(BookingStatus.NEEDS_REVIEW))
-        assert msg.startswith("Buchung erfasst")
+        assert "Buchung erfasst" in msg
+
+    def test_format_enthaelt_name(self):
+        msg = format_feedback(self._result(BookingStatus.OPEN))
+        assert "Test Mitarbeiter" in msg
+
+    def test_format_enthaelt_buchungsart(self):
+        msg = format_feedback(self._result(BookingStatus.OPEN))
+        assert "Beginn" in msg
 
     def test_alle_relevanten_status_haben_meldung(self):
         """Kein BookingStatus der im Buchungsloop vorkommt darf ein leeres Fallback erzeugen."""

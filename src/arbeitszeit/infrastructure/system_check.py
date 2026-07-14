@@ -24,6 +24,7 @@ _REQUIRED_CONFIG_KEYS = (
     "backup.nas_path",
     "backup.backup_dir",
     "export.export_dir",
+    "logging.log_dir",
 )
 
 _MIGRATIONS_DIR = Path(__file__).resolve().parents[3] / "migrations"

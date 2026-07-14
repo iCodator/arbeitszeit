@@ -41,6 +41,7 @@ def _make_db(tmp_path: Path) -> Path:
     for key, value in (
         ("backup.backup_dir", str(tmp_path / "backups")),
         ("export.export_dir", str(tmp_path / "exports")),
+        ("logging.log_dir", str(tmp_path / "logs")),
     ):
         conn.execute(
             "INSERT INTO system_config "

@@ -4,6 +4,7 @@ import json
 import logging
 import signal
 import sys
+import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from types import FrameType
@@ -64,6 +65,45 @@ def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]
         logging.warning("_log_system_event fehlgeschlagen: %s", exc, exc_info=True)
 
 
+def _ensure_terminal_exists(db_path: Path, terminal_id: int) -> None:
+    conn = open_connection(db_path)
+    try:
+        conn.execute(
+            "INSERT OR IGNORE INTO terminals (id, terminal_code, active, created_at) "
+            "VALUES (?, ?, 1, ?)",
+            (terminal_id, f"TERMINAL-{terminal_id}", datetime.now(timezone.utc).isoformat()),
+        )
+    finally:
+        conn.close()
+
+
+def _setup_file_logging(db_path: Path) -> None:
+    try:
+        conn = open_connection(db_path)
+        try:
+            row = conn.execute(
+                "SELECT config_value_json FROM system_config "
+                "WHERE config_key = 'logging.log_dir' "
+                "ORDER BY version DESC LIMIT 1"
+            ).fetchone()
+        finally:
+            conn.close()
+        if row is None:
+            return
+        value = json.loads(row["config_value_json"])
+        if value is None:
+            return
+        log_path = Path(value) / "terminal_ui.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        handler = logging.FileHandler(log_path, encoding="utf-8")
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s"))
+        root = logging.getLogger()
+        root.addHandler(handler)
+        root.setLevel(logging.WARNING)
+    except Exception as exc:  # noqa: BLE001
+        logging.warning("Logging-Konfiguration fehlgeschlagen: %s", exc)
+
+
 def _run_one_cycle(
     reader: HardwareReader,
     db_path: Path,
@@ -80,10 +120,15 @@ def _run_one_cycle(
         print(msg)
     except Exception as exc:
         print("Interner Fehler — Betrieb wird fortgesetzt.", file=sys.stderr)
+        logging.exception("Buchungszyklus: unbehandelter Fehler")
         _log_system_event(
             db_path,
             "APPLICATION_ERROR",
-            {"error": str(exc), "type": type(exc).__name__},
+            {
+                "error": str(exc),
+                "type": type(exc).__name__,
+                "traceback": traceback.format_exc(),
+            },
         )
 
 
@@ -116,6 +161,9 @@ def run(
         # Kein sys.exit() — Buchungsbetrieb läuft weiter (Praxisbetrieb darf nicht blockieren)
         fehler = "; ".join(c.detail for c in result.checks if not c.ok)
         notify("Arbeitszeit — Systemfehler", fehler, urgency="critical")
+
+    _ensure_terminal_exists(db_path, terminal_id)
+    _setup_file_logging(db_path)
 
     running = True
 
