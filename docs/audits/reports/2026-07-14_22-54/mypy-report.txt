@@ -1,0 +1,3 @@
+src/arbeitszeit/application/use_cases/reject_supplement.py:81: error: Argument 1 to "get_by_id" of "UserAccountRepository" has incompatible type "int"; expected "UserAccountId"  [arg-type]
+src/arbeitszeit/application/use_cases/reject_supplement.py:110: error: Argument "closed_by_user_id" to "resolve" of "ReviewCaseRepository" has incompatible type "int"; expected "UserAccountId"  [arg-type]
+Found 2 errors in 1 file (checked 76 source files)

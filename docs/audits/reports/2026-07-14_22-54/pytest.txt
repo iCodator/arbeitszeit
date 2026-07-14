@@ -1,0 +1,89 @@
+============================= test session starts ==============================
+platform linux -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0
+rootdir: /media/heimwerker/Work-Data/Coding/arbeitszeit
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-7.1.0
+collected 715 items
+
+tests/application/test_approve_supplement.py .....................       [  2%]
+tests/application/test_book_time.py .....................                [  5%]
+tests/application/test_correct_booking.py ...............                [  7%]
+tests/application/test_fake_unit_of_work.py ..                           [  8%]
+tests/application/test_manage_employees.py ........                      [  9%]
+tests/application/test_manage_rfid_cards.py ............                 [ 11%]
+tests/application/test_manage_user_accounts.py ................          [ 13%]
+tests/application/test_manage_work_schedule.py ....................      [ 16%]
+tests/application/test_register_supplement.py .................          [ 18%]
+tests/application/test_reject_supplement.py .............                [ 20%]
+tests/domain/test_audit_events.py ..                                     [ 20%]
+tests/domain/test_booking_rules.py ................                      [ 22%]
+tests/domain/test_compliance_checks.py ............                      [ 24%]
+tests/domain/test_entities.py .......................................... [ 30%]
+                                                                         [ 30%]
+tests/e2e/test_backup.py ......................                          [ 33%]
+tests/e2e/test_booking_flow.py ............                              [ 35%]
+tests/e2e/test_supplement_flow.py ........                               [ 36%]
+tests/infrastructure/test_config_file.py ..........................      [ 39%]
+tests/infrastructure/test_config_setup.py ..........................     [ 43%]
+tests/integration/test_admin_cli_main.py ..........                      [ 44%]
+tests/integration/test_bookings_cli.py ..............                    [ 46%]
+tests/integration/test_csv_export.py ...............................     [ 51%]
+tests/integration/test_device_event_booking.py ...                       [ 51%]
+tests/integration/test_employees.py .......................              [ 54%]
+tests/integration/test_export.py .....................                   [ 57%]
+tests/integration/test_hardware_evdev.py .............................   [ 61%]
+tests/integration/test_hardware_simulator.py ..............              [ 63%]
+tests/integration/test_init_db.py .....                                  [ 64%]
+tests/integration/test_intervals_auth.py .............                   [ 66%]
+tests/integration/test_notification.py .....                             [ 66%]
+tests/integration/test_pdf.py ....................                       [ 69%]
+tests/integration/test_reports_cli.py ..........................         [ 73%]
+tests/integration/test_repositories.py ...............                   [ 75%]
+tests/integration/test_repositories_roundtrip.py ....................... [ 78%]
+                                                                         [ 78%]
+tests/integration/test_schedule_cli.py ............                      [ 80%]
+tests/integration/test_system_check.py .....................             [ 83%]
+tests/integration/test_system_cli.py ..............                      [ 85%]
+tests/integration/test_terminal_ui_main.py .........................     [ 88%]
+tests/integration/test_time_monitor.py ........                          [ 89%]
+tests/integration/test_unit_of_work.py ..........                        [ 91%]
+tests/integration/test_user_accounts.py ..................               [ 93%]
+tests/presentation/test_booking_loop.py ................................ [ 98%]
+                                                                         [ 98%]
+tests/test_migrations.py ............                                    [100%]
+
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.14.5-final-0 ________________
+
+Name                                                              Stmts   Miss Branch BrPart  Cover   Missing
+-------------------------------------------------------------------------------------------------------------
+src/arbeitszeit/application/use_cases/_booking_evaluation.py         24      0     10      1    97%   24->27
+src/arbeitszeit/application/use_cases/approve_supplement.py          73      0     18      1    99%   171->170
+src/arbeitszeit/application/use_cases/manage_rfid_cards.py           64      2     16      2    95%   90, 160
+src/arbeitszeit/application/use_cases/manage_user_accounts.py        90      6     24      6    89%   45, 97, 135, 142, 173, 179
+src/arbeitszeit/domain/entities.py                                   94      0     46      2    99%   143->exit, 182->exit
+src/arbeitszeit/domain/services/booking_rules.py                     51      0     32      1    99%   23->exit
+src/arbeitszeit/domain/services/compliance_checks.py                 60      0     28      1    99%   97->76
+src/arbeitszeit/infrastructure/backup/backup_service.py              79      3     16      3    94%   123, 133->143, 156-157
+src/arbeitszeit/infrastructure/db/migrations.py                      31      1      8      1    95%   34
+src/arbeitszeit/infrastructure/db/repositories/supplement.py         30      2      4      0    94%   68-71
+src/arbeitszeit/infrastructure/db/repositories/work_schedule.py      38      1     10      1    96%   111
+src/arbeitszeit/infrastructure/export/csv_exporter.py               135      0     52      2    99%   72->77, 131->119
+src/arbeitszeit/infrastructure/export/pdf_report_service.py         142      4     24      4    95%   305, 340, 381, 423
+src/arbeitszeit/infrastructure/export/report_queries.py              99      5     18      3    93%   184-185, 212-213, 367
+src/arbeitszeit/infrastructure/hardware/evdev_reader.py             146     19     56     10    84%   137, 151, 170, 174->167, 176, 210-215, 218-226, 235, 241->233, 268, 274, 289->286
+src/arbeitszeit/infrastructure/system_check.py                      135     20     32      5    83%   86-87, 166, 170-171, 181, 189-190, 193, 206-212, 233-247, 280-286
+src/arbeitszeit/infrastructure/time_monitor.py                       48      4      6      0    93%   83-84, 101-102
+src/arbeitszeit/presentation/admin_cli/reports.py                   198      2     26      2    98%   206, 266
+src/arbeitszeit/presentation/admin_cli/schedule.py                   88      7     20      4    90%   54-55, 73-75, 79, 90, 128->exit
+src/arbeitszeit/presentation/admin_cli/system.py                     77      3     18      3    94%   54, 78, 81
+src/arbeitszeit/presentation/admin_cli/user_accounts.py             107     26      8      2    72%   58-60, 77, 81-92, 104-106, 119-121, 130-132, 141-143, 162
+src/arbeitszeit/presentation/terminal_ui/main.py                    135      0     18      1    99%   182->181
+-------------------------------------------------------------------------------------------------------------
+TOTAL                                                              3265    105    654     55    96%
+
+54 files skipped due to complete coverage.
+Coverage HTML written to dir docs/audits/reports/2026-07-14_22-54/htmlcov
+Coverage XML written to file docs/audits/reports/2026-07-14_22-54/coverage.xml
+============================= 715 passed in 12.09s =============================
