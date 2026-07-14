@@ -5,6 +5,17 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Refactoring: cmd_system_backup CC 15 → max. 6] – 2026-07-14
+
+### Geändert
+
+- `presentation/admin_cli/system.py`: `cmd_system_backup` (CC 15) in drei
+  Hilfsfunktionen aufgeteilt: `_resolve_backup_dir` (CC 4), `_resolve_export_dir`
+  (CC 5), `_run_nas_sync` (CC 6). Koordinator `cmd_system_backup` hat nun CC 3.
+- `presentation/admin_cli/system.py`: `__version__` auf 1.1 erhöht.
+
+---
+
 ## [Bugfix: ResourceWarning SQLite-Verbindungen] – 2026-07-14
 
 ### Behoben

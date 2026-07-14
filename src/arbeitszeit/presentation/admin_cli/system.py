@@ -1,6 +1,6 @@
 """Admin-CLI: Systemcheck, Backup und Konfiguration (ADMIN/TECH-Rolle)."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import json
@@ -35,6 +35,58 @@ def cmd_system_check(
     sys.exit(0 if result.overall_ok else 1)
 
 
+def _resolve_backup_dir(conn: sqlite3.Connection, app_config: AppConfig | None) -> Path | None:
+    """backup_dir auflösen: config.toml hat Vorrang vor DB-Fallback."""
+    if app_config is not None and app_config.backup.backup_dir is not None:
+        return app_config.backup.backup_dir
+    row = conn.execute(
+        "SELECT config_value_json FROM system_config "
+        "WHERE config_key = 'backup.backup_dir' ORDER BY version DESC LIMIT 1"
+    ).fetchone()
+    if row is not None:
+        return Path(json.loads(row["config_value_json"]))
+    return None
+
+
+def _resolve_export_dir(conn: sqlite3.Connection, app_config: AppConfig | None) -> Path | None:
+    """export_dir auflösen: config.toml hat Vorrang vor DB-Fallback."""
+    if app_config is not None and app_config.backup.export_dir is not None:
+        return app_config.backup.export_dir
+    row = conn.execute(
+        "SELECT config_value_json FROM system_config "
+        "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
+    ).fetchone()
+    if row is None:
+        return None
+    val = json.loads(row["config_value_json"])
+    return Path(val) if val is not None else None
+
+
+def _run_nas_sync(conn: sqlite3.Connection, service: SQLiteBackupService) -> None:
+    """NAS-Sync durchführen, sofern in DB aktiviert und Pfad konfiguriert."""
+    nas_enabled_row = conn.execute(
+        "SELECT config_value_json FROM system_config "
+        "WHERE config_key = 'backup.nas_enabled' ORDER BY version DESC LIMIT 1"
+    ).fetchone()
+    if nas_enabled_row is None or not json.loads(nas_enabled_row["config_value_json"]):
+        return
+    nas_path_row = conn.execute(
+        "SELECT config_value_json FROM system_config "
+        "WHERE config_key = 'backup.nas_path' ORDER BY version DESC LIMIT 1"
+    ).fetchone()
+    if nas_path_row is None:
+        return
+    nas_path_val = json.loads(nas_path_row["config_value_json"])
+    if nas_path_val is None:
+        return
+    try:
+        service.sync_to_nas(Path(nas_path_val))
+        print("NAS-Synchronisation erfolgreich.")
+    except Exception as exc:  # noqa: BLE001
+        print(f"Fehler: NAS-Synchronisation fehlgeschlagen: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
 def cmd_system_backup(
     db_path: Path,
     conn: sqlite3.Connection,
@@ -43,23 +95,9 @@ def cmd_system_backup(
     *,
     app_config: AppConfig | None = None,
 ) -> None:
-    """Manuelles Backup auslösen.
-
-    backup_dir und export_dir: app_config hat Vorrang vor DB-Werten (Fallback
-    für Bestandsinstallationen die noch keine config.toml haben).
-    """
+    """Manuelles Backup auslösen."""
     require_admin_or_tech(conn, user_id)
-
-    # backup_dir: config.toml > DB-Fallback
-    backup_dir: Path | None = app_config.backup.backup_dir if app_config is not None else None
-    if backup_dir is None:
-        row = conn.execute(
-            "SELECT config_value_json FROM system_config "
-            "WHERE config_key = 'backup.backup_dir' ORDER BY version DESC LIMIT 1"
-        ).fetchone()
-        if row is not None:
-            backup_dir = Path(json.loads(row["config_value_json"]))
-
+    backup_dir = _resolve_backup_dir(conn, app_config)
     if backup_dir is None:
         print(
             "Fehler: backup_dir nicht konfiguriert. "
@@ -68,52 +106,15 @@ def cmd_system_backup(
             file=sys.stderr,
         )
         sys.exit(1)
-
-    # export_dir: config.toml > DB-Fallback
-    export_dir: Path | None = app_config.backup.export_dir if app_config is not None else None
-    if export_dir is None:
-        row = conn.execute(
-            "SELECT config_value_json FROM system_config "
-            "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
-        ).fetchone()
-        if row is not None:
-            val = json.loads(row["config_value_json"])
-            if val is not None:
-                export_dir = Path(val)
-
+    export_dir = _resolve_export_dir(conn, app_config)
     service = SQLiteBackupService(db_path, backup_dir, export_dir=export_dir)
     try:
         backup_path = service.create_local_backup()
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001
         print(f"Fehler beim Backup: {exc}", file=sys.stderr)
         sys.exit(1)
     print(f"Backup erstellt: {backup_path}")
-
-    nas_enabled_row = conn.execute(
-        "SELECT config_value_json FROM system_config "
-        "WHERE config_key = 'backup.nas_enabled' ORDER BY version DESC LIMIT 1"
-    ).fetchone()
-    nas_enabled = nas_enabled_row is not None and bool(
-        json.loads(nas_enabled_row["config_value_json"])
-    )
-
-    if nas_enabled:
-        nas_path_row = conn.execute(
-            "SELECT config_value_json FROM system_config "
-            "WHERE config_key = 'backup.nas_path' ORDER BY version DESC LIMIT 1"
-        ).fetchone()
-        if nas_path_row is not None:
-            nas_path_val = json.loads(nas_path_row["config_value_json"])
-            if nas_path_val is not None:
-                try:
-                    service.sync_to_nas(Path(nas_path_val))
-                    print("NAS-Synchronisation erfolgreich.")
-                except Exception as exc:
-                    print(
-                        f"Fehler: NAS-Synchronisation fehlgeschlagen: {exc}",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
+    _run_nas_sync(conn, service)
 
 
 def cmd_system_setup(
