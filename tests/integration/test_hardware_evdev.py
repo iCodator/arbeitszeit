@@ -3,6 +3,8 @@ Tests für evdev-spezifische Logik: Hex-Filter (map_rfid_key), Fehlerhierarchie
 und Unit-Tests für EvdevHardwareReader-Methoden (ohne physische Hardware).
 """
 
+__version__ = "1.0"
+
 import logging
 import sys
 from pathlib import Path
@@ -268,7 +270,10 @@ class TestResolveEvdevDevice:
             return mock_dev_a if path == "/dev/input/event0" else mock_dev_b
 
         with (
-            patch(f"{_EVDEV_READER}.list_devices", return_value=["/dev/input/event0", "/dev/input/event1"]),
+            patch(
+                f"{_EVDEV_READER}.list_devices",
+                return_value=["/dev/input/event0", "/dev/input/event1"],
+            ),
             patch(f"{_EVDEV_READER}.InputDevice", side_effect=fake_input_device),
         ):
             result = resolve_evdev_device("USB Numpad")
@@ -297,7 +302,10 @@ class TestResolveEvdevDevice:
             return mock_dev
 
         with (
-            patch(f"{_EVDEV_READER}.list_devices", return_value=["/dev/input/event0", "/dev/input/event1"]),
+            patch(
+                f"{_EVDEV_READER}.list_devices",
+                return_value=["/dev/input/event0", "/dev/input/event1"],
+            ),
             patch(f"{_EVDEV_READER}.InputDevice", side_effect=fake_input_device),
         ):
             result = resolve_evdev_device("USB Numpad")

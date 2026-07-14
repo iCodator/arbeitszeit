@@ -4,5 +4,8 @@
   // Lange Zeilen ok
   "MD013": false,
   // Keine Pflicht-H1 am Dokumentanfang
-  "MD041": false
+  "MD041": false,
+  // Changelog: gleiche Subüberschriften (Behoben, Geändert, …) in verschiedenen
+  // Versionsabschnitten erlaubt
+  "MD024": { "siblings_only": true }
 }

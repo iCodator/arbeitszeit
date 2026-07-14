@@ -5,6 +5,20 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Codequalität: ruff-Bereinigung] – 2026-07-14
+
+### Behoben
+
+- 2 ruff-E501-Fehler (`line too long`) in `tests/integration/test_hardware_evdev.py`
+  (Zeilen 271 und 300): langen `patch()`-Aufruf auf mehrere Zeilen umgebrochen.
+
+### Geändert
+
+- `tests/integration/test_hardware_evdev.py`: `__version__ = "1.0"` nachgepflegt
+  (beim initialen Versionierungs-Lauf ausgelassen).
+
+---
+
 ## [Typkorrektur & Abschluss] – 2026-07-14
 
 ### Behoben
