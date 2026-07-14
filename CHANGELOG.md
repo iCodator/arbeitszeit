@@ -5,6 +5,24 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Tests: Domain-Coverage 97% → 99%] – 2026-07-14
+
+### Hinzugefügt
+
+- `tests/domain/test_booking_rules.py`: 2 neue Tests. `test_come_nach_go_bei_noch_offener_pause`
+  deckt den bislang ungetestetem Zweig in `_validate_come` ab (open_work=False, open_break=True —
+  z.B. Altdaten mit GO während offener Pause). `test_come_nach_vollstaendigem_kommen_gehen_zyklus`
+  deckt den Erfolgsfall nach abgeschlossenem COME→GO-Zyklus ab. Alle Funktionen mit `-> None`
+  annotiert. `__version__ = "1.0"` ergänzt.
+
+- `tests/domain/test_compliance_checks.py`: 3 neue Tests für pathologische Buchungsfolgen
+  (Altdaten/manuelle Importe): BREAK_START ohne vorangehenden COME, BREAK_END ohne BREAK_START,
+  GO ohne COME — alle drei dokumentieren das graceful-degradation-Verhalten von `_work_stats`.
+  `TimeBookingId`/`EmployeeId` korrekt konstruiert, alle Funktionen annotiert,
+  `ComplianceFlag` importiert. `__version__ = "1.0"` ergänzt.
+
+---
+
 ## [Refactoring: reject_supplement.py execute CC 10 → 3] – 2026-07-14
 
 ### Geändert
