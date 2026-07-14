@@ -90,13 +90,13 @@ def cmd_schedule_set(
         print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
 
 
-def _partition_by_scope(rows: list) -> tuple[list, list]:
+def _partition_by_scope(rows: list[sqlite3.Row]) -> tuple[list[sqlite3.Row], list[sqlite3.Row]]:
     global_rows = [r for r in rows if r["scope_type"] == "GLOBAL"]
     employee_rows = [r for r in rows if r["scope_type"] == "EMPLOYEE"]
     return global_rows, employee_rows
 
 
-def _print_global_section(global_rows: list) -> None:
+def _print_global_section(global_rows: list[sqlite3.Row]) -> None:
     if not global_rows:
         return
     print("Globale Regelarbeitszeit (gültige Versionen):")
@@ -109,7 +109,7 @@ def _print_global_section(global_rows: list) -> None:
         )
 
 
-def _print_employee_section(employee_rows: list) -> None:
+def _print_employee_section(employee_rows: list[sqlite3.Row]) -> None:
     if not employee_rows:
         return
     print("\nMitarbeiterspezifische Regelarbeitszeit:")
@@ -122,7 +122,7 @@ def _print_employee_section(employee_rows: list) -> None:
         )
 
 
-def _print_scope_hint(global_rows: list, employee_rows: list) -> None:
+def _print_scope_hint(global_rows: list[sqlite3.Row], employee_rows: list[sqlite3.Row]) -> None:
     if not global_rows and employee_rows:
         print("\nHinweis: Keine globale Regelarbeitszeit aktiv — globale Praxisregel gilt.")
     elif global_rows and not employee_rows:
