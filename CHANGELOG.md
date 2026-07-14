@@ -5,6 +5,26 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Tests: admin_cli/main.py Coverage 74% → 100%] – 2026-07-14
+
+### Geändert
+
+- `presentation/admin_cli/main.py`: `if __name__ == "__main__":` mit
+  `# pragma: no cover` markiert. `__version__` auf 1.1 erhöht.
+
+### Hinzugefügt
+
+- `tests/integration/test_admin_cli_main.py` (neu, `__version__ = "1.0"`):
+  10 Tests für Fehler-Initialisierungspfade der CLI.
+  Abgedeckte Pfade: `_load_app_config` ohne Config-Fund (Zeile 23),
+  ungültige TOML-Datei (Zeilen 26–28); `_resolve_db_path` mit Config-Pfad
+  (Zeile 34), ohne DB-Quelle (Zeilen 36–41); `_resolve_user_id` mit gültiger
+  ENV `ADMIN_USER_ID` (Zeilen 49–52), ungültiger ENV (Zeilen 53–58),
+  `admin.user_id` aus Config (Zeile 60), ohne Quelle (Zeilen 62–67);
+  `_dispatch` mit `cmd=None` (False-Zweig Zeile 223).
+
+---
+
 ## [Refactoring: domain/entities.py ReviewCase CC 11 → 6, WorkScheduleVersion CC 10 → 5] – 2026-07-14
 
 ### Geändert

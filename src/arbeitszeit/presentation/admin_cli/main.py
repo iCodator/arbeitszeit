@@ -1,6 +1,6 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import os
@@ -224,5 +224,5 @@ def _dispatch(
         handler()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     run()
