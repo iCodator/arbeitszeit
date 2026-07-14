@@ -8,6 +8,7 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from types import FrameType
+from typing import TypeVar
 
 from arbeitszeit.domain.errors import (
     DomainError,
@@ -17,6 +18,7 @@ from arbeitszeit.domain.errors import (
     OpenPhaseConflictError,
     UnknownCardError,
 )
+from arbeitszeit.infrastructure.config_file import AppConfig, find_config, load_config
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
 from arbeitszeit.infrastructure.hardware.evdev_reader import (
@@ -33,6 +35,18 @@ from arbeitszeit.infrastructure.time_monitor import (
 )
 
 from .booking_loop import format_feedback, process_booking
+
+_T = TypeVar("_T")
+
+
+def _resolve_or_exit(cli_val: _T | None, cfg_val: _T | None, label: str) -> _T:
+    """Gibt cli_val zurück, falls gesetzt; sonst cfg_val; sonst Fehler."""
+    val = cli_val if cli_val is not None else cfg_val
+    if val is None:
+        print(f"Fehler: {label} nicht konfiguriert.", file=sys.stderr)
+        sys.exit(1)
+    return val
+
 
 _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
     UnknownCardError: "Karte nicht erkannt.",
@@ -77,23 +91,27 @@ def _ensure_terminal_exists(db_path: Path, terminal_id: int) -> None:
         conn.close()
 
 
-def _setup_file_logging(db_path: Path) -> None:
+def _setup_file_logging(db_path: Path, app_config: AppConfig | None = None) -> None:
     try:
-        conn = open_connection(db_path)
-        try:
-            row = conn.execute(
-                "SELECT config_value_json FROM system_config "
-                "WHERE config_key = 'logging.log_dir' "
-                "ORDER BY version DESC LIMIT 1"
-            ).fetchone()
-        finally:
-            conn.close()
-        if row is None:
-            return
-        value = json.loads(row["config_value_json"])
-        if value is None:
-            return
-        log_path = Path(value) / "terminal_ui.log"
+        # config.toml hat Vorrang; Fallback auf DB (Rückwärtskompatibilität)
+        log_dir: Path | None = app_config.backup.log_dir if app_config is not None else None
+        if log_dir is None:
+            conn = open_connection(db_path)
+            try:
+                row = conn.execute(
+                    "SELECT config_value_json FROM system_config "
+                    "WHERE config_key = 'logging.log_dir' "
+                    "ORDER BY version DESC LIMIT 1"
+                ).fetchone()
+            finally:
+                conn.close()
+            if row is None:
+                return
+            value = json.loads(row["config_value_json"])
+            if value is None:
+                return
+            log_dir = Path(value)
+        log_path = log_dir / "terminal_ui.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
         handler = logging.FileHandler(log_path, encoding="utf-8")
         handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s"))
@@ -137,6 +155,8 @@ def run(
     numpad_device: str,
     rfid_device: str,
     terminal_id: int,
+    *,
+    app_config: AppConfig | None = None,
 ) -> None:
     """Endlosschleife mit Systemcheck, Buchungsverarbeitung und Graceful Shutdown."""
     try:
@@ -150,6 +170,7 @@ def run(
         db_path,
         numpad_path=Path(numpad_path),
         rfid_path=Path(rfid_path),
+        app_config=app_config,
     )
     if not result.overall_ok:
         print("=" * 50)
@@ -163,7 +184,7 @@ def run(
         notify("Arbeitszeit — Systemfehler", fehler, urgency="critical")
 
     _ensure_terminal_exists(db_path, terminal_id)
-    _setup_file_logging(db_path)
+    _setup_file_logging(db_path, app_config)
 
     running = True
 
@@ -203,17 +224,57 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Arbeitszeit Terminal-UI")
-    parser.add_argument("--db", required=True, type=Path)
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        metavar="CONFIG_PATH",
+        help="Pfad zu config.toml (Standard: automatische Suche)",
+    )
+    parser.add_argument("--db", type=Path, default=None)
     parser.add_argument(
         "--numpad",
-        required=True,
+        default=None,
         help='Gerätename (z.B. "USB Numpad") oder Pfad (/dev/input/eventX)',
     )
     parser.add_argument(
         "--rfid",
-        required=True,
+        default=None,
         help='Gerätename (z.B. "RFID Reader") oder Pfad (/dev/input/eventX)',
     )
-    parser.add_argument("--terminal-id", required=True, type=int)
-    args = parser.parse_args()
-    run(args.db, args.numpad, args.rfid, args.terminal_id)
+    parser.add_argument("--terminal-id", type=int, default=None)
+    _args = parser.parse_args()
+
+    # Config laden: explizit > ENV ARBEITSZEIT_CONFIG > XDG > lokal
+    _app_config: AppConfig | None = None
+    _cfg_src: Path | None = _args.config if _args.config is not None else find_config()
+    if _cfg_src is not None:
+        try:
+            _app_config = load_config(_cfg_src)
+        except Exception as _exc:
+            print(f"Fehler beim Laden von {_cfg_src}: {_exc}", file=sys.stderr)
+            sys.exit(1)
+
+    # Werte auflösen: CLI > config.toml > Fehler
+    _db_path = _resolve_or_exit(
+        _args.db,
+        _app_config.database.path if _app_config else None,
+        "--db / [database] path in config.toml",
+    )
+    _numpad = _resolve_or_exit(
+        _args.numpad,
+        _app_config.terminal.numpad if _app_config else None,
+        "--numpad / [terminal] numpad in config.toml",
+    )
+    _rfid = _resolve_or_exit(
+        _args.rfid,
+        _app_config.terminal.rfid if _app_config else None,
+        "--rfid / [terminal] rfid in config.toml",
+    )
+    _terminal_id = _resolve_or_exit(
+        _args.terminal_id,
+        _app_config.terminal.id if _app_config else None,
+        "--terminal-id / [terminal] id in config.toml",
+    )
+
+    run(_db_path, _numpad, _rfid, _terminal_id, app_config=_app_config)

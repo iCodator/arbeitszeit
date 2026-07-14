@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from arbeitszeit.infrastructure.config_file import AppConfig
 from arbeitszeit.infrastructure.db.connection import open_connection
 
 _REQUIRED_CONFIG_KEYS = (
@@ -22,9 +23,7 @@ _REQUIRED_CONFIG_KEYS = (
     "booking.grace_seconds_after_numpad_select",
     "backup.nas_enabled",
     "backup.nas_path",
-    "backup.backup_dir",
-    "export.export_dir",
-    "logging.log_dir",
+    # backup_dir, export_dir, log_dir sind in config.toml gewandert
 )
 
 _MIGRATIONS_DIR = Path(__file__).resolve().parents[3] / "migrations"
@@ -52,6 +51,7 @@ def run_system_check(
     *,
     numpad_path: Path | None = None,
     rfid_path: Path | None = None,
+    app_config: AppConfig | None = None,
 ) -> SystemCheckResult:
     """Führt alle Systemprüfungen aus und schreibt das Ergebnis in system_events."""
     checks: list[CheckResult] = []
@@ -67,6 +67,7 @@ def run_system_check(
         finally:
             conn.close()
 
+    checks.append(_check_config_file_paths(app_config))
     checks.append(_check_ntp())
     checks.append(_check_devices(numpad_path, rfid_path))
 
@@ -218,6 +219,30 @@ def _check_fk_consistency(conn: sqlite3.Connection) -> CheckResult:
             detail=f"{len(violations)} verwaiste Fremdschlüssel-Referenz(en)",
         )
     return CheckResult(name="fk_consistency", ok=True, detail="OK")
+
+
+def _check_config_file_paths(app_config: AppConfig | None) -> CheckResult:
+    if app_config is None:
+        return CheckResult(
+            name="config_file_paths",
+            ok=True,
+            detail="Keine AppConfig übergeben, übersprungen",
+        )
+    issues = [
+        f"{label}: {path}"
+        for label, path in (
+            ("backup_dir", app_config.backup.backup_dir),
+            ("export_dir", app_config.backup.export_dir),
+        )
+        if path is not None and not path.exists()
+    ]
+    if issues:
+        return CheckResult(
+            name="config_file_paths",
+            ok=False,
+            detail=f"Konfigurierte Pfade nicht vorhanden: {'; '.join(issues)}",
+        )
+    return CheckResult(name="config_file_paths", ok=True, detail="OK")
 
 
 def _check_ntp() -> CheckResult:

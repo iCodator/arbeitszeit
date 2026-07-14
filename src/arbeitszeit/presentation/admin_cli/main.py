@@ -7,13 +7,41 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
+from arbeitszeit.infrastructure.config_file import AppConfig, find_config, load_config
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 
 from . import bookings, employees, reports, schedule, system, user_accounts
 
 
-def _resolve_user_id(args: argparse.Namespace) -> int:
+def _load_app_config(args: argparse.Namespace) -> AppConfig | None:
+    config_path: Path | None = getattr(args, "config", None)
+    src = config_path if config_path is not None else find_config()
+    if src is None:
+        return None
+    try:
+        return load_config(src)
+    except Exception as exc:  # noqa: BLE001
+        print(f"Fehler beim Laden von {src}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
+def _resolve_db_path(args: argparse.Namespace, app_config: AppConfig | None) -> Path:
+    db: Path | None = getattr(args, "db", None)
+    if db is None and app_config is not None:
+        db = app_config.database.path
+    if db is None:
+        print(
+            "Fehler: DB-Pfad erforderlich. "
+            "Entweder --db oder [database] path in config.toml.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    return db
+
+
+def _resolve_user_id(args: argparse.Namespace, app_config: AppConfig | None = None) -> int:
+    # Priorität: CLI > ENV ADMIN_USER_ID > config.toml > Fehler
     user_id: int | None = getattr(args, "user_id", None)
     if user_id is None:
         env_val = os.environ.get("ADMIN_USER_ID")
@@ -26,10 +54,12 @@ def _resolve_user_id(args: argparse.Namespace) -> int:
                     file=sys.stderr,
                 )
                 sys.exit(1)
+    if user_id is None and app_config is not None:
+        user_id = app_config.admin.user_id
     if user_id is None:
         print(
             "Fehler: Benutzer-ID erforderlich. "
-            "Entweder --user-id oder Umgebungsvariable ADMIN_USER_ID setzen.",
+            "--user-id, ADMIN_USER_ID oder [admin] user_id in config.toml setzen.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -42,18 +72,25 @@ def run(argv: list[str] | None = None) -> None:
         description="Arbeitszeit Admin-CLI",
     )
     parser.add_argument(
-        "--db",
-        required=True,
+        "--config",
         type=Path,
+        default=None,
+        metavar="CONFIG_PATH",
+        help="Pfad zu config.toml (Standard: automatische Suche)",
+    )
+    parser.add_argument(
+        "--db",
+        type=Path,
+        default=None,
         metavar="DB_PATH",
-        help="Pfad zur SQLite-Datenbankdatei",
+        help="Pfad zur SQLite-Datenbankdatei (alternativ: [database] path in config.toml)",
     )
     parser.add_argument(
         "--user-id",
         type=int,
         default=None,
         metavar="ID",
-        help="Benutzer-ID (alternativ: ADMIN_USER_ID-Umgebungsvariable)",
+        help="Benutzer-ID (alternativ: ADMIN_USER_ID oder [admin] user_id in config.toml)",
     )
 
     sub = parser.add_subparsers(dest="domain", required=True)
@@ -66,12 +103,15 @@ def run(argv: list[str] | None = None) -> None:
 
     args = parser.parse_args(argv)
 
+    app_config = _load_app_config(args)
+    db_path = _resolve_db_path(args, app_config)
+
     # Bootstrap benötigt keine user-id — es gibt noch keinen Admin
     if getattr(args, "domain", None) == "users" and getattr(args, "users_cmd", None) == "bootstrap":
-        conn = open_connection(args.db)
+        conn = open_connection(db_path)
         try:
             run_migrations(conn)
-            audit_conn = open_connection(args.db)
+            audit_conn = open_connection(db_path)
             try:
                 user_accounts.cmd_users_bootstrap(conn, audit_conn, args)
             finally:
@@ -80,14 +120,14 @@ def run(argv: list[str] | None = None) -> None:
             conn.close()
         return
 
-    user_id = _resolve_user_id(args)
+    user_id = _resolve_user_id(args, app_config)
 
-    conn = open_connection(args.db)
+    conn = open_connection(db_path)
     try:
         run_migrations(conn)
-        audit_conn = open_connection(args.db)
+        audit_conn = open_connection(db_path)
         try:
-            _dispatch(args, conn, audit_conn, user_id, args.db)
+            _dispatch(args, conn, audit_conn, user_id, db_path)
         finally:
             audit_conn.close()
     finally:
