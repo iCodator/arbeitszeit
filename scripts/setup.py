@@ -1,143 +1,125 @@
 #!/usr/bin/env python3
-"""Ersteinrichtung – setzt deployment-spezifische system_config-Einträge.
+"""Ersteinrichtung und Pflege der config.toml.
 
-Muss nach scripts/init_db.py aufgerufen werden, bevor das System erstmals
-genutzt wird. Idempotent: bereits konfigurierte Schlüssel werden übersprungen.
+Bearbeitet interaktiv alle deploy-spezifischen Konfigurationswerte.
+Idempotent: bestehende Werte bleiben bei leerer Eingabe unverändert.
 
 Verwendung (interaktiv):
-    python scripts/setup.py --db arbeitszeit.db
+    python scripts/setup.py
 
-Verwendung (nicht-interaktiv):
-    python scripts/setup.py --db arbeitszeit.db \\
+Verwendung (nicht-interaktiv / Ersteinrichtung):
+    python scripts/setup.py --db /pfad/zur/arbeitszeit.db \\
         --backup-dir /var/backups/arbeitszeit \\
         --export-dir /var/exports/arbeitszeit \\
         --log-dir /var/log/arbeitszeit
+
+Alle --*-Flags sind optional. Fehlende Werte werden interaktiv abgefragt.
+Wenn --db angegeben wird, liest das Script vorhandene DB-Werte als
+Migrationsvorschläge ein (Migrationspfad für Bestandsinstallationen).
 """
 
 import argparse
-import json
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "src"))
 
-from arbeitszeit.domain.enums import ChangeOrigin
-from arbeitszeit.infrastructure.db.connection import open_connection
-from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
-
-
-def _prompt_path(label: str) -> Path:
-    while True:
-        raw = input(f"  {label}: ").strip()
-        if raw:
-            return Path(raw)
-        print("  Bitte einen Pfad eingeben.")
-
-
-def _configure_key(
-    config: SQLiteSystemConfigRepository,
-    key: str,
-    label: str,
-    cli_value: Path | None,
-    now: datetime,
-) -> None:
-    existing_json = config.get_current(key)
-    if existing_json is not None:
-        existing = json.loads(existing_json)
-        print(f"  {key}: bereits konfiguriert ({existing!r}) — übersprungen.")
-        return
-
-    path = cli_value if cli_value is not None else _prompt_path(label)
-    path = path.resolve()
-    path.mkdir(parents=True, exist_ok=True)
-
-    config.set_current(
-        key,
-        json.dumps(str(path)),
-        ChangeOrigin.MIGRATION,
-        changed_by_user_id=None,
-        changed_at=now,
-        reason="Ersteinrichtung",
-    )
-    print(f"  {key} gesetzt: {path}")
+from arbeitszeit.infrastructure.config_setup import resolve_config_write_path, setup_config
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Ersteinrichtung der deployment-spezifischen system_config-Einträge.",
+        description="Ersteinrichtung/Pflege der arbeitszeit config.toml.",
+    )
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=None,
+        metavar="CONFIG_PATH",
+        help="Pfad zu config.toml (Standard: automatische Suche, dann XDG-Standardpfad)",
     )
     parser.add_argument(
         "--db",
         type=Path,
-        default=Path("arbeitszeit.db"),
-        help="Pfad zur Datenbankdatei (Standard: arbeitszeit.db)",
+        default=None,
+        metavar="DB_PATH",
+        help=(
+            "Datenbankpfad: wird als database.path gesetzt und für "
+            "Migrationsvorschläge (backup_dir etc.) aus der DB gelesen"
+        ),
+    )
+    parser.add_argument(
+        "--terminal-id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Terminal-ID (nicht-interaktiv)",
+    )
+    parser.add_argument(
+        "--numpad",
+        default=None,
+        metavar="NAME",
+        help="Numpad-Gerätename (nicht-interaktiv)",
+    )
+    parser.add_argument(
+        "--rfid",
+        default=None,
+        metavar="NAME",
+        help="RFID-Gerätename (nicht-interaktiv)",
+    )
+    parser.add_argument(
+        "--admin-user-id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Admin-Benutzer-ID (nicht-interaktiv)",
     )
     parser.add_argument(
         "--backup-dir",
         type=Path,
         default=None,
+        metavar="PATH",
         help="Backup-Verzeichnis (nicht-interaktiv)",
     )
     parser.add_argument(
         "--export-dir",
         type=Path,
         default=None,
+        metavar="PATH",
         help="Exportverzeichnis für CSV/PDF (nicht-interaktiv)",
     )
     parser.add_argument(
         "--log-dir",
         type=Path,
         default=None,
-        help="Verzeichnis für Logdateien (nicht-interaktiv)",
+        metavar="PATH",
+        help="Log-Verzeichnis (nicht-interaktiv)",
     )
     args = parser.parse_args()
 
-    db_path: Path = args.db
-    if not db_path.exists():
-        print(f"Fehler: Datenbank nicht gefunden: {db_path}", file=sys.stderr)
-        print("Bitte zuerst scripts/init_db.py ausführen.", file=sys.stderr)
-        sys.exit(1)
+    config_path = resolve_config_write_path(args.config)
 
-    conn = open_connection(db_path)
-    config = SQLiteSystemConfigRepository(conn)
-    now = datetime.now(timezone.utc)
+    # --db dient als direkter CLI-Override für database.path (überspringt Prompt)
+    cli_db_path = args.db.resolve() if args.db is not None else None
 
-    print("Ersteinrichtung arbeitszeit")
-    print("=" * 40)
-
-    try:
-        _configure_key(
-            config,
-            "backup.backup_dir",
-            "Backup-Verzeichnis (absoluter Pfad)",
-            args.backup_dir,
-            now,
-        )
-        _configure_key(
-            config,
-            "export.export_dir",
-            "Exportverzeichnis für CSV/PDF (absoluter Pfad)",
-            args.export_dir,
-            now,
-        )
-        _configure_key(
-            config,
-            "logging.log_dir",
-            "Verzeichnis für Logdateien (absoluter Pfad)",
-            args.log_dir,
-            now,
-        )
-    finally:
-        conn.close()
-
-    print("=" * 40)
-    print("Ersteinrichtung abgeschlossen. System betriebsbereit.")
-    print("Terminal-UI: python -m arbeitszeit.presentation.terminal_ui.main --db <DB> ...")
-    print(
-        "Admin-CLI:   python -m arbeitszeit.presentation.admin_cli.main"
-        " --db <DB> --user-id <ID> ..."
+    setup_config(
+        config_path,
+        db_path=args.db,
+        cli_db_path=cli_db_path,
+        cli_terminal_id=args.terminal_id,
+        cli_numpad=args.numpad,
+        cli_rfid=args.rfid,
+        cli_admin_user_id=args.admin_user_id,
+        cli_backup_dir=args.backup_dir,
+        cli_export_dir=args.export_dir,
+        cli_log_dir=args.log_dir,
     )
+
+    print()
+    print("Terminal-UI starten:")
+    print("  python -m arbeitszeit.presentation.terminal_ui.main --config <CONFIG>")
+    print("Admin-CLI starten:")
+    print("  python -m arbeitszeit.presentation.admin_cli.main --config <CONFIG> ...")
 
 
 if __name__ == "__main__":

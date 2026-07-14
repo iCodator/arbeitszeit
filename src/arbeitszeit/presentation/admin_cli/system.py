@@ -1,4 +1,4 @@
-"""Admin-CLI: Systemcheck und Backup (ADMIN/TECH-Rolle)."""
+"""Admin-CLI: Systemcheck, Backup und Konfiguration (ADMIN/TECH-Rolle)."""
 
 import argparse
 import json
@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 
 from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+from arbeitszeit.infrastructure.config_file import AppConfig
+from arbeitszeit.infrastructure.config_setup import resolve_config_write_path, setup_config
 from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.presentation.admin_cli._auth import require_admin_or_tech
 
@@ -16,9 +18,12 @@ def cmd_system_check(
     conn: sqlite3.Connection,
     args: argparse.Namespace,
     user_id: int,
+    *,
+    app_config: AppConfig | None = None,
 ) -> None:
+    """Systemcheck auslösen und Ergebnis ausgeben."""
     require_admin_or_tech(conn, user_id)
-    result = run_system_check(db_path)
+    result = run_system_check(db_path, app_config=app_config)
     print("Systemcheck-Ergebnis:")
     print(f"  Gesamt: {'OK' if result.overall_ok else 'FEHLER'}")
     print()
@@ -33,29 +38,46 @@ def cmd_system_backup(
     conn: sqlite3.Connection,
     args: argparse.Namespace,
     user_id: int,
+    *,
+    app_config: AppConfig | None = None,
 ) -> None:
+    """Manuelles Backup auslösen.
+
+    backup_dir und export_dir: app_config hat Vorrang vor DB-Werten (Fallback
+    für Bestandsinstallationen die noch keine config.toml haben).
+    """
     require_admin_or_tech(conn, user_id)
-    backup_dir_row = conn.execute(
-        "SELECT config_value_json FROM system_config "
-        "WHERE config_key = 'backup.backup_dir' ORDER BY version DESC LIMIT 1"
-    ).fetchone()
-    if backup_dir_row is None:
+
+    # backup_dir: config.toml > DB-Fallback
+    backup_dir: Path | None = app_config.backup.backup_dir if app_config is not None else None
+    if backup_dir is None:
+        row = conn.execute(
+            "SELECT config_value_json FROM system_config "
+            "WHERE config_key = 'backup.backup_dir' ORDER BY version DESC LIMIT 1"
+        ).fetchone()
+        if row is not None:
+            backup_dir = Path(json.loads(row["config_value_json"]))
+
+    if backup_dir is None:
         print(
-            "Fehler: system_config-Schlüssel 'backup.backup_dir' nicht gesetzt.",
+            "Fehler: backup_dir nicht konfiguriert. "
+            "Entweder [backup] backup_dir in config.toml oder "
+            "system_config-Schlüssel 'backup.backup_dir' setzen.",
             file=sys.stderr,
         )
         sys.exit(1)
-    backup_dir = Path(json.loads(backup_dir_row["config_value_json"]))
 
-    export_dir: Path | None = None
-    export_dir_row = conn.execute(
-        "SELECT config_value_json FROM system_config "
-        "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
-    ).fetchone()
-    if export_dir_row is not None:
-        export_dir_val = json.loads(export_dir_row["config_value_json"])
-        if export_dir_val is not None:
-            export_dir = Path(export_dir_val)
+    # export_dir: config.toml > DB-Fallback
+    export_dir: Path | None = app_config.backup.export_dir if app_config is not None else None
+    if export_dir is None:
+        row = conn.execute(
+            "SELECT config_value_json FROM system_config "
+            "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
+        ).fetchone()
+        if row is not None:
+            val = json.loads(row["config_value_json"])
+            if val is not None:
+                export_dir = Path(val)
 
     service = SQLiteBackupService(db_path, backup_dir, export_dir=export_dir)
     try:
@@ -92,10 +114,26 @@ def cmd_system_backup(
                     sys.exit(1)
 
 
+def cmd_system_setup(
+    db_path: Path,
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    *,
+    app_config: AppConfig | None = None,
+) -> None:
+    """Konfigurationsdatei interaktiv bearbeiten."""
+    require_admin_or_tech(conn, user_id)
+    config_path = resolve_config_write_path(getattr(args, "config", None))
+    setup_config(config_path, db_path=db_path)
+
+
 def register_subcommands(
     sub: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
-    system = sub.add_parser("system", help="Systemcheck und Backup")
+    """Subcommands für den 'system'-Bereich registrieren."""
+    system = sub.add_parser("system", help="Systemcheck, Backup und Konfiguration")
     ssub = system.add_subparsers(dest="system_cmd", required=True)
     ssub.add_parser("check", help="Systemcheck auslösen und Ergebnis anzeigen")
     ssub.add_parser("backup", help="Manuelles Backup auslösen")
+    ssub.add_parser("setup", help="Konfigurationsdatei interaktiv bearbeiten")

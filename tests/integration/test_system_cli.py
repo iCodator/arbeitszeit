@@ -11,10 +11,15 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.backup.backup_service import SQLiteBackupService
+from arbeitszeit.infrastructure.config_file import AppConfig, BackupConfig
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.system_check import CheckResult, SystemCheckResult
-from arbeitszeit.presentation.admin_cli.system import cmd_system_backup, cmd_system_check
+from arbeitszeit.presentation.admin_cli.system import (
+    cmd_system_backup,
+    cmd_system_check,
+    cmd_system_setup,
+)
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -242,3 +247,72 @@ class TestCmdSystemBackup:
             assert exc.value.code == 1
         finally:
             conn.close()
+
+    def test_app_config_backup_dir_wird_verwendet(self, tmp_path: Path) -> None:
+        """app_config.backup.backup_dir hat Vorrang — kein DB-Eintrag nötig."""
+        db = _make_db(tmp_path)
+        admin_id = _insert_user(db, "ADMIN")
+        backup_dir = tmp_path / "backup_aus_config"
+        app_config = AppConfig(backup=BackupConfig(backup_dir=backup_dir))
+        conn = open_connection(db)
+        try:
+            cmd_system_backup(db, conn, argparse.Namespace(), admin_id, app_config=app_config)
+        finally:
+            conn.close()
+        assert len(list(backup_dir.glob("*.db"))) == 1
+
+    def test_app_config_hat_vorrang_vor_db_backup_dir(self, tmp_path: Path) -> None:
+        """Wenn app_config und DB beide backup_dir haben, gewinnt app_config."""
+        db = _make_db(tmp_path)
+        admin_id = _insert_user(db, "ADMIN")
+        db_backup_dir = tmp_path / "backup_aus_db"
+        cfg_backup_dir = tmp_path / "backup_aus_config"
+        _set_config(db, "backup.backup_dir", str(db_backup_dir))
+        app_config = AppConfig(backup=BackupConfig(backup_dir=cfg_backup_dir))
+        conn = open_connection(db)
+        try:
+            cmd_system_backup(db, conn, argparse.Namespace(), admin_id, app_config=app_config)
+        finally:
+            conn.close()
+        assert len(list(cfg_backup_dir.glob("*.db"))) == 1
+        assert not db_backup_dir.exists()
+
+
+# ---------------------------------------------------------------------------
+# cmd_system_setup
+# ---------------------------------------------------------------------------
+
+
+class TestCmdSystemSetup:
+    def test_reviewer_wird_abgewiesen(self, tmp_path: Path) -> None:
+        db = _make_db(tmp_path)
+        reviewer_id = _insert_user(db, "REVIEWER")
+        conn = open_connection(db)
+        try:
+            with pytest.raises(SystemExit) as exc:
+                cmd_system_setup(db, conn, argparse.Namespace(), reviewer_id)
+            assert exc.value.code == 1
+        finally:
+            conn.close()
+
+    def test_setup_schreibt_config_toml(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """setup_config wird aufgerufen und schreibt eine config.toml."""
+        db = _make_db(tmp_path)
+        admin_id = _insert_user(db, "ADMIN")
+        config_path = tmp_path / "config.toml"
+
+        # input() mocken: leere Eingabe für alle Felder (Werte bleiben None)
+        monkeypatch.setattr("builtins.input", lambda _prompt="": "")
+        # resolve_config_write_path mocken damit kein Home-Verzeichnis beschrieben wird
+        monkeypatch.setattr(
+            "arbeitszeit.presentation.admin_cli.system.resolve_config_write_path",
+            lambda _explicit: config_path,
+        )
+        conn = open_connection(db)
+        try:
+            cmd_system_setup(db, conn, argparse.Namespace(), admin_id)
+        finally:
+            conn.close()
+        assert config_path.exists()

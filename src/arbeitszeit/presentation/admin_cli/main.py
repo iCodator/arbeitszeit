@@ -127,7 +127,7 @@ def run(argv: list[str] | None = None) -> None:
         run_migrations(conn)
         audit_conn = open_connection(db_path)
         try:
-            _dispatch(args, conn, audit_conn, user_id, db_path)
+            _dispatch(args, conn, audit_conn, user_id, db_path, app_config=app_config)
         finally:
             audit_conn.close()
     finally:
@@ -140,6 +140,8 @@ def _dispatch(
     audit_conn: sqlite3.Connection,
     user_id: int,
     db_path: Path,
+    *,
+    app_config: AppConfig | None = None,
 ) -> None:
     table: dict[tuple[str, str], Callable[[], None]] = {
         ("employees", "list"): lambda: employees.cmd_employees_list(conn, args),
@@ -191,8 +193,15 @@ def _dispatch(
         ("reports", "open-review-cases"): lambda: reports.cmd_reports_open_review_cases(
             conn, args, user_id
         ),
-        ("system", "check"): lambda: system.cmd_system_check(db_path, conn, args, user_id),
-        ("system", "backup"): lambda: system.cmd_system_backup(db_path, conn, args, user_id),
+        ("system", "check"): lambda: system.cmd_system_check(
+            db_path, conn, args, user_id, app_config=app_config
+        ),
+        ("system", "backup"): lambda: system.cmd_system_backup(
+            db_path, conn, args, user_id, app_config=app_config
+        ),
+        ("system", "setup"): lambda: system.cmd_system_setup(
+            db_path, conn, args, user_id, app_config=app_config
+        ),
         ("users", "add"): lambda: user_accounts.cmd_users_add(conn, audit_conn, args, user_id),
         ("users", "list"): lambda: user_accounts.cmd_users_list(conn, args),
         ("users", "deactivate"): lambda: user_accounts.cmd_users_deactivate(
