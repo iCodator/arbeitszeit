@@ -4,7 +4,7 @@ Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import sqlite3
@@ -28,6 +28,7 @@ from arbeitszeit.application.use_cases.manage_rfid_cards import (
 )
 from arbeitszeit.domain.errors import DomainError
 from arbeitszeit.domain.value_objects import EmployeeId, RfidCardId, UserAccountId
+from arbeitszeit.infrastructure.config_file import AppConfig
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
 from arbeitszeit.infrastructure.hardware import EmptyUidError, HardwareTimeoutError
 from arbeitszeit.infrastructure.hardware.evdev_reader import (
@@ -89,7 +90,7 @@ def cmd_employees_deactivate(
     print(f"Mitarbeiter {args.id} deaktiviert.")
 
 
-def _validate_uid_source(args: argparse.Namespace) -> None:
+def _validate_uid_source(args: argparse.Namespace, rfid_device: str | None) -> None:
     """Prüft, dass genau eine UID-Quelle angegeben ist."""
     if args.uid_hash:
         if args.scan:
@@ -99,17 +100,26 @@ def _validate_uid_source(args: argparse.Namespace) -> None:
     if not args.scan:
         print("Fehler: --uid-hash oder --scan ist erforderlich.", file=sys.stderr)
         sys.exit(1)
-    if not args.rfid:
-        print("Fehler: --scan erfordert --rfid.", file=sys.stderr)
+    if not rfid_device:
+        print(
+            "Fehler: --scan erfordert --rfid oder [terminal] rfid in config.toml.",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
 
-def _resolve_uid_hash(args: argparse.Namespace) -> str:
+def _resolve_uid_hash(args: argparse.Namespace, rfid_device: str | None) -> str:
     """Gibt uid_hash zurück: direkt aus --uid-hash oder via RFID-Scan."""
     if not args.scan:
         return args.uid_hash  # type: ignore[no-any-return]
+    if rfid_device is None:
+        print(
+            "Fehler: --scan erfordert --rfid oder [terminal] rfid in config.toml.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     try:
-        rfid_path = resolve_evdev_device(args.rfid)
+        rfid_path = resolve_evdev_device(rfid_device)
     except DeviceNotFoundError as exc:
         print(f"Fehler: {exc}", file=sys.stderr)
         sys.exit(1)
@@ -126,10 +136,15 @@ def _resolve_uid_hash(args: argparse.Namespace) -> str:
 
 
 def cmd_cards_assign(
-    conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    audit_conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
-    _validate_uid_source(args)
-    uid_hash = _resolve_uid_hash(args)
+    rfid_device = args.rfid or (app_config.terminal.rfid if app_config else None)
+    _validate_uid_source(args, rfid_device)
+    uid_hash = _resolve_uid_hash(args, rfid_device)
     cmd = AssignRfidCardCommand(
         acting_user_id=UserAccountId(user_id),
         employee_id=EmployeeId(args.employee_id),

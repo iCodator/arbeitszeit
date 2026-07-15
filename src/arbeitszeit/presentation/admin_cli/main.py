@@ -1,6 +1,6 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import os
@@ -151,7 +151,9 @@ def _dispatch(
         ("employees", "deactivate"): lambda: employees.cmd_employees_deactivate(
             conn, audit_conn, args, user_id
         ),
-        ("cards", "assign"): lambda: employees.cmd_cards_assign(conn, audit_conn, args, user_id),
+        ("cards", "assign"): lambda: employees.cmd_cards_assign(
+            conn, audit_conn, args, user_id, app_config=app_config
+        ),
         ("cards", "replace"): lambda: employees.cmd_cards_replace(conn, audit_conn, args, user_id),
         ("cards", "deactivate"): lambda: employees.cmd_cards_deactivate(
             conn, audit_conn, args, user_id

@@ -1,6 +1,6 @@
 """Integrationstests für admin_cli employees- und cards-Befehle."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import sys
@@ -362,7 +362,7 @@ def test_validate_uid_source_uid_hash_und_scan_schliessen_sich_aus(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     with pytest.raises(SystemExit) as exc_info:
-        _validate_uid_source(_args(uid_hash="abc", scan=True))
+        _validate_uid_source(_args(uid_hash="abc", scan=True), None)
     assert exc_info.value.code == 1
     assert "schließen sich aus" in capsys.readouterr().err
 
@@ -371,7 +371,7 @@ def test_validate_uid_source_kein_uid_quelle_fehler(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     with pytest.raises(SystemExit) as exc_info:
-        _validate_uid_source(_args(uid_hash=None, scan=False))
+        _validate_uid_source(_args(uid_hash=None, scan=False), None)
     assert exc_info.value.code == 1
     assert "erforderlich" in capsys.readouterr().err
 
@@ -380,17 +380,17 @@ def test_validate_uid_source_scan_ohne_rfid_fehler(
     capsys: pytest.CaptureFixture[str],
 ) -> None:
     with pytest.raises(SystemExit) as exc_info:
-        _validate_uid_source(_args(scan=True, rfid=None))
+        _validate_uid_source(_args(scan=True), None)
     assert exc_info.value.code == 1
     assert "--rfid" in capsys.readouterr().err
 
 
 def test_validate_uid_source_uid_hash_gueltig_kein_fehler() -> None:
-    _validate_uid_source(_args(uid_hash="deadbeef"))  # darf nicht werfen
+    _validate_uid_source(_args(uid_hash="deadbeef"), None)  # darf nicht werfen
 
 
 def test_validate_uid_source_scan_mit_rfid_gueltig() -> None:
-    _validate_uid_source(_args(scan=True, rfid="/dev/input/event0"))  # darf nicht werfen
+    _validate_uid_source(_args(scan=True), "/dev/input/event0")  # darf nicht werfen
 
 
 # ---------------------------------------------------------------------------
@@ -399,7 +399,7 @@ def test_validate_uid_source_scan_mit_rfid_gueltig() -> None:
 
 
 def test_resolve_uid_hash_uid_hash_direkt() -> None:
-    assert _resolve_uid_hash(_args(scan=False, uid_hash="abc123")) == "abc123"
+    assert _resolve_uid_hash(_args(scan=False, uid_hash="abc123"), None) == "abc123"
 
 
 def test_resolve_uid_hash_scan_device_not_found(
@@ -409,7 +409,7 @@ def test_resolve_uid_hash_scan_device_not_found(
         patch(f"{_MOD}.resolve_evdev_device", side_effect=DeviceNotFoundError("Nicht gefunden")),
         pytest.raises(SystemExit) as exc_info,
     ):
-        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+        _resolve_uid_hash(_args(scan=True), "USB Numpad")
     assert exc_info.value.code == 1
     assert "Nicht gefunden" in capsys.readouterr().err
 
@@ -422,7 +422,7 @@ def test_resolve_uid_hash_scan_timeout(
         patch(f"{_MOD}.scan_rfid_uid_hash", side_effect=HardwareTimeoutError("Timeout")),
         pytest.raises(SystemExit) as exc_info,
     ):
-        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+        _resolve_uid_hash(_args(scan=True), "USB Numpad")
     assert exc_info.value.code == 1
     assert "Timeout" in capsys.readouterr().err
 
@@ -435,7 +435,7 @@ def test_resolve_uid_hash_scan_empty_uid(
         patch(f"{_MOD}.scan_rfid_uid_hash", side_effect=EmptyUidError("Leere UID")),
         pytest.raises(SystemExit) as exc_info,
     ):
-        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+        _resolve_uid_hash(_args(scan=True), "USB Numpad")
     assert exc_info.value.code == 1
 
 
@@ -447,7 +447,7 @@ def test_resolve_uid_hash_scan_os_error(
         patch(f"{_MOD}.scan_rfid_uid_hash", side_effect=OSError("Gerätedatei fehlt")),
         pytest.raises(SystemExit) as exc_info,
     ):
-        _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+        _resolve_uid_hash(_args(scan=True), "USB Numpad")
     assert exc_info.value.code == 1
     assert "Gerätedatei" in capsys.readouterr().err
 
@@ -457,7 +457,7 @@ def test_resolve_uid_hash_scan_erfolg() -> None:
         patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0"),
         patch(f"{_MOD}.scan_rfid_uid_hash", return_value="cafebabe"),
     ):
-        result = _resolve_uid_hash(_args(scan=True, rfid="USB Numpad"))
+        result = _resolve_uid_hash(_args(scan=True), "USB Numpad")
     assert result == "cafebabe"
 
 
@@ -512,3 +512,64 @@ def test_cards_deactivate_unbekannte_karte_fehler(
         )
     assert exc_info.value.code == 1
     assert "Fehler" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------------------
+# config.toml-Fallback für --rfid bei cards assign
+# ---------------------------------------------------------------------------
+
+
+def test_validate_uid_source_ohne_rfid_und_ohne_config(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        _validate_uid_source(_args(scan=True), None)
+    assert exc_info.value.code == 1
+    assert "config.toml" in capsys.readouterr().err
+
+
+def test_validate_uid_source_config_rfid_ausreichend() -> None:
+    _validate_uid_source(_args(scan=True), "Sycreader RFID Technology")  # darf nicht werfen
+
+
+def test_resolve_uid_hash_config_fallback() -> None:
+    """rfid_device aus config.toml (kein args.rfid) wird an resolve_evdev_device übergeben."""
+    config_rfid = "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader"
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0") as mock_resolve,
+        patch(f"{_MOD}.scan_rfid_uid_hash", return_value="feedcafe"),
+    ):
+        result = _resolve_uid_hash(_args(scan=True), config_rfid)
+    assert result == "feedcafe"
+    mock_resolve.assert_called_once_with(config_rfid)
+
+
+def test_cmd_cards_assign_scan_verwendet_config_rfid(tmp_path: Path) -> None:
+    """Ohne --rfid: app_config.terminal.rfid wird als RFID-Gerät verwendet (Ende-zu-Ende)."""
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    emp_id = _seed_employee(db, admin_id)
+
+    config_path = tmp_path / "config.toml"
+    config_path.write_text('[terminal]\nrfid = "Sycreader RFID"\n', encoding="utf-8")
+
+    with (
+        patch(f"{_MOD}.resolve_evdev_device", return_value="/dev/input/event0"),
+        patch(f"{_MOD}.scan_rfid_uid_hash", return_value="feedcafe"),
+    ):
+        cli_run(
+            [
+                "--db", str(db),
+                "--config", str(config_path),
+                "--user-id", str(admin_id),
+                "cards", "assign",
+                "--employee-id", str(emp_id),
+                "--scan",
+                # kein --rfid; RFID-Gerät kommt aus config.toml
+            ]
+        )
+
+    conn = open_connection(db)
+    row = conn.execute("SELECT uid_hash FROM rfid_cards WHERE uid_hash = 'feedcafe'").fetchone()
+    conn.close()
+    assert row is not None

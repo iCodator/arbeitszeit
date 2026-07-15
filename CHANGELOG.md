@@ -5,6 +5,35 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Feature: Admin-CLI cards assign – config.toml-Fallback für --rfid] – 2026-07-15
+
+### Geändert
+
+- `presentation/admin_cli/employees.py`: `_validate_uid_source` und
+  `_resolve_uid_hash` erhalten neu den Parameter `rfid_device: str | None`
+  statt `args.rfid` direkt zu lesen. `cmd_cards_assign` berechnet
+  `rfid_device = args.rfid or (app_config.terminal.rfid if app_config else None)`
+  und übergibt ihn. Fehlermeldung bei fehlendem RFID-Gerät nennt jetzt auch
+  `[terminal] rfid in config.toml`. `AppConfig` importiert.
+  `__version__` auf 1.2 erhöht.
+
+- `presentation/admin_cli/main.py`: Lambda für `("cards", "assign")` übergibt
+  nun `app_config=app_config` an `cmd_cards_assign`.
+  `__version__` auf 1.2 erhöht.
+
+### Hinzugefügt
+
+- `tests/integration/test_employees.py`: Alle bestehenden Aufrufe von
+  `_validate_uid_source` und `_resolve_uid_hash` auf neue Signaturen angepasst.
+  4 neue Tests: `test_validate_uid_source_ohne_rfid_und_ohne_config` (prüft
+  Fehlermeldung mit "config.toml"), `test_validate_uid_source_config_rfid_ausreichend`
+  (rfid_device als str reicht), `test_resolve_uid_hash_config_fallback` (prüft
+  dass rfid_device an resolve_evdev_device übergeben wird),
+  `test_cmd_cards_assign_scan_verwendet_config_rfid` (Ende-zu-Ende via CLI mit
+  config.toml ohne --rfid). `__version__` auf 1.1 erhöht.
+
+---
+
 ## [Typkorrektur reject_supplement.py: int → UserAccountId] – 2026-07-14
 
 ### Geändert
