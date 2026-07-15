@@ -2,6 +2,7 @@ import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 
@@ -37,7 +38,7 @@ def terminal_id(db: Path) -> int:
         "VALUES ('T01', 1, '2026-01-01') RETURNING id"
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 @pytest.fixture
@@ -49,7 +50,7 @@ def employee_id(db: Path) -> int:
         "VALUES ('E001', 'Test', 'Nutzer', 1, '2026-01-01', '2026-01-01') RETURNING id"
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 @pytest.fixture
@@ -62,7 +63,7 @@ def card_id(db: Path, employee_id: int) -> int:
         (_UID_HASH, employee_id),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 @pytest.fixture
@@ -75,10 +76,10 @@ def inactive_card_id(db: Path, employee_id: int) -> int:
         (_INACTIVE_UID_HASH, employee_id),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
-def _bookings(db: Path) -> list[dict]:
+def _bookings(db: Path) -> list[dict[str, str]]:
     conn = open_connection(db)
     rows = conn.execute(
         "SELECT booking_type, current_status FROM time_bookings ORDER BY id"
@@ -97,7 +98,7 @@ def _audit_events(db: Path) -> list[str]:
 # --- Erfolgreiche Buchungsabläufe ---
 
 
-def test_come_go_ablauf(db, terminal_id, card_id):
+def test_come_go_ablauf(db: Path, terminal_id: int, card_id: int) -> None:
     reader = SimulatedHardwareReader()
     now = datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc)
     reader.inject(BookingType.COME, _UID_HASH, now)
@@ -114,7 +115,7 @@ def test_come_go_ablauf(db, terminal_id, card_id):
     assert buchungen[1]["type"] == "GO"
 
 
-def test_come_pause_go_ablauf(db, terminal_id, card_id):
+def test_come_pause_go_ablauf(db: Path, terminal_id: int, card_id: int) -> None:
     reader = SimulatedHardwareReader()
     base = datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc)
     reader.inject(BookingType.COME, _UID_HASH, base)
@@ -131,7 +132,7 @@ def test_come_pause_go_ablauf(db, terminal_id, card_id):
     assert types == ["COME", "BREAK_START", "BREAK_END", "GO"]
 
 
-def test_buchung_erzeugt_audit_log_eintrag(db, terminal_id, card_id):
+def test_buchung_erzeugt_audit_log_eintrag(db: Path, terminal_id: int, card_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, _UID_HASH, datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc))
     process_booking(reader, db, terminal_id)
@@ -140,7 +141,7 @@ def test_buchung_erzeugt_audit_log_eintrag(db, terminal_id, card_id):
     assert "TIME_BOOKED" in events
 
 
-def test_book_result_enthaelt_booking_id(db, terminal_id, card_id):
+def test_book_result_enthaelt_booking_id(db: Path, terminal_id: int, card_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, _UID_HASH, datetime(2026, 5, 26, 8, 0, tzinfo=timezone.utc))
     result = process_booking(reader, db, terminal_id)
@@ -150,14 +151,14 @@ def test_book_result_enthaelt_booking_id(db, terminal_id, card_id):
 # --- Abweisung unbekannte RFID-Karte ---
 
 
-def test_unbekannte_karte_wirft_unknown_card_error(db, terminal_id):
+def test_unbekannte_karte_wirft_unknown_card_error(db: Path, terminal_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, "unbekannter_hash", datetime.now(timezone.utc))
     with pytest.raises(UnknownCardError):
         process_booking(reader, db, terminal_id)
 
 
-def test_unbekannte_karte_erstellt_audit_log(db, terminal_id):
+def test_unbekannte_karte_erstellt_audit_log(db: Path, terminal_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, "unbekannter_hash", datetime.now(timezone.utc))
     try:
@@ -169,7 +170,7 @@ def test_unbekannte_karte_erstellt_audit_log(db, terminal_id):
     assert "BOOKING_REJECTED_UNKNOWN_CARD" in events
 
 
-def test_unbekannte_karte_speichert_keine_buchung(db, terminal_id):
+def test_unbekannte_karte_speichert_keine_buchung(db: Path, terminal_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, "unbekannter_hash", datetime.now(timezone.utc))
     try:
@@ -183,14 +184,14 @@ def test_unbekannte_karte_speichert_keine_buchung(db, terminal_id):
 # --- Abweisung inaktive Karte ---
 
 
-def test_inaktive_karte_wirft_inactive_card_error(db, terminal_id, inactive_card_id):
+def test_inaktive_karte_wirft_inactive_card_error(db: Path, terminal_id: int, inactive_card_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, _INACTIVE_UID_HASH, datetime.now(timezone.utc))
     with pytest.raises(InactiveCardError):
         process_booking(reader, db, terminal_id)
 
 
-def test_inaktive_karte_erstellt_audit_log(db, terminal_id, inactive_card_id):
+def test_inaktive_karte_erstellt_audit_log(db: Path, terminal_id: int, inactive_card_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, _INACTIVE_UID_HASH, datetime.now(timezone.utc))
     try:
@@ -202,7 +203,7 @@ def test_inaktive_karte_erstellt_audit_log(db, terminal_id, inactive_card_id):
     assert "BOOKING_REJECTED_INACTIVE_CARD" in events
 
 
-def test_inaktive_karte_speichert_keine_buchung(db, terminal_id, inactive_card_id):
+def test_inaktive_karte_speichert_keine_buchung(db: Path, terminal_id: int, inactive_card_id: int) -> None:
     reader = SimulatedHardwareReader()
     reader.inject(BookingType.COME, _INACTIVE_UID_HASH, datetime.now(timezone.utc))
     try:
@@ -222,12 +223,12 @@ def _make_monitor(db: Path) -> SystemTimeMonitor:
     return monitor
 
 
-def test_unerwartete_exception_schreibt_application_error_in_system_events(db, terminal_id):
+def test_unerwartete_exception_schreibt_application_error_in_system_events(db: Path, terminal_id: int) -> None:
     class BrokenReader:
-        def read_next(self):
+        def read_next(self) -> NoReturn:
             raise RuntimeError("Gerätepanne simuliert")
 
-        def close(self):
+        def close(self) -> None:
             pass
 
     _run_one_cycle(BrokenReader(), db, terminal_id, _make_monitor(db))
@@ -245,12 +246,12 @@ def test_unerwartete_exception_schreibt_application_error_in_system_events(db, t
     assert "Gerätepanne" in details["error"]
 
 
-def test_domain_error_schreibt_kein_application_error(db, terminal_id):
+def test_domain_error_schreibt_kein_application_error(db: Path, terminal_id: int) -> None:
     class DomainErrorReader:
-        def read_next(self):
+        def read_next(self) -> NoReturn:
             raise UnknownCardError("Test-DomainError")
 
-        def close(self):
+        def close(self) -> None:
             pass
 
     _run_one_cycle(DomainErrorReader(), db, terminal_id, _make_monitor(db))

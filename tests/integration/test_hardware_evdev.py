@@ -3,12 +3,13 @@ Tests für evdev-spezifische Logik: Hex-Filter (map_rfid_key), Fehlerhierarchie
 und Unit-Tests für EvdevHardwareReader-Methoden (ohne physische Hardware).
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import logging
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -60,42 +61,42 @@ def _categorize_mock(event: SimpleNamespace) -> SimpleNamespace:
 # --- HardwareTimeoutError ---
 
 
-def test_hardware_timeout_error_ist_runtime_error_subklasse():
+def test_hardware_timeout_error_ist_runtime_error_subklasse() -> None:
     assert issubclass(HardwareTimeoutError, RuntimeError)
 
 
 # --- map_rfid_key: Hex-Filter-Logik ---
 
 
-def test_hex_ziffern_werden_gemappt():
+def test_hex_ziffern_werden_gemappt() -> None:
     for d in "0123456789":
         assert map_rfid_key(f"KEY_{d}", shift_active=False) == d
 
 
-def test_hex_buchstaben_a_bis_f_ohne_shift_kleinschreibung():
+def test_hex_buchstaben_a_bis_f_ohne_shift_kleinschreibung() -> None:
     for c in "ABCDEF":
         result = map_rfid_key(f"KEY_{c}", shift_active=False)
         assert result == c.lower(), f"KEY_{c} ohne Shift sollte '{c.lower()}' liefern"
 
 
-def test_hex_buchstaben_a_bis_f_mit_shift_grossschreibung():
+def test_hex_buchstaben_a_bis_f_mit_shift_grossschreibung() -> None:
     for c in "ABCDEF":
         result = map_rfid_key(f"KEY_{c}", shift_active=True)
         assert result == c.upper(), f"KEY_{c} mit Shift sollte '{c.upper()}' liefern"
 
 
-def test_nicht_hex_buchstaben_werden_ignoriert():
+def test_nicht_hex_buchstaben_werden_ignoriert() -> None:
     for c in "GHIJKLMNOPQRSTUVWXYZ":
         assert map_rfid_key(f"KEY_{c}", shift_active=False) is None
         assert map_rfid_key(f"KEY_{c}", shift_active=True) is None
 
 
-def test_kp_ziffern_werden_gemappt():
+def test_kp_ziffern_werden_gemappt() -> None:
     for d in "0123456789":
         assert map_rfid_key(f"KEY_KP{d}", shift_active=False) == d
 
 
-def test_unbekannte_keycodes_werden_ignoriert():
+def test_unbekannte_keycodes_werden_ignoriert() -> None:
     assert map_rfid_key("KEY_F1", shift_active=False) is None
     assert map_rfid_key("KEY_SPACE", shift_active=False) is None
     assert map_rfid_key("KEY_BACKSPACE", shift_active=False) is None
@@ -107,34 +108,40 @@ def test_unbekannte_keycodes_werden_ignoriert():
 class TestEvdevClose:
     def test_ungrab_und_close_werden_auf_beiden_geraeten_aufgerufen(self) -> None:
         reader = _make_reader()
+        numpad = cast(MagicMock, reader._numpad)
+        rfid = cast(MagicMock, reader._rfid)
         reader.close()
-        reader._numpad.ungrab.assert_called_once()
-        reader._numpad.close.assert_called_once()
-        reader._rfid.ungrab.assert_called_once()
-        reader._rfid.close.assert_called_once()
+        numpad.ungrab.assert_called_once()
+        numpad.close.assert_called_once()
+        rfid.ungrab.assert_called_once()
+        rfid.close.assert_called_once()
 
     def test_oserror_bei_ungrab_logt_warning_und_close_wird_aufgerufen(
         self, caplog: pytest.LogCaptureFixture
     ) -> None:
         reader = _make_reader()
-        reader._numpad.ungrab.side_effect = OSError("Gerät gesperrt")
+        numpad = cast(MagicMock, reader._numpad)
+        rfid = cast(MagicMock, reader._rfid)
+        numpad.ungrab.side_effect = OSError("Gerät gesperrt")
         with caplog.at_level(logging.WARNING):
             reader.close()
         assert "ungrab" in caplog.text
-        reader._numpad.close.assert_called_once()
-        reader._rfid.ungrab.assert_called_once()
-        reader._rfid.close.assert_called_once()
+        numpad.close.assert_called_once()
+        rfid.ungrab.assert_called_once()
+        rfid.close.assert_called_once()
 
     def test_oserror_bei_close_logt_warning_und_zweites_geraet_wird_bearbeitet(
         self, caplog: pytest.LogCaptureFixture
     ) -> None:
         reader = _make_reader()
-        reader._numpad.close.side_effect = OSError("close fehlgeschlagen")
+        numpad = cast(MagicMock, reader._numpad)
+        rfid = cast(MagicMock, reader._rfid)
+        numpad.close.side_effect = OSError("close fehlgeschlagen")
         with caplog.at_level(logging.WARNING):
             reader.close()
         assert "close" in caplog.text
-        reader._rfid.ungrab.assert_called_once()
-        reader._rfid.close.assert_called_once()
+        rfid.ungrab.assert_called_once()
+        rfid.close.assert_called_once()
 
 
 # --- EvdevHardwareReader._read_rfid_uid() ---
@@ -151,8 +158,9 @@ class TestReadRfidUid:
         *,
         select_ready: bool = True,
     ) -> str:
-        reader._rfid.read.return_value = events
-        select_ret = ([reader._rfid.fd], [], []) if select_ready else ([], [], [])
+        rfid = cast(MagicMock, reader._rfid)
+        rfid.read.return_value = events
+        select_ret: tuple[list[Any], list[Any], list[Any]] = ([rfid.fd], [], []) if select_ready else ([], [], [])
         with patch("select.select", return_value=select_ret):
             with patch(_CATEGORIZE, side_effect=_categorize_mock):
                 with patch("time.monotonic", return_value=0.0):
@@ -220,7 +228,8 @@ class TestReadBookingType:
     def _run(
         self, reader: EvdevHardwareReader, events: list[SimpleNamespace]
     ) -> BookingType:
-        reader._numpad.read_loop.return_value = iter(events)
+        numpad = cast(MagicMock, reader._numpad)
+        numpad.read_loop.return_value = iter(events)
         with patch(_CATEGORIZE, side_effect=_categorize_mock):
             return reader._read_booking_type()
 
@@ -243,7 +252,8 @@ class TestReadBookingType:
 
     def test_leerer_loop_wirft_oserror(self) -> None:
         reader = _make_reader()
-        reader._numpad.read_loop.return_value = iter([])
+        numpad = cast(MagicMock, reader._numpad)
+        numpad.read_loop.return_value = iter([])
         with pytest.raises(OSError):
             reader._read_booking_type()
 
@@ -332,7 +342,7 @@ class TestScanRfidUidHash:
         timeout: float = 5.0,
     ) -> str:
         mock_device.read.return_value = events
-        select_ret = ([mock_device.fd], [], []) if select_ready else ([], [], [])
+        select_ret: tuple[list[Any], list[Any], list[Any]] = ([mock_device.fd], [], []) if select_ready else ([], [], [])
         with (
             patch(f"{_EVDEV_READER}.InputDevice", return_value=mock_device),
             patch("select.select", return_value=select_ret),

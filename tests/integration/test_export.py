@@ -1,12 +1,19 @@
 """Integrationstests für report_queries.py gegen In-Memory-SQLite."""
 
 import json
+import sqlite3
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
+from arbeitszeit.application.queries import (
+    BookingRow,
+    CorrectionRow,
+    ReviewCaseRow,
+    SupplementRow,
+)
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingSource,
@@ -17,10 +24,6 @@ from arbeitszeit.domain.enums import (
     ReviewSeverity,
 )
 from arbeitszeit.infrastructure.export.report_queries import (
-    BookingRow,
-    CorrectionRow,
-    ReviewCaseRow,
-    SupplementRow,
     list_bookings,
     list_corrections,
     list_open_bookings,
@@ -43,18 +46,18 @@ _TO = datetime(2025, 6, 30, 23, 59, tzinfo=timezone.utc)
 # ---------------------------------------------------------------------------
 
 
-def _insert_employee(conn, personnel_no: str = "E001") -> int:
+def _insert_employee(conn: sqlite3.Connection, personnel_no: str = "E001") -> int:
     row = conn.execute(
         "INSERT INTO employees (personnel_no, first_name, last_name, active, "
         "created_at, updated_at) VALUES (?, 'Anna', 'Muster', 1, "
         "'2025-01-01', '2025-01-01') RETURNING id",
         (personnel_no,),
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
 def _insert_booking(
-    conn,
+    conn: sqlite3.Connection,
     employee_id: int,
     booking_type: str = "COME",
     booked_at: datetime = _NOW,
@@ -67,10 +70,12 @@ def _insert_booking(
         "VALUES (?, ?, ?, ?, ?, '2025-01-01T00:00:00+00:00') RETURNING id",
         (employee_id, booking_type, booked_at.isoformat(), source, status),
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
-def _insert_correction(conn, booking_id: int, user_id: int, corrected_at: datetime = _NOW) -> int:
+def _insert_correction(
+    conn: sqlite3.Connection, booking_id: int, user_id: int, corrected_at: datetime = _NOW
+) -> int:
     old = json.dumps({"booking_type": "COME", "booked_at": _NOW.isoformat()})
     new = json.dumps({"booking_type": "GO", "booked_at": _LATER.isoformat()})
     row = conn.execute(
@@ -80,10 +85,12 @@ def _insert_correction(conn, booking_id: int, user_id: int, corrected_at: dateti
         "VALUES (?, ?, ?, 'Typ falsch', ?, ?) RETURNING id",
         (booking_id, old, new, user_id, corrected_at.isoformat()),
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
-def _insert_supplement(conn, employee_id: int, event_at: datetime = _NOW) -> int:
+def _insert_supplement(
+    conn: sqlite3.Connection, employee_id: int, event_at: datetime = _NOW
+) -> int:
     user_id = _ensure_user(conn)
     row = conn.execute(
         "INSERT INTO supplements "
@@ -92,18 +99,18 @@ def _insert_supplement(conn, employee_id: int, event_at: datetime = _NOW) -> int
         "VALUES (?, 'COME', ?, ?, 'Vergessen', ?, 'PENDING') RETURNING id",
         (employee_id, event_at.isoformat(), _NOW.isoformat(), user_id),
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
-def _ensure_user(conn) -> int:
+def _ensure_user(conn: sqlite3.Connection) -> int:
     row = conn.execute("SELECT id FROM user_accounts LIMIT 1").fetchone()
     if row:
-        return row["id"]
+        return int(row["id"])
     return _insert_user(conn)
 
 
 def _insert_review_case(
-    conn,
+    conn: sqlite3.Connection,
     employee_id: int,
     booking_id: int | None = None,
     case_type: str = "POSSIBLE_MAX_HOURS_VIOLATION",
@@ -131,17 +138,17 @@ def _insert_review_case(
             closed_by,
         ),
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
-def _insert_user(conn) -> int:
+def _insert_user(conn: sqlite3.Connection) -> int:
     row = conn.execute(
         "INSERT INTO user_accounts (username, password_hash, role, active, "
         "created_at, updated_at) "
         "VALUES ('admin', 'hash', 'ADMIN', 1, '2025-01-01', '2025-01-01') "
         "RETURNING id",
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +156,7 @@ def _insert_user(conn) -> int:
 # ---------------------------------------------------------------------------
 
 
-def test_list_bookings_liefert_buchung_im_zeitraum(conn):
+def test_list_bookings_liefert_buchung_im_zeitraum(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booked_at=_NOW)
 
@@ -165,7 +172,7 @@ def test_list_bookings_liefert_buchung_im_zeitraum(conn):
     assert not b.is_manual
 
 
-def test_list_bookings_filtert_nach_employee_id(conn):
+def test_list_bookings_filtert_nach_employee_id(conn: sqlite3.Connection) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     _insert_booking(conn, emp1, booked_at=_NOW)
@@ -177,7 +184,7 @@ def test_list_bookings_filtert_nach_employee_id(conn):
     assert result[0].employee_id == emp1
 
 
-def test_list_bookings_exkludiert_buchungen_ausserhalb_zeitraum(conn):
+def test_list_bookings_exkludiert_buchungen_ausserhalb_zeitraum(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booked_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc))
 
@@ -186,7 +193,7 @@ def test_list_bookings_exkludiert_buchungen_ausserhalb_zeitraum(conn):
     assert result == []
 
 
-def test_list_bookings_kennzeichnet_manual_buchung(conn):
+def test_list_bookings_kennzeichnet_manual_buchung(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booked_at=_NOW, source="MANUAL")
 
@@ -196,7 +203,7 @@ def test_list_bookings_kennzeichnet_manual_buchung(conn):
     assert result[0].source == BookingSource.MANUAL
 
 
-def test_list_bookings_sortiert_nach_booked_at(conn):
+def test_list_bookings_sortiert_nach_booked_at(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booked_at=_LATER)
     _insert_booking(conn, emp_id, booked_at=_NOW)
@@ -211,7 +218,7 @@ def test_list_bookings_sortiert_nach_booked_at(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_open_bookings_liefert_nur_offene(conn):
+def test_list_open_bookings_liefert_nur_offene(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, status="OPEN")
     _insert_booking(conn, emp_id, booking_type="GO", status="OK", booked_at=_LATER)
@@ -222,7 +229,7 @@ def test_list_open_bookings_liefert_nur_offene(conn):
     assert result[0].status == BookingStatus.OPEN
 
 
-def test_list_open_bookings_filtert_nach_employee_id(conn):
+def test_list_open_bookings_filtert_nach_employee_id(conn: sqlite3.Connection) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     _insert_booking(conn, emp1, status="OPEN")
@@ -239,7 +246,7 @@ def test_list_open_bookings_filtert_nach_employee_id(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_warn_bookings_liefert_warn_und_needs_review(conn):
+def test_list_warn_bookings_liefert_warn_und_needs_review(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_booking(conn, emp_id, booking_type="GO", status="WARN", booked_at=_LATER)
     _insert_booking(conn, emp_id, booking_type="COME", status="OPEN", booked_at=_NOW)
@@ -255,7 +262,9 @@ def test_list_warn_bookings_liefert_warn_und_needs_review(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_corrections_liefert_korrektur_mit_altem_und_neuem_zustand(conn):
+def test_list_corrections_liefert_korrektur_mit_altem_und_neuem_zustand(
+    conn: sqlite3.Connection,
+) -> None:
     emp_id = _insert_employee(conn)
     user_id = _insert_user(conn)
     booking_id = _insert_booking(conn, emp_id, status="CORRECTED")
@@ -273,7 +282,7 @@ def test_list_corrections_liefert_korrektur_mit_altem_und_neuem_zustand(conn):
     assert c.personnel_no == "E001"
 
 
-def test_list_corrections_filtert_nach_employee_id(conn):
+def test_list_corrections_filtert_nach_employee_id(conn: sqlite3.Connection) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     user_id = _insert_user(conn)
@@ -293,7 +302,7 @@ def test_list_corrections_filtert_nach_employee_id(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_supplements_liefert_nachtrag(conn):
+def test_list_supplements_liefert_nachtrag(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_supplement(conn, emp_id, event_at=_NOW)
 
@@ -308,7 +317,7 @@ def test_list_supplements_liefert_nachtrag(conn):
     assert s.related_booking_id is None
 
 
-def test_list_supplements_filtert_nach_zeitraum(conn):
+def test_list_supplements_filtert_nach_zeitraum(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     _insert_supplement(conn, emp_id, event_at=datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc))
 
@@ -317,7 +326,7 @@ def test_list_supplements_filtert_nach_zeitraum(conn):
     assert result == []
 
 
-def test_list_supplements_filtert_nach_employee_id(conn):
+def test_list_supplements_filtert_nach_employee_id(conn: sqlite3.Connection) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     _insert_supplement(conn, emp1)
@@ -334,7 +343,7 @@ def test_list_supplements_filtert_nach_employee_id(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_open_review_cases_liefert_offene_faelle(conn):
+def test_list_open_review_cases_liefert_offene_faelle(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     booking_id = _insert_booking(conn, emp_id)
     _insert_review_case(conn, emp_id, booking_id, status="OPEN")
@@ -350,7 +359,7 @@ def test_list_open_review_cases_liefert_offene_faelle(conn):
     assert rc.severity == ReviewSeverity.WARN
 
 
-def test_list_open_review_cases_exkludiert_geschlossene(conn):
+def test_list_open_review_cases_exkludiert_geschlossene(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     booking_id = _insert_booking(conn, emp_id)
     _insert_review_case(conn, emp_id, booking_id, status="RESOLVED")
@@ -360,7 +369,7 @@ def test_list_open_review_cases_exkludiert_geschlossene(conn):
     assert result == []
 
 
-def test_list_open_review_cases_filtert_nach_employee_id(conn):
+def test_list_open_review_cases_filtert_nach_employee_id(conn: sqlite3.Connection) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     b1 = _insert_booking(conn, emp1)
@@ -379,7 +388,9 @@ def test_list_open_review_cases_filtert_nach_employee_id(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_open_review_cases_in_period_liefert_faelle_im_zeitraum(conn):
+def test_list_open_review_cases_in_period_liefert_faelle_im_zeitraum(
+    conn: sqlite3.Connection,
+) -> None:
     emp_id = _insert_employee(conn)
     _insert_review_case(conn, emp_id, detected_at=_NOW)
 
@@ -389,7 +400,9 @@ def test_list_open_review_cases_in_period_liefert_faelle_im_zeitraum(conn):
     assert result[0].employee_id == emp_id
 
 
-def test_list_open_review_cases_in_period_exkludiert_faelle_ausserhalb(conn):
+def test_list_open_review_cases_in_period_exkludiert_faelle_ausserhalb(
+    conn: sqlite3.Connection,
+) -> None:
     emp_id = _insert_employee(conn)
     outside = datetime(2025, 7, 1, 8, 0, tzinfo=timezone.utc)
     _insert_review_case(conn, emp_id, detected_at=outside)
@@ -399,7 +412,9 @@ def test_list_open_review_cases_in_period_exkludiert_faelle_ausserhalb(conn):
     assert result == []
 
 
-def test_list_open_review_cases_in_period_filtert_nach_employee_id(conn):
+def test_list_open_review_cases_in_period_filtert_nach_employee_id(
+    conn: sqlite3.Connection,
+) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     _insert_review_case(conn, emp1, detected_at=_NOW)
@@ -416,7 +431,7 @@ def test_list_open_review_cases_in_period_filtert_nach_employee_id(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_list_review_cases_for_booking_liefert_alle_typen(conn):
+def test_list_review_cases_for_booking_liefert_alle_typen(conn: sqlite3.Connection) -> None:
     emp_id = _insert_employee(conn)
     booking_id = _insert_booking(conn, emp_id)
     other_booking_id = _insert_booking(conn, emp_id, booking_type="GO", booked_at=_LATER)
@@ -437,7 +452,7 @@ def test_list_review_cases_for_booking_liefert_alle_typen(conn):
 # ---------------------------------------------------------------------------
 
 
-def test_pflichtfall_offene_und_auffaellige_faelle(conn):
+def test_pflichtfall_offene_und_auffaellige_faelle(conn: sqlite3.Connection) -> None:
     """V3 §16 Testpflicht: Systemweit kombinierte Abfrage aller kritischen Zustände."""
     emp_id = _insert_employee(conn)
 

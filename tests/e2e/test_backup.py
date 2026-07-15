@@ -4,6 +4,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock
 
 import pytest
@@ -38,10 +39,10 @@ def _count_employees(path: Path) -> int:
     conn = open_connection(path)
     count = conn.execute("SELECT COUNT(*) FROM employees").fetchone()[0]
     conn.close()
-    return count
+    return int(count)
 
 
-def _audit_events(path: Path) -> list[dict]:
+def _audit_events(path: Path) -> list[dict[str, Any]]:
     conn = open_connection(path)
     rows = conn.execute("SELECT event_type, details_json FROM audit_log ORDER BY id").fetchall()
     conn.close()
@@ -51,7 +52,7 @@ def _audit_events(path: Path) -> list[dict]:
 # --- create_local_backup ---
 
 
-def test_backup_erstellt_datei(tmp_path):
+def test_backup_erstellt_datei(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -60,7 +61,7 @@ def test_backup_erstellt_datei(tmp_path):
     assert backup_path.stat().st_size > 0
 
 
-def test_backup_dateiname_enthaelt_timestamp(tmp_path):
+def test_backup_dateiname_enthaelt_timestamp(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -68,7 +69,7 @@ def test_backup_dateiname_enthaelt_timestamp(tmp_path):
     assert "20250601T080000Z" in backup_path.name
 
 
-def test_backup_dir_wird_automatisch_angelegt(tmp_path):
+def test_backup_dir_wird_automatisch_angelegt(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     tief = tmp_path / "neu" / "verschachtelt" / "backups"
@@ -77,7 +78,7 @@ def test_backup_dir_wird_automatisch_angelegt(tmp_path):
     assert tief.exists()
 
 
-def test_backup_enthaelt_alle_tabellen(tmp_path):
+def test_backup_enthaelt_alle_tabellen(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -98,7 +99,7 @@ def test_backup_enthaelt_alle_tabellen(tmp_path):
     assert src_tables == bak_tables
 
 
-def test_run_gibt_backup_result_zurueck(tmp_path):
+def test_run_gibt_backup_result_zurueck(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -112,7 +113,7 @@ def test_run_gibt_backup_result_zurueck(tmp_path):
 # --- restore_from ---
 
 
-def test_restore_stellt_daten_wieder_her(tmp_path):
+def test_restore_stellt_daten_wieder_her(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     _insert_employee(db, "E001")
@@ -131,7 +132,7 @@ def test_restore_stellt_daten_wieder_her(tmp_path):
     assert _count_employees(db) == 1
 
 
-def test_backup_und_restore_roundtrip_mehrere_datensaetze(tmp_path):
+def test_backup_und_restore_roundtrip_mehrere_datensaetze(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     for i in range(5):
@@ -148,7 +149,7 @@ def test_backup_und_restore_roundtrip_mehrere_datensaetze(tmp_path):
     assert _count_employees(db) == 5
 
 
-def test_restore_aus_backup_behaelt_schema_migrations(tmp_path):
+def test_restore_aus_backup_behaelt_schema_migrations(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -167,7 +168,7 @@ def test_restore_aus_backup_behaelt_schema_migrations(tmp_path):
 # --- Fehlerpfade ---
 
 
-def test_nas_sync_fehler_wirft_called_process_error(tmp_path):
+def test_nas_sync_fehler_wirft_called_process_error(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -177,7 +178,7 @@ def test_nas_sync_fehler_wirft_called_process_error(tmp_path):
         service.sync_to_nas(Path("/nonexistent/nas/path"))
 
 
-def test_restore_aus_nicht_existierender_datei_wirft_file_not_found(tmp_path):
+def test_restore_aus_nicht_existierender_datei_wirft_file_not_found(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -186,7 +187,7 @@ def test_restore_aus_nicht_existierender_datei_wirft_file_not_found(tmp_path):
         service.restore_from(tmp_path / "ghost.db")
 
 
-def test_restore_aus_beschaedigter_datei_schlaegt_fehl(tmp_path):
+def test_restore_aus_beschaedigter_datei_schlaegt_fehl(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -201,7 +202,7 @@ def test_restore_aus_beschaedigter_datei_schlaegt_fehl(tmp_path):
 # --- Audit-Log-Verifikation ---
 
 
-def test_backup_erstellt_audit_eintrag(tmp_path):
+def test_backup_erstellt_audit_eintrag(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -211,7 +212,7 @@ def test_backup_erstellt_audit_eintrag(tmp_path):
     assert any(e["event_type"] == audit_events.BACKUP_CREATED for e in events)
 
 
-def test_restore_erstellt_audit_eintrag(tmp_path):
+def test_restore_erstellt_audit_eintrag(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -222,7 +223,7 @@ def test_restore_erstellt_audit_eintrag(tmp_path):
     assert any(e["event_type"] == audit_events.RESTORE_COMPLETED for e in events)
 
 
-def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path):
+def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -236,7 +237,7 @@ def test_nas_sync_erfolg_erstellt_audit_eintrag(tmp_path):
     assert any(e["event_type"] == audit_events.BACKUP_SYNCED_TO_NAS for e in events)
 
 
-def test_nas_sync_audit_eintrag_ohne_rsync(tmp_path, monkeypatch):
+def test_nas_sync_audit_eintrag_ohne_rsync(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Isolierter Test: BACKUP_SYNCED_TO_NAS ohne Abhängigkeit von rsync."""
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
@@ -250,7 +251,7 @@ def test_nas_sync_audit_eintrag_ohne_rsync(tmp_path, monkeypatch):
     assert any(e["event_type"] == audit_events.BACKUP_SYNCED_TO_NAS for e in events)
 
 
-def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
+def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")
@@ -269,7 +270,7 @@ def test_nas_sync_fehler_erstellt_audit_eintrag_mit_cmd_und_stderr(tmp_path):
 # --- Exportdateien-Sicherung ---
 
 
-def test_backup_mit_export_dir_kopiert_dateien(tmp_path):
+def test_backup_mit_export_dir_kopiert_dateien(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     export_dir = tmp_path / "exports"
@@ -286,7 +287,7 @@ def test_backup_mit_export_dir_kopiert_dateien(tmp_path):
     assert (exports_in_backup / "bericht.pdf").exists()
 
 
-def test_backup_ohne_export_dir_legt_kein_exports_verzeichnis_an(tmp_path):
+def test_backup_ohne_export_dir_legt_kein_exports_verzeichnis_an(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     backup_dir = tmp_path / "backups"
@@ -296,7 +297,7 @@ def test_backup_ohne_export_dir_legt_kein_exports_verzeichnis_an(tmp_path):
     assert not (backup_dir / "exports").exists()
 
 
-def test_backup_mit_nicht_existierendem_export_dir_wird_ignoriert(tmp_path):
+def test_backup_mit_nicht_existierendem_export_dir_wird_ignoriert(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups", export_dir=tmp_path / "noch_nicht_da")
@@ -308,7 +309,7 @@ def test_backup_mit_nicht_existierendem_export_dir_wird_ignoriert(tmp_path):
 # --- restore_from mit restore_exports ---
 
 
-def test_restore_with_exports_kopiert_exportdateien_zurueck(tmp_path):
+def test_restore_with_exports_kopiert_exportdateien_zurueck(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     export_dir = tmp_path / "exports"
     export_dir.mkdir()
@@ -326,7 +327,7 @@ def test_restore_with_exports_kopiert_exportdateien_zurueck(tmp_path):
     assert (export_dir / "bericht.csv").read_text() == "inhalt"
 
 
-def test_restore_ohne_flag_stellt_keine_exporte_wieder_her(tmp_path):
+def test_restore_ohne_flag_stellt_keine_exporte_wieder_her(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     export_dir = tmp_path / "exports"
     export_dir.mkdir()
@@ -341,7 +342,7 @@ def test_restore_ohne_flag_stellt_keine_exporte_wieder_her(tmp_path):
     assert not (export_dir / "bericht.csv").exists()
 
 
-def test_restore_with_exports_ohne_export_dir_kein_fehler(tmp_path):
+def test_restore_with_exports_ohne_export_dir_kein_fehler(tmp_path: Path) -> None:
     db = tmp_path / "arbeitszeit.db"
     _make_db(db)
     service = SQLiteBackupService(db, tmp_path / "backups")

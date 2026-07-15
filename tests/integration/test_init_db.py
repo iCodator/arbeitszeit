@@ -3,8 +3,11 @@
 import importlib.util
 import json
 import sys
+import types
 from datetime import datetime, timezone
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
@@ -16,9 +19,11 @@ from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigReposit
 _SCRIPTS_DIR = Path(__file__).parents[2] / "scripts"
 
 
-def _load_init_db():
+def _load_init_db() -> types.ModuleType:
     spec = importlib.util.spec_from_file_location("init_db", _SCRIPTS_DIR / "init_db.py")
+    assert spec is not None
     mod = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
     spec.loader.exec_module(mod)
     return mod
 
@@ -46,20 +51,20 @@ def _setze_deployment_keys(db: Path, tmp_path: Path) -> None:
 # --- setup_vollstaendig ---
 
 
-def test_setup_vollstaendig_false_nach_migration_ohne_setup(tmp_path):
+def test_setup_vollstaendig_false_nach_migration_ohne_setup(tmp_path: Path) -> None:
     db = _migrierte_db(tmp_path)
     mod = _load_init_db()
     assert mod.setup_vollstaendig(db) is False
 
 
-def test_setup_vollstaendig_true_nach_vollstaendigem_setup(tmp_path):
+def test_setup_vollstaendig_true_nach_vollstaendigem_setup(tmp_path: Path) -> None:
     db = _migrierte_db(tmp_path)
     _setze_deployment_keys(db, tmp_path)
     mod = _load_init_db()
     assert mod.setup_vollstaendig(db) is True
 
 
-def test_setup_vollstaendig_false_wenn_nur_ein_key_gesetzt(tmp_path):
+def test_setup_vollstaendig_false_wenn_nur_ein_key_gesetzt(tmp_path: Path) -> None:
     db = _migrierte_db(tmp_path)
     conn = open_connection(db)
     SQLiteSystemConfigRepository(conn).set_current(
@@ -78,7 +83,9 @@ def test_setup_vollstaendig_false_wenn_nur_ein_key_gesetzt(tmp_path):
 # --- Ausgabe main() ---
 
 
-def test_main_gibt_warnung_aus_bei_fehlenden_deployment_keys(tmp_path, capsys):
+def test_main_gibt_warnung_aus_bei_fehlenden_deployment_keys(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     db = _migrierte_db(tmp_path)
     mod = _load_init_db()
     sys.argv = ["init_db.py", "--db", str(db)]
@@ -88,7 +95,9 @@ def test_main_gibt_warnung_aus_bei_fehlenden_deployment_keys(tmp_path, capsys):
     assert "setup.py" in out
 
 
-def test_main_meldet_betriebsbereit_wenn_setup_vollstaendig(tmp_path, capsys):
+def test_main_meldet_betriebsbereit_wenn_setup_vollstaendig(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     db = _migrierte_db(tmp_path)
     _setze_deployment_keys(db, tmp_path)
     mod = _load_init_db()

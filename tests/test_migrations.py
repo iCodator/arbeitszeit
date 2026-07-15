@@ -12,6 +12,7 @@ import shutil
 import sqlite3
 import sys
 from pathlib import Path
+from typing import Generator
 
 import pytest
 
@@ -41,7 +42,7 @@ _EXPECTED_TABLES = {
 
 
 @pytest.fixture
-def conn(tmp_path):
+def conn(tmp_path: Path) -> Generator[sqlite3.Connection, None, None]:
     db = tmp_path / "test.db"
     connection = open_connection(db)
     yield connection
@@ -58,14 +59,14 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
     return {row[0] for row in rows}
 
 
-def test_leere_db_wird_vollstaendig_migriert(conn):
+def test_leere_db_wird_vollstaendig_migriert(conn: sqlite3.Connection) -> None:
     executed = run_migrations(conn)
 
     assert executed == ["0001", "0002", "0003", "0004", "0005", "0006"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
-def test_erneutes_ausfuehren_ist_idempotent(conn):
+def test_erneutes_ausfuehren_ist_idempotent(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
     executed_second = run_migrations(conn)
 
@@ -73,7 +74,7 @@ def test_erneutes_ausfuehren_ist_idempotent(conn):
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
-def test_seed_daten_vorhanden_nach_migration(conn):
+def test_seed_daten_vorhanden_nach_migration(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     schedule_rows = conn.execute(
@@ -93,21 +94,21 @@ def test_seed_daten_vorhanden_nach_migration(conn):
     assert "backup.nas_enabled" in config_keys
 
 
-def test_audit_log_enthaelt_seed_eintraege(conn):
+def test_audit_log_enthaelt_seed_eintraege(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     count = conn.execute("SELECT COUNT(*) FROM audit_log WHERE event_type = 'SEEDED'").fetchone()[0]
     assert count == 9
 
 
-def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn):
+def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
     assert versions == {"0001", "0002", "0003", "0004", "0005", "0006"}
 
 
-def test_migration_0004_fuegt_neue_spalten_ein(conn):
+def test_migration_0004_fuegt_neue_spalten_ein(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     supplement_cols = {row[1] for row in conn.execute("PRAGMA table_info(supplements)").fetchall()}
@@ -118,7 +119,7 @@ def test_migration_0004_fuegt_neue_spalten_ein(conn):
     assert "note" in review_cols
 
 
-def test_migration_0005_fuegt_device_event_id_ein(conn):
+def test_migration_0005_fuegt_device_event_id_ein(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     tb_cols = {row[1] for row in conn.execute("PRAGMA table_info(time_bookings)").fetchall()}
@@ -130,7 +131,7 @@ def test_migration_0005_fuegt_device_event_id_ein(conn):
     assert "device_events" in fk_targets
 
 
-def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(conn):
+def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     fk_targets = {
@@ -166,7 +167,7 @@ _MIGRATIONS_UP_TO_0004 = [
 ]
 
 
-def test_migration_0005_datensatz_bleibt_erhalten(conn, tmp_path):
+def test_migration_0005_datensatz_bleibt_erhalten(conn: sqlite3.Connection, tmp_path: Path) -> None:
     partial_dir = tmp_path / "partial"
     partial_dir.mkdir()
     for fname in _MIGRATIONS_UP_TO_0004:
@@ -200,7 +201,7 @@ def test_migration_0005_datensatz_bleibt_erhalten(conn, tmp_path):
     assert row["device_event_id"] is None
 
 
-def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(conn, tmp_path):
+def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(conn: sqlite3.Connection, tmp_path: Path) -> None:
     partial_dir = tmp_path / "partial"
     partial_dir.mkdir()
     shutil.copy(_MIGRATIONS_ROOT / "0001_schema.sql", partial_dir / "0001_schema.sql")
@@ -218,7 +219,7 @@ def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag
     assert "0002" not in versions
 
 
-def test_migration_0006_application_error_event_type_verfuegbar(conn):
+def test_migration_0006_application_error_event_type_verfuegbar(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
 
     conn.execute(
@@ -230,7 +231,7 @@ def test_migration_0006_application_error_event_type_verfuegbar(conn):
     assert row["event_type"] == "APPLICATION_ERROR"
 
 
-def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn):
+def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn: sqlite3.Connection) -> None:
     run_migrations(conn)
     run_migrations(conn)
 

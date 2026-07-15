@@ -34,7 +34,7 @@ def _insert_employee(conn: "sqlite3.Connection") -> int:
         "(personnel_no, first_name, last_name, active, created_at, updated_at) "
         "VALUES ('E001', 'Max', 'Muster', 1, '2026-01-01', '2026-01-01') RETURNING id"
     ).fetchone()
-    return row["id"]
+    return int(row["id"])
 
 
 def _insert_user(db: Path, role: str) -> int:
@@ -47,7 +47,7 @@ def _insert_user(db: Path, role: str) -> int:
         (role.lower(), role),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +80,7 @@ def test_parse_time_nur_stunden_exitiert_1() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_schedule_show_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_schedule_show_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -103,7 +103,7 @@ def test_schedule_show_reviewer_zugelassen(tmp_path: Path) -> None:
         conn.close()
 
 
-def test_schedule_show_globale_version(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_schedule_show_globale_version(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -124,7 +124,7 @@ def test_schedule_show_globale_version(tmp_path: Path, capsys: pytest.CaptureFix
     assert "Mo" in out
 
 
-def test_schedule_show_mitarbeiterspezifisch(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_schedule_show_mitarbeiterspezifisch(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -147,7 +147,7 @@ def test_schedule_show_mitarbeiterspezifisch(tmp_path: Path, capsys: pytest.Capt
 
 
 def test_schedule_show_nur_global_zeigt_hinweis(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -169,7 +169,7 @@ def test_schedule_show_nur_global_zeigt_hinweis(
 
 
 def test_schedule_show_nur_mitarbeiter_zeigt_hinweis(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -219,7 +219,7 @@ def test_schedule_set_ungueltige_datum_exitiert_1(tmp_path: Path) -> None:
 
 
 def test_schedule_set_global_erfolg(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")

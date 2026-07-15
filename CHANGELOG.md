@@ -5,6 +5,29 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Bereinigung: alle mypy-Fehler in tests/ behoben] – 2026-07-15
+
+### Geändert
+
+- `tests/application/fakes.py`: alle `dataclasses.replace(..., id=self._next_id)` auf
+  `XxxId(self._next_id)` umgestellt; `FakeDeviceEventRepository.add` auf
+  `TerminalId | None` / `-> DeviceEventId` angepasst; `_check_protocol_compliance`
+  nutzt eindeutige Variablennamen statt `_`; `list[dict]` → `list[dict[str, Any]]`.
+
+- Alle 36 Testdateien in `tests/`: fehlende `-> None`-Rückgabetypen ergänzt,
+  `CaptureFixture` → `CaptureFixture[str]`, `row["id"]` → `int(row["id"])`,
+  rohe `int`-Literal-IDs mit Domain-ID-Konstruktoren gewrappt (`EmployeeId(x)` etc.),
+  `FakeUnitOfWork`-Übergaben an Use-Cases via `cast(UnitOfWork, uow)` typsicher gemacht,
+  Fixture-Signaturen vollständig annotiert, `None`-Guards für optionale DB-Abfragen ergänzt.
+
+- `tests/integration/test_export.py`: Import von `BookingRow` etc. von
+  `report_queries` (kein Re-Export) auf `arbeitszeit.application.queries` korrigiert.
+
+**Ergebnis:** `python -m mypy src/ tests/ --ignore-missing-imports` meldet
+0 Fehler in 130 Quelldateien. 723/723 Tests bestehen.
+
+---
+
 ## [Migration Schritt 2: zentrales config.toml-Test-Fixture] – 2026-07-15
 
 ### Hinzugefügt

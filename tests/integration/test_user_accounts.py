@@ -3,6 +3,7 @@
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -31,17 +32,17 @@ def _seed_admin(db: Path) -> int:
         "RETURNING id"
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _count_user_accounts(db: Path) -> int:
     conn = open_connection(db)
     n = conn.execute("SELECT COUNT(*) FROM user_accounts").fetchone()[0]
     conn.close()
-    return n
+    return int(n)
 
 
-def _get_user(db: Path, username: str) -> dict | None:
+def _get_user(db: Path, username: str) -> dict[str, Any] | None:
     conn = open_connection(db)
     row = conn.execute(
         "SELECT id, username, role, active FROM user_accounts WHERE username = ?",
@@ -54,7 +55,7 @@ def _get_user(db: Path, username: str) -> dict | None:
 # --- users add ---
 
 
-def test_users_add_admin_legt_konto_an(tmp_path):
+def test_users_add_admin_legt_konto_an(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -79,7 +80,7 @@ def test_users_add_admin_legt_konto_an(tmp_path):
     assert user["active"] == 1
 
 
-def test_users_add_reviewer(tmp_path):
+def test_users_add_reviewer(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -103,7 +104,7 @@ def test_users_add_reviewer(tmp_path):
     assert user["role"] == "REVIEWER"
 
 
-def test_users_add_tech(tmp_path):
+def test_users_add_tech(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -122,10 +123,12 @@ def test_users_add_tech(tmp_path):
             "geheim",
         ]
     )
-    assert _get_user(db, "tech1")["role"] == "TECH"
+    user = _get_user(db, "tech1")
+    assert user is not None
+    assert user["role"] == "TECH"
 
 
-def test_users_add_passwort_wird_gehasht(tmp_path):
+def test_users_add_passwort_wird_gehasht(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -153,7 +156,7 @@ def test_users_add_passwort_wird_gehasht(tmp_path):
     assert ":" in row["password_hash"]  # salt:hash Format
 
 
-def test_users_add_doppelter_username_schlaegt_fehl(tmp_path):
+def test_users_add_doppelter_username_schlaegt_fehl(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -191,7 +194,7 @@ def test_users_add_doppelter_username_schlaegt_fehl(tmp_path):
         )
 
 
-def test_users_add_employee_rolle_nicht_erlaubt(tmp_path):
+def test_users_add_employee_rolle_nicht_erlaubt(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     with pytest.raises(SystemExit):
@@ -213,7 +216,7 @@ def test_users_add_employee_rolle_nicht_erlaubt(tmp_path):
         )
 
 
-def test_users_add_erstellt_audit_log_eintrag(tmp_path):
+def test_users_add_erstellt_audit_log_eintrag(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -244,7 +247,7 @@ def test_users_add_erstellt_audit_log_eintrag(tmp_path):
     assert details["role"] == "ADMIN"
 
 
-def test_users_add_nicht_admin_wird_abgewiesen(tmp_path):
+def test_users_add_nicht_admin_wird_abgewiesen(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     # Reviewer anlegen
@@ -265,6 +268,7 @@ def test_users_add_nicht_admin_wird_abgewiesen(tmp_path):
         ]
     )
     reviewer = _get_user(db, "reviewer1")
+    assert reviewer is not None
     with pytest.raises(SystemExit):
         cli_run(
             [
@@ -287,7 +291,7 @@ def test_users_add_nicht_admin_wird_abgewiesen(tmp_path):
 # --- users deactivate ---
 
 
-def test_users_deactivate_setzt_active_auf_0(tmp_path):
+def test_users_deactivate_setzt_active_auf_0(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -307,6 +311,7 @@ def test_users_deactivate_setzt_active_auf_0(tmp_path):
         ]
     )
     user = _get_user(db, "zum_deaktivieren")
+    assert user is not None
     cli_run(
         [
             "--db",
@@ -319,10 +324,12 @@ def test_users_deactivate_setzt_active_auf_0(tmp_path):
             str(user["id"]),
         ]
     )
-    assert _get_user(db, "zum_deaktivieren")["active"] == 0
+    result = _get_user(db, "zum_deaktivieren")
+    assert result is not None
+    assert result["active"] == 0
 
 
-def test_users_deactivate_erstellt_audit_log_eintrag(tmp_path):
+def test_users_deactivate_erstellt_audit_log_eintrag(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -342,6 +349,7 @@ def test_users_deactivate_erstellt_audit_log_eintrag(tmp_path):
         ]
     )
     user = _get_user(db, "deact_audit")
+    assert user is not None
     cli_run(
         [
             "--db",
@@ -365,7 +373,7 @@ def test_users_deactivate_erstellt_audit_log_eintrag(tmp_path):
 # --- users reactivate ---
 
 
-def test_users_reactivate_setzt_active_auf_1(tmp_path):
+def test_users_reactivate_setzt_active_auf_1(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -385,6 +393,7 @@ def test_users_reactivate_setzt_active_auf_1(tmp_path):
         ]
     )
     user = _get_user(db, "reaktiv_test")
+    assert user is not None
     cli_run(
         [
             "--db",
@@ -397,7 +406,9 @@ def test_users_reactivate_setzt_active_auf_1(tmp_path):
             str(user["id"]),
         ]
     )
-    assert _get_user(db, "reaktiv_test")["active"] == 0
+    deactivated = _get_user(db, "reaktiv_test")
+    assert deactivated is not None
+    assert deactivated["active"] == 0
 
     cli_run(
         [
@@ -411,10 +422,12 @@ def test_users_reactivate_setzt_active_auf_1(tmp_path):
             str(user["id"]),
         ]
     )
-    assert _get_user(db, "reaktiv_test")["active"] == 1
+    reactivated = _get_user(db, "reaktiv_test")
+    assert reactivated is not None
+    assert reactivated["active"] == 1
 
 
-def test_users_reactivate_bereits_aktiv_kein_fehler(tmp_path):
+def test_users_reactivate_bereits_aktiv_kein_fehler(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -434,6 +447,7 @@ def test_users_reactivate_bereits_aktiv_kein_fehler(tmp_path):
         ]
     )
     user = _get_user(db, "schon_aktiv")
+    assert user is not None
     cli_run(
         [
             "--db",
@@ -446,10 +460,12 @@ def test_users_reactivate_bereits_aktiv_kein_fehler(tmp_path):
             str(user["id"]),
         ]
     )  # bereits aktiv → kein Fehler
-    assert _get_user(db, "schon_aktiv")["active"] == 1
+    result = _get_user(db, "schon_aktiv")
+    assert result is not None
+    assert result["active"] == 1
 
 
-def test_users_reactivate_erstellt_audit_log_eintrag(tmp_path):
+def test_users_reactivate_erstellt_audit_log_eintrag(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -469,6 +485,7 @@ def test_users_reactivate_erstellt_audit_log_eintrag(tmp_path):
         ]
     )
     user = _get_user(db, "audit_react")
+    assert user is not None
     cli_run(
         [
             "--db",
@@ -504,7 +521,7 @@ def test_users_reactivate_erstellt_audit_log_eintrag(tmp_path):
 # --- users change-role ---
 
 
-def test_users_change_role_aendert_rolle(tmp_path):
+def test_users_change_role_aendert_rolle(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -524,6 +541,7 @@ def test_users_change_role_aendert_rolle(tmp_path):
         ]
     )
     user = _get_user(db, "rolle_test")
+    assert user is not None
     assert user["role"] == "REVIEWER"
 
     cli_run(
@@ -540,10 +558,12 @@ def test_users_change_role_aendert_rolle(tmp_path):
             "TECH",
         ]
     )
-    assert _get_user(db, "rolle_test")["role"] == "TECH"
+    updated = _get_user(db, "rolle_test")
+    assert updated is not None
+    assert updated["role"] == "TECH"
 
 
-def test_users_change_role_ungueltige_rolle_schlaegt_fehl(tmp_path):
+def test_users_change_role_ungueltige_rolle_schlaegt_fehl(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     with pytest.raises(SystemExit):
@@ -563,7 +583,7 @@ def test_users_change_role_ungueltige_rolle_schlaegt_fehl(tmp_path):
         )
 
 
-def test_users_change_role_erstellt_audit_log_eintrag(tmp_path):
+def test_users_change_role_erstellt_audit_log_eintrag(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     cli_run(
@@ -583,6 +603,7 @@ def test_users_change_role_erstellt_audit_log_eintrag(tmp_path):
         ]
     )
     user = _get_user(db, "audit_role")
+    assert user is not None
     cli_run(
         [
             "--db",
@@ -612,7 +633,7 @@ def test_users_change_role_erstellt_audit_log_eintrag(tmp_path):
 # --- users bootstrap ---
 
 
-def test_users_bootstrap_legt_ersten_admin_an(tmp_path):
+def test_users_bootstrap_legt_ersten_admin_an(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     cli_run(
         [
@@ -632,7 +653,7 @@ def test_users_bootstrap_legt_ersten_admin_an(tmp_path):
     assert user["active"] == 1
 
 
-def test_users_bootstrap_schlaegt_fehl_wenn_admin_existiert(tmp_path):
+def test_users_bootstrap_schlaegt_fehl_wenn_admin_existiert(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     _seed_admin(db)
     with pytest.raises(SystemExit):

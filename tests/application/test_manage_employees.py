@@ -1,11 +1,13 @@
 import sys
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.application.commands import CreateEmployeeCommand, DeactivateEmployeeCommand
+from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases.manage_employees import (
     CreateEmployeeUseCase,
     DeactivateEmployeeUseCase,
@@ -15,6 +17,10 @@ from arbeitszeit.domain.errors import ConflictError, NotFoundError, PermissionDe
 from arbeitszeit.domain.value_objects import EmployeeId, UserAccountId
 
 from .fakes import FakeUnitOfWork
+
+
+def _as_uow(uow: FakeUnitOfWork) -> UnitOfWork:
+    return cast(UnitOfWork, uow)
 
 
 def _make_admin(uow: FakeUnitOfWork, username: str = "admin") -> int:
@@ -50,7 +56,7 @@ def _make_employee(uow: FakeUnitOfWork, personnel_no: str = "M001") -> int:
 # --- CreateEmployeeUseCase ---
 
 class TestCreateEmployee:
-    def test_happy_path_legt_mitarbeiter_an(self):
+    def test_happy_path_legt_mitarbeiter_an(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         cmd = CreateEmployeeCommand(
@@ -59,7 +65,7 @@ class TestCreateEmployee:
             first_name="Lisa",
             last_name="Muster",
         )
-        result = CreateEmployeeUseCase(uow).execute(cmd)
+        result = CreateEmployeeUseCase(_as_uow(uow)).execute(cmd)
         assert result.employee_id > 0
         saved = uow.employee_repo.get_by_id(result.employee_id)
         assert saved is not None
@@ -67,10 +73,10 @@ class TestCreateEmployee:
         assert saved.is_active is True
         assert uow.committed is True
 
-    def test_audit_log_wird_geschrieben(self):
+    def test_audit_log_wird_geschrieben(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
-        CreateEmployeeUseCase(uow).execute(
+        CreateEmployeeUseCase(_as_uow(uow)).execute(
             CreateEmployeeCommand(
                 acting_user_id=UserAccountId(admin_id),
                 personnel_no="M002",
@@ -82,7 +88,7 @@ class TestCreateEmployee:
         entry = uow.audit_log_repo.entries[0]
         assert entry.event_type == "EMPLOYEE_CREATED"
 
-    def test_wirft_permission_denied_fuer_nicht_admin(self):
+    def test_wirft_permission_denied_fuer_nicht_admin(self) -> None:
         uow = FakeUnitOfWork()
         from arbeitszeit.domain.entities import UserAccount
         reviewer = uow.user_account_repo.add(
@@ -95,7 +101,7 @@ class TestCreateEmployee:
             )
         )
         with pytest.raises(PermissionDeniedError):
-            CreateEmployeeUseCase(uow).execute(
+            CreateEmployeeUseCase(_as_uow(uow)).execute(
                 CreateEmployeeCommand(
                     acting_user_id=UserAccountId(reviewer.id),
                     personnel_no="M003",
@@ -105,12 +111,12 @@ class TestCreateEmployee:
             )
         assert uow.committed is False
 
-    def test_wirft_conflict_bei_doppelter_personalnummer(self):
+    def test_wirft_conflict_bei_doppelter_personalnummer(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         _make_employee(uow, "M001")
         with pytest.raises(ConflictError):
-            CreateEmployeeUseCase(uow).execute(
+            CreateEmployeeUseCase(_as_uow(uow)).execute(
                 CreateEmployeeCommand(
                     acting_user_id=UserAccountId(admin_id),
                     personnel_no="M001",
@@ -124,11 +130,11 @@ class TestCreateEmployee:
 # --- DeactivateEmployeeUseCase ---
 
 class TestDeactivateEmployee:
-    def test_happy_path_deaktiviert_mitarbeiter(self):
+    def test_happy_path_deaktiviert_mitarbeiter(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         emp_id = _make_employee(uow)
-        DeactivateEmployeeUseCase(uow).execute(
+        DeactivateEmployeeUseCase(_as_uow(uow)).execute(
             DeactivateEmployeeCommand(
                 acting_user_id=UserAccountId(admin_id),
                 employee_id=EmployeeId(emp_id),
@@ -139,11 +145,11 @@ class TestDeactivateEmployee:
         assert saved.is_active is False
         assert uow.committed is True
 
-    def test_audit_log_wird_geschrieben(self):
+    def test_audit_log_wird_geschrieben(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         emp_id = _make_employee(uow)
-        DeactivateEmployeeUseCase(uow).execute(
+        DeactivateEmployeeUseCase(_as_uow(uow)).execute(
             DeactivateEmployeeCommand(
                 acting_user_id=UserAccountId(admin_id),
                 employee_id=EmployeeId(emp_id),
@@ -152,7 +158,7 @@ class TestDeactivateEmployee:
         assert len(uow.audit_log_repo.entries) == 1
         assert uow.audit_log_repo.entries[0].event_type == "EMPLOYEE_DEACTIVATED"
 
-    def test_wirft_permission_denied_fuer_nicht_admin(self):
+    def test_wirft_permission_denied_fuer_nicht_admin(self) -> None:
         uow = FakeUnitOfWork()
         emp_id = _make_employee(uow)
         from arbeitszeit.domain.entities import UserAccount
@@ -166,18 +172,18 @@ class TestDeactivateEmployee:
             )
         )
         with pytest.raises(PermissionDeniedError):
-            DeactivateEmployeeUseCase(uow).execute(
+            DeactivateEmployeeUseCase(_as_uow(uow)).execute(
                 DeactivateEmployeeCommand(
                     acting_user_id=UserAccountId(tech.id),
                     employee_id=EmployeeId(emp_id),
                 )
             )
 
-    def test_wirft_not_found_fuer_unbekannten_mitarbeiter(self):
+    def test_wirft_not_found_fuer_unbekannten_mitarbeiter(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         with pytest.raises(NotFoundError):
-            DeactivateEmployeeUseCase(uow).execute(
+            DeactivateEmployeeUseCase(_as_uow(uow)).execute(
                 DeactivateEmployeeCommand(
                     acting_user_id=UserAccountId(admin_id),
                     employee_id=EmployeeId(9999),

@@ -30,7 +30,7 @@ _EXPECTED = {
 }
 
 
-def test_alle_event_type_werte_sind_eindeutig():
+def test_alle_event_type_werte_sind_eindeutig() -> None:
     all_values = [
         v for k, v in vars(audit_events).items() if not k.startswith("_") and isinstance(v, str)
     ]
@@ -39,7 +39,7 @@ def test_alle_event_type_werte_sind_eindeutig():
     )
 
 
-def test_katalog_enthaelt_genau_die_erwarteten_namen():
+def test_katalog_enthaelt_genau_die_erwarteten_namen() -> None:
     actual = {
         v for k, v in vars(audit_events).items() if not k.startswith("_") and isinstance(v, str)
     }

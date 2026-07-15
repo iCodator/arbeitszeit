@@ -2,11 +2,13 @@ import json
 import sys
 from datetime import date, time
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.application.commands import ChangeWorkScheduleCommand
+from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases.manage_work_schedule import (
     ManageWorkScheduleUseCase,
 )
@@ -18,16 +20,21 @@ from arbeitszeit.domain.errors import (
     PermissionDeniedError,
     ValidationError,
 )
+from arbeitszeit.domain.value_objects import UserAccountId
 from tests.application.fakes import FakeUnitOfWork
 
 _ADMIN_ID = 1  # id des ADMIN-UserAccounts (erstes Element im Fake-Store)
+
+
+def _as_uow(uow: FakeUnitOfWork) -> UnitOfWork:
+    return cast(UnitOfWork, uow)
 
 
 def _make_uow() -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
     uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="admin",
             role=UserRole.ADMIN,
@@ -37,7 +44,7 @@ def _make_uow() -> FakeUnitOfWork:
     return uow
 
 
-def _cmd(**overrides) -> ChangeWorkScheduleCommand:
+def _cmd(**overrides: Any) -> ChangeWorkScheduleCommand:
     defaults = dict(
         scope_type=ScopeType.GLOBAL,
         scope_employee_id=None,
@@ -55,9 +62,9 @@ def _cmd(**overrides) -> ChangeWorkScheduleCommand:
 # --- Basis-Anlage ---
 
 
-def test_neue_version_wird_angelegt():
+def test_neue_version_wird_angelegt() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd())
 
@@ -65,9 +72,9 @@ def test_neue_version_wird_angelegt():
     assert uow.committed
 
 
-def test_erste_version_hat_kein_superseded():
+def test_erste_version_hat_kein_superseded() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd())
 
@@ -77,9 +84,9 @@ def test_erste_version_hat_kein_superseded():
 # --- Bestehende Version wird geschlossen ---
 
 
-def test_bestehende_version_wird_geschlossen():
+def test_bestehende_version_wird_geschlossen() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     first = uc.execute(_cmd(valid_from=date(2025, 1, 1)))
     uow.committed = False
@@ -96,18 +103,18 @@ def test_bestehende_version_wird_geschlossen():
 # --- ConflictError ---
 
 
-def test_gleiche_valid_from_loest_conflict_error():
+def test_gleiche_valid_from_loest_conflict_error() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(valid_from=date(2025, 1, 1)))
 
     with pytest.raises(ConflictError):
         uc.execute(_cmd(valid_from=date(2025, 1, 1), start_time=time(8, 0)))
 
 
-def test_identische_version_loest_conflict_error():
+def test_identische_version_loest_conflict_error() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(valid_from=date(2025, 1, 1)))
 
     with pytest.raises(ConflictError):
@@ -117,18 +124,18 @@ def test_identische_version_loest_conflict_error():
 # --- ValidationError ---
 
 
-def test_rueckwaerts_insertion_loest_validation_error():
+def test_rueckwaerts_insertion_loest_validation_error() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(valid_from=date(2025, 6, 1)))
 
     with pytest.raises(ValidationError):
         uc.execute(_cmd(valid_from=date(2025, 1, 1)))
 
 
-def test_rueckwaerts_insertion_anderer_wochentag_erlaubt():
+def test_rueckwaerts_insertion_anderer_wochentag_erlaubt() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(weekday=1, valid_from=date(2025, 6, 1)))
 
     result = uc.execute(_cmd(weekday=2, valid_from=date(2025, 1, 1)))
@@ -139,9 +146,9 @@ def test_rueckwaerts_insertion_anderer_wochentag_erlaubt():
 # --- Audit-Log ---
 
 
-def test_audit_log_eintrag_vorhanden():
+def test_audit_log_eintrag_vorhanden() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     uc.execute(_cmd())
 
@@ -151,9 +158,9 @@ def test_audit_log_eintrag_vorhanden():
     assert entry.object_type == "work_schedule_versions"
 
 
-def test_audit_log_enthaelt_fachliche_felder():
+def test_audit_log_enthaelt_fachliche_felder() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     first = uc.execute(_cmd(valid_from=date(2025, 1, 1)))
     uow.committed = False
@@ -171,9 +178,9 @@ def test_audit_log_enthaelt_fachliche_felder():
     assert details["previous_end_time"] == "16:00"
 
 
-def test_audit_log_erste_version_hat_keine_previous_felder():
+def test_audit_log_erste_version_hat_keine_previous_felder() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     uc.execute(_cmd(valid_from=date(2025, 1, 1)))
 
@@ -186,9 +193,9 @@ def test_audit_log_erste_version_hat_keine_previous_felder():
 # --- Transaktionsverhalten ---
 
 
-def test_rollback_bei_validation_error():
+def test_rollback_bei_validation_error() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(valid_from=date(2025, 6, 1)))
     uow.committed = False
     uow.rolled_back = False
@@ -203,9 +210,9 @@ def test_rollback_bei_validation_error():
 # --- Scope-Trennung ---
 
 
-def test_employee_scope_unabhaengig_von_global():
+def test_employee_scope_unabhaengig_von_global() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(
         _cmd(
             scope_type=ScopeType.GLOBAL,
@@ -226,12 +233,12 @@ def test_employee_scope_unabhaengig_von_global():
     assert result.superseded_version_id is None
 
 
-def test_spaetere_employee_version_blockiert_nicht_global_scope():
+def test_spaetere_employee_version_blockiert_nicht_global_scope() -> None:
     # EMPLOYEE-Scope für MA 42 hat valid_from=2025-06-01.
     # Danach: GLOBAL-Scope mit valid_from=2025-01-01 darf kein ValidationError auslösen.
     # Scope-Prüfung muss streng scope-lokal sein, keine globale Sperre über alle Scopes.
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(
         _cmd(
             scope_type=ScopeType.EMPLOYEE,
@@ -252,9 +259,9 @@ def test_spaetere_employee_version_blockiert_nicht_global_scope():
     assert result.superseded_version_id is None
 
 
-def test_employee_scopes_verschiedener_mitarbeiter_sind_unabhaengig():
+def test_employee_scopes_verschiedener_mitarbeiter_sind_unabhaengig() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(
         _cmd(
             scope_type=ScopeType.EMPLOYEE,
@@ -278,9 +285,9 @@ def test_employee_scopes_verschiedener_mitarbeiter_sind_unabhaengig():
 # --- Kein Audit-Log bei Fehler ---
 
 
-def test_kein_audit_log_bei_conflict_error():
+def test_kein_audit_log_bei_conflict_error() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(valid_from=date(2025, 1, 1)))
     log_count_before = len(uow.audit_log_repo.entries)
 
@@ -290,9 +297,9 @@ def test_kein_audit_log_bei_conflict_error():
     assert len(uow.audit_log_repo.entries) == log_count_before
 
 
-def test_kein_audit_log_bei_validation_error():
+def test_kein_audit_log_bei_validation_error() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
     uc.execute(_cmd(valid_from=date(2025, 6, 1)))
     log_count_before = len(uow.audit_log_repo.entries)
 
@@ -305,51 +312,51 @@ def test_kein_audit_log_bei_validation_error():
 # --- Rollenprüfung ---
 
 
-def test_changed_by_user_id_none_loest_permission_denied():
+def test_changed_by_user_id_none_loest_permission_denied() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(changed_by_user_id=None))
 
 
-def test_unbekannter_benutzer_loest_permission_denied():
+def test_unbekannter_benutzer_loest_permission_denied() -> None:
     uow = _make_uow()
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(changed_by_user_id=999))
 
 
-def test_benutzer_ohne_admin_rolle_loest_permission_denied():
+def test_benutzer_ohne_admin_rolle_loest_permission_denied() -> None:
     uow = _make_uow()
     reviewer = uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="reviewer",
             role=UserRole.REVIEWER,
             is_active=True,
         )
     )
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(changed_by_user_id=reviewer.id))
 
 
-def test_inaktiver_admin_loest_permission_denied():
+def test_inaktiver_admin_loest_permission_denied() -> None:
     uow = _make_uow()
     inactive = uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="inactive_admin",
             role=UserRole.ADMIN,
             is_active=False,
         )
     )
-    uc = ManageWorkScheduleUseCase(uow)
+    uc = ManageWorkScheduleUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(changed_by_user_id=inactive.id))

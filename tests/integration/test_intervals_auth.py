@@ -38,7 +38,7 @@ def _insert_user(db: Path, role: str) -> int:
         (role.lower(), role),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 # ---------------------------------------------------------------------------

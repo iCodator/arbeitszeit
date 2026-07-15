@@ -40,7 +40,7 @@ def _insert_user(db: Path, role: str) -> int:
         (role.lower(), role),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _seed_employee(db: Path, admin_id: int) -> int:
@@ -56,7 +56,7 @@ def _seed_employee(db: Path, admin_id: int) -> int:
     conn = open_connection(db)
     row = conn.execute("SELECT id FROM employees WHERE personnel_no = 'E001'").fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _insert_booking(db: Path, employee_id: int) -> int:
@@ -71,7 +71,7 @@ def _insert_booking(db: Path, employee_id: int) -> int:
         (employee_id,),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _insert_supplement(db: Path, employee_id: int, admin_id: int) -> int:
@@ -88,7 +88,7 @@ def _insert_supplement(db: Path, employee_id: int, admin_id: int) -> int:
     row = conn.execute("SELECT id FROM supplements ORDER BY id DESC LIMIT 1").fetchone()
     conn.close()
     audit_conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 # ---------------------------------------------------------------------------
@@ -167,7 +167,7 @@ def test_bookings_correct_ungueltige_buchungsart_exitiert_1(tmp_path: Path) -> N
         audit_conn.close()
 
 
-def test_bookings_correct_erfolg(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_bookings_correct_erfolg(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     employee_id = _seed_employee(db, admin_id)
@@ -211,7 +211,7 @@ def test_bookings_supplement_mitarbeiter_nicht_gefunden_exitiert_1(tmp_path: Pat
         audit_conn.close()
 
 
-def test_bookings_supplement_erfolg(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_bookings_supplement_erfolg(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     employee_id = _seed_employee(db, admin_id)
@@ -254,7 +254,7 @@ def test_bookings_approve_supplement_nicht_gefunden_exitiert_1(tmp_path: Path) -
 
 
 def test_bookings_approve_supplement_erfolg(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -294,7 +294,7 @@ def test_bookings_reject_supplement_nicht_gefunden_exitiert_1(tmp_path: Path) ->
 
 
 def test_bookings_reject_supplement_erfolg(
-    tmp_path: Path, capsys: pytest.CaptureFixture
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")

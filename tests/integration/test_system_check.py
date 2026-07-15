@@ -41,7 +41,7 @@ def _make_db(tmp_path: Path) -> Path:
     return db
 
 
-def _system_events(db: Path) -> list[dict]:
+def _system_events(db: Path) -> list[dict[str, object]]:
     conn = open_connection(db)
     rows = conn.execute(
         "SELECT event_type, severity, source, details_json FROM system_events ORDER BY id"
@@ -61,20 +61,20 @@ def _system_events(db: Path) -> list[dict]:
 # --- Grundlegende Rückgabe ---
 
 
-def test_selftest_gibt_system_check_result_zurueck(tmp_path):
+def test_selftest_gibt_system_check_result_zurueck(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     result = run_system_check(db)
     assert isinstance(result, SystemCheckResult)
 
 
-def test_selftest_ok_bei_korrekt_migrierter_db(tmp_path):
+def test_selftest_ok_bei_korrekt_migrierter_db(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         result = run_system_check(db)
     assert result.overall_ok
 
 
-def test_selftest_protokolliert_selftest_ok_in_system_events(tmp_path):
+def test_selftest_protokolliert_selftest_ok_in_system_events(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         run_system_check(db)
@@ -82,7 +82,7 @@ def test_selftest_protokolliert_selftest_ok_in_system_events(tmp_path):
     assert any(e["event_type"] == "SELFTEST_OK" for e in events)
 
 
-def test_selftest_ok_event_hat_source_system_check(tmp_path):
+def test_selftest_ok_event_hat_source_system_check(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         run_system_check(db)
@@ -91,7 +91,7 @@ def test_selftest_ok_event_hat_source_system_check(tmp_path):
     assert ok_event["source"] == "system_check"
 
 
-def test_selftest_ok_event_hat_severity_info(tmp_path):
+def test_selftest_ok_event_hat_severity_info(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         run_system_check(db)
@@ -100,7 +100,7 @@ def test_selftest_ok_event_hat_severity_info(tmp_path):
     assert ok_event["severity"] == "INFO"
 
 
-def test_selftest_details_enthalten_alle_pruefbereiche(tmp_path):
+def test_selftest_details_enthalten_alle_pruefbereiche(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     result = run_system_check(db)
     names = {c.name for c in result.checks}
@@ -115,14 +115,14 @@ def test_selftest_details_enthalten_alle_pruefbereiche(tmp_path):
 # --- DB-Zugriff ---
 
 
-def test_selftest_fail_bei_nicht_existierender_db(tmp_path):
+def test_selftest_fail_bei_nicht_existierender_db(tmp_path: Path) -> None:
     result = run_system_check(tmp_path / "ghost.db")
     assert not result.overall_ok
     db_check = next(c for c in result.checks if c.name == "db_access")
     assert not db_check.ok
 
 
-def test_selftest_fail_bei_fehlender_migration(tmp_path):
+def test_selftest_fail_bei_fehlender_migration(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     conn = open_connection(db)
     conn.execute("DELETE FROM schema_migrations WHERE version = '0005'")
@@ -137,7 +137,7 @@ def test_selftest_fail_bei_fehlender_migration(tmp_path):
 # --- Konfigurationsprüfung ---
 
 
-def test_selftest_fail_bei_fehlendem_config_key(tmp_path):
+def test_selftest_fail_bei_fehlendem_config_key(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     conn = open_connection(db)
     conn.execute("DELETE FROM system_config WHERE config_key = 'app.timezone'")
@@ -149,7 +149,7 @@ def test_selftest_fail_bei_fehlendem_config_key(tmp_path):
     assert "app.timezone" in cfg_check.detail
 
 
-def test_selftest_fail_protokolliert_selftest_fail_event(tmp_path):
+def test_selftest_fail_protokolliert_selftest_fail_event(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     conn = open_connection(db)
     conn.execute("DELETE FROM system_config WHERE config_key = 'app.timezone'")
@@ -159,7 +159,7 @@ def test_selftest_fail_protokolliert_selftest_fail_event(tmp_path):
     assert any(e["event_type"] == "SELFTEST_FAIL" for e in events)
 
 
-def test_selftest_fail_event_hat_severity_warn(tmp_path):
+def test_selftest_fail_event_hat_severity_warn(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     conn = open_connection(db)
     conn.execute("DELETE FROM system_config WHERE config_key = 'app.timezone'")
@@ -173,7 +173,7 @@ def test_selftest_fail_event_hat_severity_warn(tmp_path):
 # --- FK-Konsistenz ---
 
 
-def test_selftest_fail_bei_fk_verletzung(tmp_path):
+def test_selftest_fail_bei_fk_verletzung(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     conn = open_connection(db)
     # FK-Prüfung deaktivieren, um eine verwaiste Referenz einzufügen
@@ -194,14 +194,14 @@ def test_selftest_fail_bei_fk_verletzung(tmp_path):
 # --- NAS-Prüfung ---
 
 
-def test_nas_check_uebersprungen_wenn_deaktiviert(tmp_path):
+def test_nas_check_uebersprungen_wenn_deaktiviert(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     result = run_system_check(db)
     nas_check = next(c for c in result.checks if c.name == "nas_reachability")
     assert nas_check.ok
 
 
-def test_nas_check_schlaegt_fehl_bei_nicht_existierendem_pfad(tmp_path):
+def test_nas_check_schlaegt_fehl_bei_nicht_existierendem_pfad(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     conn = open_connection(db)
     next_v = conn.execute(
@@ -233,7 +233,7 @@ def test_nas_check_schlaegt_fehl_bei_nicht_existierendem_pfad(tmp_path):
 # --- Geräteverfügbarkeit ---
 
 
-def test_geraete_check_uebersprungen_ohne_pfade(tmp_path):
+def test_geraete_check_uebersprungen_ohne_pfade(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     result = run_system_check(db)
     dev_check = next(c for c in result.checks if c.name == "device_availability")
@@ -241,7 +241,7 @@ def test_geraete_check_uebersprungen_ohne_pfade(tmp_path):
     assert "übersprungen" in dev_check.detail
 
 
-def test_geraete_check_schlaegt_fehl_bei_nicht_existierendem_numpad(tmp_path):
+def test_geraete_check_schlaegt_fehl_bei_nicht_existierendem_numpad(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     result = run_system_check(db, numpad_path=tmp_path / "dev_numpad_ghost")
     dev_check = next(c for c in result.checks if c.name == "device_availability")
@@ -249,7 +249,7 @@ def test_geraete_check_schlaegt_fehl_bei_nicht_existierendem_numpad(tmp_path):
     assert "Numpad" in dev_check.detail
 
 
-def test_geraete_check_ok_bei_existierender_geraetedatei(tmp_path):
+def test_geraete_check_ok_bei_existierender_geraetedatei(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     fake_dev = tmp_path / "fake_numpad"
     fake_dev.write_bytes(b"")
@@ -267,33 +267,33 @@ def test_geraete_check_ok_bei_existierender_geraetedatei(tmp_path):
 _RUN = "arbeitszeit.infrastructure.system_check.subprocess.run"
 
 
-def _fake_timedatectl(ntp: str, synced: str):
+def _fake_timedatectl(ntp: str, synced: str) -> SimpleNamespace:
     stdout = f"NTP={ntp}\nNTPSynchronized={synced}\n"
     return SimpleNamespace(stdout=stdout, stderr="", returncode=0)
 
 
-def test_ntp_ok_bei_aktiv_und_synchronisiert():
+def test_ntp_ok_bei_aktiv_und_synchronisiert() -> None:
     with patch(_RUN, return_value=_fake_timedatectl("yes", "yes")):
         result = _check_ntp()
     assert result.ok
     assert result.name == "ntp_sync"
 
 
-def test_ntp_fail_bei_nicht_aktiv():
+def test_ntp_fail_bei_nicht_aktiv() -> None:
     with patch(_RUN, return_value=_fake_timedatectl("no", "no")):
         result = _check_ntp()
     assert not result.ok
     assert "NTP" in result.detail
 
 
-def test_ntp_fail_bei_aktiv_aber_nicht_synchronisiert():
+def test_ntp_fail_bei_aktiv_aber_nicht_synchronisiert() -> None:
     with patch(_RUN, return_value=_fake_timedatectl("yes", "no")):
         result = _check_ntp()
     assert not result.ok
     assert "synchronisiert" in result.detail.lower()
 
 
-def test_ntp_fail_wenn_timedatectl_fehlt():
+def test_ntp_fail_wenn_timedatectl_fehlt() -> None:
     with patch(_RUN, side_effect=FileNotFoundError):
         result = _check_ntp()
     assert not result.ok

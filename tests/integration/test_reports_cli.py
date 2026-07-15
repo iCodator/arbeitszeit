@@ -1,6 +1,6 @@
 """Integrationstests für admin_cli reports-Befehle."""
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import json
@@ -71,7 +71,7 @@ def _insert_user(db: Path, role: str) -> int:
         (role.lower(), role),
     ).fetchone()
     conn.close()
-    return row["id"]
+    return int(row["id"])
 
 
 def _set_config(db: Path, key: str, value: object) -> None:
@@ -202,48 +202,48 @@ def test_get_export_dir_gibt_pfad_zurueck(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_print_bookings_table_leer(capsys: pytest.CaptureFixture) -> None:
+def test_print_bookings_table_leer(capsys: pytest.CaptureFixture[str]) -> None:
     _print_bookings_table([])
     assert "Keine Buchungen" in capsys.readouterr().out
 
 
-def test_print_bookings_table_mit_daten(capsys: pytest.CaptureFixture) -> None:
+def test_print_bookings_table_mit_daten(capsys: pytest.CaptureFixture[str]) -> None:
     _print_bookings_table([_booking_row()])
     out = capsys.readouterr().out
     assert "Max Muster" in out
     assert "1 Buchung" in out
 
 
-def test_print_corrections_table_leer(capsys: pytest.CaptureFixture) -> None:
+def test_print_corrections_table_leer(capsys: pytest.CaptureFixture[str]) -> None:
     _print_corrections_table([])
     assert "Keine Korrekturen" in capsys.readouterr().out
 
 
-def test_print_corrections_table_mit_daten(capsys: pytest.CaptureFixture) -> None:
+def test_print_corrections_table_mit_daten(capsys: pytest.CaptureFixture[str]) -> None:
     _print_corrections_table([_correction_row()])
     out = capsys.readouterr().out
     assert "Tippfehler" in out
     assert "1 Korrektur" in out
 
 
-def test_print_supplements_table_leer(capsys: pytest.CaptureFixture) -> None:
+def test_print_supplements_table_leer(capsys: pytest.CaptureFixture[str]) -> None:
     _print_supplements_table([])
     assert "Keine Nachträge" in capsys.readouterr().out
 
 
-def test_print_supplements_table_mit_daten(capsys: pytest.CaptureFixture) -> None:
+def test_print_supplements_table_mit_daten(capsys: pytest.CaptureFixture[str]) -> None:
     _print_supplements_table([_supplement_row()])
     out = capsys.readouterr().out
     assert "Vergessen" in out
     assert "1 Nachtrag" in out
 
 
-def test_print_review_cases_table_leer(capsys: pytest.CaptureFixture) -> None:
+def test_print_review_cases_table_leer(capsys: pytest.CaptureFixture[str]) -> None:
     _print_review_cases_table([])
     assert "Keine Prüffälle" in capsys.readouterr().out
 
 
-def test_print_review_cases_table_mit_daten(capsys: pytest.CaptureFixture) -> None:
+def test_print_review_cases_table_mit_daten(capsys: pytest.CaptureFixture[str]) -> None:
     _print_review_cases_table([_review_case_row()])
     out = capsys.readouterr().out
     assert "Offene Arbeitsphase" in out
@@ -255,7 +255,7 @@ def test_print_review_cases_table_mit_daten(capsys: pytest.CaptureFixture) -> No
 # ---------------------------------------------------------------------------
 
 
-def test_open_bookings_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_open_bookings_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -269,7 +269,7 @@ def test_open_bookings_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureFixtu
     assert "Keine Buchungen" in out
 
 
-def test_open_bookings_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_open_bookings_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -300,7 +300,7 @@ def test_open_bookings_reviewer_zugelassen(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_warn_cases_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_warn_cases_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -317,7 +317,7 @@ def test_warn_cases_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> N
 # ---------------------------------------------------------------------------
 
 
-def test_corrections_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_corrections_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -334,7 +334,7 @@ def test_corrections_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> 
 # ---------------------------------------------------------------------------
 
 
-def test_supplements_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_supplements_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -351,7 +351,7 @@ def test_supplements_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> 
 # ---------------------------------------------------------------------------
 
 
-def test_open_review_cases_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_open_review_cases_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -365,7 +365,7 @@ def test_open_review_cases_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureF
     assert "Keine Prüffälle" in out
 
 
-def test_open_review_cases_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFixture) -> None:
+def test_open_review_cases_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
@@ -386,7 +386,7 @@ def test_open_review_cases_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFi
 
 
 def test_export_csv_gibt_pfade_aus(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -415,7 +415,7 @@ def test_export_csv_gibt_pfade_aus(
 
 
 def test_export_csv_review_cases(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -438,7 +438,7 @@ def test_export_csv_review_cases(
 
 
 def test_export_pdf_day(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -461,7 +461,7 @@ def test_export_pdf_day(
 
 
 def test_export_pdf_week(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -484,7 +484,7 @@ def test_export_pdf_week(
 
 
 def test_export_pdf_month(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -507,7 +507,7 @@ def test_export_pdf_month(
 
 
 def test_export_pdf_employee(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")

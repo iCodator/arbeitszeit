@@ -7,7 +7,9 @@ Tests injizieren kontrollierte Wall-Clock- und Monotonic-Clock-Werte,
 um Sprünge reproduzierbar zu simulieren.
 """
 
+import sqlite3
 import sys
+from collections.abc import Callable, Generator
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,14 +28,16 @@ _T0_WALL = datetime(2026, 5, 1, 8, 0, 0, tzinfo=timezone.utc)
 _T0_MONO = 1000.0
 
 
-def _make_clocks(wall_sequence: list[datetime], mono_sequence: list[float]):
+def _make_clocks(
+    wall_sequence: list[datetime], mono_sequence: list[float]
+) -> tuple[Callable[[], datetime], Callable[[], float]]:
     """Erzeugt injizierbare Clock-Callables aus Sequenzlisten."""
     wall_iter = iter(wall_sequence)
     mono_iter = iter(mono_sequence)
     return lambda: next(wall_iter), lambda: next(mono_iter)
 
 
-def _events(conn) -> list[dict]:
+def _events(conn: sqlite3.Connection) -> list[dict[str, object]]:
     rows = conn.execute("SELECT event_type, details_json FROM system_events ORDER BY id").fetchall()
     return [{"event_type": r["event_type"], "details_json": r["details_json"]} for r in rows]
 
@@ -48,13 +52,13 @@ def db(tmp_path: Path) -> Path:
 
 
 @pytest.fixture
-def conn(db: Path):
+def conn(db: Path) -> Generator[sqlite3.Connection, None, None]:
     c = open_connection(db)
     yield c
     c.close()
 
 
-def test_erster_aufruf_kein_ereignis(db: Path, conn) -> None:
+def test_erster_aufruf_kein_ereignis(db: Path, conn: sqlite3.Connection) -> None:
     """Erster check()-Aufruf setzt nur den Basiszeitpunkt — kein Ereignis."""
 
     def wall_fn() -> datetime:
@@ -70,7 +74,7 @@ def test_erster_aufruf_kein_ereignis(db: Path, conn) -> None:
     assert _events(conn) == []
 
 
-def test_normaler_ablauf_kein_ereignis(db: Path, conn) -> None:
+def test_normaler_ablauf_kein_ereignis(db: Path, conn: sqlite3.Connection) -> None:
     """Zwei aufeinanderfolgende Aufrufe ohne Sprung erzeugen kein Ereignis."""
     from datetime import timedelta
 
@@ -85,7 +89,7 @@ def test_normaler_ablauf_kein_ereignis(db: Path, conn) -> None:
     assert _events(conn) == []
 
 
-def test_vorwaertssprung_wird_erkannt(db: Path, conn) -> None:
+def test_vorwaertssprung_wird_erkannt(db: Path, conn: sqlite3.Connection) -> None:
     """Wall-Clock springt 300s vorwärts bei nur 60s Monoton-Elapsed → TIME_JUMP_DETECTED."""
     from datetime import timedelta
 
@@ -102,7 +106,7 @@ def test_vorwaertssprung_wird_erkannt(db: Path, conn) -> None:
     assert evts[0]["event_type"] == "TIME_JUMP_DETECTED"
 
 
-def test_rueckwaertssprung_wird_erkannt(db: Path, conn) -> None:
+def test_rueckwaertssprung_wird_erkannt(db: Path, conn: sqlite3.Connection) -> None:
     """Wall-Clock springt 300s zurück → MANUAL_TIME_CHANGE_DETECTED."""
     from datetime import timedelta
 
@@ -119,7 +123,7 @@ def test_rueckwaertssprung_wird_erkannt(db: Path, conn) -> None:
     assert evts[0]["event_type"] == "MANUAL_TIME_CHANGE_DETECTED"
 
 
-def test_sprung_unter_schwellenwert_kein_ereignis(db: Path, conn) -> None:
+def test_sprung_unter_schwellenwert_kein_ereignis(db: Path, conn: sqlite3.Connection) -> None:
     """Differenz unterhalb des Schwellenwerts (30s < 60s) → kein Ereignis."""
     from datetime import timedelta
 
@@ -134,7 +138,7 @@ def test_sprung_unter_schwellenwert_kein_ereignis(db: Path, conn) -> None:
     assert _events(conn) == []
 
 
-def test_details_json_enthaelt_diff_seconds(db: Path, conn) -> None:
+def test_details_json_enthaelt_diff_seconds(db: Path, conn: sqlite3.Connection) -> None:
     """Das Ereignis enthält diff_seconds im details_json."""
     import json as json_mod
     from datetime import timedelta
@@ -148,7 +152,7 @@ def test_details_json_enthaelt_diff_seconds(db: Path, conn) -> None:
     monitor.check()
     monitor.check()
     evts = _events(conn)
-    details = json_mod.loads(evts[0]["details_json"])
+    details = json_mod.loads(str(evts[0]["details_json"]))
     assert "diff_seconds" in details
     assert abs(details["diff_seconds"] - 300.0) < 1.0
 

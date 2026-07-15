@@ -3,7 +3,7 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 from types import TracebackType
-from typing import Literal
+from typing import Any, Literal
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
@@ -40,22 +40,35 @@ from arbeitszeit.domain.ports.repositories import (
     UserAccountRepository,
     WorkScheduleRepository,
 )
+from arbeitszeit.domain.value_objects import (
+    AuditLogEntryId,
+    BookingCorrectionId,
+    DeviceEventId,
+    EmployeeId,
+    ReviewCaseId,
+    RfidCardId,
+    SupplementId,
+    TerminalId,
+    TimeBookingId,
+    UserAccountId,
+    WorkScheduleVersionId,
+)
 
 
 class FakeDeviceEventRepository:
     def __init__(self) -> None:
-        self._records: list[dict] = []
+        self._records: list[dict[str, Any]] = []
         self._next_id = 1
 
     def add(
         self,
         event_type: str,
-        terminal_id: int | None,
+        terminal_id: TerminalId | None,
         rfid_uid_hash: str | None,
         payload_json: str,
         occurred_at: datetime,
-    ) -> int:
-        new_id = self._next_id
+    ) -> DeviceEventId:
+        new_id = DeviceEventId(self._next_id)
         self._records.append(
             {
                 "id": new_id,
@@ -76,7 +89,7 @@ class FakeEmployeeRepository:
         self._next_id = 1
 
     def add(self, employee: Employee) -> Employee:
-        new = dataclasses.replace(employee, id=self._next_id)
+        new = dataclasses.replace(employee, id=EmployeeId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -101,7 +114,7 @@ class FakeUserAccountRepository:
         self._next_id = 1
 
     def add(self, account: UserAccount, password_hash: str = "") -> UserAccount:
-        new = dataclasses.replace(account, id=self._next_id)
+        new = dataclasses.replace(account, id=UserAccountId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -139,7 +152,7 @@ class FakeRfidCardRepository:
         self._next_id = 1
 
     def add(self, card: RfidCard) -> RfidCard:
-        new = dataclasses.replace(card, id=self._next_id)
+        new = dataclasses.replace(card, id=RfidCardId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -167,7 +180,7 @@ class FakeRfidCardRepository:
         self,
         card_id: int,
         status: CardStatus,
-        replaced_by_card_id: int | None = None,
+        replaced_by_card_id: RfidCardId | None = None,
         valid_until: date | None = None,
     ) -> None:
         existing = self._store[card_id]
@@ -185,7 +198,7 @@ class FakeTimeBookingRepository:
         self._next_id = 1
 
     def add(self, booking: TimeBooking) -> TimeBooking:
-        new = dataclasses.replace(booking, id=self._next_id)
+        new = dataclasses.replace(booking, id=TimeBookingId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -239,7 +252,7 @@ class FakeWorkScheduleRepository:
         self._next_id = 1
 
     def add(self, version: WorkScheduleVersion) -> WorkScheduleVersion:
-        new = dataclasses.replace(version, id=self._next_id)
+        new = dataclasses.replace(version, id=WorkScheduleVersionId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -305,7 +318,7 @@ class FakeReviewCaseRepository:
         self._next_id = 1
 
     def add(self, case: ReviewCase) -> ReviewCase:
-        new = dataclasses.replace(case, id=self._next_id)
+        new = dataclasses.replace(case, id=ReviewCaseId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -322,7 +335,7 @@ class FakeReviewCaseRepository:
         self,
         case_id: int,
         status: Literal[ReviewCaseStatus.RESOLVED, ReviewCaseStatus.CLOSED_WITH_NOTE],
-        closed_by_user_id: int,
+        closed_by_user_id: UserAccountId,
         note: str | None = None,
     ) -> None:
         existing = self._store[case_id]
@@ -341,7 +354,7 @@ class FakeSupplementRepository:
         self._next_id = 1
 
     def add(self, supplement: Supplement) -> Supplement:
-        new = dataclasses.replace(supplement, id=self._next_id)
+        new = dataclasses.replace(supplement, id=SupplementId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -352,7 +365,9 @@ class FakeSupplementRepository:
     def list_pending(self) -> list[Supplement]:
         return [s for s in self._store.values() if s.approval_status == ApprovalStatus.PENDING]
 
-    def approve(self, supplement_id: int, approved_by_user_id: int, approved_at: datetime) -> None:
+    def approve(
+        self, supplement_id: int, approved_by_user_id: UserAccountId, approved_at: datetime
+    ) -> None:
         existing = self._store[supplement_id]
         self._store[supplement_id] = dataclasses.replace(
             existing,
@@ -361,7 +376,9 @@ class FakeSupplementRepository:
             approved_at=approved_at,
         )
 
-    def reject(self, supplement_id: int, rejected_by_user_id: int, rejected_at: datetime) -> None:
+    def reject(
+        self, supplement_id: int, rejected_by_user_id: UserAccountId, rejected_at: datetime
+    ) -> None:
         existing = self._store[supplement_id]
         self._store[supplement_id] = dataclasses.replace(
             existing,
@@ -377,7 +394,7 @@ class FakeBookingCorrectionRepository:
         self._next_id = 1
 
     def add(self, correction: BookingCorrection) -> BookingCorrection:
-        new = dataclasses.replace(correction, id=self._next_id)
+        new = dataclasses.replace(correction, id=BookingCorrectionId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -392,7 +409,7 @@ class FakeAuditLogRepository:
         self._next_id = 1
 
     def add(self, entry: AuditLogEntry) -> AuditLogEntry:
-        new = dataclasses.replace(entry, id=self._next_id)
+        new = dataclasses.replace(entry, id=AuditLogEntryId(self._next_id))
         self._store[new.id] = new
         self._next_id += 1
         return new
@@ -458,14 +475,14 @@ class FakeUnitOfWork:
 
 # Typ-Kompatibilitätsprüfung: Fakes müssen die Repository-Protokolle erfüllen
 def _check_protocol_compliance() -> None:
-    _: DeviceEventRepository = FakeDeviceEventRepository()  # type: ignore[no-redef]
-    _: EmployeeRepository = FakeEmployeeRepository()
-    _: UserAccountRepository = FakeUserAccountRepository()  # type: ignore[no-redef]
-    _: RfidCardRepository = FakeRfidCardRepository()  # type: ignore[no-redef]
-    _: TimeBookingRepository = FakeTimeBookingRepository()  # type: ignore[no-redef]
-    _: WorkScheduleRepository = FakeWorkScheduleRepository()  # type: ignore[no-redef]
-    _: ReviewCaseRepository = FakeReviewCaseRepository()  # type: ignore[no-redef]
-    _: SupplementRepository = FakeSupplementRepository()  # type: ignore[no-redef]
-    _: BookingCorrectionRepository = FakeBookingCorrectionRepository()  # type: ignore[no-redef]
-    _: AuditLogRepository = FakeAuditLogRepository()  # type: ignore[no-redef]
-    _: SystemConfigRepository = FakeSystemConfigRepository()  # type: ignore[no-redef]
+    _dev: DeviceEventRepository = FakeDeviceEventRepository()
+    _emp: EmployeeRepository = FakeEmployeeRepository()
+    _usr: UserAccountRepository = FakeUserAccountRepository()
+    _rfi: RfidCardRepository = FakeRfidCardRepository()
+    _tbk: TimeBookingRepository = FakeTimeBookingRepository()
+    _wsc: WorkScheduleRepository = FakeWorkScheduleRepository()
+    _rvc: ReviewCaseRepository = FakeReviewCaseRepository()
+    _sup: SupplementRepository = FakeSupplementRepository()
+    _bco: BookingCorrectionRepository = FakeBookingCorrectionRepository()
+    _aud: AuditLogRepository = FakeAuditLogRepository()
+    _sys: SystemConfigRepository = FakeSystemConfigRepository()

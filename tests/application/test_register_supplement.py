@@ -1,11 +1,13 @@
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.application.commands import CreateSupplementCommand
+from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases.register_supplement import (
     RegisterSupplementUseCase,
 )
@@ -24,17 +26,28 @@ from arbeitszeit.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
 )
+from arbeitszeit.domain.value_objects import (
+    EmployeeId,
+    RfidCardId,
+    TerminalId,
+    TimeBookingId,
+    UserAccountId,
+)
 from tests.application.fakes import FakeUnitOfWork
 
 _NOW = datetime(2025, 3, 10, 9, 0, tzinfo=timezone.utc)
 _ACTOR_ID = 1  # id des REVIEWER-UserAccounts (erstes Element im Fake-Store)
 
 
+def _as_uow(uow: FakeUnitOfWork) -> UnitOfWork:
+    return cast(UnitOfWork, uow)
+
+
 def _make_uow_with_employee(employee_active: bool = True) -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
     uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="reviewer",
             role=UserRole.REVIEWER,
@@ -43,7 +56,7 @@ def _make_uow_with_employee(employee_active: bool = True) -> FakeUnitOfWork:
     )
     uow.employee_repo.add(
         Employee(
-            id=0,
+            id=EmployeeId(0),
             personnel_no="E001",
             first_name="Anna",
             last_name="Muster",
@@ -57,7 +70,7 @@ def _uow_with_actor() -> FakeUnitOfWork:
     uow = FakeUnitOfWork()
     uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="reviewer",
             role=UserRole.REVIEWER,
@@ -67,7 +80,7 @@ def _uow_with_actor() -> FakeUnitOfWork:
     return uow
 
 
-def _cmd(**overrides) -> CreateSupplementCommand:
+def _cmd(**overrides: Any) -> CreateSupplementCommand:
     defaults = dict(
         employee_id=1,
         related_booking_id=None,
@@ -83,43 +96,43 @@ def _cmd(**overrides) -> CreateSupplementCommand:
 # --- Rollenprüfung ---
 
 
-def test_unbekannter_benutzer_loest_permission_denied():
+def test_unbekannter_benutzer_loest_permission_denied() -> None:
     uow = FakeUnitOfWork()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(recorded_by_user_id=999))
 
 
-def test_benutzer_ohne_reviewer_rolle_loest_permission_denied():
+def test_benutzer_ohne_reviewer_rolle_loest_permission_denied() -> None:
     uow = FakeUnitOfWork()
     emp_user = uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="emp",
             role=UserRole.EMPLOYEE,
             is_active=True,
         )
     )
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(recorded_by_user_id=emp_user.id))
 
 
-def test_inaktiver_benutzer_loest_permission_denied():
+def test_inaktiver_benutzer_loest_permission_denied() -> None:
     uow = FakeUnitOfWork()
     inactive = uow.user_account_repo.add(
         UserAccount(
-            id=0,
+            id=UserAccountId(0),
             employee_id=None,
             username="inactive_reviewer",
             role=UserRole.REVIEWER,
             is_active=False,
         )
     )
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(PermissionDeniedError):
         uc.execute(_cmd(recorded_by_user_id=inactive.id))
@@ -128,25 +141,25 @@ def test_inaktiver_benutzer_loest_permission_denied():
 # --- Fehlerbehandlung ---
 
 
-def test_unbekannter_mitarbeiter_loest_not_found_error():
+def test_unbekannter_mitarbeiter_loest_not_found_error() -> None:
     uow = _uow_with_actor()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(NotFoundError):
         uc.execute(_cmd(employee_id=99))
 
 
-def test_inaktiver_mitarbeiter_loest_inactive_employee_error():
+def test_inaktiver_mitarbeiter_loest_inactive_employee_error() -> None:
     uow = _make_uow_with_employee(employee_active=False)
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(InactiveEmployeeError):
         uc.execute(_cmd(employee_id=1))
 
 
-def test_nachtrag_wird_angelegt():
+def test_nachtrag_wird_angelegt() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd())
 
@@ -154,9 +167,9 @@ def test_nachtrag_wird_angelegt():
     assert uow.committed
 
 
-def test_nachtrag_ist_pending():
+def test_nachtrag_ist_pending() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd())
 
@@ -169,9 +182,9 @@ def test_nachtrag_ist_pending():
     assert supplement.rejected_at is None
 
 
-def test_review_case_wird_angelegt():
+def test_review_case_wird_angelegt() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd())
 
@@ -179,9 +192,9 @@ def test_review_case_wird_angelegt():
     assert result.review_case_id > 0
 
 
-def test_review_case_ist_offen():
+def test_review_case_ist_offen() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd())
 
@@ -191,9 +204,9 @@ def test_review_case_ist_offen():
     assert cases[0].status == ReviewCaseStatus.OPEN
 
 
-def test_audit_log_eintrag_vorhanden():
+def test_audit_log_eintrag_vorhanden() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     uc.execute(_cmd())
 
@@ -204,12 +217,12 @@ def test_audit_log_eintrag_vorhanden():
     assert entry.employee_id == 1
 
 
-def test_audit_log_enthaelt_fachliche_felder():
+def test_audit_log_enthaelt_fachliche_felder() -> None:
     import json
 
     uow = _make_uow_with_employee()
     booking_id = _add_booking(uow)
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd(related_booking_id=booking_id))
 
@@ -222,10 +235,10 @@ def test_audit_log_enthaelt_fachliche_felder():
     assert "recorded_at" in details
 
 
-def test_related_booking_id_wird_durchgereicht():
+def test_related_booking_id_wird_durchgereicht() -> None:
     uow = _make_uow_with_employee()
     booking_id = _add_booking(uow)
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd(related_booking_id=booking_id))
 
@@ -237,9 +250,9 @@ def test_related_booking_id_wird_durchgereicht():
 # --- Fehlerpfade hinterlassen keine Spuren ---
 
 
-def test_not_found_error_kein_commit_kein_audit_log():
+def test_not_found_error_kein_commit_kein_audit_log() -> None:
     uow = _uow_with_actor()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(NotFoundError):
         uc.execute(_cmd(employee_id=99))
@@ -249,9 +262,9 @@ def test_not_found_error_kein_commit_kein_audit_log():
     assert len(uow.supplement_repo.list_pending()) == 0
 
 
-def test_inactive_employee_error_kein_commit_kein_audit_log():
+def test_inactive_employee_error_kein_commit_kein_audit_log() -> None:
     uow = _make_uow_with_employee(employee_active=False)
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(InactiveEmployeeError):
         uc.execute(_cmd(employee_id=1))
@@ -264,9 +277,9 @@ def test_inactive_employee_error_kein_commit_kein_audit_log():
 # --- ReviewCase-Beschreibung ---
 
 
-def test_review_case_description_enthaelt_fachliche_referenz():
+def test_review_case_description_enthaelt_fachliche_referenz() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     uc.execute(_cmd())
 
@@ -283,14 +296,14 @@ def test_review_case_description_enthaelt_fachliche_referenz():
 def _add_booking(uow: FakeUnitOfWork) -> int:
     booking = uow.time_booking_repo.add(
         TimeBooking(
-            id=0,
-            employee_id=1,
+            id=TimeBookingId(0),
+            employee_id=EmployeeId(1),
             booking_type=BookingType.COME,
             booked_at=_NOW,
             source=BookingSource.TERMINAL,
             status=BookingStatus.OPEN,
-            terminal_id=1,
-            rfid_card_id=1,
+            terminal_id=TerminalId(1),
+            rfid_card_id=RfidCardId(1),
             device_event_id=None,
             note=None,
         )
@@ -298,10 +311,10 @@ def _add_booking(uow: FakeUnitOfWork) -> int:
     return booking.id
 
 
-def test_related_booking_id_existiert_nachtrag_wird_angelegt():
+def test_related_booking_id_existiert_nachtrag_wird_angelegt() -> None:
     uow = _make_uow_with_employee()
     booking_id = _add_booking(uow)
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     result = uc.execute(_cmd(related_booking_id=booking_id))
 
@@ -311,9 +324,9 @@ def test_related_booking_id_existiert_nachtrag_wird_angelegt():
     assert supplement.related_booking_id == booking_id
 
 
-def test_related_booking_id_nicht_gefunden_loest_not_found_error():
+def test_related_booking_id_nicht_gefunden_loest_not_found_error() -> None:
     uow = _make_uow_with_employee()
-    uc = RegisterSupplementUseCase(uow)
+    uc = RegisterSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(NotFoundError):
         uc.execute(_cmd(related_booking_id=999))

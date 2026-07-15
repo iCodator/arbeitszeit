@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from typing import cast
 
 import pytest
 
@@ -12,6 +13,7 @@ from arbeitszeit.application.commands import (
     DeactivateUserAccountCommand,
     ReactivateUserAccountCommand,
 )
+from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases.manage_user_accounts import (
     BootstrapAdminUseCase,
     ChangeUserRoleUseCase,
@@ -25,6 +27,10 @@ from arbeitszeit.domain.errors import ConflictError, NotFoundError, PermissionDe
 from arbeitszeit.domain.value_objects import UserAccountId
 
 from .fakes import FakeUnitOfWork
+
+
+def _as_uow(uow: FakeUnitOfWork) -> UnitOfWork:
+    return cast(UnitOfWork, uow)
 
 
 def _make_admin(uow: FakeUnitOfWork, username: str = "admin") -> int:
@@ -56,10 +62,10 @@ def _make_user(uow: FakeUnitOfWork, username: str, role: UserRole = UserRole.REV
 # --- CreateUserAccountUseCase ---
 
 class TestCreateUserAccount:
-    def test_happy_path_legt_konto_an(self):
+    def test_happy_path_legt_konto_an(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
-        result = CreateUserAccountUseCase(uow).execute(
+        result = CreateUserAccountUseCase(_as_uow(uow)).execute(
             CreateUserAccountCommand(
                 acting_user_id=UserAccountId(admin_id),
                 username="newuser",
@@ -74,10 +80,10 @@ class TestCreateUserAccount:
         assert saved.role == UserRole.REVIEWER
         assert uow.committed is True
 
-    def test_audit_log_wird_geschrieben(self):
+    def test_audit_log_wird_geschrieben(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
-        CreateUserAccountUseCase(uow).execute(
+        CreateUserAccountUseCase(_as_uow(uow)).execute(
             CreateUserAccountCommand(
                 acting_user_id=UserAccountId(admin_id),
                 username="u2",
@@ -88,11 +94,11 @@ class TestCreateUserAccount:
         assert len(uow.audit_log_repo.entries) == 1
         assert uow.audit_log_repo.entries[0].event_type == "USER_ACCOUNT_CREATED"
 
-    def test_wirft_permission_denied_fuer_nicht_admin(self):
+    def test_wirft_permission_denied_fuer_nicht_admin(self) -> None:
         uow = FakeUnitOfWork()
         reviewer_id = _make_user(uow, "rev")
         with pytest.raises(PermissionDeniedError):
-            CreateUserAccountUseCase(uow).execute(
+            CreateUserAccountUseCase(_as_uow(uow)).execute(
                 CreateUserAccountCommand(
                     acting_user_id=UserAccountId(reviewer_id),
                     username="x",
@@ -101,12 +107,12 @@ class TestCreateUserAccount:
                 )
             )
 
-    def test_wirft_conflict_bei_doppeltem_benutzernamen(self):
+    def test_wirft_conflict_bei_doppeltem_benutzernamen(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         _make_user(uow, "dupe")
         with pytest.raises(ConflictError):
-            CreateUserAccountUseCase(uow).execute(
+            CreateUserAccountUseCase(_as_uow(uow)).execute(
                 CreateUserAccountCommand(
                     acting_user_id=UserAccountId(admin_id),
                     username="dupe",
@@ -119,11 +125,11 @@ class TestCreateUserAccount:
 # --- DeactivateUserAccountUseCase ---
 
 class TestDeactivateUserAccount:
-    def test_happy_path(self):
+    def test_happy_path(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         target_id = _make_user(uow, "target")
-        DeactivateUserAccountUseCase(uow).execute(
+        DeactivateUserAccountUseCase(_as_uow(uow)).execute(
             DeactivateUserAccountCommand(
                 acting_user_id=UserAccountId(admin_id),
                 target_user_id=UserAccountId(target_id),
@@ -134,11 +140,11 @@ class TestDeactivateUserAccount:
         assert saved.is_active is False
         assert uow.committed is True
 
-    def test_audit_log(self):
+    def test_audit_log(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         target_id = _make_user(uow, "target")
-        DeactivateUserAccountUseCase(uow).execute(
+        DeactivateUserAccountUseCase(_as_uow(uow)).execute(
             DeactivateUserAccountCommand(
                 acting_user_id=UserAccountId(admin_id),
                 target_user_id=UserAccountId(target_id),
@@ -146,11 +152,11 @@ class TestDeactivateUserAccount:
         )
         assert uow.audit_log_repo.entries[0].event_type == "USER_ACCOUNT_DEACTIVATED"
 
-    def test_wirft_not_found(self):
+    def test_wirft_not_found(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         with pytest.raises(NotFoundError):
-            DeactivateUserAccountUseCase(uow).execute(
+            DeactivateUserAccountUseCase(_as_uow(uow)).execute(
                 DeactivateUserAccountCommand(
                     acting_user_id=UserAccountId(admin_id),
                     target_user_id=UserAccountId(9999),
@@ -161,12 +167,12 @@ class TestDeactivateUserAccount:
 # --- ReactivateUserAccountUseCase ---
 
 class TestReactivateUserAccount:
-    def test_happy_path(self):
+    def test_happy_path(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         target_id = _make_user(uow, "target")
         uow.user_account_repo.deactivate(target_id)
-        ReactivateUserAccountUseCase(uow).execute(
+        ReactivateUserAccountUseCase(_as_uow(uow)).execute(
             ReactivateUserAccountCommand(
                 acting_user_id=UserAccountId(admin_id),
                 target_user_id=UserAccountId(target_id),
@@ -176,12 +182,12 @@ class TestReactivateUserAccount:
         assert saved is not None
         assert saved.is_active is True
 
-    def test_audit_log(self):
+    def test_audit_log(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         target_id = _make_user(uow, "target")
         uow.user_account_repo.deactivate(target_id)
-        ReactivateUserAccountUseCase(uow).execute(
+        ReactivateUserAccountUseCase(_as_uow(uow)).execute(
             ReactivateUserAccountCommand(
                 acting_user_id=UserAccountId(admin_id),
                 target_user_id=UserAccountId(target_id),
@@ -193,11 +199,11 @@ class TestReactivateUserAccount:
 # --- ChangeUserRoleUseCase ---
 
 class TestChangeUserRole:
-    def test_happy_path(self):
+    def test_happy_path(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         target_id = _make_user(uow, "target", UserRole.REVIEWER)
-        ChangeUserRoleUseCase(uow).execute(
+        ChangeUserRoleUseCase(_as_uow(uow)).execute(
             ChangeUserRoleCommand(
                 acting_user_id=UserAccountId(admin_id),
                 target_user_id=UserAccountId(target_id),
@@ -209,11 +215,11 @@ class TestChangeUserRole:
         assert saved.role == UserRole.TECH
         assert uow.committed is True
 
-    def test_audit_log(self):
+    def test_audit_log(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         target_id = _make_user(uow, "target")
-        ChangeUserRoleUseCase(uow).execute(
+        ChangeUserRoleUseCase(_as_uow(uow)).execute(
             ChangeUserRoleCommand(
                 acting_user_id=UserAccountId(admin_id),
                 target_user_id=UserAccountId(target_id),
@@ -223,11 +229,11 @@ class TestChangeUserRole:
         entry = uow.audit_log_repo.entries[0]
         assert entry.event_type == "USER_ACCOUNT_ROLE_CHANGED"
 
-    def test_wirft_not_found(self):
+    def test_wirft_not_found(self) -> None:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         with pytest.raises(NotFoundError):
-            ChangeUserRoleUseCase(uow).execute(
+            ChangeUserRoleUseCase(_as_uow(uow)).execute(
                 ChangeUserRoleCommand(
                     acting_user_id=UserAccountId(admin_id),
                     target_user_id=UserAccountId(9999),
@@ -239,9 +245,9 @@ class TestChangeUserRole:
 # --- BootstrapAdminUseCase ---
 
 class TestBootstrapAdmin:
-    def test_happy_path_legt_ersten_admin_an(self):
+    def test_happy_path_legt_ersten_admin_an(self) -> None:
         uow = FakeUnitOfWork()
-        result = BootstrapAdminUseCase(uow).execute(
+        result = BootstrapAdminUseCase(_as_uow(uow)).execute(
             BootstrapAdminCommand(username="firstadmin", password_hash="hash")
         )
         assert result.user_id > 0
@@ -251,26 +257,26 @@ class TestBootstrapAdmin:
         assert saved.role == UserRole.ADMIN
         assert uow.committed is True
 
-    def test_audit_log(self):
+    def test_audit_log(self) -> None:
         uow = FakeUnitOfWork()
-        BootstrapAdminUseCase(uow).execute(
+        BootstrapAdminUseCase(_as_uow(uow)).execute(
             BootstrapAdminCommand(username="firstadmin", password_hash="hash")
         )
         assert uow.audit_log_repo.entries[0].event_type == "USER_ACCOUNT_CREATED"
 
-    def test_wirft_conflict_wenn_admin_existiert(self):
+    def test_wirft_conflict_wenn_admin_existiert(self) -> None:
         uow = FakeUnitOfWork()
         _make_admin(uow)
         with pytest.raises(ConflictError):
-            BootstrapAdminUseCase(uow).execute(
+            BootstrapAdminUseCase(_as_uow(uow)).execute(
                 BootstrapAdminCommand(username="secondadmin", password_hash="hash")
             )
         assert uow.committed is False
 
-    def test_wirft_conflict_bei_doppeltem_benutzernamen(self):
+    def test_wirft_conflict_bei_doppeltem_benutzernamen(self) -> None:
         uow = FakeUnitOfWork()
         _make_user(uow, "taken", UserRole.REVIEWER)
         with pytest.raises(ConflictError):
-            BootstrapAdminUseCase(uow).execute(
+            BootstrapAdminUseCase(_as_uow(uow)).execute(
                 BootstrapAdminCommand(username="taken", password_hash="hash")
             )
