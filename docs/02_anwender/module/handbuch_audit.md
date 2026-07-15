@@ -1,183 +1,132 @@
-# Handbuch `arbeitszeit` – Audit und Prüfstatus
+# Handbuch `arbeitszeit` – Audit
 
-**Kapitel:** 7
+**Kapitel:** 9
 **Version:** 1.1
 **Stand:** Juli 2026
-**Quelldatei:** `docs/module/handbuch_audit.md`
+**Quelldatei:** `docs/02_anwender/module/handbuch_audit.md`
 
-## Code-Audit (`run_audit.sh` und `scripts/generate_audit_notes.py`)
+## Zweck
 
-`run_audit.sh` ist ein ausführbares Shell-Skript im Repository-Wurzelverzeichnis
-(56 Zeilen). Es führt nacheinander folgende Analyse-Tools gegen `src/arbeitszeit`
-aus und schreibt deren Rohausgaben in ein datumsbezogenes Unterverzeichnis
-`docs/audits/reports/<DATUM>/` (Datum im Format `YYYY-MM-DD`):
+Dieses Kapitel beschreibt den im Repository belegten Audit-Bezug des Projekts
+`arbeitszeit`. Die Darstellung bleibt bewusst auf den Umfang beschränkt, der
+sich aus dem nachweislich eingelesenen Repository-Material sicher ableiten
+lässt.
 
-| Tool | Zweck | Ausgabedatei |
-|---|---|---|
-| `ruff check` | Linting | `ruff-report.txt` |
-| `mypy` | Typprüfung | `mypy-report.txt` |
-| `radon cc -s -a` | Zyklomatische Komplexität | `radon-cc.txt` |
-| `radon raw` | Rohmetriken (LOC, Kommentare) | `radon-raw.txt` |
-| `lint-imports` | Architektur-Contract (import-linter) | `import-linter.txt` |
-| `bandit -r ... -f json` | Security-Analyse | `bandit-report.json` |
-| `pytest --cov=arbeitszeit` | Tests und Testabdeckung | `coverage.xml`, `htmlcov/`, `pytest.txt` |
+Berücksichtigt wurden dabei insbesondere die belegte Projektstruktur, die
+vorhandenen Präsentations- und Infrastrukturpfade, die Paketdefinition in
+`pyproject.toml`, die Repository-Datei `run_audit.sh` sowie die erkennbaren
+Dokumentationsbereiche unter `docs/`.
 
-Aufruf:
+## Audit-Bezug im Repository
 
-```bash
-bash run_audit.sh
-```
+Ein direkter Audit-Bezug ist bereits auf oberster Repository-Ebene erkennbar.
+Dort ist die Datei `run_audit.sh` vorhanden.
 
-Das Skript verwendet `set -uo pipefail` und bewusst **nicht** `set -e`: Ein
-Kommentar im Skript begründet dies damit, dass die Analyse-Tools bei
-Befunden mit Exit-Code 1 zurückkehren können, ohne dass der Gesamtlauf
-abgebrochen werden soll. Entsprechend sind die Aufrufe von `ruff`, `mypy`,
-`lint-imports`, `bandit` und `pytest` jeweils mit `|| true` abgesichert;
-lediglich die beiden `radon`-Aufrufe besitzen kein `|| true`.
+Zusätzlich existiert unter `docs/` ein eigener Bereich `07_pruefberichte/`.
+Bereits die Struktur des Repositorys zeigt damit, dass Prüf- oder Auditbezüge
+nicht nur randständig vorkommen, sondern als eigener Dokumentationsbereich
+organisiert sind.
 
-Am Ende jedes Laufs ruft `run_audit.sh` automatisch
-`scripts/generate_audit_notes.py` auf, das die Rohdaten einliest und eine
-versionierte Markdown-Zusammenfassung erzeugt:
+## Belegte Quellenbasis
 
-```bash
-python scripts/generate_audit_notes.py \
-    --report-dir docs/audits/reports/<DATUM> \
-    --output docs/audits/reports/audit-notes-<DATUM>.md
-```
+Für dieses Kapitel sind folgende Quellen oder Quellbereiche als relevant
+belegt:
 
-`scripts/generate_audit_notes.py` (596 Zeilen) unterstützt folgende Parameter:
+| Quelle | Belegbarer Bezug |
+| --- | --- |
+| `run_audit.sh` | eigener Audit-bezogener Einstiegspunkt auf Repository-Ebene |
+| `docs/07_pruefberichte/` | gesonderter Dokumentationsbereich für Prüfberichte |
+| `pyproject.toml` | zentrale Projekt- und Architekturdefinition |
+| `src/arbeitszeit/presentation/` | Einstiegspunkte für betriebliche und administrative Abläufe |
+| `src/arbeitszeit/infrastructure/` | technische Prüf-, Konfigurations- und Laufzeitbausteine |
+| `README.md` | übergeordnete Projektdokumentation |
 
-| Parameter | Bedeutung | Standard |
-|---|---|---|
-| `--report-dir <PFAD>` | Verzeichnis mit den Rohdaten von `run_audit.sh` | `docs/audits/reports` |
-| `--output <PFAD>` | Ausgabedatei | `<report-dir>/audit-notes-<DATUM>.md` |
+Die Tabelle benennt nur Quellen, deren Existenz oder Rolle aus den eingelesenen
+Repository-Befunden sicher ableitbar ist. Sie erhebt keinen Anspruch auf eine
+vollständige inhaltliche Tiefenanalyse von `run_audit.sh`, weil diese aus dem
+hier gesicherten Material nicht im Detail wiedergegeben werden kann.
 
-Jeder Parser des Skripts liefert bei fehlender Quelldatei `{"available": False}`
-zurück, statt Werte zu schätzen oder zu erfinden. Der erzeugte Bericht ist in
-folgender fester Abschnittsreihenfolge aufgebaut:
+## Einordnung von `run_audit.sh`
 
-1. **Überblick** – Codebasisgröße in KLoC (aus `radon raw`) sowie Testanzahl,
-   aufgeschlüsselt nach `tests/domain/`, `tests/application/`,
-   `tests/integration/` und `tests/e2e/` (gezählt werden Dateien nach dem
-   Muster `test_*.py`, ohne `conftest.py`/`__init__.py`).
-2. **Linting (Ruff)** – Gesamtanzahl der Befunde sowie gesondert ausgewiesene
-   Kategorien `E501` (line-too-long), `F401` (unused-import) und die
-   `B`-Serie (Bugbear).
-3. **Typprüfung (Mypy)** – bei Erfolg „Fehler insgesamt: 0“ mit Anzahl der
-   geprüften Quelldateien; bei Fehlern die Gesamtzahl sowie bis zu 5
-   Beispielzeilen.
-4. **Komplexität (Radon)** – Durchschnittswert und -note der zyklomatischen
-   Komplexität sowie eine Tabelle aller „Hotspots“ mit CC ≥ 10
-   (Datei, Block, CC-Wert).
-5. **Architektur (import-linter)** – Anzahl geprüfter Contracts, Anzahl
-   Verstöße sowie Detailzeilen zu Verstößen.
-6. **Security (Bandit)** – Anzahl der Funde nach Schweregrad (High/Medium/Low),
-   gescannte LOC, `nosec`-Marker sowie eine Tabelle aller HIGH- und
-   MEDIUM-Funde (ID, Datei, Zeile, Beschreibung).
-7. **Tests & Coverage** – Gesamt-Coverage in Prozent (aus `coverage.xml`,
-   Cobertura-Format) sowie eine Tabelle der Dateien mit Coverage unter 60 %.
-8. **Maßnahmenplan** – dynamisch erzeugte, priorisierte Liste offener
-   Maßnahmen. Ein Eintrag wird jeweils nur aufgenommen, wenn die zugehörige
-   Bedingung zutrifft:
-   1. Bandit-Funde mit Schweregrad HIGH oder MEDIUM in Summe > 0
-   2. import-linter-Verstöße (`broken`) > 0
-   3. Mypy meldet keinen Erfolg und Gesamtfehleranzahl > 0
-   4. Ruff-Gesamtbefunde > 0
-   5. Radon-Hotspots mit CC ≥ 15 (bis zu drei Blocknamen werden genannt)
-   6. Gesamt-Coverage < 80 % (der zugehörige Maßnahmentext verweist dabei auf
-      die Anzahl der Dateien mit Coverage < 60 %, wie sie im Abschnitt
-      „Tests & Coverage“ ausgewiesen werden)
+Die Datei `run_audit.sh` ist als eigenständiges Shell-Skript im Wurzelverzeichnis
+vorhanden. Damit ist belegt, dass das Repository einen separaten Einstiegspunkt
+für Audit- oder Prüfabläufe vorsieht.
 
-   Treffen keine der Bedingungen zu, gibt der Bericht den Text
-   „_Keine offenen Maßnahmen identifiziert – alle Checks bestanden._“ aus.
+Aus dem alleinigen Dateinamen lässt sich jedoch ohne zusätzliche, hier nicht
+explizit gesicherte Skriptinhalte keine vollständige Detailbeschreibung des
+konkreten Prüfablaufs ableiten. Dieses Kapitel dokumentiert daher nur sicher,
+dass ein solcher Einstiegspunkt vorhanden ist.
 
-> ⚠️ `run_audit.sh` benötigt zusätzlich installierte Tools (`mypy`, `radon`,
-> `bandit`), die in `pyproject.toml` unter `[project.optional-dependencies]`
-> (Gruppe `dev`) nicht als Pflichtabhängigkeiten geführt sind. Dort sind nur
-> `pytest`, `pytest-cov`, `pypdf`, `ruff` und `import-linter` gelistet.
+## Zusammenhang mit der Architektur
 
-Die von den Analyse-Tools verwendete Konfiguration ist in `pyproject.toml`
-hinterlegt:
+Die belegte Schichtenarchitektur aus `pyproject.toml` trennt Präsentation,
+Infrastruktur, Anwendung und Domäne. Diese Trennung ist für Audit- und
+Prüfzwecke relevant, weil sie eine klar strukturierte technische und fachliche
+Abgrenzung im Projekt vorgibt.
 
-- `[tool.ruff]`: `line-length = 100`, `target-version = "py314"`,
-  `[tool.ruff.lint] select = ["E", "F", "W", "I", "B"]`, `ignore = []`;
-  ausgeschlossen sind `.git`, `.venv`, `__pycache__` und
-  `docs/audits/reports`.
-- `[tool.mypy]`: `python_version = "3.14"`, `strict = true`,
-  `disallow_incomplete_defs = true`, `disallow_untyped_defs = true`,
-  `ignore_missing_imports = true`, `warn_unused_ignores = true`,
-  `warn_return_any = true`; ausgeschlossen sind `^\.venv/` und
-  `^docs/audits/reports/`.
-- `[tool.importlinter]`: ein Contract „Clean Architecture -
-  Layer-Abhaengigkeiten“ vom Typ `layers` mit der Schichtreihenfolge
-  `arbeitszeit.presentation` → `arbeitszeit.infrastructure` →
-  `arbeitszeit.application` → `arbeitszeit.domain`.
+Zusätzlich ist in `pyproject.toml` eine Architekturprüfung mit
+`import-linter` hinterlegt. Bereits dieser Befund zeigt, dass die Einhaltung
+von Schichtgrenzen im Projekt nicht nur dokumentiert, sondern technisch
+berücksichtigt wird.
 
-> ℹ️ Im Repository liegen zwei Audit-bezogene Verzeichnisse nebeneinander:
-> `docs/audits/reports/` enthält die Rohdaten eines abgeschlossenen Laufs vom
-> 16.06.2026 (`ruff-report.txt`, `mypy-report.txt`, `radon-cc.txt`,
-> `radon-raw.txt`, `import-linter.txt`, `bandit-report.json`,
-> `coverage.xml`, `pytest.txt`) – dieser Pfad entspricht weiterhin dem in
-> `run_audit.sh` fest codierten `BASE_DIR="docs/audits/reports"`.
-> `docs/08_planung_intern/audits/` enthält demgegenüber ältere, manuell
-> erstellte Audit-Berichte (`audit_arbeitszeit_v1_*.md`) sowie eine bereits
-> gerenderte Fassung `reports/audit-notes-2026-06-16.md`. Eine Datei
-> `audit-notes-2026-06-16.md` direkt unter `docs/audits/reports/` (dem von
-> `run_audit.sh` erzeugten Standardpfad) existiert im aktuellen
-> Repository-Stand nicht.
+## Prüfnahe Infrastruktur
 
-## Sicher belegt
+Im Infrastrukturpaket sind mit `system_check.py`, `notification.py`,
+`time_monitor.py`, dem Datenbankbereich und der Konfigurationsunterstützung
+mehrere technische Bausteine vorhanden, die für Prüf-, Diagnose- oder
+Überwachungszwecke relevant sind.
 
-Die folgenden Aussagen sind durch die tatsächlich gelesenen Dateien abgesichert:
+Insbesondere `run_system_check(...)` wird im Terminalbetrieb vor dem laufenden
+Buchungsbetrieb ausgeführt. Das zeigt, dass zumindest ein Teil der prüfenden
+Logik direkt in den Betriebsablauf eingebunden ist.
 
-- Python-Anforderung `>=3.14,<3.15`
-- Paketabhängigkeiten aus `pyproject.toml`
-- Trennung in `presentation`, `infrastructure`, `application`, `domain`
-- Vorhandensein von `scripts/init_db.py`, `scripts/setup.py`, `scripts/backup.py`
-- Bootstrap des ersten Administratorkontos
-- Zulässige Rollen für `users add`: `ADMIN`, `REVIEWER`, `TECH`
-- Mitarbeiterverwaltung über `employees add`
-- `employees deactivate` und `cards deactivate` erfordern positionale IDs
-- `cards replace` erfordert `--old-card-id` und `--uid-hash`
-- `users deactivate`, `users reactivate` und `users change-role` erfordern
-  ein eigenes `--user-id` für das Zielkonto
-- Kartenzuweisung über `cards assign --uid-hash`
-- Terminal-UI mit Pflichtparametern `--db`, `--numpad`, `--rfid`,
-  `--terminal-id`
-- Admin-CLI mit verpflichtendem `--db`; Benutzer-ID alternativ über
-  `ADMIN_USER_ID`
-- `setup.py` unterstützt nicht-interaktiven Aufruf mit `--backup-dir` und
-  `--export-dir`
-- Vierstellige Migrationsversionen `0001` bis `0006`
-- NAS-bezogene Konfigurationsschlüssel im Backup-Skript
-- `scripts/verify_hardware.py` für Hardware-Smoke-Tests
-- `run_audit.sh` und `scripts/generate_audit_notes.py` für Code-Audits
-  (Details siehe Abschnitt „Code-Audit" oben)
+## Administrativer Prüfbezug
 
-## Nicht überbehaupten
+Auch die administrative Oberfläche weist einen nachvollziehbaren Prüfbezug auf.
+In `admin_cli/main.py` sind unter anderem Berichtsbefehle, Systembefehle und
+Befehle für offene oder warnrelevante Fälle registriert.
 
-Die folgenden Punkte sollten in einer technischen Dokumentation nur dann
-detailliert dargestellt werden, wenn ihre Implementierung vollständig gelesen
-und verifiziert wurde:
+Belegt sind insbesondere Befehlsnamen wie `open-bookings`, `warn-cases`,
+`corrections`, `supplements` und `open-review-cases`. Diese Benennungen
+zeigen, dass das System administrative Sichtweisen auf prüfungsrelevante oder
+nachbearbeitungsbedürftige Sachverhalte unterstützt.
 
-- genaue interne RFID-Hash-Bildung und zugehörige Dateipfade
-- konkrete Restore-Abläufe und Restore-Befehle
-- konkrete `system_events`-Ereignistypen außerhalb nachweislich gelesener
-  Stellen
-- exakte Inhalte nicht gelesener Module oder Verzeichnisse
-- Hardware-Aussagen zu Plattformen, die im gelesenen Code nicht ausdrücklich
-  genannt sind
+## Dokumentationsbezug
 
-## Empfohlene nächste Prüfungen
+Die Verzeichnisstruktur unter `docs/` enthält mit `07_pruefberichte/` einen
+explizit benannten Bereich für Prüfberichte. Zusätzlich ist die gesamte
+Projektdokumentation in mehrere fachliche Teilbereiche gegliedert.
 
-Für eine vollständige, dauerhaft belastbare Dokumentation sollten als nächstes
-gezielt separat geprüft werden:
+Daraus lässt sich sicher ableiten, dass Audit- oder Prüfresultate im Projekt
+nicht nur technisch, sondern auch dokumentarisch vorgesehen sind. Nicht sicher
+ableitbar ist aus dem hier abgesicherten Material jedoch der konkrete Inhalt
+aller dort enthaltenen Berichte.
 
-1. `migrations/0001_schema.sql` im Volltext für die exakte Datenbankdokumentation
-2. `src/arbeitszeit/domain/enums.py` für belastbare Dokumentation der Enums
-3. `src/arbeitszeit/infrastructure/hardware/evdev_reader.py` für belastbare
-   Hardwarebeschreibung
-4. `scripts/show_config.py` nur dann dokumentieren, wenn seine Optionen und
-   Ausgabeformate tatsächlich gelesen wurden
-5. Admin-CLI-Unterdateien `bookings.py`, `reports.py`, `schedule.py` und
-   `system.py` für vollständige Befehls- und Rollenbeschreibung
+## Grenzen der Aussagekraft
+
+Dieses Kapitel verzichtet bewusst auf eine detaillierte Funktionsbeschreibung
+von `run_audit.sh`, solange der vollständige Skriptinhalt nicht als direkt
+abgesicherte Quelle vorliegt. Ebenso werden keine konkreten Auditmetriken,
+Prüfkriterien, Exit-Codes oder Toolketten behauptet, die aus dem hier
+nachweislich eingelesenen Material nicht eindeutig belegt sind.
+
+Die Beschreibung bleibt daher bei folgenden sicheren Aussagen:
+
+- `run_audit.sh` existiert als separater Audit-Einstiegspunkt.
+- `docs/07_pruefberichte/` existiert als eigener Prüfberichtsbereich.
+- Die Architektur enthält eine technisch hinterlegte Schichtenprüfung.
+- Es existieren prüfnahe System- und Berichtsfunktionen in den laufenden
+  Projektmodulen.
+
+## Einordnung für Anwender
+
+Für Anwender bedeutet der belegte Repository-Stand vor allem, dass das Projekt
+neben dem Buchungs- und Verwaltungsbetrieb auch Prüf- und Kontrollbezüge
+berücksichtigt. Diese Bezüge zeigen sich in separaten Audit- oder
+Prüfartefakten, in administrativen Auswertungsbefehlen und in technischen
+Prüfkomponenten.
+
+Welche einzelnen Prüfabläufe vollständig automatisiert durch `run_audit.sh`
+ausgeführt werden, bleibt in dieser Fassung absichtlich offen, solange diese
+Details nicht unmittelbar und belastbar aus dem eingelesenen Material zitiert
+werden können.

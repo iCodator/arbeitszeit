@@ -1,270 +1,182 @@
-# Handbuch `arbeitszeit` – Präsentationsschicht (`src/arbeitszeit/presentation`)
+# Handbuch `arbeitszeit` – Presentation
 
-**Kapitel:** 3
-**Version:** 1.0
+**Kapitel:** 4
+**Version:** 1.1
 **Stand:** Juli 2026
-**Quelldatei:** `docs/module/handbuch_presentation.md`
+**Quelldatei:** `docs/02_anwender/module/handbuch_presentation.md`
 
-## Überblick und Aufbau
+## Zweck
 
-Die Präsentationsschicht ist die äußerste Schale des Systems und bildet
-die einzige Schnittstelle zwischen Benutzer (oder Administrator) und der
-darunterliegenden Fach- und Anwendungslogik. Sie enthält keine
-Geschäftslogik, sondern übersetzt ausschließlich Benutzereingaben in
-Kommandos der Anwendungsschicht und gibt Ergebnisse als lesbare Texte
-aus. Das Paket gliedert sich in zwei eigenständige Untermodule:
+Die Präsentationsschicht bündelt die Benutzerschnittstellen des Systems.
+Im Repository ist sie unter `src/arbeitszeit/presentation/` organisiert und
+enthält zwei getrennte Oberflächen: `admin_cli` und `terminal_ui`.
 
-- `presentation/terminal_ui/` – operativer Buchungsbetrieb (Endlosschleife, RFID + Numpad)
-- `presentation/admin_cli/` – administrative Verwaltung (Kommandozeile, rollenbasiert)
+Diese Trennung ist nicht nur eine Verzeichnisstruktur, sondern Teil des
+architektonischen Schichtenmodells. In `pyproject.toml` ist die
+Präsentationsschicht ausdrücklich als oberste Ebene der konfigurierten
+Layer-Struktur hinterlegt.
 
----
+## Aufbau
 
-## Terminal-UI (`terminal_ui/`)
+Unter `src/arbeitszeit/presentation/` sind folgende Teilbereiche belegt:
 
-### Zweck und Betriebsmodus
-
-Die Terminal-UI ist der im laufenden Praxisbetrieb aktive Prozess. Sie
-startet beim Systemstart als Endlosschleife und wartet kontinuierlich auf
-Hardware-Eingaben: zuerst Auswahl der Buchungsart über das Numpad, dann
-RFID-Kartenscan. Der Prozess reagiert auf `SIGTERM` und `SIGINT`
-(Strg+C) mit einem sauberen Graceful Shutdown.
-
-### Startparameter
-
-Die Terminal-UI wird mit vier Pflichtargumenten gestartet:
-
-```bash
-python -m arbeitszeit.presentation.terminal_ui.main \
-  --db /pfad/zur/datenbank.db \
-  --numpad /dev/input/eventX \
-  --rfid /dev/input/eventY \
-  --terminal-id 1
-```
-
-### Startverhalten und Systemcheck
-
-Vor dem Eintritt in die Buchungsschleife führt `run()` automatisch einen
-Systemcheck durch. Schlägt der Check fehl, wird eine
-Desktop-Benachrichtigung ausgelöst (`notify(…, urgency="critical")`),
-aber der Buchungsbetrieb wird **nicht** abgebrochen — die Praxis soll
-arbeitsfähig bleiben. Fehlerdetails werden in der Tabelle
-`system_events` gespeichert.
-
-### Buchungszyklus (`booking_loop.py`)
-
-Jeder Buchungszyklus läuft in drei Schritten ab:
-
-1. **Numpad-Eingabe:** Der Mitarbeiter wählt die Buchungsart (Kommen,
-   Gehen, Pause-Start, Pause-Ende) über das USB-Numpad.
-2. **RFID-Scan:** Das System wartet auf den Kartenscan. Das Timeout ist
-   konfigurierbar über `booking.grace_seconds_after_numpad_select` in
-   `system_config` (Standardwert: 5 Sekunden).
-3. **Buchungsverarbeitung:** Das Geräteereignis (`RFID_SCAN`) wird
-   **vor** dem eigentlichen `BookUseCase`-Aufruf in `device_events`
-   gespeichert — absichtlich, damit auch fachlich gescheiterte Buchungen
-   (z. B. unbekannte Karte) lückenlos protokolliert bleiben.
-
-### Feedback-Ausgabe
-
-Nach jeder Buchung gibt das Terminal eine einzeilige Rückmeldung aus.
-
-| Status | Ausgabe |
+| Pfad | Aufgabe |
 | --- | --- |
-| `OPEN` / `OK` | `Buchung erfasst.` |
-| `WARN` | `Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.` |
-| `NEEDS_REVIEW` | `Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.` |
+| `src/arbeitszeit/presentation/admin_cli/` | Administrative Kommandozeilenschnittstelle |
+| `src/arbeitszeit/presentation/terminal_ui/` | Operative Terminaloberfläche für Buchungen |
 
-### Domänenfehler-Behandlung
+Die Präsentationsschicht enthält damit zwei unterschiedliche Zugangswege zum
+System. Die Admin-CLI ist auf Verwaltung und Auswertung ausgelegt, während die
+Terminal-UI für den laufenden Buchungsbetrieb mit Eingabegeräten vorgesehen
+ist.
 
-Bekannte Domänenfehler werden in menschenlesbare Meldungen übersetzt und
-ausgegeben, ohne den Prozess zu beenden:
+## Admin-CLI
 
-| Fehlerklasse | Anzeige |
+Der Einstiegspunkt der administrativen Oberfläche liegt in
+`src/arbeitszeit/presentation/admin_cli/main.py`. Das Modul definiert eine
+Argumentstruktur mit den globalen Optionen `--config`, `--db` und `--user-id`
+sowie eine Unterbefehlsstruktur über `argparse`.
+
+Registriert werden Unterbefehle aus den Modulen `employees`, `bookings`,
+`schedule`, `reports`, `system` und `user_accounts`. Die Befehlsausführung
+wird in `_dispatch()` über eine Zuordnungstabelle auf konkrete Handlerfunktionen
+abgebildet.
+
+## Auflösung der Eingaben
+
+Die Admin-CLI lädt eine optionale `config.toml` über `_load_app_config()`.
+Dabei wird entweder ein explizit übergebener Pfad verwendet oder eine Datei
+über `find_config()` gesucht.
+
+Für den Datenbankpfad gilt laut `_resolve_db_path()` die Reihenfolge:
+CLI-Argument `--db`, danach `config.toml`. Für die Benutzer-ID gilt laut
+`_resolve_user_id()` die Reihenfolge: `--user-id`, dann Umgebungsvariable
+`ADMIN_USER_ID`, dann `config.toml`; fehlt danach weiterhin ein Wert, beendet
+sich das Programm mit einer Fehlermeldung.
+
+## Startverhalten der Admin-CLI
+
+Nach dem Parsen der Argumente lädt `run()` zunächst die Konfiguration und
+ermittelt den Datenbankpfad. Anschließend wird für fast alle Befehle eine
+Datenbankverbindung geöffnet, `run_migrations(conn)` ausgeführt und danach die
+jeweilige Operation gestartet.
+
+Eine Sonderbehandlung existiert für `users bootstrap`. Dieser Pfad benötigt
+laut Kommentar keine Benutzer-ID, weil es zu diesem Zeitpunkt noch keinen
+Administrator geben kann. Auch in diesem Fall werden jedoch Migrationen vor der
+Befehlsausführung gestartet.
+
+## Themenbereiche der Admin-CLI
+
+Aus `main.py` ergeben sich folgende Themenbereiche mit belegten Befehlen:
+
+| Bereich | Belegte Befehle |
 | --- | --- |
-| `UnknownCardError` | `Karte nicht erkannt.` |
-| `InactiveCardError` | `Karte deaktiviert.` |
-| `InactiveEmployeeError` | `Mitarbeiter inaktiv.` |
-| `InvalidBookingSequenceError` | `Ungültige Buchungsreihenfolge.` |
-| `OpenPhaseConflictError` | `Offene Phase — bitte zuerst abschließen.` |
+| `employees` | `list`, `add`, `deactivate` |
+| `cards` | `assign`, `replace`, `deactivate` |
+| `bookings` | `correct`, `supplement`, `approve-supplement`, `reject-supplement` |
+| `schedule` | `set`, `show` |
+| `reports` | `export-csv`, `export-csv-review-cases`, `export-pdf-day`, `export-pdf-week`, `export-pdf-month`, `export-pdf-employee`, `open-bookings`, `warn-cases`, `corrections`, `supplements`, `open-review-cases` |
+| `system` | `check`, `backup`, `setup` |
+| `users` | `add`, `list`, `deactivate`, `reactivate`, `change-role`, `bootstrap` |
 
-Unerwartete Ausnahmen werden in `system_events` protokolliert; der
-Betrieb läuft weiter.
+Die Präsentationsschicht der Admin-CLI bildet damit einen breiten Teil der
+administrativen Bedienung ab. Die Befehle selbst liegen in getrennten Modulen,
+werden aber zentral über `main.py` verbunden.
 
----
+## Terminal-UI
 
-## Admin-CLI (`admin_cli/`)
+Der Einstiegspunkt des Terminalbetriebs liegt in
+`src/arbeitszeit/presentation/terminal_ui/main.py`. Das Modul beschreibt sich
+selbst als Einstiegspunkt für die Endlosschleife des operativen
+Buchungsbetriebs.
 
-### Zweck
+Die Kommandozeilenparameter sind `--config`, `--db`, `--numpad`, `--rfid` und
+`--terminal-id`. Die Werte werden nach dem Laden einer optionalen
+`config.toml` mit `_resolve_or_exit()` in der Priorität CLI-Wert vor
+Konfigurationswert aufgelöst; fehlt ein Pflichtwert, wird das Programm mit
+Fehlerausgabe beendet.
 
-Die Admin-CLI ist das Verwaltungswerkzeug für Administratoren und
-technisches Personal. Sie wird als `admin`-Programm gestartet, erfordert
-immer die Datenbankdatei (`--db`) und eine Benutzer-ID (`--user-id`
-oder Umgebungsvariable `ADMIN_USER_ID`), und verteilt alle Aufrufe über
-eine zentrale Dispatch-Tabelle an spezialisierte Handler-Module.
+## Ablauf des Terminalbetriebs
 
-### Grundaufruf
+Die Funktion `run()` ist der zentrale Ablauf der Terminaloberfläche. Vor dem
+Start der Endlosschleife werden zunächst die Eingabegeräte über
+`resolve_evdev_device()` aufgelöst.
 
-```bash
-admin --db /pfad/zur/datenbank.db --user-id 1 <domain> <subcommand> [optionen]
-```
+Danach wird `run_system_check()` ausgeführt. Wenn der Systemcheck Fehler
+meldet, wird zwar eine Warnung ausgegeben und eine Benachrichtigung ausgelöst,
+der Buchungsbetrieb wird jedoch laut Kommentar ausdrücklich nicht mit
+`sys.exit()` blockiert.
 
-Alternativ zur `--user-id`-Option kann die Umgebungsvariable
-`ADMIN_USER_ID` gesetzt werden. Die einzige Ausnahme ist
-`users bootstrap` — dieser Befehl benötigt keine Benutzer-ID, da noch
-kein Admin existiert.
+## Initialisierung im Terminalbetrieb
 
-### Rollenmodell
+Vor dem eigentlichen Buchungszyklus werden weitere Systemschritte ausgeführt:
 
-Alle schreibenden Operationen prüfen die Rolle des aufrufenden Benutzers
-direkt gegen die Tabelle `user_accounts`. Es gibt drei Rollen:
+- `_ensure_terminal_exists()` legt den Terminaleintrag in der Tabelle
+  `terminals` bei Bedarf mit `INSERT OR IGNORE` an.
+- `_setup_file_logging()` richtet dateibasiertes Logging ein.
+- `load_threshold_from_config(db_path)` liefert den Schwellwert für die
+  Zeitüberwachung.
+- `SQLiteSystemConfigRepository(...).get_current(...)` liest den Wert für
+  `booking.grace_seconds_after_numpad_select`.
+- `EvdevHardwareReader(...)` wird mit Numpad-, RFID- und Timeoutwerten
+  initialisiert.
 
-| Rolle | Erlaubte Bereiche |
+Diese Initialisierung zeigt, dass die Terminal-UI nicht nur eine Eingabeschicht
+ist, sondern mehrere Infrastrukturbausteine orchestriert.
+
+## Buchungsschleife
+
+Im laufenden Betrieb verarbeitet die Endlosschleife wiederholt
+`_run_one_cycle(...)`. Dabei wird zuerst `monitor.check()` aufgerufen und danach
+`process_booking(reader, db_path, terminal_id)` ausgeführt.
+
+Das Ergebnis einer erfolgreichen Buchung wird über `format_feedback(...)`
+ausgegeben. Für mehrere Domänenfehler sind feste Benutzermeldungen hinterlegt,
+unter anderem für unbekannte Karten, deaktivierte Karten, inaktive
+Mitarbeitende, ungültige Buchungsfolgen und offene Phasenkonflikte.
+
+## Fehlerbehandlung und Signale
+
+Nicht behandelte Ausnahmen innerhalb eines Buchungszyklus führen nicht zum
+sofortigen Abbruch der Endlosschleife. Stattdessen wird eine Fehlermeldung auf
+`stderr` ausgegeben, ein Stacktrace protokolliert und über `_log_system_event()`
+ein Eintrag in `system_events` geschrieben.
+
+Für den kontrollierten Stopp registriert `run()` Handler für `SIGTERM` und
+`SIGINT`. Die Schleife läuft dabei nur solange die lokale Variable `running`
+auf `True` steht; beim Signalempfang wird sie auf `False` gesetzt.
+
+## Beteiligte Module
+
+Aus der Präsentationsschicht sind folgende Dateien unmittelbar belegt:
+
+| Pfad | Rolle |
 | --- | --- |
-| `ADMIN` | Alle Operationen (Lesen + Schreiben) |
-| `REVIEWER` | Berichte, Buchungsüberprüfung, Nachträge genehmigen/ablehnen |
-| `TECH` | Systemcheck, Backup |
+| `src/arbeitszeit/presentation/admin_cli/main.py` | zentraler Einstiegspunkt der Admin-CLI |
+| `src/arbeitszeit/presentation/admin_cli/employees.py` | Mitarbeitenden- und Kartenbefehle |
+| `src/arbeitszeit/presentation/admin_cli/bookings.py` | Buchungskorrekturen und Ergänzungen |
+| `src/arbeitszeit/presentation/admin_cli/schedule.py` | Dienstplanfunktionen |
+| `src/arbeitszeit/presentation/admin_cli/reports.py` | Berichte und Exporte |
+| `src/arbeitszeit/presentation/admin_cli/system.py` | Systemfunktionen |
+| `src/arbeitszeit/presentation/admin_cli/user_accounts.py` | Benutzerkontenverwaltung |
+| `src/arbeitszeit/presentation/admin_cli/_auth.py` | unterstützende Authentifizierungslogik |
+| `src/arbeitszeit/presentation/admin_cli/_intervals.py` | Hilfslogik für Intervalle |
+| `src/arbeitszeit/presentation/terminal_ui/main.py` | Einstiegspunkt des Terminalbetriebs |
+| `src/arbeitszeit/presentation/terminal_ui/booking_loop.py` | Ablauf der einzelnen Buchungszyklen |
 
-Lesende Operationen (z. B. `employees list`, `users list`) sind ohne
-Rolleneinschränkung nutzbar.
+Die Präsentationsschicht ist damit nicht auf reine Befehlsdefinitionen
+reduziert. Sie enthält sowohl die äußeren Einstiegspunkte als auch
+bedienungsnahe Ablaufsteuerung.
 
----
+## Einordnung
 
-## Domain: `employees` und `cards`
+Die im Repository belegte Präsentationsschicht dient als Übersetzer zwischen
+Benutzereingaben und den tieferen Schichten des Systems. Sowohl die Admin-CLI
+als auch die Terminal-UI greifen auf Anwendungs-, Infrastruktur- und
+Domänenmodule zu, bleiben dabei aber als separate Benutzerschnittstellen
+organisiert.
 
-### Mitarbeiterverwaltung (`employees.py`)
-
-| Befehl | Beschreibung | Rolle |
-| --- | --- | --- |
-| `employees list` | Alle Mitarbeiter tabellarisch auflisten | keine |
-| `employees add --personnel-no … --first-name … --last-name …` | Mitarbeiter anlegen | `ADMIN` |
-| `employees deactivate <id>` | Mitarbeiter deaktivieren | `ADMIN` |
-
-### Kartenverwaltung
-
-| Befehl | Beschreibung | Rolle |
-| --- | --- | --- |
-| `cards assign --employee-id … --uid-hash …` | Neue RFID-Karte einem Mitarbeiter zuweisen | `ADMIN` |
-| `cards replace --old-card-id … --uid-hash …` | Verlorene/defekte Karte ersetzen (alte Karte erhält Status `REPLACED`) | `ADMIN` |
-| `cards deactivate <id>` | Karte auf Status `INACTIVE` setzen | `ADMIN` |
-
-Jede schreibende Operation wird mit einem `_audit(…)`-Eintrag in
-`audit_log` protokolliert. Verwendete Ereignistypen:
-`EMPLOYEE_CREATED`, `EMPLOYEE_DEACTIVATED`, `CARD_ASSIGNED`,
-`CARD_REPLACED`, `CARD_DEACTIVATED`.
-
----
-
-## Domain: `bookings`
-
-Buchungskorrekturen und Nachträge laufen vollständig über Use Cases der
-Anwendungsschicht — die Rollenprüfung erfolgt dort, die CLI übernimmt
-nur Fehlerformatierung und Ausgabe.
-
-| Befehl | Beschreibung |
-| --- | --- |
-| `bookings correct --booking-id … --type … --at … --reason …` | Bestehende Buchung korrigieren; erzeugt einen neuen Korrektur-Datensatz und setzt die alte Buchung auf `CORRECTED` |
-| `bookings supplement --employee-id … --type … --at … --reason …` | Nachträgliche Buchung erfassen; erzeugt automatisch einen Prüffall (`review_case`) |
-| `bookings approve-supplement --supplement-id …` | Nachtrag freigeben → Buchung wird wirksam |
-| `bookings reject-supplement --supplement-id … --reason …` | Nachtrag ablehnen |
-
-Das `--at`-Argument erwartet ISO-8601-Format (z. B.
-`2026-07-01T08:00:00`). Fehlt die Zeitzone, wird UTC angenommen.
-
----
-
-## Domain: `schedule`
-
-Die Regelarbeitszeit wird versioniert gespeichert; jede Änderung erzeugt
-eine neue Version und schließt die Vorgängerversion.
-
-| Befehl | Beschreibung | Rolle |
-| --- | --- | --- |
-| `schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD [--employee-id ID]` | Regelarbeitszeit setzen — global oder mitarbeiterspezifisch | `ADMIN` ¹ |
-| `schedule show` | Alle aktiven Versionen anzeigen (global + mitarbeiterspezifisch) | `ADMIN`, `REVIEWER` |
-
-¹ Ohne `--employee-id` wird eine globale Version (`ScopeType.GLOBAL`) gesetzt; mit
-`--employee-id` eine mitarbeiterspezifische Ausnahme (`ScopeType.EMPLOYEE`). Die
-`ADMIN`-Prüfung erfolgt im `ManageWorkScheduleUseCase` (Anwendungsschicht), nicht
-in der CLI. `schedule show` prüft die Rolle direkt in der CLI (`_require_admin_or_reviewer`).
-
----
-
-## Domain: `reports`
-
-Alle Report-Befehle erfordern `ADMIN`- oder `REVIEWER`-Rolle. Das
-Export-Verzeichnis wird aus `system_config` (Schlüssel
-`export.export_dir`) gelesen.
-
-### Export-Befehle
-
-| Befehl | Beschreibung |
-| --- | --- |
-| `reports export-csv --from … --to … [--employee-id …]` | Zwei CSV-Dateien: Detailbuchungen + verdichtete Übersicht |
-| `reports export-pdf-day --date YYYY-MM-DD` | Tagesbericht als PDF |
-| `reports export-pdf-week --year YYYY --week WW` | Wochenbericht (ISO-Woche) als PDF |
-| `reports export-pdf-month --year YYYY --month MM` | Monatsbericht als PDF |
-| `reports export-pdf-employee --employee-id … --from … --to …` | Mitarbeiterbericht als PDF |
-| `reports export-csv-review-cases --from … --to … [--employee-id …]` | Offene Prüffälle als CSV exportieren |
-
-### Pflichtauswertungen
-
-| Befehl | Beschreibung |
-| --- | --- |
-| `reports open-bookings [--from … --to …] [--employee-id …]` | Buchungen mit Status `OPEN` ¹ |
-| `reports warn-cases --from … --to … [--employee-id …]` | Buchungen mit Status `WARN` oder `NEEDS_REVIEW` |
-| `reports corrections --from … --to … [--employee-id …]` | Alle Korrekturen im Zeitraum |
-| `reports supplements --from … --to … [--employee-id …]` | Alle Nachträge im Zeitraum |
-| `reports open-review-cases [--from … --to …] [--employee-id …]` | Offene Prüffälle ¹ |
-
-¹ Wird `--from`/`--to` weggelassen und liefert die Abfrage mehr als 50
-Einträge, erscheint ein Hinweis auf stderr, den Zeitraum einzugrenzen.
-
----
-
-## Domain: `system`
-
-| Befehl | Beschreibung | Rolle |
-| --- | --- | --- |
-| `system check` | Systemcheck auslösen; gibt Detailstatus aller Prüfpunkte aus; Exitcode 0 = OK, 1 = Fehler | `ADMIN`, `TECH` |
-| `system backup` | Manuelles Backup der SQLite-Datenbank auslösen; bei aktivierter NAS-Synchronisation (`backup.nas_enabled`) wird das Backup auch auf den NAS-Pfad kopiert | `ADMIN`, `TECH` |
-
-Der Backup-Dienst liest Zielverzeichnis und NAS-Pfad aus `system_config`.
-Schlägt die NAS-Synchronisation fehl, endet der Prozess mit Exitcode 1 —
-das lokale Backup ist zu diesem Zeitpunkt bereits erfolgreich erstellt.
-
----
-
-## Domain: `users`
-
-Passwörter werden mit PBKDF2-HMAC-SHA256 und 260.000 Iterationen gehasht
-(DSGVO Art. 32). Das Klartextpasswort wird nach der Ausgabe nirgends
-gespeichert.
-
-| Befehl | Beschreibung | Rolle |
-| --- | --- | --- |
-| `users bootstrap --username … [--password …]` | Erstes Administratorkonto anlegen (nur wenn noch kein aktiver Admin existiert) | — |
-| `users add --username … --role … [--employee-id …] [--password …]` | Neues Benutzerkonto anlegen | `ADMIN` |
-| `users list` | Alle Konten tabellarisch auflisten | keine |
-| `users deactivate --user-id …` | Benutzerkonto deaktivieren | `ADMIN` |
-| `users reactivate --user-id …` | Benutzerkonto reaktivieren | `ADMIN` |
-| `users change-role --user-id … --role …` | Rolle eines Kontos ändern | `ADMIN` |
-
-Wird `--password` weggelassen, generiert das System ein sicheres
-zufälliges Passwort und zeigt es **einmalig** auf der Konsole an.
-
----
-
-## Zeitraum-Hilfsfunktionen (`_intervals.py`)
-
-Alle Datums-/Zeitraumberechnungen in der Admin-CLI verwenden ausschließlich
-die drei Funktionen aus
-`src/arbeitszeit/presentation/admin_cli/_intervals.py`. Eigene
-Ad-hoc-Konstruktionen aus Benutzereingaben sind verboten, um
-UTC-Normalisierung und halboffene Intervalle `[from_dt, to_dt)`
-sicherzustellen.
-
-| Funktion | Beschreibung |
-| --- | --- |
-| `day_interval(day)` | `[day 00:00 UTC, next_day 00:00 UTC)` |
-| `week_interval(year, week)` | ISO-Woche: Montag 00:00 UTC bis Montag+7 00:00 UTC |
-| `month_interval(year, month)` | Erster bis (exklusiv) erster des Folgemonats, UTC |
+Nicht belegt ist in dieser Schicht eine grafische Desktop- oder
+Weboberfläche. Die vorhandenen Präsentationsmodule sind ausschließlich auf
+Kommandozeile und terminalnahen Betrieb ausgerichtet.
