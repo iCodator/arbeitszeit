@@ -1,47 +1,70 @@
 # Handbuch – `scripts/show_config.py`
 
-**Grundlage:** Ausschließlich der Quellcode `scripts/show_config.py`
-(SHA `ea5a4f2f68cdf699be0b469477cf95c52fc6b485`).
+**Kapitel:** 8
+**Version:** 1.1
+**Stand:** Juli 2026
+**Quelldatei:** `docs/02_anwender/module/handbuch_show_config.md`
+**Grundlage:** Ausschließlich der Quellcode `scripts/show_config.py` sowie die
+verwendeten Infrastrukturmodule für Konfigurations- und
+Datenbankzugriff.
 
----
+## Zweck
 
-## 1. Zweck
+`scripts/show_config.py` dient zur Anzeige der Laufzeitkonfiguration des
+Systems. Das Skript kann sowohl Werte aus einer `config.toml` als auch Einträge
+aus der Datenbanktabelle `system_config` lesen und auf der Konsole oder als
+JSON ausgeben.
 
-`show_config.py` liest Einträge aus der Tabelle `system_config` der
-`arbeitszeit`-SQLite-Datenbank und gibt sie auf der Konsole aus.
-Es handelt sich um ein reines Lesewerkzeug — es schreibt und verändert
-keine Datenbankeinträge.
+Das Skript ist ein reines Lesewerkzeug. Im vorliegenden Quellcode sind keine
+schreibenden Datenbankoperationen und keine Änderungen an der
+`config.toml` implementiert.
 
----
-
-## 2. Aufruf
+## Aufruf
 
 ```bash
-python scripts/show_config.py --db <DB_PATH> [--all-versions] [--json]
+python scripts/show_config.py --db <DB_PATH> [--config <CONFIG_PATH>] [--all-versions] [--json]
 ```
 
-Das Argument `--db` ist **zwingend erforderlich**. Fehlt die Datenbankdatei
-am angegebenen Pfad, bricht das Skript mit einer Fehlermeldung auf `stderr`
-und Exit-Code 1 ab.
+Das Argument `--db` ist zwingend erforderlich. Fehlt die Datenbankdatei am
+angegebenen Pfad, bricht das Skript mit einer Fehlermeldung auf `stderr` und
+Exit-Code 1 ab.
 
----
-
-## 3. Optionen
+## Optionen
 
 | Option | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
 | `--db DB_PATH` | Pfad | ja | Pfad zur SQLite-Datenbankdatei |
-| `--all-versions` | Flag | nein | Alle Versionen pro Key anzeigen (Standard: nur neueste) |
-| `--json` | Flag | nein | Ausgabe als JSON statt als Tabelle |
+| `--config CONFIG_PATH` | Pfad | nein | Pfad zu `config.toml`; ohne Angabe erfolgt automatische Suche |
+| `--all-versions` | Flag | nein | Alle Versionen pro Schlüssel anzeigen; Standard ist nur der jeweils aktuelle Stand |
+| `--json` | Flag | nein | Ausgabe als JSON statt als Textdarstellung |
 
-Die Langform `--json` wird intern auf das Attribut `as_json` abgebildet
-(argparse-Alias `dest="as_json"`).
+Die Langform `--json` wird intern auf das Attribut `as_json` abgebildet. Die
+Option `--config` überschreibt die automatische Suche nach der
+Konfigurationsdatei.
 
----
+## Datenquellen
 
-## 4. Abgefragte Datenbankfelder
+Das Skript verwendet zwei voneinander getrennte Datenquellen:
 
-Das Skript liest aus der Tabelle `system_config` folgende Spalten:
+1. `config.toml`, sofern ein Pfad übergeben oder eine Datei automatisch
+   gefunden wurde.
+2. die Tabelle `system_config` der angegebenen SQLite-Datenbank.
+
+Die automatische Suche nach `config.toml` erfolgt über `find_config()` aus
+`arbeitszeit.infrastructure.config_file`. Dabei werden der in diesem Modul
+implementierte Suchpfad über Umgebungsvariable, XDG-Pfad und lokales
+Arbeitsverzeichnis genutzt.
+
+## Abfrage der Datenbank
+
+Für die Datenbankausgabe sind zwei Abfragepfade implementiert:
+
+- `_current_config(db)` liefert pro `config_key` nur den Datensatz mit der
+  höchsten `version`.
+- `_all_versions(db)` liefert alle Versionen aller Schlüssel, sortiert nach
+  `config_key` aufsteigend und `version` absteigend.
+
+Das Skript liest aus `system_config` folgende Spalten:
 
 - `config_key`
 - `config_value_json`
@@ -51,99 +74,156 @@ Das Skript liest aus der Tabelle `system_config` folgende Spalten:
 - `changed_at`
 - `reason`
 
-**Ohne `--all-versions`:** Pro `config_key` wird nur der Datensatz mit
-dem höchsten `version`-Wert zurückgegeben (Unterabfrage `MAX(version)`).
+Die gelesenen Zeilen werden jeweils mit `dict(r)` in Wörterbücher überführt.
+Die Datenbankverbindung wird in beiden Abfragefunktionen explizit wieder
+geschlossen.
 
-**Mit `--all-versions`:** Alle Versionen aller Keys werden zurückgegeben,
-sortiert nach `config_key ASC, version DESC`.
+## Anzeige von `config.toml`
 
----
+Für die Anzeige der TOML-Konfiguration wird `_print_config_toml()` verwendet.
+Dabei werden nur Felder ausgegeben, deren Werte nicht `None` sind.
 
-## 5. Ausgabeformate
+Im Quellcode sind folgende ausgabefähige Felder belegt:
 
-### 5.1 Tabellenformat (Standard)
+- `database.path`
+- `terminal.id`
+- `terminal.numpad`
+- `terminal.rfid`
+- `backup.backup_dir`
+- `backup.export_dir`
+- `backup.log_dir`
+- `admin.user_id`
 
-Spalten der Ausgabe:
+Sind keine Werte gesetzt, gibt das Skript den Text `(keine Werte gesetzt)` aus.
+Schlägt das Laden der Datei fehl, wird eine Fehlermeldung in der Form
+`Fehler beim Lesen: ...` ausgegeben.
+
+## Textausgabe
+
+Ohne `--json` erzeugt das Skript eine zweigeteilte Textausgabe.
+
+Zuerst wird ein Abschnitt für `config.toml` ausgegeben:
+
+```text
+=== config.toml: <pfad> ===
+```
+
+Dabei sind drei Fälle implementiert:
+
+- Es wurde eine Datei gefunden und sie existiert: Die Werte werden formatiert
+  ausgegeben.
+- Es wurde ein Pfad bestimmt, aber die Datei existiert nicht: Ausgabe
+  `(Datei nicht vorhanden)`.
+- Es wurde keine Datei gefunden: Ausgabe
+  `(keine config.toml gefunden — nutze --config um Pfad anzugeben)`.
+
+Danach folgt immer der Datenbankabschnitt:
+
+```text
+=== DB (system_config): <db-pfad> ===
+```
+
+Für die Tabellenansicht der Datenbankwerte wird `_print_table()` verwendet.
+Die Ausgabe enthält folgende Spalten:
 
 | Spalte | Quelle | Hinweise |
 | --- | --- | --- |
-| `Schlüssel` | `config_key` | linksbündig, variable Breite |
-| `Wert` | `config_value_json` | JSON-dekodiert, max. 40 Zeichen, überlange Werte werden mit `…` abgeschnitten |
-| `Ver` | `version` | rechtsbündig, ganzzahlig |
-| `Herkunft` | `change_origin` | linksbündig, variable Breite |
-| `Geändert am` | `changed_at` | nur die ersten 16 Zeichen (`YYYY-MM-DDTHH:MM`) |
+| `Schlüssel` | `config_key` | linke Ausrichtung, dynamische Breite |
+| `Wert` | `config_value_json` | dekodiert über `_decode_value()`, Breite maximal 40 Zeichen |
+| `Ver` | `version` | rechtsbündige Ganzzahl |
+| `Herkunft` | `change_origin` | linke Ausrichtung, dynamische Breite |
+| `Geändert am` | `changed_at` | auf die ersten 16 Zeichen gekürzt |
 
-Die Spaltenbreiten für `Schlüssel` und `Herkunft` werden dynamisch aus dem
-Maximum aller Zeilenwerte plus Spaltenüberschrift berechnet. `Wert` ist
-auf 40 Zeichen begrenzt.
+Überlange Werte werden vor der Ausgabe mit einem abschließenden Ellipsenzeichen
+`…` gekürzt. Bei `--all-versions` wird zwischen Einträgen verschiedener
+`config_key` jeweils eine Leerzeile eingefügt.
 
-Mit `--all-versions` erscheint zwischen Einträgen verschiedener Keys
-eine Leerzeile.
-
-Am Ende der Tabelle steht eine Zählerzeile:
+Am Ende der Tabelle steht eine Zählerzeile in der Form:
 
 ```text
 N Eintrag/Einträge
 ```
 
-Sind keine Einträge vorhanden, gibt das Skript aus:
+Sind keine Datenbankeinträge vorhanden, gibt das Skript aus:
 
 ```text
 Keine Konfigurationseinträge vorhanden.
 ```
 
-### 5.2 JSON-Format (`--json`)
+## JSON-Ausgabe
 
-Gibt ein JSON-Array auf `stdout` aus. Jedes Element enthält folgende Felder:
+Mit `--json` gibt das Skript ein JSON-Objekt auf `stdout` aus. Die Ausgabe ist
+nicht auf die Datenbank beschränkt.
+
+Das oberste Objekt enthält mindestens den Schlüssel `db`. Dessen Wert ist eine
+Liste von Objekten mit folgenden Feldern:
 
 ```json
-[
-  {
-    "key": "<config_key>",
-    "value": <dekodierter JSON-Wert>,
-    "version": <integer>,
-    "change_origin": "<string>",
-    "changed_at": "<string>",
-    "reason": "<string|null>"
-  }
-]
+{
+  "key": "<config_key>",
+  "value": <dekodierter JSON-Wert>,
+  "version": <integer>,
+  "change_origin": "<string>",
+  "changed_at": "<string>",
+  "reason": "<string|null>"
+}
 ```
 
-Die Ausgabe erfolgt mit `indent=2` und `ensure_ascii=False` (Unicode-Zeichen
-werden nicht escaped). Das Feld `changed_by_user_id` erscheint in der
-JSON-Ausgabe **nicht** (es wird in der Tabellenausgabe ebenfalls nicht
-angezeigt — das Feld wird zwar aus der Datenbank gelesen, aber in keinem
-Ausgabepfad ausgegeben).
+Wenn eine `config.toml` gefunden wird und erfolgreich geladen werden kann,
+fügt das Skript zusätzlich ein Objekt `config_toml` hinzu. Dieses enthält:
 
----
+- `path`
+- `database_path`
+- `terminal_id`
+- `terminal_numpad`
+- `terminal_rfid`
+- `backup_dir`
+- `export_dir`
+- `log_dir`
+- `admin_user_id`
 
-## 6. Wertdekodierung
+Schlägt das Laden der TOML-Datei im JSON-Pfad fehl, wird statt `config_toml`
+das Feld `config_toml_error` gesetzt. Die JSON-Ausgabe erfolgt mit
+`ensure_ascii=False` und `indent=2`.
 
-Intern dekodiert `_decode_value()` jeden `config_value_json`-String mit
-`json.loads()`:
+## Wertdekodierung
 
-- `null` → `(nicht gesetzt)`
-- `str` → unveränderter String
-- alle anderen Typen → `str(val)`
-- ungültiges JSON oder `TypeError` → Rohwert wird unverändert ausgegeben
+Für die Tabellenansicht dekodiert `_decode_value()` jeden Wert aus
+`config_value_json` mittels `json.loads()`.
 
----
+Die implementierten Regeln lauten:
 
-## 7. Abhängigkeiten
+- JSON-`null` wird als `(nicht gesetzt)` ausgegeben.
+- Ein JSON-String wird unverändert zurückgegeben.
+- Andere erfolgreich dekodierte Typen werden mit `str(...)` in Text
+  umgewandelt.
+- Bei `json.JSONDecodeError` oder `TypeError` wird der Rohwert unverändert
+  zurückgegeben.
 
-Das Skript nutzt ausschließlich:
+Diese Dekodierungslogik gilt nur für die Textdarstellung. Im JSON-Ausgabepfad
+wird `config_value_json` direkt mit `json.loads(...)` in einen JSON-Wert
+überführt.
 
-- Python-Standardbibliothek (`argparse`, `json`, `sys`, `pathlib`)
+## Abhängigkeiten
+
+Das Skript verwendet folgende Module:
+
+- Python-Standardbibliothek: `argparse`, `json`, `sys`, `pathlib`
+- `arbeitszeit.infrastructure.config_file.find_config`
+- `arbeitszeit.infrastructure.config_file.load_config`
 - `arbeitszeit.infrastructure.db.connection.open_connection`
-  (internes Modul, kein Drittpaket)
 
-Die Datenbankverbindung wird in `_current_config()` und `_all_versions()`
-jeweils in einem `try/finally`-Block geöffnet und explizit geschlossen.
+Zusätzlich wird zu Beginn des Skripts das Projektverzeichnis `src` über
+`sys.path.insert(...)` in den Importpfad aufgenommen.
 
----
+## Abgrenzung
 
-## 8. Abgrenzung
+`scripts/show_config.py` ist ein Diagnose- und Prüfwerkzeug. Der Quellcode
+belegt keine Funktion zum Ändern von Datenbankwerten und keine Funktion zum
+Schreiben einer `config.toml`.
 
-`show_config.py` ist ein **Diagnosewerkzeug für den Betrieb und die
-Entwicklung**. Es schreibt keine Daten und nimmt keine Konfigurationsänderungen
-vor. Für interaktive Erstkonfiguration ist `scripts/setup.py` zuständig.
+Für die Einrichtung und Pflege der Konfigurationsdatei ist stattdessen im
+Repository das Skript `scripts/setup.py` vorhanden. Für den eigentlichen
+Buchungsbetrieb und die Administration existieren getrennte Einstiegspunkte
+unter `src/arbeitszeit/presentation/terminal_ui/` und
+`src/arbeitszeit/presentation/admin_cli/`.
