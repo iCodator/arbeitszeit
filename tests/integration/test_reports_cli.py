@@ -1,10 +1,11 @@
 """Integrationstests für admin_cli reports-Befehle."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -606,7 +607,10 @@ def test_cmd_export_csv_verwendet_app_config_export_dir(
 
 
 def test_cli_run_config_toml_wirkt_bis_export_befehl(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    make_config_toml: Callable[..., Path],
 ) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
@@ -614,12 +618,10 @@ def test_cli_run_config_toml_wirkt_bis_export_befehl(
     config_export_dir = tmp_path / "config_export"
     config_export_dir.mkdir()
 
-    config_toml = tmp_path / "config.toml"
-    config_toml.write_text(
-        f'[database]\npath = "{db}"\n\n'
-        f'[backup]\nexport_dir = "{config_export_dir}"\n\n'
-        f'[admin]\nuser_id = {admin_id}\n',
-        encoding="utf-8",
+    config_toml = make_config_toml(
+        database_path=db,
+        export_dir=config_export_dir,
+        admin_user_id=admin_id,
     )
 
     captured_dirs: list[Path] = []

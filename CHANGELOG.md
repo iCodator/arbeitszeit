@@ -5,6 +5,30 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Migration Schritt 2: zentrales config.toml-Test-Fixture] – 2026-07-15
+
+### Hinzugefügt
+
+- `tests/helpers.py` (neu, `__version__` 1.0): reine Hilfsfunktion
+  `make_config_toml(tmp_path, *, database_path, rfid, numpad, backup_dir,
+  export_dir, log_dir, admin_user_id, filename)` → `Path`. Konstruiert intern
+  `AppConfig` aus den Keyword-Argumenten und ruft `write_config()` auf — keine
+  manuellen TOML-Strings.
+
+- `tests/conftest.py` (neu, `__version__` 1.0): pytest-Fixture `make_config_toml`
+  (function-scope), das `helpers.make_config_toml` mit dem aktuellen `tmp_path`
+  als Factory zurückgibt. Damit repo-weit in allen Tests verfügbar.
+
+### Geändert
+
+- `tests/integration/test_reports_cli.py`: `from collections.abc import Callable`
+  ergänzt. `test_cli_run_config_toml_wirkt_bis_export_befehl` ersetzt manuellen
+  f-String-TOML-Block durch `make_config_toml(database_path=db,
+  export_dir=config_export_dir, admin_user_id=admin_id)`. Testverhalten unverändert.
+  `__version__` auf 1.1 erhöht.
+
+---
+
 ## [Migration Schritt 1: config.toml-Fallback für export_dir in reports.py] – 2026-07-15
 
 ### Geändert
