@@ -1,6 +1,6 @@
 """Admin-CLI: PDF/CSV-Export und Pflichtauswertungen (ADMIN/REVIEWER-Rolle)."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import json
@@ -9,6 +9,7 @@ import sys
 from datetime import date
 
 from arbeitszeit.application.queries import BookingRow, CorrectionRow, ReviewCaseRow, SupplementRow
+from arbeitszeit.infrastructure.config_file import AppConfig
 from arbeitszeit.infrastructure.export import csv_exporter, pdf_report_service
 from arbeitszeit.infrastructure.export.report_queries import (
     list_corrections,
@@ -27,14 +28,18 @@ from arbeitszeit.presentation.admin_cli._intervals import (
 _UNGEFILTERT_WARNSCHWELLE = 50
 
 
-def _get_export_dir(conn: sqlite3.Connection) -> str:
+def _get_export_dir(conn: sqlite3.Connection, app_config: AppConfig | None = None) -> str:
+    if app_config is not None and app_config.backup.export_dir is not None:
+        return str(app_config.backup.export_dir)
     row = conn.execute(
         "SELECT config_value_json FROM system_config "
         "WHERE config_key = 'export.export_dir' ORDER BY version DESC LIMIT 1"
     ).fetchone()
     if row is None:
         print(
-            "Fehler: system_config-Schlüssel 'export.export_dir' nicht gesetzt.",
+            "Fehler: export_dir nicht gesetzt. "
+            "Entweder [backup] export_dir in config.toml "
+            "oder system_config-Schlüssel 'export.export_dir'.",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -106,12 +111,15 @@ def _print_review_cases_table(rows: list[ReviewCaseRow]) -> None:
 
 
 def cmd_reports_export_csv(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
     require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
-    export_dir = Path(_get_export_dir(conn))
+    export_dir = Path(_get_export_dir(conn, app_config))
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
@@ -122,12 +130,15 @@ def cmd_reports_export_csv(
 
 
 def cmd_reports_export_csv_review_cases(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
     require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
-    export_dir = Path(_get_export_dir(conn))
+    export_dir = Path(_get_export_dir(conn, app_config))
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     employee_id = getattr(args, "employee_id", None)
@@ -136,46 +147,58 @@ def cmd_reports_export_csv_review_cases(
 
 
 def cmd_reports_export_pdf_day(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
     require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
-    export_dir = Path(_get_export_dir(conn))
+    export_dir = Path(_get_export_dir(conn, app_config))
     day = _parse_date(args.date)
     path = pdf_report_service.create_daily_report(conn, day, export_dir)
     print(f"PDF: {path}")
 
 
 def cmd_reports_export_pdf_week(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
     require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
-    export_dir = Path(_get_export_dir(conn))
+    export_dir = Path(_get_export_dir(conn, app_config))
     path = pdf_report_service.create_weekly_report(conn, args.year, args.week, export_dir)
     print(f"PDF: {path}")
 
 
 def cmd_reports_export_pdf_month(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
     require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
-    export_dir = Path(_get_export_dir(conn))
+    export_dir = Path(_get_export_dir(conn, app_config))
     path = pdf_report_service.create_monthly_report(conn, args.year, args.month, export_dir)
     print(f"PDF: {path}")
 
 
 def cmd_reports_export_pdf_employee(
-    conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
+    conn: sqlite3.Connection,
+    args: argparse.Namespace,
+    user_id: int,
+    app_config: AppConfig | None = None,
 ) -> None:
     require_admin_or_reviewer(conn, user_id)
     from pathlib import Path
 
-    export_dir = Path(_get_export_dir(conn))
+    export_dir = Path(_get_export_dir(conn, app_config))
     from_dt, _ = day_interval(_parse_date(args.from_date))
     _, to_dt = day_interval(_parse_date(args.to_date))
     path = pdf_report_service.create_employee_report(

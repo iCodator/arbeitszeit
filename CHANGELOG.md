@@ -5,6 +5,35 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Migration Schritt 1: config.toml-Fallback für export_dir in reports.py] – 2026-07-15
+
+### Geändert
+
+- `presentation/admin_cli/reports.py`: `_get_export_dir` erhält optionalen
+  Parameter `app_config: AppConfig | None = None`. Ist `app_config.backup.export_dir`
+  gesetzt, wird es als export_dir verwendet (Vorrang vor DB). DB-Fallback bleibt
+  erhalten. Fehlermeldung bei fehlendem export_dir nennt jetzt beide Quellen.
+  Alle 6 Export-Cmd-Funktionen erhalten `app_config: AppConfig | None = None`
+  und übergeben es an `_get_export_dir`. `AppConfig` importiert.
+  `__version__` auf 1.1 erhöht.
+
+- `presentation/admin_cli/main.py`: Die 6 Export-Lambdas
+  (`export-csv`, `export-csv-review-cases`, `export-pdf-day`, `export-pdf-week`,
+  `export-pdf-month`, `export-pdf-employee`) übergeben nun `app_config=app_config`
+  an die jeweilige Cmd-Funktion. `__version__` auf 1.3 erhöht.
+
+### Hinzugefügt
+
+- `tests/integration/test_reports_cli.py`: `__version__` 1.0 eingeführt.
+  Neue Imports: `AppConfig`, `BackupConfig` aus `config_file`, `run as cli_run`
+  aus `admin_cli/main`. 4 neue Tests: `test_get_export_dir_config_hat_vorrang_vor_db`
+  (config.toml-Wert gewinnt bei gesetztem DB-Wert), `test_get_export_dir_db_fallback_wenn_export_dir_none`
+  (DB-Fallback wenn `export_dir=None` in AppConfig), `test_cmd_export_csv_verwendet_app_config_export_dir`
+  (kein DB-Wert, app_config-Pfad landet im Mock-Aufruf), `test_cli_run_config_toml_wirkt_bis_export_befehl`
+  (Ende-zu-Ende via `cli_run` mit `--config`, kein `--db`, kein `--user-id`).
+
+---
+
 ## [Feature: Admin-CLI cards assign – config.toml-Fallback für --rfid] – 2026-07-15
 
 ### Geändert

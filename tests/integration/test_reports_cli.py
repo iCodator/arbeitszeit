@@ -1,5 +1,7 @@
 """Integrationstests für admin_cli reports-Befehle."""
 
+__version__ = "1.0"
+
 import argparse
 import json
 import sys
@@ -25,8 +27,10 @@ from arbeitszeit.domain.enums import (
     ReviewCaseType,
     ReviewSeverity,
 )
+from arbeitszeit.infrastructure.config_file import AppConfig, BackupConfig
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
+from arbeitszeit.presentation.admin_cli.main import run as cli_run
 from arbeitszeit.presentation.admin_cli.reports import (
     _get_export_dir,
     _parse_date,
@@ -522,3 +526,114 @@ def test_export_pdf_employee(
     finally:
         conn.close()
     assert "employee.pdf" in capsys.readouterr().out
+
+
+# --- Schritt-1-Tests: config.toml-Fallback für export_dir ---
+
+
+def test_get_export_dir_config_hat_vorrang_vor_db(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    db_export_dir = tmp_path / "db_export"
+    db_export_dir.mkdir()
+    _set_config(db, "export.export_dir", str(db_export_dir))
+
+    config_export_dir = tmp_path / "config_export"
+    config_export_dir.mkdir()
+    app_config = AppConfig(backup=BackupConfig(export_dir=config_export_dir))
+
+    conn = open_connection(db)
+    try:
+        result = _get_export_dir(conn, app_config)
+    finally:
+        conn.close()
+
+    assert result == str(config_export_dir)
+
+
+def test_get_export_dir_db_fallback_wenn_export_dir_none(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    db_export_dir = tmp_path / "db_export"
+    db_export_dir.mkdir()
+    _set_config(db, "export.export_dir", str(db_export_dir))
+
+    app_config = AppConfig(backup=BackupConfig(export_dir=None))
+
+    conn = open_connection(db)
+    try:
+        result = _get_export_dir(conn, app_config)
+    finally:
+        conn.close()
+
+    assert result == str(db_export_dir)
+
+
+def test_cmd_export_csv_verwendet_app_config_export_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+
+    config_export_dir = tmp_path / "config_export"
+    config_export_dir.mkdir()
+    app_config = AppConfig(backup=BackupConfig(export_dir=config_export_dir))
+
+    captured_dirs: list[Path] = []
+
+    def mock_export_detail(
+        conn: object, from_dt: object, to_dt: object, export_dir: Path, employee_id: object = None
+    ) -> Path:
+        captured_dirs.append(export_dir)
+        return export_dir / "detail.csv"
+
+    monkeypatch.setattr(
+        "arbeitszeit.presentation.admin_cli.reports.csv_exporter.export_detail",
+        mock_export_detail,
+    )
+    monkeypatch.setattr(
+        "arbeitszeit.presentation.admin_cli.reports.csv_exporter.export_condensed",
+        lambda *a, **kw: a[3] / "condensed.csv",
+    )
+
+    conn = open_connection(db)
+    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    try:
+        cmd_reports_export_csv(conn, args, admin_id, app_config=app_config)
+    finally:
+        conn.close()
+
+    assert len(captured_dirs) == 1
+    assert captured_dirs[0] == config_export_dir
+
+
+def test_cli_run_config_toml_wirkt_bis_export_befehl(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+
+    config_export_dir = tmp_path / "config_export"
+    config_export_dir.mkdir()
+
+    config_toml = tmp_path / "config.toml"
+    config_toml.write_text(
+        f'[database]\npath = "{db}"\n\n'
+        f'[backup]\nexport_dir = "{config_export_dir}"\n\n'
+        f'[admin]\nuser_id = {admin_id}\n',
+        encoding="utf-8",
+    )
+
+    captured_dirs: list[Path] = []
+
+    def mock_daily_report(conn: object, day: object, export_dir: Path) -> Path:
+        captured_dirs.append(export_dir)
+        return export_dir / "day_report.pdf"
+
+    monkeypatch.setattr(
+        "arbeitszeit.presentation.admin_cli.reports.pdf_report_service.create_daily_report",
+        mock_daily_report,
+    )
+
+    cli_run(["--config", str(config_toml), "reports", "export-pdf-day", "--date", "2026-01-15"])
+
+    assert len(captured_dirs) == 1
+    assert captured_dirs[0] == config_export_dir
