@@ -1,589 +1,507 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Handbuch arbeitszeit v1.6</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handbuch arbeitszeit — Version 1.7</title>
   <style>
-    :root {
-      --bg: #ffffff;
-      --text: #1f2328;
-      --muted: #57606a;
-      --border: #d0d7de;
-      --surface: #f6f8fa;
-      --link: #0969da;
-      --code-bg: #f6f8fa;
-      --max: 980px;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
-    main { max-width: var(--max); margin: 0 auto; padding: 40px 24px 80px; }
-    h1, h2, h3, h4, h5, h6 { line-height: 1.25; margin-top: 1.8em; margin-bottom: 0.6em; }
-    h1 { font-size: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 0.3em; margin-top: 0; }
-    h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25em; }
-    h3 { font-size: 1.25rem; }
-    p, ul, ol, table, pre { margin-top: 0; margin-bottom: 1rem; }
-    a { color: var(--link); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.15em 0.35em; border-radius: 6px; font-size: 0.92em; }
-    pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; overflow: auto; }
-    pre code { background: transparent; padding: 0; border-radius: 0; }
-    table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
-    th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
-    th { background: var(--surface); }
-    hr { border: 0; border-top: 1px solid var(--border); margin: 2rem 0; }
-    ul, ol { padding-left: 1.5rem; }
-    .meta { color: var(--muted); margin-bottom: 2rem; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #1a1a1a;
+  background: #ffffff;
+  padding: 2rem 1rem;
+  max-width: 820px;
+  margin: 0 auto;
+}
+
+/* ---- Überschriften ---- */
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 3px solid #2563eb;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+h2 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e3a6e;
+  margin-top: 2.5rem;
+  margin-bottom: 0.8rem;
+  padding-left: 0.6rem;
+  border-left: 4px solid #2563eb;
+}
+
+h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+}
+
+h5, h6 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
+}
+
+/* ---- Absätze ---- */
+p {
+  margin-bottom: 0.9rem;
+}
+
+/* ---- Inline Code ---- */
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.875em;
+  background: #f1f5f9;
+  color: #be185d;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ---- Code-Blöcke ---- */
+pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  margin: 0.8rem 0 1.2rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
+}
+
+/* ---- Listen ---- */
+ul, ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+}
+
+li {
+  margin-bottom: 0.35rem;
+}
+
+/* ---- Tabelle ---- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem 0;
+  font-size: 0.93rem;
+}
+
+th {
+  background: #1e3a6e;
+  color: #ffffff;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-weight: 600;
+}
+
+td {
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+tr:nth-child(even) td { background: #f9fafb; }
+tr:hover td { background: #eff6ff; }
+
+/* ---- Trennlinie ---- */
+hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+/* ---- Links ---- */
+a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+a:hover { text-decoration: underline; }
+
+/* ---- Glossar ---- */
+dl { margin: 0.5rem 0 1rem 0; }
+dt {
+  font-weight: 600;
+  color: #1e3a6e;
+  margin-top: 0.7rem;
+}
+dd {
+  margin-left: 1.5rem;
+  color: #374151;
+}
+
+/* ---- Druckoptimierung ---- */
+@media print {
+  pre { background: #f1f5f9; color: #111; border: 1px solid #ccc; }
+  a { color: #111; }
+}
+
   </style>
 </head>
 <body>
-  <main>
-    <h1 id="handbuch-arbeitszeit">Handbuch <code>arbeitszeit</code></h1>
-<p><strong>Version:</strong> 1.6 <strong>Stand:</strong> Juli 2026 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine Zahnarztpraxis</p>
-<p>Dieses Handbuch fasst die im Repository vorhandenen Handbuch- und Betriebsdokumente des Projekts <code>arbeitszeit</code> in einem einzigen, durchgängig lesbaren Dokument zusammen. Grundlage sind das bestehende Gesamthandbuch Version 1.5 sowie die separat vorliegenden Dokumente zum Datenbankschema, zur Konfigurationsdiagnose und zum Bereich Backup/Restore.</p>
-<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis</h2>
-<ul>
-<li><a href="#kapitel-1-übersicht">Kapitel 1: Übersicht</a></li>
-<p>- <a href="#zweck">Zweck</a> - <a href="#projektstruktur">Projektstruktur</a> - <a href="#schichten">Schichten</a></p>
-<li><a href="#kapitel-2-installation">Kapitel 2: Installation</a></li>
-<p>- <a href="#systemvoraussetzungen">Systemvoraussetzungen</a> - <a href="#installation">Installation</a> - <a href="#ersteinrichtung">Ersteinrichtung</a> - <a href="#erste-konten-und-stammdaten">Erste Konten und Stammdaten</a> - <a href="#funktionstest">Funktionstest</a></p>
-<li><a href="#kapitel-3-präsentationsschicht">Kapitel 3: Präsentationsschicht</a></li>
-<p>- <a href="#überblick-und-aufbau">Überblick und Aufbau</a> - <a href="#terminal-ui-terminal_ui">Terminal-UI (<code>terminal_ui/</code>)</a> - <a href="#admin-cli-admin_cli">Admin-CLI (<code>admin_cli/</code>)</a> - <a href="#domain-employees-und-cards">Domain: <code>employees</code> und <code>cards</code></a> - <a href="#domain-bookings">Domain: <code>bookings</code></a> - <a href="#domain-schedule">Domain: <code>schedule</code></a> - <a href="#domain-reports">Domain: <code>reports</code></a> - <a href="#domain-system">Domain: <code>system</code></a> - <a href="#domain-users">Domain: <code>users</code></a> - <a href="#zeitraum-hilfsfunktionen-_intervalspy">Zeitraum-Hilfsfunktionen (<code>_intervals.py</code>)</a></p>
-<li><a href="#kapitel-4-anwendungsschicht">Kapitel 4: Anwendungsschicht</a></li>
-<p>- <a href="#41-überblick-und-einordnung">4.1 Überblick und Einordnung</a> - <a href="#42-commands--eingabe-dtos-commandspy">4.2 Commands — Eingabe-DTOs (<code>commands.py</code>)</a> - <a href="#43-results--ausgabe-dtos-schreibender-operationen-resultspy">4.3 Results — Ausgabe-DTOs schreibender Operationen (<code>results.py</code>)</a> - <a href="#44-queries--lesende-abfrage-dtos-queriespy">4.4 Queries — Lesende Abfrage-DTOs (<code>queries.py</code>)</a> - <a href="#45-unit-of-work--transaktionsprotokoll-unit_of_workpy">4.5 Unit of Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</a> - <a href="#46-use-cases-im-detail">4.6 Use Cases im Detail</a> - <a href="#47-querschnittliche-entwurfsprinzipien">4.7 Querschnittliche Entwurfsprinzipien</a> - <a href="#48-erweiterungshinweise">4.8 Erweiterungshinweise</a> - <a href="#49-hinweis-zu-admin-cli-befehlen">4.9 Hinweis zu admin-CLI-Befehlen</a></p>
-<li><a href="#kapitel-5-domain-modell">Kapitel 5: Domain-Modell</a></li>
-<p>- <a href="#überblick-und-designprinzip">Überblick und Designprinzip</a> - <a href="#value-objects--starke-id-typen">Value Objects – Starke ID-Typen</a> - <a href="#enumerationen">Enumerationen</a> - <a href="#entitäten">Entitäten</a> - <a href="#domänenfehler">Domänenfehler</a> - <a href="#repository-protokolle-ports">Repository-Protokolle (Ports)</a> - <a href="#domain-services">Domain Services</a> - <a href="#audit-event-katalog">Audit-Event-Katalog</a> - <a href="#zusammenspiel-der-domain-schicht">Zusammenspiel der Domain-Schicht</a></p>
-<li><a href="#kapitel-6-infrastrukturschicht">Kapitel 6: Infrastrukturschicht</a></li>
-<p>- <a href="#überblick-und-zweck">Überblick und Zweck</a> - <a href="#datenbankzugriff-db">Datenbankzugriff (<code>db/</code>)</a> - <a href="#hardware-abstraktion-hardware">Hardware-Abstraktion (<code>hardware/</code>)</a> - <a href="#export-export">Export (<code>export/</code>)</a> - <a href="#backup-backupbackup_servicepy">Backup (<code>backup/backup_service.py</code>)</a> - <a href="#systemüberwachung">Systemüberwachung</a> - <a href="#querverbindungen-und-architekturprinzipien">Querverbindungen und Architekturprinzipien</a></p>
-<li><a href="#kapitel-7-datenbankschema">Kapitel 7: Datenbankschema</a></li>
-<p>- <a href="#zweck-dieses-dokuments">Zweck dieses Dokuments</a> - <a href="#migrationsübersicht">Migrationsübersicht</a> - <a href="#tabellen-im-finalen-zustand-nach-migration-0006">Tabellen im finalen Zustand (nach Migration 0006)</a> - <a href="#indizes-im-finalen-zustand">Indizes im finalen Zustand</a> - <a href="#technisches-muster-table-rebuild-bei-schema-änderungen">Technisches Muster: Table-Rebuild bei Schema-Änderungen</a> - <a href="#globale-einstellung">Globale Einstellung</a></p>
-<li><a href="#kapitel-8-backup-und-restore">Kapitel 8: Backup und Restore</a></li>
-<p>- <a href="#einordnung">Einordnung</a> - <a href="#quellbasis-und-geltungsbereich">Quellbasis und Geltungsbereich</a> - <a href="#fachlicher-status">Fachlicher Status</a></p>
-<li><a href="#kapitel-9-audit-und-prüfstatus">Kapitel 9: Audit und Prüfstatus</a></li>
-<p>- <a href="#sicher-belegt">Sicher belegt</a> - <a href="#nicht-überbehaupten">Nicht überbehaupten</a> - <a href="#empfohlene-nächste-prüfungen">Empfohlene nächste Prüfungen</a></p>
-<li><a href="#kapitel-10-konfigurationsdiagnose">Kapitel 10: Konfigurationsdiagnose</a></li>
-<p>- <a href="#zweck-1">Zweck</a> - <a href="#aufruf">Aufruf</a> - <a href="#optionen">Optionen</a> - <a href="#datenquellen">Datenquellen</a> - <a href="#abfrage-der-datenbank">Abfrage der Datenbank</a> - <a href="#anzeige-von-configtoml">Anzeige von <code>config.toml</code></a> - <a href="#textausgabe">Textausgabe</a> - <a href="#json-ausgabe">JSON-Ausgabe</a> - <a href="#wertdekodierung">Wertdekodierung</a> - <a href="#abhängigkeiten">Abhängigkeiten</a> - <a href="#abgrenzung">Abgrenzung</a></p>
-</ul>
-<h2 id="kapitel-1-uebersicht">Kapitel 1: Übersicht</h2>
-<h3 id="zweck">Zweck</h3>
-<p><code>arbeitszeit</code> ist ein lokal betriebenes Zeiterfassungssystem für eine Zahnarztpraxis. Die Anwendung verwendet SQLite als einzige Datenbank und trennt Fachlogik, Infrastruktur und Benutzeroberflächen klar voneinander.</p>
-<p>Aus dem Repository eindeutig belegt sind ein Terminalmodus für den operativen Buchungsbetrieb sowie eine Admin-CLI für Verwaltungsaufgaben.</p>
-<h3 id="projektstruktur">Projektstruktur</h3>
-<p>Aus dem Repository klar belegt ist folgende Hauptstruktur:</p>
-<pre><code class="language-text">
-arbeitszeit/
-├── pyproject.toml
-├── README.md
-├── CHANGELOG.md
-├── CONTRIBUTING.md
-├── run_audit.sh
-├── test_booking_loop.py
-├── installationsanleitung.md
-├── handbuch.md
-├── migrations/
-├── scripts/
-├── docs/
-├── src/
-│   └── arbeitszeit/
-│       ├── application/
-│       ├── domain/
-│       ├── infrastructure/
-│       └── presentation/
-│           ├── admin_cli/
-│           └── terminal_ui/
-└── tests/
-</code></pre>
-<h3 id="schichten">Schichten</h3>
-<p>In <code>pyproject.toml</code> ist eine Architekturprüfung mit <code>import-linter</code> hinterlegt. Daraus geht hervor, dass das Projekt diese Schichten trennt:</p>
-<ul>
-<li><code>arbeitszeit.presentation</code></li>
-<li><code>arbeitszeit.infrastructure</code></li>
-<li><code>arbeitszeit.application</code></li>
-<li><code>arbeitszeit.domain</code></li>
-</ul>
-<p>Diese Struktur entspricht einer Clean-Architecture-orientierten Trennung.</p>
-<h2 id="kapitel-2-installation">Kapitel 2: Installation</h2>
-<h3 id="systemvoraussetzungen">Systemvoraussetzungen</h3>
-<h4 id="betriebssystem">Betriebssystem</h4>
-<p>Die Projektunterlagen und die Installationsdokumentation beziehen sich auf Linux Mint und Lubuntu.</p>
-<h4 id="python-version">Python-Version</h4>
-<p>Die verbindliche Python-Anforderung steht in <code>pyproject.toml</code>:</p>
-<pre><code class="language-toml">
-requires-python = &quot;&gt;=3.14,&lt;3.15&quot;
-</code></pre>
-<p>Damit ist für die Installation Python 3.14 erforderlich.</p>
-<p>Prüfung der installierten Version:</p>
-<pre><code class="language-bash">
-python3.14 --version
-</code></pre>
-<p><code>python3 --version</code> allein ist nicht ausreichend, wenn auf dem System eine andere Python-Hauptversion als 3.14 als Standard eingerichtet ist.</p>
-<h4 id="python-abhaengigkeiten">Python-Abhängigkeiten</h4>
-<p>Laufzeitabhängigkeiten:</p>
-<table><thead><tr><th>Paket</th><th>Mindestversion</th><th>Zweck</th></tr></thead><tbody>
-<tr><td><code>evdev</code></td><td><code>&gt;=1.7</code></td><td>Zugriff auf Linux-Eingabegeräte</td></tr>
-<tr><td><code>reportlab</code></td><td><code>&gt;=4.0</code></td><td>PDF-Erzeugung</td></tr>
-</tbody></table>
-<p>Entwicklungsabhängigkeiten:</p>
-<table><thead><tr><th>Paket</th><th>Mindestversion</th><th>Zweck</th></tr></thead><tbody>
-<tr><td><code>pytest</code></td><td><code>&gt;=8.0</code></td><td>Testausführung</td></tr>
-<tr><td><code>pytest-cov</code></td><td><code>&gt;=5.0</code></td><td>Coverage</td></tr>
-<tr><td><code>pypdf</code></td><td><code>&gt;=4.0</code></td><td>PDF-Prüfung in Tests</td></tr>
-<tr><td><code>ruff</code></td><td><code>&gt;=0.6</code></td><td>Linting</td></tr>
-<tr><td><code>import-linter</code></td><td><code>&gt;=2.0</code></td><td>Architekturprüfung</td></tr>
-</tbody></table>
-<h4 id="zusaetzliche-systempakete">Zusätzliche Systempakete</h4>
-<pre><code class="language-bash">
-sudo apt update
-sudo apt install -y build-essential linux-headers-$(uname -r) python3-dev
-</code></pre>
-<h4 id="hardware">Hardware</h4>
-<p>Sicher belegt sind folgende Hardware-Komponenten im Projektkontext:</p>
-<ul>
-<li>RFID-Reader als USB-HID-Gerät</li>
-<li>USB-Numpad als Eingabegerät</li>
-</ul>
-<p>Die Gerätedateien werden unter Linux über <code>/dev/input/event*</code> angesprochen.</p>
-<h3 id="installation">Installation</h3>
-<p>Repository klonen:</p>
-<pre><code class="language-bash">
-git clone https://github.com/iCodator/arbeitszeit.git
-cd arbeitszeit
-</code></pre>
-<p>Virtuelle Umgebung erstellen:</p>
-<pre><code class="language-bash">
-python3.14 -m venv .venv
-source .venv/bin/activate
-</code></pre>
-<p>Abhängigkeiten installieren:</p>
-<pre><code class="language-bash">
-pip install -e .[dev]
-</code></pre>
-<p>Datenbank initialisieren:</p>
-<pre><code class="language-bash">
-python scripts/init_db.py
-</code></pre>
-<p>Der Datenbankpfad kann optional mit <code>--db</code> angegeben werden. Standard ist <code>arbeitszeit.db</code>.</p>
-<p>Typische Ausgabe:</p>
-<pre><code class="language-text">
-Migration 0001 angewendet.
-Migration 0002 angewendet.
-Migration 0003 angewendet.
-Migration 0004 angewendet.
-Migration 0005 angewendet.
-Migration 0006 angewendet.
-⚠  Ersteinrichtung noch erforderlich:
-   python scripts/setup.py --db arbeitszeit.db
-</code></pre>
-<h3 id="ersteinrichtung">Ersteinrichtung</h3>
-<p>Die Reihenfolge ist zwingend:</p>
-<ol>
-<li><code>scripts/init_db.py</code></li>
-<li><code>scripts/setup.py</code></li>
-</ol>
-<p>Interaktiver Aufruf:</p>
-<pre><code class="language-bash">
-python scripts/setup.py --db arbeitszeit.db
-</code></pre>
-<p>Nicht-interaktiver Aufruf:</p>
-<pre><code class="language-bash">
-python scripts/setup.py \
-  --db arbeitszeit.db \
-  --backup-dir /var/backups/arbeitszeit \
-  --export-dir /var/exports/arbeitszeit
-</code></pre>
-<p>Bereits konfigurierte Schlüssel werden beim erneuten Aufruf übersprungen.</p>
-<h3 id="erste-konten-und-stammdaten">Erste Konten und Stammdaten</h3>
-<p>Ersten ADMIN anlegen:</p>
-<pre><code class="language-bash">
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
-  users bootstrap \
-  --username adminname
-</code></pre>
-<p>Weiteres Benutzerkonto anlegen:</p>
-<pre><code class="language-bash">
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
+<h1>Handbuch: Zeiterfassungssystem arbeitszeit</h1>
+<p><strong>Version:</strong> 1.7 <strong>Stand:</strong> Juli 2026 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine Zahnarztpraxis</p>
+<h2>Über dieses Handbuch</h2>
+<p>Dieses Handbuch richtet sich an <strong>Praxispersonal ohne IT-Kenntnisse</strong> — zum Beispiel die Praxisleiterin oder eine Verwaltungskraft, die Mitarbeitende anlegen, Berichte erzeugen und das System im Alltag betreuen soll.</p>
+<p>Technische Hintergründe (Datenbankschema, Architektur, Quellcode) sind hier bewusst weggelassen. Diese finden sich im technischen Handbuch <code>docs/03_installation_technik/befehlsreferenz.md</code>.</p>
+<hr>
+<h2>Inhalt</h2>
+<ol><li><a href="#kapitel-1-was-ist-arbeitszeit">Was ist <code>arbeitszeit</code>?</a></li><li><a href="#kapitel-2-erste-schritte">Erste Schritte</a></li><li><a href="#kapitel-3-mitarbeitende-verwalten">Mitarbeitende verwalten</a></li><li><a href="#kapitel-4-buchungsbetrieb-am-terminal">Buchungsbetrieb am Terminal</a></li><li><a href="#kapitel-5-buchungen-korrigieren-und-nachtr%C3%A4ge">Buchungen korrigieren und Nachträge</a></li><li><a href="#kapitel-6-berichte-erstellen">Berichte erstellen</a></li><li><a href="#kapitel-7-arbeitszeitplan-setzen">Arbeitszeitplan setzen</a></li><li><a href="#kapitel-8-benutzerverwaltung">Benutzerverwaltung</a></li><li><a href="#kapitel-9-system-wartung">System-Wartung</a></li><li><a href="#kapitel-10-h%C3%A4ufige-fragen-und-fehlermeldungen">Häufige Fragen und Fehlermeldungen</a></li></ol>
+<hr>
+<h2>Kapitel 1: Was ist <code>arbeitszeit</code>?</h2>
+<p>Das System <code>arbeitszeit</code> erfasst die Arbeitszeiten von Praxismitarbeitenden automatisch:</p>
+<ul><li>Mitarbeitende buchen <strong>Kommen, Gehen und Pausen</strong> mit ihrer persönlichen RFID-Karte an einem Buchungsterminal.</li><li>Das System prüft automatisch, ob die gesetzlichen Arbeitszeitgrenzen (ArbZG) eingehalten werden.</li><li>Administratoren verwalten Stammdaten, erzeugen Berichte und greifen bei Korrekturbedarf ein — alles über die Kommandozeile.</li><li>Alle Daten werden lokal auf dem Praxis-PC gespeichert.</li></ul>
+<p>Das System besteht aus zwei Teilen:</p>
+<table><thead><tr><th>Teil</th><th>Beschreibung</th></tr></thead><tbody><tr><td><strong>Buchungsterminal</strong></td><td>Läuft dauerhaft im Hintergrund; nimmt Buchungen per Numpad und RFID-Karte entgegen</td></tr><tr><td><strong>Admin-Programm</strong></td><td>Wird von der Administratorin bei Bedarf aufgerufen; dient der Verwaltung und Auswertung</td></tr></tbody></table>
+<hr>
+<h2>Kapitel 2: Erste Schritte</h2>
+<h3>2.1 Das Admin-Programm aufrufen</h3>
+<p>Das Admin-Programm hat keinen eigenen Befehlsnamen. Es wird immer vollständig aufgerufen:</p>
+<pre><code class="language-bash">python -m arbeitszeit.presentation.admin_cli.main \
+  --db /pfad/zur/datenbank.db \
   --user-id 1 \
-  users add \
-  --username pruefer01 \
-  --role REVIEWER
-</code></pre>
-<p>Mitarbeiter anlegen:</p>
-<pre><code class="language-bash">
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
-  --user-id 1 \
-  employees add \
+  &lt;bereich&gt; &lt;aktion&gt;</code></pre>
+<p><strong>Empfehlung:</strong> Einmal einen Kurznamen einrichten und ihn dauerhaft verfügbar machen:</p>
+<pre><code class="language-bash">alias azadmin="python -m arbeitszeit.presentation.admin_cli.main"
+echo 'alias azadmin="python -m arbeitszeit.presentation.admin_cli.main"' &gt;&gt; ~/.bashrc</code></pre>
+<p>Danach reicht der Kurzaufruf:</p>
+<pre><code class="language-bash">azadmin --db /pfad/zur/datenbank.db --user-id 1 &lt;bereich&gt; &lt;aktion&gt;</code></pre>
+<p>Alle Beispiele in diesem Handbuch verwenden den Kurzaufruf <code>azadmin</code>.</p>
+<p><strong>Was ist <code>--user-id 1</code>?</strong> Das ist die ID des angemeldeten Administrators. Das System prüft damit, ob die ausführende Person die nötige Berechtigung hat.</p>
+<p><strong>Wo ist die Datenbank?</strong> Der Pfad steht in der Konfigurationsdatei <code>config.toml</code> unter <code>[database] path</code>. Alternativ kann <code>--db</code> bei jedem Aufruf angegeben werden.</p>
+<h3>2.2 Konfigurationsdatei</h3>
+<p>Das System sucht die Datei <code>config.toml</code> in dieser Reihenfolge:</p>
+<ol><li><code>--config &lt;PFAD&gt;</code> (direkt angegeben)</li><li>Umgebungsvariable <code>ARBEITSZEIT_CONFIG</code></li><li><code>~/.config/arbeitszeit/config.toml</code></li><li><code>./config.toml</code> (im aktuellen Verzeichnis)</li></ol>
+<p>Minimale Konfiguration:</p>
+<pre><code class="language-toml">[database]
+path = "/home/praxis/daten/arbeitszeit.db"
+
+[terminal]
+id = 1
+numpad = "Usb KeyBoard Usb KeyBoard"
+rfid = "Sycreader RFID Technology Co., Ltd SYC ID&amp;IC USB Reader"
+
+[backup]
+backup_dir = "/var/backups/arbeitszeit"
+export_dir  = "/var/exports/arbeitszeit"
+log_dir     = "/var/log/arbeitszeit"</code></pre>
+<p>Die genauen Gerätenamen für <code>numpad</code> und <code>rfid</code> liefert <code>scripts/verify_hardware.py --list</code>.</p>
+<h3>2.3 Ersten Administrator anlegen</h3>
+<p>Beim allerersten Start — <strong>bevor</strong> ein Administratorkonto existiert — muss <code>users bootstrap</code> ohne <code>--user-id</code> aufgerufen werden:</p>
+<pre><code class="language-bash">python -m arbeitszeit.presentation.admin_cli.main \
+  --db /pfad/zur/datenbank.db \
+  users bootstrap --username admin</code></pre>
+<p>Das System zeigt das Passwort <strong>einmalig</strong> an. Unbedingt notieren oder sofort ändern!</p>
+<h3>2.4 Funktionstest</h3>
+<pre><code class="language-bash">pytest
+pytest tests/test_migrations.py</code></pre>
+<hr>
+<h2>Kapitel 3: Mitarbeitende verwalten</h2>
+<h3>3.1 Alle Mitarbeitenden anzeigen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 employees list</code></pre>
+<p>Die Ausgabe zeigt IDs, Personalnummern, Namen und ob das Konto aktiv ist.</p>
+<h3>3.2 Mitarbeiter anlegen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 employees add \
   --personnel-no M001 \
   --first-name Maria \
-  --last-name Mustermann
-</code></pre>
-<p>RFID-Karte zuweisen (direkt einlesen):</p>
-<pre><code class="language-bash">
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
-  --user-id 1 \
-  cards assign \
-  --employee-id 1 \
+  --last-name Muster</code></pre>
+<p><strong>Pflichtangaben:</strong> <code>--personnel-no</code>, <code>--first-name</code>, <code>--last-name</code></p>
+<p><strong>Rolle:</strong> ADMIN</p>
+<h3>3.3 Mitarbeiter deaktivieren</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 employees deactivate 5</code></pre>
+<p><code>5</code> ist die ID des Mitarbeiters (aus <code>employees list</code> ablesen).</p>
+<p>Deaktivierte Mitarbeitende können sich nicht mehr am Terminal einbuchen. Ihre bisherigen Daten bleiben erhalten.</p>
+<p><strong>Rolle:</strong> ADMIN</p>
+<h3>3.4 RFID-Karte zuweisen</h3>
+<p>Jeder Mitarbeiter braucht eine eigene RFID-Karte, um sich am Terminal zu identifizieren.</p>
+<p><strong>Variante A — mit Scanner (empfohlen):</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 cards assign \
+  --employee-id 3 \
   --scan \
-  --rfid &quot;HID 1234:5678&quot;
-</code></pre>
-<p>Alternativ mit vorab berechnetem Hash: <code>--uid-hash &lt;HASH&gt;</code> statt <code>--scan --rfid &quot;...&quot;</code> (siehe Befehlsreferenz).</p>
-<h3 id="funktionstest">Funktionstest</h3>
-<pre><code class="language-bash">
-pytest
-pytest tests/test_migrations.py
-pytest --cov=arbeitszeit
-</code></pre>
-<h2 id="kapitel-3-praesentationsschicht">Kapitel 3: Präsentationsschicht</h2>
-<h3 id="ueberblick-und-aufbau">Überblick und Aufbau</h3>
-<p>Die Präsentationsschicht ist die äußerste Schale des Systems und bildet die einzige Schnittstelle zwischen Benutzer oder Administrator und der darunterliegenden Fach- und Anwendungslogik. Sie enthält keine Geschäftslogik, sondern übersetzt ausschließlich Benutzereingaben in Kommandos der Anwendungsschicht und gibt Ergebnisse als lesbare Texte aus.</p>
-<p>Das Paket gliedert sich in zwei eigenständige Untermodule:</p>
-<ul>
-<li><code>presentation/terminal_ui/</code> – operativer Buchungsbetrieb (Endlosschleife, RFID + Numpad)</li>
-<li><code>presentation/admin_cli/</code> – administrative Verwaltung (Kommandozeile, rollenbasiert)</li>
-</ul>
-<h3 id="terminal-ui-terminalui">Terminal-UI (<code>terminal_ui/</code>)</h3>
-<h4 id="zweck-und-betriebsmodus">Zweck und Betriebsmodus</h4>
-<p>Die Terminal-UI ist der im laufenden Praxisbetrieb aktive Prozess. Sie startet beim Systemstart als Endlosschleife und wartet kontinuierlich auf Hardware-Eingaben: zuerst Auswahl der Buchungsart über das Numpad, dann RFID-Kartenscan. Der Prozess reagiert auf <code>SIGTERM</code> und <code>SIGINT</code> mit einem sauberen Graceful Shutdown.</p>
-<h4 id="startparameter">Startparameter</h4>
-<p>Die Terminal-UI wird mit vier Pflichtargumenten gestartet:</p>
-<pre><code class="language-bash">
-python -m arbeitszeit.presentation.terminal_ui.main \
-  --db /pfad/zur/datenbank.db \
-  --numpad &quot;Gerätename des Numpads&quot; \
-  --rfid &quot;Gerätename des RFID-Readers&quot; \
-  --terminal-id 1
-</code></pre>
-<h4 id="startverhalten-und-systemcheck">Startverhalten und Systemcheck</h4>
-<p>Vor dem Eintritt in die Buchungsschleife führt <code>run()</code> automatisch einen Systemcheck durch. Schlägt der Check fehl, wird eine Desktop-Benachrichtigung ausgelöst (<code>notify(…, urgency=&quot;critical&quot;)</code>), aber der Buchungsbetrieb wird nicht abgebrochen. Fehlerdetails werden in der Tabelle <code>system_events</code> gespeichert.</p>
-<h4 id="buchungszyklus-bookinglooppy">Buchungszyklus (<code>booking_loop.py</code>)</h4>
-<p>Jeder Buchungszyklus läuft in drei Schritten ab:</p>
-<ol>
-<li><strong>Numpad-Eingabe:</strong> Der Mitarbeiter wählt die Buchungsart über das USB-Numpad.</li>
-<li><strong>RFID-Scan:</strong> Das System wartet auf den Kartenscan; das Timeout ist über <code>booking.grace_seconds_after_numpad_select</code> in <code>system_config</code> konfigurierbar.</li>
-<li><strong>Buchungsverarbeitung:</strong> Das Geräteereignis <code>RFID_SCAN</code> wird vor dem eigentlichen <code>BookUseCase</code>-Aufruf in <code>device_events</code> gespeichert.</li>
-</ol>
-<h4 id="feedback-ausgabe">Feedback-Ausgabe</h4>
-<p>Nach jeder Buchung gibt das Terminal eine einzeilige Rückmeldung aus.</p>
-<table><thead><tr><th>Status</th><th>Ausgabe</th></tr></thead><tbody>
-<tr><td><code>OPEN</code> / <code>OK</code></td><td><code>Buchung erfasst.</code></td></tr>
-<tr><td><code>WARN</code></td><td><code>Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.</code></td></tr>
-<tr><td><code>NEEDS_REVIEW</code></td><td><code>Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.</code></td></tr>
-</tbody></table>
-<h4 id="domaenenfehler-behandlung">Domänenfehler-Behandlung</h4>
-<p>Bekannte Domänenfehler werden in menschenlesbare Meldungen übersetzt und ausgegeben, ohne den Prozess zu beenden.</p>
-<table><thead><tr><th>Fehlerklasse</th><th>Anzeige</th></tr></thead><tbody>
-<tr><td><code>UnknownCardError</code></td><td><code>Karte nicht erkannt.</code></td></tr>
-<tr><td><code>InactiveCardError</code></td><td><code>Karte deaktiviert.</code></td></tr>
-<tr><td><code>InactiveEmployeeError</code></td><td><code>Mitarbeiter inaktiv.</code></td></tr>
-<tr><td><code>InvalidBookingSequenceError</code></td><td><code>Ungültige Buchungsreihenfolge.</code></td></tr>
-<tr><td><code>OpenPhaseConflictError</code></td><td><code>Offene Phase — bitte zuerst abschließen.</code></td></tr>
-</tbody></table>
-<p>Unerwartete Ausnahmen werden in <code>system_events</code> protokolliert; der Betrieb läuft weiter.</p>
-<h3 id="admin-cli-admincli">Admin-CLI (<code>admin_cli/</code>)</h3>
-<h4 id="zweck">Zweck</h4>
-<p>Die Admin-CLI ist das Verwaltungswerkzeug für Administratoren und technisches Personal. Sie wird als <code>admin</code>-Programm gestartet, erfordert immer die Datenbankdatei <code>--db</code> und eine Benutzer-ID <code>--user-id</code> oder die Umgebungsvariable <code>ADMIN_USER_ID</code>, und verteilt alle Aufrufe über eine zentrale Dispatch-Tabelle an spezialisierte Handler-Module.</p>
-<h4 id="grundaufruf">Grundaufruf</h4>
-<pre><code class="language-bash">
-admin --db /pfad/zur/datenbank.db --user-id 1 &lt;domain&gt; &lt;subcommand&gt; [optionen]
-</code></pre>
-<p>Alternativ zur <code>--user-id</code>-Option kann die Umgebungsvariable <code>ADMIN_USER_ID</code> gesetzt werden. Die einzige Ausnahme ist <code>users bootstrap</code>.</p>
-<h4 id="rollenmodell">Rollenmodell</h4>
-<p>Alle schreibenden Operationen prüfen die Rolle des aufrufenden Benutzers direkt gegen die Tabelle <code>user_accounts</code>. Es gibt drei Rollen:</p>
-<table><thead><tr><th>Rolle</th><th>Erlaubte Bereiche</th></tr></thead><tbody>
-<tr><td><code>ADMIN</code></td><td>Alle Operationen (Lesen + Schreiben)</td></tr>
-<tr><td><code>REVIEWER</code></td><td>Berichte, Buchungsüberprüfung, Nachträge genehmigen/ablehnen</td></tr>
-<tr><td><code>TECH</code></td><td>Systemcheck, Backup</td></tr>
-</tbody></table>
-<p>Lesende Operationen sind ohne Rolleneinschränkung nutzbar.</p>
-<h3 id="domain-employees-und-cards">Domain: <code>employees</code> und <code>cards</code></h3>
-<h4 id="mitarbeiterverwaltung-employeespy">Mitarbeiterverwaltung (<code>employees.py</code>)</h4>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th><th>Rolle</th></tr></thead><tbody>
-<tr><td><code>employees list</code></td><td>Alle Mitarbeiter tabellarisch auflisten</td><td>keine</td></tr>
-<tr><td><code>employees add --personnel-no … --first-name … --last-name …</code></td><td>Mitarbeiter anlegen</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>employees deactivate &lt;id&gt;</code></td><td>Mitarbeiter deaktivieren</td><td><code>ADMIN</code></td></tr>
-</tbody></table>
-<h4 id="kartenverwaltung">Kartenverwaltung</h4>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th><th>Rolle</th></tr></thead><tbody>
-<tr><td><code>cards assign --employee-id … --scan --rfid …</code></td><td>Neue RFID-Karte zuweisen</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>cards replace --old-card-id … --uid-hash …</code></td><td>Karte ersetzen</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>cards deactivate &lt;id&gt;</code></td><td>Karte auf <code>INACTIVE</code> setzen</td><td><code>ADMIN</code></td></tr>
-</tbody></table>
-<p>Jede schreibende Operation wird mit einem <code>_audit(…)</code>-Eintrag in <code>audit_log</code> protokolliert.</p>
-<h3 id="domain-bookings">Domain: <code>bookings</code></h3>
-<p>Buchungskorrekturen und Nachträge laufen vollständig über Use Cases der Anwendungsschicht.</p>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th></tr></thead><tbody>
-<tr><td><code>bookings correct --booking-id … --type … --at … --reason …</code></td><td>Bestehende Buchung korrigieren</td></tr>
-<tr><td><code>bookings supplement --employee-id … --type … --at … --reason …</code></td><td>Nachträgliche Buchung erfassen</td></tr>
-<tr><td><code>bookings approve-supplement --supplement-id …</code></td><td>Nachtrag freigeben</td></tr>
-<tr><td><code>bookings reject-supplement --supplement-id … --reason …</code></td><td>Nachtrag ablehnen</td></tr>
-</tbody></table>
-<p>Das <code>--at</code>-Argument erwartet ISO-8601-Format; fehlt die Zeitzone, wird UTC angenommen.</p>
-<h3 id="domain-schedule">Domain: <code>schedule</code></h3>
-<p>Die Regelarbeitszeit wird versioniert gespeichert; jede Änderung erzeugt eine neue Version und schließt die Vorgängerversion.</p>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th><th>Rolle</th></tr></thead><tbody>
-<tr><td><code>schedule set --weekday 1-7 --start HH:MM --end HH:MM --from YYYY-MM-DD [--employee-id ID]</code></td><td>Regelarbeitszeit setzen</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>schedule show</code></td><td>Aktive Versionen anzeigen</td><td><code>ADMIN</code>, <code>REVIEWER</code></td></tr>
-</tbody></table>
-<h3 id="domain-reports">Domain: <code>reports</code></h3>
-<p>Alle Report-Befehle erfordern <code>ADMIN</code>- oder <code>REVIEWER</code>-Rolle. Das Export-Verzeichnis wird aus <code>system_config</code> gelesen.</p>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th></tr></thead><tbody>
-<tr><td><code>reports export-csv --from … --to … [--employee-id …]</code></td><td>Zwei CSV-Dateien: Detailbuchungen + Übersicht</td></tr>
-<tr><td><code>reports export-pdf-day --date YYYY-MM-DD</code></td><td>Tagesbericht als PDF</td></tr>
-<tr><td><code>reports export-pdf-week --year YYYY --week WW</code></td><td>Wochenbericht als PDF</td></tr>
-<tr><td><code>reports export-pdf-month --year YYYY --month MM</code></td><td>Monatsbericht als PDF</td></tr>
-<tr><td><code>reports export-pdf-employee --employee-id … --from … --to …</code></td><td>Mitarbeiterbericht als PDF</td></tr>
-<tr><td><code>reports export-csv-review-cases --from … --to … [--employee-id …]</code></td><td>Offene Prüffälle als CSV exportieren</td></tr>
-</tbody></table>
-<h3 id="domain-system">Domain: <code>system</code></h3>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th><th>Rolle</th></tr></thead><tbody>
-<tr><td><code>system check</code></td><td>Systemcheck auslösen</td><td><code>ADMIN</code>, <code>TECH</code></td></tr>
-<tr><td><code>system backup</code></td><td>Manuelles Backup der SQLite-Datenbank auslösen</td><td><code>ADMIN</code>, <code>TECH</code></td></tr>
-</tbody></table>
-<p>Der Backup-Dienst liest Zielverzeichnis und NAS-Pfad aus <code>system_config</code>. Schlägt die NAS-Synchronisation fehl, endet der Prozess mit Exitcode 1; das lokale Backup ist zu diesem Zeitpunkt bereits erfolgreich erstellt.</p>
-<h3 id="domain-users">Domain: <code>users</code></h3>
-<p>Passwörter werden mit PBKDF2-HMAC-SHA256 und 260.000 Iterationen gehasht. Das Klartextpasswort wird nach der Ausgabe nirgends gespeichert.</p>
-<table><thead><tr><th>Befehl</th><th>Beschreibung</th><th>Rolle</th></tr></thead><tbody>
-<tr><td><code>users bootstrap --username … [--password …]</code></td><td>Erstes Administratorkonto anlegen</td><td>—</td></tr>
-<tr><td><code>users add --username … --role … [--employee-id …] [--password …]</code></td><td>Neues Benutzerkonto anlegen</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>users list</code></td><td>Alle Konten tabellarisch auflisten</td><td>keine</td></tr>
-<tr><td><code>users deactivate --user-id …</code></td><td>Benutzerkonto deaktivieren</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>users reactivate --user-id …</code></td><td>Benutzerkonto reaktivieren</td><td><code>ADMIN</code></td></tr>
-<tr><td><code>users change-role --user-id … --role …</code></td><td>Rolle ändern</td><td><code>ADMIN</code></td></tr>
-</tbody></table>
-<h3 id="zeitraum-hilfsfunktionen-intervalspy">Zeitraum-Hilfsfunktionen (<code>_intervals.py</code>)</h3>
-<p>Alle Datums- und Zeitraum-Berechnungen in der Admin-CLI verwenden die drei Funktionen aus <code>src/arbeitszeit/presentation/admin_cli/_intervals.py</code>.</p>
-<table><thead><tr><th>Funktion</th><th>Beschreibung</th></tr></thead><tbody>
-<tr><td><code>day_interval(day)</code></td><td><code>[day 00:00 UTC, next_day 00:00 UTC)</code></td></tr>
-<tr><td><code>week_interval(year, week)</code></td><td>ISO-Woche: Montag 00:00 UTC bis Montag+7 00:00 UTC</td></tr>
-<tr><td><code>month_interval(year, month)</code></td><td>Erster bis exklusiv erster des Folgemonats, UTC</td></tr>
-</tbody></table>
-<h2 id="kapitel-4-anwendungsschicht">Kapitel 4: Anwendungsschicht</h2>
-<p>Die Anwendungsschicht ist das Herzstück der fachlichen Steuerung. Sie vermittelt zwischen Präsentationsschicht und Domänenschicht und enthält keine SQL-Logik, keine Hardware-Zugriffe und keine UI-Elemente.</p>
-<h3 id="41-ueberblick-und-einordnung">4.1 Überblick und Einordnung</h3>
-<p>Das Paket folgt dem CQRS-Prinzip. Schreibende Operationen werden über Commands und Use Cases gesteuert, lesende Operationen über Query-DTOs.</p>
-<h3 id="42-commands---eingabe-dtos-commandspy">4.2 Commands — Eingabe-DTOs (<code>commands.py</code>)</h3>
-<p>Commands sind unveränderliche Datenbehälter mit <code>frozen=True</code> und <code>slots=True</code>.</p>
-<table><thead><tr><th>Command-Klasse</th><th>Zweck</th></tr></thead><tbody>
-<tr><td><code>BookCommand</code></td><td>RFID-Buchung vom Terminal</td></tr>
-<tr><td><code>CreateSupplementCommand</code></td><td>Nachtrag erfassen</td></tr>
-<tr><td><code>CreateCorrectionCommand</code></td><td>Buchung korrigieren</td></tr>
-<tr><td><code>ApproveSupplementCommand</code></td><td>Nachtrag genehmigen</td></tr>
-<tr><td><code>RejectSupplementCommand</code></td><td>Nachtrag ablehnen</td></tr>
-<tr><td><code>ChangeWorkScheduleCommand</code></td><td>Regelarbeitszeit setzen</td></tr>
-<tr><td><code>CreateEmployeeCommand</code></td><td>Mitarbeiter anlegen</td></tr>
-<tr><td><code>DeactivateEmployeeCommand</code></td><td>Mitarbeiter deaktivieren</td></tr>
-<tr><td><code>AssignRfidCardCommand</code></td><td>RFID-Karte zuweisen</td></tr>
-<tr><td><code>ReplaceRfidCardCommand</code></td><td>RFID-Karte ersetzen</td></tr>
-<tr><td><code>DeactivateRfidCardCommand</code></td><td>RFID-Karte deaktivieren</td></tr>
-<tr><td><code>CreateUserAccountCommand</code></td><td>Benutzerkonto anlegen</td></tr>
-<tr><td><code>DeactivateUserAccountCommand</code></td><td>Benutzerkonto deaktivieren</td></tr>
-<tr><td><code>ReactivateUserAccountCommand</code></td><td>Benutzerkonto reaktivieren</td></tr>
-<tr><td><code>ChangeUserRoleCommand</code></td><td>Benutzerrolle ändern</td></tr>
-<tr><td><code>BootstrapAdminCommand</code></td><td>Ersten Admin-Account anlegen</td></tr>
-</tbody></table>
-<h3 id="43-results---ausgabe-dtos-schreibender-operationen-resultspy">4.3 Results — Ausgabe-DTOs schreibender Operationen (<code>results.py</code>)</h3>
-<p>Jeder Use Case gibt ein typisiertes Result-Objekt zurück.</p>
-<table><thead><tr><th>Result-Klasse</th><th>Enthaltene Felder</th></tr></thead><tbody>
-<tr><td><code>BookResult</code></td><td><code>booking_id</code>, <code>status</code>, <code>follow_up_case_ids</code></td></tr>
-<tr><td><code>SupplementResult</code></td><td><code>supplement_id</code>, <code>review_case_id</code></td></tr>
-<tr><td><code>CorrectionResult</code></td><td><code>correction_id</code>, <code>updated_booking_id</code>, <code>review_case_id</code></td></tr>
-<tr><td><code>WorkScheduleChangeResult</code></td><td><code>new_version_id</code>, <code>superseded_version_id</code></td></tr>
-<tr><td><code>ApproveSupplementResult</code></td><td><code>supplement_id</code>, <code>booking_id</code>, <code>booking_status</code>, <code>follow_up_case_ids</code></td></tr>
-<tr><td><code>RejectSupplementResult</code></td><td><code>supplement_id</code>, <code>review_case_id</code></td></tr>
-<tr><td><code>CreateEmployeeResult</code></td><td><code>employee_id</code></td></tr>
-<tr><td><code>AssignRfidCardResult</code></td><td><code>card_id</code></td></tr>
-<tr><td><code>ReplaceRfidCardResult</code></td><td><code>new_card_id</code></td></tr>
-<tr><td><code>CreateUserAccountResult</code></td><td><code>user_id</code></td></tr>
-<tr><td><code>BootstrapAdminResult</code></td><td><code>user_id</code>, <code>username</code></td></tr>
-</tbody></table>
-<h3 id="44-queries---lesende-abfrage-dtos-queriespy">4.4 Queries — Lesende Abfrage-DTOs (<code>queries.py</code>)</h3>
-<p>Die Query-DTOs bilden die CQRS-Leseseite ab; die eigentlichen Datenbankabfragen liegen in der Infrastrukturschicht.</p>
-<table><thead><tr><th>Row-Klasse</th><th>Verwendungszweck</th></tr></thead><tbody>
-<tr><td><code>BookingRow</code></td><td>Buchungsliste mit Mitarbeiterzuordnung</td></tr>
-<tr><td><code>CorrectionRow</code></td><td>Korrekturprotokoll</td></tr>
-<tr><td><code>SupplementRow</code></td><td>Nachtragsliste mit Freigabestatus</td></tr>
-<tr><td><code>ReviewCaseRow</code></td><td>Offene oder aktive Prüffälle</td></tr>
-</tbody></table>
-<h3 id="45-unit-of-work---transaktionsprotokoll-unitofworkpy">4.5 Unit of Work — Transaktionsprotokoll (<code>unit_of_work.py</code>)</h3>
-<p><code>UnitOfWork</code> ist ein Protocol und fasst alle Repository-Referenzen unter einem gemeinsamen Transaktionskontext zusammen.</p>
-<p>Die definierten Repositories sind: <code>employee_repo</code>, <code>user_account_repo</code>, <code>rfid_card_repo</code>, <code>time_booking_repo</code>, <code>work_schedule_repo</code>, <code>review_case_repo</code>, <code>supplement_repo</code>, <code>booking_correction_repo</code>, <code>audit_log_repo</code>, <code>system_config_repo</code> und <code>device_event_repo</code>.</p>
-<p>Das Audit-Log wird nach <code>commit()</code> geschrieben.</p>
-<h3 id="46-use-cases-im-detail">4.6 Use Cases im Detail</h3>
-<h4 id="461-bookusecase---terminalbuchung-booktimepy">4.6.1 <code>BookUseCase</code> — Terminalbuchung (<code>book_time.py</code>)</h4>
-<p>Der Use Case verarbeitet RFID-Buchungen vom Terminal. Der Ablauf umfasst Kartenprüfung, Mitarbeiterprüfung, Sequenzvalidierung, Prüfung der Regelarbeitszeit, Compliance-Checks, Buchungsspeicherung, Anlegen von Prüffällen, <code>commit()</code> und anschließendes Audit-Logging.</p>
-<p>Die Statuslogik lautet:</p>
-<table><thead><tr><th>Status</th><th>Bedingung</th></tr></thead><tbody>
-<tr><td><code>OPEN</code></td><td>Buchungstyp ist <code>COME</code> oder <code>BREAK_START</code></td></tr>
-<tr><td><code>OK</code></td><td>Keine Compliance-Verstöße</td></tr>
-<tr><td><code>WARN</code></td><td>Mindestens ein Flag ohne <code>CRITICAL</code>-Schwere</td></tr>
-<tr><td><code>NEEDS_REVIEW</code></td><td>Mindestens ein Flag mit <code>CRITICAL</code>-Schwere</td></tr>
-</tbody></table>
-<h4 id="462-correctbookingusecase---buchungskorrektur-correctbookingpy">4.6.2 <code>CorrectBookingUseCase</code> — Buchungskorrektur (<code>correct_booking.py</code>)</h4>
-<p>Ermöglicht berechtigten Benutzern mit Rolle <code>ADMIN</code> oder <code>REVIEWER</code>, eine bestehende Buchung nachträglich zu ändern.</p>
-<h4 id="463-registersupplementusecase---nachtrag-erfassen-registersupplementpy">4.6.3 <code>RegisterSupplementUseCase</code> — Nachtrag erfassen (<code>register_supplement.py</code>)</h4>
-<p>Erfasst eine nachträgliche Buchung als <code>PENDING</code> und erzeugt zunächst noch keine wirksame Buchung in <code>time_bookings</code>.</p>
-<h4 id="464-approvesupplementusecase---nachtrag-freigeben-approvesupplementpy">4.6.4 <code>ApproveSupplementUseCase</code> — Nachtrag freigeben (<code>approve_supplement.py</code>)</h4>
-<p>Genehmigt einen ausstehenden Nachtrag und überführt ihn in eine echte Buchung mit vollständiger Compliance-Prüfung.</p>
-<h4 id="465-rejectsupplementusecase---nachtrag-ablehnen-rejectsupplementpy">4.6.5 <code>RejectSupplementUseCase</code> — Nachtrag ablehnen (<code>reject_supplement.py</code>)</h4>
-<p>Lehnt einen ausstehenden Nachtrag ab, ohne eine Buchung zu erzeugen.</p>
-<h4 id="466-manageworkscheduleusecase---regelarbeitszeit-manageworkschedulepy">4.6.6 <code>ManageWorkScheduleUseCase</code> — Regelarbeitszeit (<code>manage_work_schedule.py</code>)</h4>
-<p>Ändert die Regelarbeitszeit für einen Wochentag, global oder mitarbeiterspezifisch; nur <code>ADMIN</code> darf diesen Use Case ausführen.</p>
-<h4 id="467-mitarbeiterverwaltung-manageemployeespy">4.6.7 Mitarbeiterverwaltung (<code>manage_employees.py</code>)</h4>
-<p>Beide Use Cases erfordern <code>ADMIN</code>. Das gilt für das Anlegen und Deaktivieren von Mitarbeitern.</p>
-<h4 id="468-rfid-kartenverwaltung-managerfidcardspy">4.6.8 RFID-Kartenverwaltung (<code>manage_rfid_cards.py</code>)</h4>
-<p>Alle drei Use Cases erfordern <code>ADMIN</code>: zuweisen, ersetzen und deaktivieren.</p>
-<h4 id="469-benutzerkontenverwaltung-manageuseraccountspy">4.6.9 Benutzerkontenverwaltung (<code>manage_user_accounts.py</code>)</h4>
-<p>Die Verwaltung von Benutzerkonten einschließlich Bootstrap des ersten Admins ist als eigener Use-Case-Bereich dokumentiert.</p>
-<h3 id="47-querschnittliche-entwurfsprinzipien">4.7 Querschnittliche Entwurfsprinzipien</h3>
-<p>Die Handbuchquelle belegt Rollenprüfungen zu Beginn manueller Use Cases, nachgelagertes Audit-Logging, Unveränderlichkeit der DTOs und eine klare Fehlertyp-Hierarchie.</p>
-<h3 id="48-erweiterungshinweise">4.8 Erweiterungshinweise</h3>
-<p>Neue Use Cases, Query-Sichten und Compliance-Regeln werden in den jeweils dafür vorgesehenen Modulen ergänzt; die Reihenfolge <code>commit()</code> vor Audit-Log darf nicht geändert werden.</p>
-<h3 id="49-hinweis-zu-admin-cli-befehlen">4.9 Hinweis zu admin-CLI-Befehlen</h3>
-<p>Die vollständige Liste der Admin-CLI-Befehlsgruppen gehört laut bestehender Handbuchstruktur zur Präsentationsschicht und wird dort dokumentiert.</p>
-<h2 id="kapitel-5-domain-modell">Kapitel 5: Domain-Modell</h2>
-<h3 id="ueberblick-und-designprinzip">Überblick und Designprinzip</h3>
-<p>Das Domain-Modell ist der fachliche Kern des Systems <code>arbeitszeit</code>. Es enthält ausschließlich Geschäftslogik und keine Abhängigkeiten zu Datenbank, Hardware oder UI.</p>
-<h3 id="value-objects---starke-id-typen">Value Objects – Starke ID-Typen</h3>
-<p>Alle Primärschlüssel im System sind starke ID-Typen auf Basis von <code>typing.NewType</code>.</p>
-<table><thead><tr><th>ID-Typ</th><th>Bedeutung</th></tr></thead><tbody>
-<tr><td><code>EmployeeId</code></td><td>Mitarbeiter-Datensatz</td></tr>
-<tr><td><code>UserAccountId</code></td><td>Benutzerkonto</td></tr>
-<tr><td><code>RfidCardId</code></td><td>RFID-Karte</td></tr>
-<tr><td><code>TerminalId</code></td><td>Buchungsterminal</td></tr>
-<tr><td><code>TimeBookingId</code></td><td>Zeitbuchung</td></tr>
-<tr><td><code>WorkScheduleVersionId</code></td><td>Version einer Regelarbeitszeit</td></tr>
-<tr><td><code>ReviewCaseId</code></td><td>Prüffall</td></tr>
-<tr><td><code>SupplementId</code></td><td>Nachtrag</td></tr>
-<tr><td><code>BookingCorrectionId</code></td><td>Buchungskorrektur</td></tr>
-<tr><td><code>DeviceEventId</code></td><td>Geräteereignis</td></tr>
-<tr><td><code>AuditLogEntryId</code></td><td>Eintrag im Audit-Log</td></tr>
-</tbody></table>
-<h3 id="enumerationen">Enumerationen</h3>
-<p>Alle Zustands- und Klassenangaben sind als <code>StrEnum</code> definiert.</p>
-<h3 id="entitaeten">Entitäten</h3>
-<p>Die Handbuchquelle dokumentiert die Domänenentitäten des Systems in <code>entities.py</code> als fachliche Repräsentationen der Kernobjekte.</p>
-<h3 id="domaenenfehler">Domänenfehler</h3>
-<p>Die Domänenschicht enthält eine Fehlerhierarchie für Berechtigungs-, Status-, Validierungs- und Konfliktfehler.</p>
-<h3 id="repository-protokolle-ports">Repository-Protokolle (Ports)</h3>
-<p>Die Ports definieren die Repository-Schnittstellen der Domain-Schicht und bilden die Abstraktionsgrenze zur Infrastrukturschicht.</p>
-<h3 id="domain-services">Domain Services</h3>
-<p>Die Domain Services decken Buchungssequenz-Validierung und Compliance-Prüfhilfen ab.</p>
-<h3 id="audit-event-katalog">Audit-Event-Katalog</h3>
-<p>Die Datei <code>audit_events.py</code> enthält den Katalog der im Projekt verwendeten Audit-Log-Ereignisse.</p>
-<h3 id="zusammenspiel-der-domain-schicht">Zusammenspiel der Domain-Schicht</h3>
-<p>Die Domain-Schicht bündelt Entitäten, Value Objects, Enumerationen, Ports, Services und Fehler in einer fachlich isolierten Kernschicht.</p>
-<h2 id="kapitel-6-infrastrukturschicht">Kapitel 6: Infrastrukturschicht</h2>
-<h3 id="ueberblick-und-zweck">Überblick und Zweck</h3>
-<p>Die Infrastrukturschicht implementiert technische Adapter für Datenbankzugriff, Hardware, Export, Backup und Systemüberwachung.</p>
-<h3 id="datenbankzugriff-db">Datenbankzugriff (<code>db/</code>)</h3>
-<p>Die Infrastrukturschicht enthält die technische Umsetzung der SQLite-Anbindung sowie die konkreten Repository-Implementierungen.</p>
-<h3 id="hardware-abstraktion-hardware">Hardware-Abstraktion (<code>hardware/</code>)</h3>
-<p>Die Hardware-Schicht kapselt den Zugriff auf RFID-Reader und Numpad über Linux-Eingabegeräte.</p>
-<h3 id="export-export">Export (<code>export/</code>)</h3>
-<p>Der Exportbereich stellt Berichtsausgaben für CSV und PDF bereit.</p>
-<h3 id="backup-backupbackupservicepy">Backup (<code>backup/backup_service.py</code>)</h3>
-<p>Die bestehende Infrastrukturdokumentation nennt den Backup-Dienst als eigenständigen Teilbereich der Schicht.</p>
-<h3 id="systemueberwachung">Systemüberwachung</h3>
-<p>Die Infrastrukturschicht enthält Funktionen zur Systembeobachtung und Schreibpfade für <code>system_events</code>.</p>
-<h3 id="querverbindungen-und-architekturprinzipien">Querverbindungen und Architekturprinzipien</h3>
-<p>Die technische Schicht realisiert Adapter, ohne fachliche Regeln in die Domäne zurückzuschreiben.</p>
-<h2 id="kapitel-7-datenbankschema">Kapitel 7: Datenbankschema</h2>
-<h3 id="zweck-dieses-dokuments">Zweck dieses Dokuments</h3>
-<p>Dieses Kapitel beschreibt das SQLite-Schema von <code>arbeitszeit</code> exakt auf Basis der gelesenen Migrationsdateien <code>0001_schema.sql</code> bis <code>0006_system_events_application_error.sql</code>.</p>
-<h3 id="migrationsuebersicht">Migrationsübersicht</h3>
-<table><thead><tr><th>Version</th><th>Datei</th><th>Zweck</th></tr></thead><tbody>
-<tr><td>0001</td><td><code>0001_schema.sql</code></td><td>Ursprüngliches Gesamtschema</td></tr>
-<tr><td>0002</td><td><code>0002_seed_defaults.sql</code></td><td>Standard-Wochenarbeitszeiten und System-Konfigurationswerte</td></tr>
-<tr><td>0003</td><td><code>0003_cleanup_booking_status.sql</code></td><td>Bereinigung der Status-Werte in Buchungstabellen</td></tr>
-<tr><td>0004</td><td><code>0004_supplement_reject_fields_and_review_note.sql</code></td><td>Trennung von Genehmigung und Ablehnung bei Nachträgen</td></tr>
-<tr><td>0005</td><td><code>0005_time_bookings_device_event_id.sql</code></td><td>Verknüpfung von Buchungen mit Geräte-Ereignissen</td></tr>
-<tr><td>0006</td><td><code>0006_system_events_application_error.sql</code></td><td>Neuer Ereignistyp <code>APPLICATION_ERROR</code></td></tr>
-</tbody></table>
-<p>Jede Migration ist in <code>schema_migrations</code> mit Versionsnummer und Anwendungszeitpunkt verzeichnet.</p>
-<h3 id="tabellen-im-finalen-zustand-nach-migration-0006">Tabellen im finalen Zustand (nach Migration 0006)</h3>
-<p>Das finale Schema umfasst unter anderem die Tabellen <code>employees</code>, <code>user_accounts</code>, <code>rfid_cards</code>, <code>terminals</code>, <code>time_bookings</code>, <code>booking_status_history</code>, <code>booking_corrections</code>, <code>supplements</code>, <code>review_cases</code>, <code>review_case_actions</code>, <code>work_schedule_versions</code>, <code>system_config</code>, <code>device_events</code>, <code>system_events</code>, <code>audit_log</code> und <code>schema_migrations</code>.</p>
-<p>Beispielhaft zentrale fachliche Punkte:</p>
-<ul>
-<li><code>time_bookings.current_status</code> erlaubt die Werte <code>OK</code>, <code>OPEN</code>, <code>WARN</code>, <code>NEEDS_REVIEW</code>, <code>CORRECTED</code> und <code>CLOSED_WITH_NOTE</code>.</li>
-<li><code>supplements.approval_status</code> erlaubt <code>PENDING</code>, <code>APPROVED</code> und <code>REJECTED</code>.</li>
-<li><code>review_cases.case_type</code> deckt unter anderem offene Phasen, Regelzeitabweichungen, Kartenanomalien und <code>MANUAL_ENTRY_REVIEW</code> ab.</li>
-<li><code>system_config</code> ist versioniert über <code>config_key</code> und <code>version</code>.</li>
-<li><code>system_events.event_type</code> umfasst seit Migration 0006 zusätzlich <code>APPLICATION_ERROR</code>.</li>
-</ul>
-<h4 id="arbeitszeiten-und-seed-werte">Arbeitszeiten und Seed-Werte</h4>
-<p>Migration 0002 befüllt <code>work_schedule_versions</code> mit Standard-Arbeitszeiten für Montag bis Freitag und seedet vier Startwerte in <code>system_config</code>, darunter <code>app.timezone</code>, <code>booking.grace_seconds_after_numpad_select</code>, <code>backup.nas_enabled</code> und <code>backup.nas_path</code>.</p>
-<h3 id="indizes-im-finalen-zustand">Indizes im finalen Zustand</h3>
-<p>Das Schema enthält 17 dokumentierte Indizes, darunter <code>idx_time_bookings_employee_booked_at</code>, <code>idx_review_cases_status_detected_at</code>, <code>idx_system_config_key_version</code> und <code>idx_audit_log_object_event_at</code>.</p>
-<h3 id="technisches-muster-table-rebuild-bei-schema-aenderungen">Technisches Muster: Table-Rebuild bei Schema-Änderungen</h3>
-<p>Migrationen 0003, 0004, 0005 und 0006 folgen laut Dokument einem Table-Rebuild-Muster, weil SQLite bestehende <code>CHECK</code>-Constraints oder nachträgliche Foreign-Key-Erweiterungen nur eingeschränkt unterstützt.</p>
-<h3 id="globale-einstellung">Globale Einstellung</h3>
-<p><code>PRAGMA foreign_keys = ON;</code> ist in <code>0001_schema.sql</code> gesetzt. Das Dokument weist ausdrücklich darauf hin, dass daraus allein nicht verifizierbar ist, ob der Anwendungscode diese Einstellung bei jeder Verbindung erneut aktiviert.</p>
-<h2 id="kapitel-8-backup-und-restore">Kapitel 8: Backup und Restore</h2>
-<h3 id="einordnung">Einordnung</h3>
-<p>Der Bereich Backup und Restore ist im Repository als eigenständiger Betriebsdokumentationsbereich vorhanden und gehört damit zum dokumentierten Gesamtprojekt.</p>
-<h3 id="quellbasis-und-geltungsbereich">Quellbasis und Geltungsbereich</h3>
-<p>Für diesen Themenblock ist die Datei <code>docs/04_betrieb/handbuch_backup_restore.md</code> die belegte Dokumentquelle; zusätzlich ist im Verzeichnis <code>docs/04_betrieb/</code> ein weiterer Betriebskontext mit Checklisten, Automatisierungs- und Freigabedokumenten vorhanden.</p>
-<h3 id="fachlicher-status">Fachlicher Status</h3>
-<p>Aus den bereits eingelesenen Handbuchteilen ist sicher belegt, dass das Projekt einen manuellen Backup-Befehl <code>system backup</code> über die Admin-CLI besitzt, dass der Backup-Dienst Zielverzeichnis und optionalen NAS-Pfad aus <code>system_config</code> liest und dass bei einem Fehlschlag der NAS-Synchronisation das lokale Backup bereits erfolgreich erstellt ist.</p>
-<p>Die detaillierte Ablaufbeschreibung für Restore, Prüfschritte nach Wiederherstellung und betriebliche Freigabeschritte ist als Repository-Dokument vorhanden, wurde in diesem Schritt aber nicht Zeile für Zeile neu extrahiert. Deshalb wird dieser Kapitelblock hier bewusst nur in dem Umfang aufgenommen, der durch die bereits belegten Quellen eindeutig gestützt ist.</p>
-<h2 id="kapitel-9-audit-und-pruefstatus">Kapitel 9: Audit und Prüfstatus</h2>
-<h3 id="sicher-belegt">Sicher belegt</h3>
-<p>Sicher belegt sind laut bestehendem Handbuch die Schichtenstruktur, die SQLite-Basis, das Vorhandensein von Terminal-UI und Admin-CLI sowie die modulare Handbuchstruktur des Projekts.</p>
-<h3 id="nicht-ueberbehaupten">Nicht überbehaupten</h3>
-<p>Das Audit-Kapitel weist darauf hin, dass technische Aussagen nur dann in das Handbuch aufgenommen werden dürfen, wenn sie durch Repository-Inhalte eindeutig gedeckt sind.</p>
-<h3 id="empfohlene-naechste-pruefungen">Empfohlene nächste Prüfungen</h3>
-<p>Das bestehende Audit-Dokument empfiehlt weiterführende Prüfungen für Bereiche, die nicht allein aus der bereits konsolidierten Handbuchbasis ableitbar sind.</p>
-<h2 id="kapitel-10-konfigurationsdiagnose">Kapitel 10: Konfigurationsdiagnose</h2>
-<h3 id="zweck">Zweck</h3>
-<p><code>scripts/show_config.py</code> dient zur Anzeige der Laufzeitkonfiguration des Systems. Das Skript kann Werte aus einer <code>config.toml</code> sowie Einträge aus der Datenbanktabelle <code>system_config</code> lesen und auf der Konsole oder als JSON ausgeben.</p>
-<p>Das Skript ist ein reines Lesewerkzeug; schreibende Datenbankoperationen oder Änderungen an <code>config.toml</code> sind darin nicht implementiert.</p>
-<h3 id="aufruf">Aufruf</h3>
-<pre><code class="language-bash">
-python scripts/show_config.py --db &lt;DB_PATH&gt; [--config &lt;CONFIG_PATH&gt;] [--all-versions] [--json]
-</code></pre>
-<p>Das Argument <code>--db</code> ist zwingend erforderlich. Fehlt die Datenbankdatei, bricht das Skript mit Fehlermeldung auf <code>stderr</code> und Exit-Code 1 ab.</p>
-<h3 id="optionen">Optionen</h3>
-<table><thead><tr><th>Option</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody>
-<tr><td><code>--db DB_PATH</code></td><td>Pfad</td><td>ja</td><td>Pfad zur SQLite-Datenbankdatei</td></tr>
-<tr><td><code>--config CONFIG_PATH</code></td><td>Pfad</td><td>nein</td><td>Pfad zu <code>config.toml</code>; ohne Angabe automatische Suche</td></tr>
-<tr><td><code>--all-versions</code></td><td>Flag</td><td>nein</td><td>Alle Versionen pro Schlüssel anzeigen</td></tr>
-<tr><td><code>--json</code></td><td>Flag</td><td>nein</td><td>Ausgabe als JSON statt als Text</td></tr>
-</tbody></table>
-<h3 id="datenquellen">Datenquellen</h3>
-<p>Das Skript verwendet zwei getrennte Datenquellen: <code>config.toml</code> und die Tabelle <code>system_config</code> der angegebenen SQLite-Datenbank.</p>
-<p>Die automatische Suche nach <code>config.toml</code> erfolgt über <code>find_config()</code> aus <code>arbeitszeit.infrastructure.config_file</code>.</p>
-<h3 id="abfrage-der-datenbank">Abfrage der Datenbank</h3>
-<p>Für die Datenbankausgabe sind zwei Abfragepfade implementiert: <code>_current_config(db)</code> für den jeweils aktuellen Stand pro Schlüssel und <code>_all_versions(db)</code> für alle Versionen.</p>
-<p>Gelesen werden die Spalten <code>config_key</code>, <code>config_value_json</code>, <code>version</code>, <code>change_origin</code>, <code>changed_by_user_id</code>, <code>changed_at</code> und <code>reason</code>.</p>
-<h3 id="anzeige-von-configtoml">Anzeige von <code>config.toml</code></h3>
-<p>Die Ausgabe der TOML-Konfiguration erfolgt über <code>_print_config_toml()</code>.</p>
-<p>Im Quellcode sind folgende ausgabefähige Felder belegt:</p>
-<ul>
-<li><code>database.path</code></li>
-<li><code>terminal.id</code></li>
-<li><code>terminal.numpad</code></li>
-<li><code>terminal.rfid</code></li>
-<li><code>backup.backup_dir</code></li>
-<li><code>backup.export_dir</code></li>
-<li><code>backup.log_dir</code></li>
-<li><code>admin.user_id</code></li>
-</ul>
-<h3 id="textausgabe">Textausgabe</h3>
-<p>Ohne <code>--json</code> erzeugt das Skript eine zweigeteilte Textausgabe mit einem Abschnitt für <code>config.toml</code> und einem Abschnitt für die Datenbankeinträge aus <code>system_config</code>.</p>
-<p>Die Tabellenansicht der Datenbankwerte enthält die Spalten <code>Schlüssel</code>, <code>Wert</code>, <code>Ver</code>, <code>Herkunft</code> und <code>Geändert am</code>.</p>
-<h3 id="json-ausgabe">JSON-Ausgabe</h3>
-<p>Mit <code>--json</code> gibt das Skript ein JSON-Objekt auf <code>stdout</code> aus. Das Objekt enthält mindestens den Schlüssel <code>db</code>; bei erfolgreichem Laden einer <code>config.toml</code> zusätzlich <code>config_toml</code>.</p>
-<h3 id="wertdekodierung">Wertdekodierung</h3>
-<p>Für die Tabellenansicht dekodiert <code>_decode_value()</code> die Werte aus <code>config_value_json</code> per <code>json.loads()</code>. JSON-<code>null</code> wird als <code>(nicht gesetzt)</code> ausgegeben.</p>
-<h3 id="abhaengigkeiten">Abhängigkeiten</h3>
-<p>Das Skript verwendet die Standardbibliothek <code>argparse</code>, <code>json</code>, <code>sys</code> und <code>pathlib</code> sowie die Module <code>arbeitszeit.infrastructure.config_file.find_config</code>, <code>arbeitszeit.infrastructure.config_file.load_config</code> und <code>arbeitszeit.infrastructure.db.connection.open_connection</code>.</p>
-<h3 id="abgrenzung">Abgrenzung</h3>
-<p><code>scripts/show_config.py</code> ist ein Diagnose- und Prüfwerkzeug. Für die Einrichtung und Pflege der Konfigurationsdatei verweist das Dokument auf <code>scripts/setup.py</code>; für Buchungsbetrieb und Administration existieren getrennte Einstiegspunkte in <code>presentation/terminal_ui/</code> und <code>presentation/admin_cli/</code>.</p>
+  --rfid "Sycreader RFID Technology Co., Ltd SYC ID&amp;IC USB Reader"</code></pre>
+<p>Das System wartet dann auf den Kartenleser — Karte vorhalten.</p>
+<p><strong>Variante B — mit vorberechnetem Hash:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 cards assign \
+  --employee-id 3 \
+  --uid-hash abc123...</code></pre>
+<p>Den Hash einer Karte ermittelt <code>python scripts/verify_hardware.py</code> (Karte vorhalten, Hash aus der Ausgabe kopieren).</p>
+<p><strong>Rolle:</strong> ADMIN</p>
+<h3>3.5 Karte ersetzen</h3>
+<p>Wenn eine Karte verloren oder defekt ist:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 cards replace \
+  --old-card-id 2 \
+  --uid-hash &lt;HASH-DER-NEUEN-KARTE&gt;</code></pre>
+<p>Den Hash der neuen Karte vorher mit <code>scripts/verify_hardware.py</code> ermitteln. Die alte Karte wird automatisch gesperrt.</p>
+<p><strong>Rolle:</strong> ADMIN</p>
+<h3>3.6 Karte deaktivieren</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 cards deactivate 2</code></pre>
+<p><code>2</code> ist die Karten-ID (aus der Ausgabe von <code>cards assign</code> oder <code>employees list</code> ablesen).</p>
+<p><strong>Rolle:</strong> ADMIN</p>
 <hr>
-<p><strong>Versionsvermerk</strong> Vorversion: 1.5 Neue Version: 1.6 Begründung: Evidenzbasierte Ergänzung des bestehenden Gesamthandbuchs um weitere im Repository separat vorhandene und fachlich einschlägige Dokumentationsbereiche, ohne grundlegenden Strukturwechsel.</p>
-  </main>
+<h2>Kapitel 4: Buchungsbetrieb am Terminal</h2>
+<h3>4.1 Terminal starten</h3>
+<pre><code class="language-bash">python -m arbeitszeit.presentation.terminal_ui.main \
+  --db /pfad/zur/datenbank.db \
+  --numpad "Usb KeyBoard Usb KeyBoard" \
+  --rfid "Sycreader RFID Technology Co., Ltd SYC ID&amp;IC USB Reader" \
+  --terminal-id 1</code></pre>
+<p>Wenn <code>config.toml</code> vollständig ausgefüllt ist, reicht:</p>
+<pre><code class="language-bash">python -m arbeitszeit.presentation.terminal_ui.main \
+  --db /pfad/zur/datenbank.db</code></pre>
+<p>Das Terminal läuft dann dauerhaft im Hintergrund. Es sollte beim Systemstart automatisch gestartet werden (via <code>systemd</code> o. ä. — Einrichtung im Betriebshandbuch <code>docs/04_betrieb/</code>).</p>
+<h3>4.2 Buchung durchführen</h3>
+<p>Jede Buchung läuft in zwei Schritten ab:</p>
+<p><strong>Schritt 1 — Buchungsart auf dem Numpad wählen:</strong></p>
+<table><thead><tr><th>Taste</th><th>Buchungsart</th></tr></thead><tbody><tr><td><strong>1</strong></td><td>Kommen (Schichtbeginn)</td></tr><tr><td><strong>2</strong></td><td>Gehen (Schichtende)</td></tr><tr><td><strong>3</strong></td><td>Pause beginnen</td></tr><tr><td><strong>4</strong></td><td>Pause beenden</td></tr></tbody></table>
+<p>Schritt 2: RFID-Karte vorhalten.</p>
+<p>Das System hat nach der Numpad-Eingabe 30 Sekunden Zeit für den Kartenscan (konfigurierbar über <code>booking.grace_seconds_after_numpad_select</code> in der Datenbank).</p>
+<h3>4.3 Rückmeldungen des Terminals</h3>
+<p>Nach jeder Buchung erscheint eine Meldung:</p>
+<table><thead><tr><th>Meldung</th><th>Bedeutung</th></tr></thead><tbody><tr><td><code>Buchung erfasst.</code></td><td>Alles in Ordnung</td></tr><tr><td><code>Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.</code></td><td>Buchung wurde gespeichert, aber die Arbeitszeit weicht vom Arbeitszeitplan ab</td></tr><tr><td><code>Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.</code></td><td>Ein gesetzlicher Arbeitszeitgrenzwert wurde erreicht — REVIEWER muss prüfen</td></tr><tr><td><code>Karte nicht erkannt.</code></td><td>Diese Karte ist nicht im System registriert</td></tr><tr><td><code>Karte deaktiviert.</code></td><td>Die Karte wurde gesperrt oder ersetzt</td></tr><tr><td><code>Mitarbeiter inaktiv.</code></td><td>Das Mitarbeiterkonto wurde deaktiviert</td></tr><tr><td><code>Ungültige Buchungsreihenfolge.</code></td><td>Z. B. zweimal „Kommen" ohne „Gehen" dazwischen</td></tr><tr><td><code>Offene Phase — bitte zuerst abschließen.</code></td><td>Es gibt noch eine offene Schicht oder Pause</td></tr></tbody></table>
+<h3>4.4 Terminal beenden</h3>
+<pre><code class="language-bash"># Prozess-ID ermitteln
+ps aux | grep terminal_ui
+
+# Sauber beenden
+kill &lt;PID&gt;</code></pre>
+<p>Alternativ im Vordergrund: <code>STRG+C</code>.</p>
+<hr>
+<h2>Kapitel 5: Buchungen korrigieren und Nachträge</h2>
+<p><strong>Hinweis:</strong> Alle Befehle in diesem Kapitel erfordern die Rolle <strong>ADMIN</strong> oder <strong>REVIEWER</strong>.</p>
+<h3>5.1 Buchung korrigieren</h3>
+<p>Wenn eine Buchung falsch erfasst wurde (falscher Typ oder falsche Uhrzeit), kann sie korrigiert werden:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 bookings correct \
+  --booking-id 42 \
+  --type COME \
+  --at 2026-07-15T08:00:00 \
+  --reason "Kartenleser hat nicht reagiert, manuell nachgepflegt"</code></pre>
+<p><strong>Mögliche Buchungstypen für <code>--type</code>:</strong></p>
+<table><thead><tr><th>Wert</th><th>Bedeutung</th></tr></thead><tbody><tr><td><code>COME</code></td><td>Kommen</td></tr><tr><td><code>GO</code></td><td>Gehen</td></tr><tr><td><code>BREAK_START</code></td><td>Pause beginnen</td></tr><tr><td><code>BREAK_END</code></td><td>Pause beenden</td></tr></tbody></table>
+<p><strong>Format für <code>--at</code>:</strong> ISO-8601, z. B. <code>2026-07-15T08:30:00</code></p>
+<p>Die Buchungs-ID (<code>--booking-id</code>) steht in der Ausgabe von <code>reports open-bookings</code> oder <code>reports warn-cases</code>.</p>
+<h3>5.2 Nachtrag erfassen</h3>
+<p>Ein Nachtrag ist eine <strong>nachträgliche Buchung</strong>, die nicht am Terminal erfasst wurde (z. B. weil jemand vergessen hat auszustempeln):</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 bookings supplement \
+  --employee-id 3 \
+  --type GO \
+  --at 2026-07-15T17:30:00 \
+  --reason "Vergessen auszustempeln, per Rücksprache bestätigt"</code></pre>
+<p>Ein Nachtrag ist zunächst <strong>ausstehend</strong> (Prüfstatus: <code>PENDING</code>) und muss separat genehmigt werden.</p>
+<h3>5.3 Nachtrag genehmigen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 bookings approve-supplement \
+  --supplement-id 7</code></pre>
+<p>Erst nach der Genehmigung wird der Nachtrag als echte Buchung gespeichert und in Berichten ausgewertet.</p>
+<h3>5.4 Nachtrag ablehnen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 bookings reject-supplement \
+  --supplement-id 7 \
+  --reason "Zeitangabe nicht plausibel — laut Dienstplan war die Person nicht anwesend"</code></pre>
+<h3>5.5 Nachträge und Korrekturen finden</h3>
+<p>Alle ausstehenden Nachträge anzeigen:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports supplements \
+  --from 2026-07-01 --to 2026-07-31</code></pre>
+<p>Alle Korrekturen eines Zeitraums anzeigen:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports corrections \
+  --from 2026-07-01 --to 2026-07-31</code></pre>
+<hr>
+<h2>Kapitel 6: Berichte erstellen</h2>
+<p>Alle Berichte erfordern die Rolle <strong>ADMIN</strong> oder <strong>REVIEWER</strong>. Dateien werden automatisch im Verzeichnis gespeichert, das in <code>config.toml</code> unter <code>[backup] export_dir</code> angegeben ist.</p>
+<h3>6.1 CSV-Berichte</h3>
+<p><strong>Alle Buchungen eines Zeitraums als CSV:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-csv \
+  --from 2026-07-01 --to 2026-07-31</code></pre>
+<p>Erzeugt zwei Dateien:</p>
+<ul><li><strong>Detail-CSV</strong> — jede einzelne Buchung mit Zeitstempel und Status</li><li><strong>Verdichtet-CSV</strong> — eine Zeile pro Mitarbeiter und Tag mit Nettoarbeitszeit</li></ul>
+<p><strong>Nur für einen Mitarbeiter:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-csv \
+  --from 2026-07-01 --to 2026-07-31 --employee-id 3</code></pre>
+<p><strong>Prüffälle (Arbeitszeitverstöße) als CSV:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-csv-review-cases \
+  --from 2026-07-01 --to 2026-07-31</code></pre>
+<h3>6.2 PDF-Berichte</h3>
+<p><strong>Tagesbericht:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-pdf-day \
+  --date 2026-07-15</code></pre>
+<p><strong>Wochenbericht (ISO-Wochennummer):</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-pdf-week \
+  --year 2026 --week 29</code></pre>
+<p><strong>Monatsbericht:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-pdf-month \
+  --year 2026 --month 7</code></pre>
+<p><strong>Mitarbeiterbericht:</strong></p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports export-pdf-employee \
+  --employee-id 3 \
+  --from 2026-07-01 \
+  --to 2026-07-31</code></pre>
+<h3>6.3 Pflichtauswertungen</h3>
+<p>Diese Auswertungen werden direkt auf dem Bildschirm angezeigt (keine Datei):</p>
+<p><strong>Offene Buchungen</strong> (Schichten oder Pausen, die noch nicht abgeschlossen sind):</p>
+<pre><code class="language-bash"># Alle offenen Buchungen
+azadmin --db db.db --user-id 1 reports open-bookings
+
+# Eingegrenzt auf einen Zeitraum
+azadmin --db db.db --user-id 1 reports open-bookings \
+  --from 2026-07-01 --to 2026-07-31</code></pre>
+<p><strong>Buchungen mit Hinweis oder Prüfpflicht</strong> (WARN- und NEEDS\_REVIEW-Status):</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports warn-cases \
+  --from 2026-07-01 --to 2026-07-31</code></pre>
+<p><strong>Offene Prüffälle</strong> (müssen von einem REVIEWER bearbeitet werden):</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 reports open-review-cases</code></pre>
+<hr>
+<h2>Kapitel 7: Arbeitszeitplan setzen</h2>
+<p>Der Arbeitszeitplan legt fest, wann ein Mitarbeiter laut Plan anfangen und aufhören soll. Abweichungen davon führen zum Status <code>WARN</code>.</p>
+<h3>7.1 Standard-Arbeitszeiten nach Ersteinrichtung</h3>
+<p>Nach der Installation sind folgende Zeiten voreingestellt:</p>
+<table><thead><tr><th>Wochentag</th><th>Beginn</th><th>Ende</th></tr></thead><tbody><tr><td>Montag</td><td>07:30</td><td>18:00</td></tr><tr><td>Dienstag</td><td>07:30</td><td>18:00</td></tr><tr><td>Mittwoch</td><td>07:30</td><td>18:00</td></tr><tr><td>Donnerstag</td><td>07:30</td><td>14:00</td></tr><tr><td>Freitag</td><td>07:30</td><td>16:00</td></tr></tbody></table>
+<p>Diese gelten für <strong>alle Mitarbeitenden</strong> ab dem 01.01.2026.</p>
+<h3>7.2 Globale Regelarbeitszeit ändern</h3>
+<p>Beispiel: Freitag soll ab dem 01.08.2026 um 16:00 enden:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 schedule set \
+  --weekday 5 \
+  --start 07:30 \
+  --end 16:00 \
+  --from 2026-08-01</code></pre>
+<p><strong>Wochentage:</strong> 1 = Montag, 2 = Dienstag, … 7 = Sonntag</p>
+<p><strong>Zeitformat:</strong> HH:MM (z. B. <code>07:30</code>, <code>17:00</code>)</p>
+<p><strong>Datumsformat:</strong> YYYY-MM-DD (z. B. <code>2026-08-01</code>)</p>
+<p><strong>Rolle:</strong> ADMIN</p>
+<h3>7.3 Individuelle Regelarbeitszeit für einen Mitarbeiter</h3>
+<p>Wenn ein Mitarbeiter andere Zeiten hat als der Rest:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 schedule set \
+  --weekday 5 \
+  --start 07:30 \
+  --end 13:00 \
+  --from 2026-08-01 \
+  --employee-id 3</code></pre>
+<p>Die individuelle Zeit hat Vorrang vor der globalen.</p>
+<h3>7.4 Aktuelle Arbeitszeitpläne anzeigen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 schedule show</code></pre>
+<p><strong>Rolle:</strong> ADMIN oder REVIEWER</p>
+<hr>
+<h2>Kapitel 8: Benutzerverwaltung</h2>
+<p><strong>Benutzerkonto</strong> vs. <strong>Mitarbeiterkonto</strong>:</p>
+<ul><li>Ein <strong>Mitarbeiterkonto</strong> (<code>employees</code>) gehört zur Person, die am Terminal bucht — per RFID-Karte.</li><li>Ein <strong>Benutzerkonto</strong> (<code>users</code>) gehört zur Person, die das Admin-Programm benutzt — also der Administratorin, dem Prüfer oder dem IT-Betreuer.</li></ul>
+<p>Beides sind getrennte Datensätze. Eine Person kann beides haben.</p>
+<h3>8.1 Rollen</h3>
+<table><thead><tr><th>Rolle</th><th>Berechtigung</th></tr></thead><tbody><tr><td><code>ADMIN</code></td><td>Alles — Verwaltung, Berichte, Korrekturen, Backup</td></tr><tr><td><code>REVIEWER</code></td><td>Berichte anzeigen; Buchungskorrekturen und Nachträge genehmigen</td></tr><tr><td><code>TECH</code></td><td>Systemcheck und Backup ausführen</td></tr><tr><td><code>EMPLOYEE</code></td><td>Buchungen am Terminal — kein Zugang zum Admin-Programm</td></tr></tbody></table>
+<h3>8.2 Benutzerkonten anzeigen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 users list</code></pre>
+<h3>8.3 Benutzerkonto anlegen</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 users add \
+  --username petra \
+  --role REVIEWER</code></pre>
+<p>Ohne <code>--password</code> erzeugt das System ein zufälliges Passwort und zeigt es <strong>einmalig</strong> an. Bitte sofort weitergeben oder notieren.</p>
+<p>Optional kann das Konto mit einem Mitarbeiterdatensatz verknüpft werden:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 users add \
+  --username petra \
+  --role REVIEWER \
+  --employee-id 3 \
+  --password geheim123</code></pre>
+<p><strong>Rolle:</strong> ADMIN</p>
+<h3>8.4 Benutzerkonto deaktivieren und reaktivieren</h3>
+<pre><code class="language-bash"># Achtung: das erste --user-id ist das eigene Konto (Administratorin),
+#           das zweite --user-id ist das Zielkonto!
+azadmin --db db.db --user-id 1 users deactivate --user-id 2
+azadmin --db db.db --user-id 1 users reactivate --user-id 2</code></pre>
+<h3>8.5 Rolle ändern</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 users change-role \
+  --user-id 2 \
+  --role ADMIN</code></pre>
+<p><strong>Rolle:</strong> ADMIN</p>
+<hr>
+<h2>Kapitel 9: System-Wartung</h2>
+<h3>9.1 Backup</h3>
+<p>Das Backup erstellt eine Sicherungskopie der Datenbank:</p>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 system backup</code></pre>
+<p>Die Kopie wird im Verzeichnis gespeichert, das in <code>config.toml</code> unter <code>[backup] backup_dir</code> angegeben ist. Wenn NAS-Synchronisation aktiviert ist (<code>backup.nas_enabled = true</code>), wird zusätzlich auf das NAS kopiert.</p>
+<p><strong>Wichtig:</strong> Schlägt die NAS-Übertragung fehl, ist das lokale Backup bereits fertig. Das System meldet dann einen Fehler und beendet sich mit Exit-Code 1.</p>
+<p><strong>Rolle:</strong> ADMIN oder TECH</p>
+<h3>9.2 Systemcheck</h3>
+<pre><code class="language-bash">azadmin --db db.db --user-id 1 system check</code></pre>
+<p>Das System prüft automatisch:</p>
+<ul><li>Datenbankzugriff</li><li>Pflichteinstellungen in der Datenbank</li><li>NAS-Erreichbarkeit (wenn aktiviert)</li><li>Datenbankintegrität (Fremdschlüssel)</li><li>Dateipfade aus <code>config.toml</code></li><li>Zeitsynchronisation der Systemuhr (NTP)</li><li>RFID-Reader und Numpad erreichbar</li></ul>
+<p><strong>Rolle:</strong> ADMIN oder TECH</p>
+<h3>9.3 Konfiguration einrichten oder prüfen</h3>
+<pre><code class="language-bash"># Wichtig: --config muss VOR dem Befehl system stehen!
+azadmin --config /pfad/config.toml --user-id 1 system setup</code></pre>
+<p>Führt einen interaktiven Dialog zur Konfiguration durch.</p>
+<p><strong>Aktuelle Konfiguration anzeigen:</strong></p>
+<pre><code class="language-bash">python scripts/show_config.py --db datenbank.db</code></pre>
+<p>Zeigt die Werte aus <code>config.toml</code> und aus der Datenbank nebeneinander an.</p>
+<h3>9.4 Hardware prüfen</h3>
+<pre><code class="language-bash"># Alle erkannten Eingabegeräte auflisten
+python scripts/verify_hardware.py --list
+
+# Numpad und RFID-Reader interaktiv testen
+python scripts/verify_hardware.py</code></pre>
+<p>Exit-Codes: 0 = alles in Ordnung, 1 = Fehler, 2 = Gerät nicht gefunden.</p>
+<h3>9.5 Regelmäßige Wartungsaufgaben</h3>
+<p>Das Betriebshandbuch <code>docs/04_betrieb/handbuch_backup_restore.md</code> beschreibt:</p>
+<ul><li>empfohlene Backup-Häufigkeit</li><li>Schritte zur Datenwiederherstellung (Restore)</li><li>Prüfschritte nach einem Restore</li></ul>
+<hr>
+<h2>Kapitel 10: Häufige Fragen und Fehlermeldungen</h2>
+<h3>10.1 Fehlermeldungen am Terminal</h3>
+<table><thead><tr><th>Meldung</th><th>Ursache</th><th>Was tun?</th></tr></thead><tbody><tr><td><code>Karte nicht erkannt.</code></td><td>Karte nicht zugewiesen</td><td><code>cards assign</code> ausführen</td></tr><tr><td><code>Karte deaktiviert.</code></td><td>Karte gesperrt oder ersetzt</td><td>Neue Karte zuweisen (<code>cards assign</code>)</td></tr><tr><td><code>Mitarbeiter inaktiv.</code></td><td>Mitarbeiterkonto deaktiviert</td><td>Mit ADMIN klären</td></tr><tr><td><code>Ungültige Buchungsreihenfolge.</code></td><td>Z. B. zweimal Kommen ohne Gehen</td><td>Korrektur via <code>bookings correct</code></td></tr><tr><td><code>Offene Phase — bitte zuerst abschließen.</code></td><td>Noch eine offene Schicht oder Pause</td><td>Offene Buchung via <code>bookings correct</code> schließen</td></tr></tbody></table>
+<h3>10.2 Buchungsstatus verstehen</h3>
+<table><thead><tr><th>Status</th><th>Bedeutung</th></tr></thead><tbody><tr><td><code>OPEN</code></td><td>Schicht oder Pause läuft noch — noch nicht abgeschlossen</td></tr><tr><td><code>OK</code></td><td>Abgeschlossen, alles im Rahmen der gesetzlichen Limits</td></tr><tr><td><code>WARN</code></td><td>Abgeschlossen, aber Abweichung vom Arbeitszeitplan oder Grenzwert-Hinweis</td></tr><tr><td><code>NEEDS_REVIEW</code></td><td>Muss von einer Person mit Rolle REVIEWER geprüft werden</td></tr><tr><td><code>CORRECTED</code></td><td>Wurde nachträglich korrigiert</td></tr><tr><td><code>CLOSED_WITH_NOTE</code></td><td>Manuell mit Begründung abgeschlossen</td></tr></tbody></table>
+<h3>10.3 Berichte: Dateien nicht gefunden</h3>
+<p><strong>Problem:</strong> Die Berichtsdatei erscheint nicht.</p>
+<p><strong>Ursache:</strong> Das Exportverzeichnis ist nicht korrekt konfiguriert.</p>
+<p><strong>Lösung:</strong> In <code>config.toml</code> den Abschnitt <code>[backup]</code> prüfen:</p>
+<pre><code class="language-toml">[backup]
+export_dir = "/var/exports/arbeitszeit"</code></pre>
+<p>Das Verzeichnis muss existieren und beschreibbar sein.</p>
+<h3>10.4 Terminal startet nicht</h3>
+<p><strong>Problem:</strong> <code>python -m arbeitszeit.presentation.terminal_ui.main</code> schlägt fehl.</p>
+<p><strong>Mögliche Ursachen und Lösung:</strong></p>
+<pre><code class="language-bash"># Gerätenamen aller Eingabegeräte anzeigen
+python scripts/verify_hardware.py --list</code></pre>
+<p>Den angezeigten genauen Namen in <code>config.toml</code> unter <code>[terminal]</code> eintragen.</p>
+<h3>10.5 Prüffälle bearbeiten</h3>
+<p>Wenn eine Buchung den Status <code>NEEDS_REVIEW</code> hat, muss eine Person mit Rolle REVIEWER aktiv werden:</p>
+<pre><code class="language-bash"># Offene Prüffälle anzeigen
+azadmin --db db.db --user-id 1 reports open-review-cases
+
+# Details zur betroffenen Buchung
+azadmin --db db.db --user-id 1 reports warn-cases \
+  --from 2026-07-01 --to 2026-07-31
+
+# Korrektur oder Nachtrag anlegen
+azadmin --db db.db --user-id 1 bookings correct \
+  --booking-id &lt;ID&gt; --type &lt;TYP&gt; --at &lt;ZEITPUNKT&gt; --reason "&lt;BEGRÜNDUNG&gt;"</code></pre>
+<h3>10.6 Admin-Programm antwortet mit Fehler</h3>
+<p><strong>Problem:</strong> Fehlermeldung nach dem Aufruf.</p>
+<table><thead><tr><th>Fehlermeldung</th><th>Bedeutung</th></tr></thead><tbody><tr><td><code>command not found: admin</code></td><td>Alias nicht eingerichtet; vollständigen Befehl verwenden oder Alias in ~/.bashrc eintragen</td></tr><tr><td><code>Fehler: Datenbankdatei nicht gefunden</code></td><td>Pfad in <code>--db</code> ist falsch</td></tr><tr><td><code>Fehler: Benutzer-ID nicht gefunden</code></td><td><code>--user-id</code> zeigt auf ein nicht existentes Konto</td></tr><tr><td><code>PermissionDeniedError</code></td><td>Das Konto hat nicht die nötige Rolle für diesen Befehl</td></tr><tr><td><code>NotFoundError</code></td><td>Die angegebene ID (Buchung, Mitarbeiter, Karte) existiert nicht</td></tr></tbody></table>
+<hr>
+<h2>Versionsvermerk</h2>
+<table><thead><tr><th>Version</th><th>Datum</th><th>Änderungen</th></tr></thead><tbody><tr><td>v1.7</td><td>2026-07-17</td><td>Vollständige Neustrukturierung als Laien-Handbuch: aufgabenorientiert, ohne Architekturdetails, mit konkreten Beispielen für alle Befehle</td></tr><tr><td>v1.6</td><td>2026-05-22</td><td>Technisch-architektonische Dokumentation</td></tr></tbody></table>
 </body>
 </html>

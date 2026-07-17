@@ -1,1995 +1,599 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="de" xml:lang="de">
+<html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="generator" content="pandoc" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
-  <title>befehlsreferenz</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Befehlsreferenz arbeitszeit — Version 1.5</title>
   <style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-code{white-space: pre-wrap;}
-span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-
-ul.task-list[class]{list-style: none;}
-ul.task-list li input[type="checkbox"] {
-font-size: inherit;
-width: 0.8em;
-margin: 0 0.8em 0.2em -1.6em;
-vertical-align: middle;
-}
-.display.math{display: block; text-align: center; margin: 0.5rem auto;}
-
-html { -webkit-text-size-adjust: 100%; }
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-{ counter-reset: source-line 0; }
-pre.numberSource code > span
-{ position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-{ content: counter(source-line);
-position: relative; left: -1em; text-align: right; vertical-align: baseline;
-border: none; display: inline-block;
--webkit-touch-callout: none; -webkit-user-select: none;
--khtml-user-select: none; -moz-user-select: none;
--ms-user-select: none; user-select: none;
-padding: 0 4px; width: 4em;
-color: #aaaaaa;
-}
-pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
-div.sourceCode
-{ }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
-code span.al { color: #ff0000; font-weight: bold; } 
-code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.at { color: #7d9029; } 
-code span.bn { color: #40a070; } 
-code span.bu { color: #008000; } 
-code span.cf { color: #007020; font-weight: bold; } 
-code span.ch { color: #4070a0; } 
-code span.cn { color: #880000; } 
-code span.co { color: #60a0b0; font-style: italic; } 
-code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.do { color: #ba2121; font-style: italic; } 
-code span.dt { color: #902000; } 
-code span.dv { color: #40a070; } 
-code span.er { color: #ff0000; font-weight: bold; } 
-code span.ex { } 
-code span.fl { color: #40a070; } 
-code span.fu { color: #06287e; } 
-code span.im { color: #008000; font-weight: bold; } 
-code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
-code span.kw { color: #007020; font-weight: bold; } 
-code span.op { color: #666666; } 
-code span.ot { color: #007020; } 
-code span.pp { color: #bc7a00; } 
-code span.sc { color: #4070a0; } 
-code span.ss { color: #bb6688; } 
-code span.st { color: #4070a0; } 
-code span.va { color: #19177c; } 
-code span.vs { color: #4070a0; } 
-code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
-</style>
-  <style type="text/css">*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-font-size: 16px;
-line-height: 1.7;
-color: #1a1a1a;
-background: #ffffff;
-padding: 2rem 1rem;
-max-width: 820px;
-margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  color: #1a1a1a;
+  background: #ffffff;
+  padding: 2rem 1rem;
+  max-width: 820px;
+  margin: 0 auto;
 }
 
+/* ---- Überschriften ---- */
 h1 {
-font-size: 2rem;
-font-weight: 700;
-color: #111;
-border-bottom: 3px solid #2563eb;
-padding-bottom: 0.5rem;
-margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 3px solid #2563eb;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
 }
+
 h2 {
-font-size: 1.4rem;
-font-weight: 700;
-color: #1e3a6e;
-margin-top: 2.5rem;
-margin-bottom: 0.8rem;
-padding-left: 0.6rem;
-border-left: 4px solid #2563eb;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e3a6e;
+  margin-top: 2.5rem;
+  margin-bottom: 0.8rem;
+  padding-left: 0.6rem;
+  border-left: 4px solid #2563eb;
 }
+
 h3 {
-font-size: 1.1rem;
-font-weight: 600;
-color: #374151;
-margin-top: 1.5rem;
-margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
 }
+
 h4 {
-font-size: 1rem;
-font-weight: 600;
-color: #4b5563;
-margin-top: 1.2rem;
-margin-bottom: 0.4rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
 }
+
 h5, h6 {
-font-size: 0.95rem;
-font-weight: 600;
-color: #6b7280;
-margin-top: 1rem;
-margin-bottom: 0.3rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  margin-top: 1rem;
+  margin-bottom: 0.3rem;
 }
 
+/* ---- Absätze ---- */
 p {
-margin-bottom: 0.9rem;
+  margin-bottom: 0.9rem;
 }
 
+/* ---- Inline Code ---- */
 code {
-font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-font-size: 0.875em;
-background: #f1f5f9;
-color: #be185d;
-padding: 0.1em 0.35em;
-border-radius: 4px;
-border: 1px solid #e2e8f0;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-size: 0.875em;
+  background: #f1f5f9;
+  color: #be185d;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
 }
 
+/* ---- Code-Blöcke ---- */
 pre {
-background: #1e293b;
-color: #e2e8f0;
-border-radius: 8px;
-padding: 1rem 1.2rem;
-overflow-x: auto;
-margin: 0.8rem 0 1.2rem 0;
-font-size: 0.875rem;
-line-height: 1.6;
+  background: #1e293b;
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  overflow-x: auto;
+  margin: 0.8rem 0 1.2rem 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
 }
+
 pre code {
-background: none;
-color: inherit;
-padding: 0;
-border: none;
-font-size: inherit;
+  background: none;
+  color: inherit;
+  padding: 0;
+  border: none;
+  font-size: inherit;
 }
 
+/* ---- Listen ---- */
 ul, ol {
-margin: 0.5rem 0 1rem 1.5rem;
-}
-li {
-margin-bottom: 0.35rem;
+  margin: 0.5rem 0 1rem 1.5rem;
 }
 
+li {
+  margin-bottom: 0.35rem;
+}
+
+/* ---- Tabelle ---- */
 table {
-width: 100%;
-border-collapse: collapse;
-margin: 1rem 0 1.5rem 0;
-font-size: 0.93rem;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem 0;
+  font-size: 0.93rem;
 }
+
 th {
-background: #1e3a6e;
-color: #ffffff;
-text-align: left;
-padding: 0.6rem 0.8rem;
-font-weight: 600;
+  background: #1e3a6e;
+  color: #ffffff;
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  font-weight: 600;
 }
+
 td {
-padding: 0.55rem 0.8rem;
-border-bottom: 1px solid #e5e7eb;
-vertical-align: top;
+  padding: 0.55rem 0.8rem;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
 }
+
 tr:nth-child(even) td { background: #f9fafb; }
 tr:hover td { background: #eff6ff; }
 
+/* ---- Trennlinie ---- */
 hr {
-border: none;
-border-top: 1px solid #e5e7eb;
-margin: 2rem 0;
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
 }
 
+/* ---- Links ---- */
 a {
-color: #2563eb;
-text-decoration: none;
+  color: #2563eb;
+  text-decoration: none;
 }
+
 a:hover { text-decoration: underline; }
 
+/* ---- Glossar ---- */
 dl { margin: 0.5rem 0 1rem 0; }
 dt {
-font-weight: 600;
-color: #1e3a6e;
-margin-top: 0.7rem;
+  font-weight: 600;
+  color: #1e3a6e;
+  margin-top: 0.7rem;
 }
 dd {
-margin-left: 1.5rem;
-color: #374151;
+  margin-left: 1.5rem;
+  color: #374151;
 }
 
+/* ---- Druckoptimierung ---- */
 @media print {
-pre { background: #f1f5f9; color: #111; border: 1px solid #ccc; }
-a { color: #111; }
+  pre { background: #f1f5f9; color: #111; border: 1px solid #ccc; }
+  a { color: #111; }
 }
-</style>
+
+  </style>
 </head>
 <body>
-<h1 id="befehlsreferenz-arbeitszeit">Befehlsreferenz
-<code>arbeitszeit</code></h1>
-<p><strong>Version:</strong> 1.3<br />
-<strong>Stand:</strong> Juli 2026<br />
-<strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine
-Zahnarztpraxis</p>
-<p>Dieses Dokument listet alle verfügbaren Befehle mit vollständiger
-Syntax, Argumenten, Rollenanforderungen und Ausgaben.
-Architekturhintergründe finden sich im <code>handbuch.md</code>.</p>
-<hr />
-<h2 id="inhaltsverzeichnis">Inhaltsverzeichnis</h2>
-<ul>
-<li><a href="#allgemeines">Allgemeines</a></li>
-<li><a href="#admin-cli">Admin-CLI</a>
-<ul>
-<li><a href="#employees">employees</a></li>
-<li><a href="#cards">cards</a></li>
-<li><a href="#bookings">bookings</a></li>
-<li><a href="#schedule">schedule</a></li>
-<li><a href="#reports">reports</a></li>
-<li><a href="#system">system</a></li>
-<li><a href="#users">users</a></li>
-</ul></li>
-<li><a href="#terminal-ui">Terminal-UI</a></li>
-<li><a href="#hilfsskripte">Hilfsskripte</a></li>
-<li><a href="#rollenübersicht">Rollenübersicht</a></li>
-</ul>
-<hr />
-<h2 id="allgemeines">Allgemeines</h2>
-<h3 id="aufrufmuster">Aufrufmuster</h3>
-<div class="sourceCode" id="cb1"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>DATENBANKPFAD<span class="op">&gt;</span> [--user-id <span class="op">&lt;</span>BENUTZER-ID<span class="op">&gt;</span>] <span class="op">&lt;</span>domäne<span class="op">&gt;</span> <span class="op">&lt;</span>befehl<span class="op">&gt;</span> <span class="pp">[</span><span class="ss">argumente</span><span class="pp">]</span></span></code></pre></div>
-<p>Alternativ kann die Benutzer-ID über die Umgebungsvariable gesetzt
-werden:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="bu">export</span> <span class="va">ADMIN_USER_ID</span><span class="op">=</span>1</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> arbeitszeit.db employees list</span></code></pre></div>
-<h3 id="globale-pflichtargumente">Globale Pflichtargumente</h3>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--db PFAD</code></td>
-<td>Pfad zur SQLite-Datenbankdatei</td>
-</tr>
-</tbody>
-</table>
-<h3 id="globale-optionale-argumente">Globale optionale Argumente</h3>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--user-id ID</code></td>
-<td>Benutzer-ID des ausführenden Kontos (alternativ:
-<code>ADMIN_USER_ID</code>)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausnahme <code>users bootstrap</code>:</strong> Kein
-<code>--user-id</code> erforderlich — dieser Befehl wird vor der Anlage
-des ersten Administrators ausgeführt.</p>
-<h3 id="exit-codes">Exit-Codes</h3>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th>Code</th>
-<th>Bedeutung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>0</code></td>
-<td>Erfolg</td>
-</tr>
-<tr>
-<td><code>1</code></td>
-<td>Fehler (fehlende Berechtigung, ungültige Eingabe, Datenbankfehler,
-NAS-Fehler)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="datum--und-uhrzeitformate">Datum- und Uhrzeitformate</h3>
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr>
-<th>Format</th>
-<th>Beispiel</th>
-<th>Verwendung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>YYYY-MM-DD</code></td>
-<td><code>2026-07-01</code></td>
-<td>Datumsargumente (<code>--from</code>, <code>--to</code>,
-<code>--date</code>, <code>--from_date</code>)</td>
-</tr>
-<tr>
-<td><code>HH:MM</code></td>
-<td><code>08:30</code></td>
-<td>Uhrzeitargumente (<code>--start</code>, <code>--end</code>)</td>
-</tr>
-<tr>
-<td>ISO-8601 Datetime</td>
-<td><code>2026-07-01T08:30:00</code> oder
-<code>2026-07-01T08:30:00Z</code></td>
-<td><code>--at</code>-Argumente; fehlende Zeitzone → UTC</td>
-</tr>
-<tr>
-<td>ISO-Wochennummer</td>
-<td><code>1</code>–<code>53</code></td>
-<td><code>--week</code>-Argument</td>
-</tr>
-<tr>
-<td>Monatsnummer</td>
-<td><code>1</code>–<code>12</code></td>
-<td><code>--month</code>-Argument</td>
-</tr>
-</tbody>
-</table>
-<h3 id="buchungstypen---type">Buchungstypen (<code>--type</code>)</h3>
-<table>
-<thead>
-<tr>
-<th>Wert</th>
-<th>Bedeutung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>COME</code></td>
-<td>Kommen</td>
-</tr>
-<tr>
-<td><code>GO</code></td>
-<td>Gehen</td>
-</tr>
-<tr>
-<td><code>BREAK_START</code></td>
-<td>Pause Beginn</td>
-</tr>
-<tr>
-<td><code>BREAK_END</code></td>
-<td>Pause Ende</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="admin-cli">Admin-CLI</h2>
-<hr />
-<h3 id="employees">employees</h3>
-<p>Mitarbeiterverwaltung. Schreibzugriffe erfordern
-<code>ADMIN</code>-Rolle; die Rollenprüfung erfolgt in der
-Anwendungsschicht.</p>
-<hr />
-<h4 id="employees-list"><code>employees list</code></h4>
+<h1>Befehlsreferenz <code>arbeitszeit</code></h1>
+<p><strong>Version:</strong> 1.5 <strong>Stand:</strong> Juli 2026 <strong>Projekt:</strong> Lokales Zeiterfassungssystem für eine Zahnarztpraxis</p>
+<p>Dieses Dokument listet die im Repository belegbaren Befehle mit Syntax, Argumenten, Rollenanforderungen und Ausgaben. Grundlage sind ausschließlich Quellcode und Changelog des Repositorys.</p>
+<hr>
+<h2>Inhaltsverzeichnis</h2>
+<ul><li><a href="#allgemeines">Allgemeines</a></li><li><a href="#admin-cli">Admin-CLI</a></li><li><a href="#employees">employees</a></li><li><a href="#cards">cards</a></li><li><a href="#bookings">bookings</a></li><li><a href="#schedule">schedule</a></li><li><a href="#reports">reports</a></li><li><a href="#system">system</a></li><li><a href="#users">users</a></li><li><a href="#terminal-ui">Terminal-UI</a></li><li><a href="#hilfsskripte">Hilfsskripte</a></li><li><a href="#rollenübersicht">Rollenübersicht</a></li><li><a href="#versionsvermerk">Versionsvermerk</a></li></ul>
+<hr>
+<h2>Allgemeines</h2>
+<h3>Aufrufmuster</h3>
+<p>Die Admin-CLI ist im Repository als Python-Modul belegt:</p>
+<pre><code class="language-bash">python -m arbeitszeit.presentation.admin_cli.main \
+  [--config &lt;CONFIG_PATH&gt;] \
+  [--db &lt;DATENBANKPFAD&gt;] \
+  [--user-id &lt;BENUTZER-ID&gt;] \
+  &lt;domäne&gt; &lt;befehl&gt; [argumente]</code></pre>
+<p>Da der Modulpfad lang ist, verwenden alle Beispiele in diesem Dokument den Alias <code>azadmin</code>. Einmalig in der aktuellen Shell-Sitzung einrichten:</p>
+<pre><code class="language-bash">alias azadmin="python -m arbeitszeit.presentation.admin_cli.main"</code></pre>
+<p>Für dauerhafte Verfügbarkeit in <code>~/.bashrc</code> eintragen:</p>
+<pre><code class="language-bash">echo 'alias azadmin="python -m arbeitszeit.presentation.admin_cli.main"' &gt;&gt; ~/.bashrc
+source ~/.bashrc</code></pre>
+<p><strong>Hinweis:</strong> Falls der Alias nicht aktiv ist, ersetze <code>azadmin</code> in allen Beispielen durch <code>python -m arbeitszeit.presentation.admin_cli.main</code>.</p>
+<p>Alternativ kann die Benutzer-ID über die Umgebungsvariable gesetzt werden:</p>
+<pre><code class="language-bash">export ADMIN_USER_ID=1
+azadmin --db arbeitszeit.db employees list</code></pre>
+<h3>Globale Pflichtargumente</h3>
+<table><thead><tr><th>Argument</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--db PFAD</code></td><td>Pfad zur SQLite-Datenbankdatei, sofern kein Wert über <code>config.toml</code> aufgelöst wird</td></tr></tbody></table>
+<h3>Globale optionale Argumente</h3>
+<table><thead><tr><th>Argument</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--config CONFIG_PATH</code></td><td>Pfad zu <code>config.toml</code> (Standard: automatische Suche)</td></tr><tr><td><code>--user-id ID</code></td><td>Benutzer-ID des ausführenden Kontos</td></tr></tbody></table>
+<h3>Auflösung der Benutzer-ID</h3>
+<p>Die Benutzer-ID wird in folgender Reihenfolge aufgelöst:</p>
+<ol><li>CLI-Argument <code>--user-id</code></li><li>Umgebungsvariable <code>ADMIN_USER_ID</code></li><li><code>admin.user_id</code> aus <code>config.toml</code></li><li>Fehlerabbruch</li></ol>
+<p><strong>Ausnahme <code>users bootstrap</code>:</strong> Kein <code>--user-id</code> erforderlich. Dieser Befehl wird vor der Anlage des ersten Administrators ausgeführt.</p>
+<h3>Auflösung der Konfigurationsdatei</h3>
+<p><code>config.toml</code> wird in folgender Reihenfolge gesucht:</p>
+<ol><li><code>--config &lt;PFAD&gt;</code> (explizit angegeben)</li><li>Umgebungsvariable <code>ARBEITSZEIT_CONFIG</code></li><li><code>~/.config/arbeitszeit/config.toml</code></li><li><code>./config.toml</code> (aktuelles Verzeichnis)</li></ol>
+<p>Ist keine Konfigurationsdatei auffindbar und kein <code>--db</code> angegeben, bricht das Programm mit Exit-Code <code>1</code> ab.</p>
+<h3>Exit-Codes</h3>
+<table><thead><tr><th>Code</th><th>Bedeutung</th></tr></thead><tbody><tr><td><code>0</code></td><td>Erfolg</td></tr><tr><td><code>1</code></td><td>Fehler (fehlende Berechtigung, ungültige Eingabe, Datenbankfehler, NAS-Fehler)</td></tr></tbody></table>
+<h3>Datum- und Uhrzeitformate</h3>
+<table><thead><tr><th>Format</th><th>Beispiel</th><th>Verwendung</th></tr></thead><tbody><tr><td><code>YYYY-MM-DD</code></td><td><code>2026-07-01</code></td><td>Datumsargumente (<code>--from</code>, <code>--to</code>, <code>--date</code>)</td></tr><tr><td><code>HH:MM</code></td><td><code>08:30</code></td><td>Uhrzeitargumente (<code>--start</code>, <code>--end</code>)</td></tr><tr><td>ISO-8601 Datetime</td><td><code>2026-07-01T08:30:00</code> oder <code>2026-07-01T08:30:00Z</code></td><td><code>--at</code>-Argumente; fehlende Zeitzone wird als UTC behandelt</td></tr><tr><td>ISO-Wochennummer</td><td><code>1</code> bis <code>53</code></td><td><code>--week</code>-Argument</td></tr><tr><td>Monatsnummer</td><td><code>1</code> bis <code>12</code></td><td><code>--month</code>-Argument</td></tr></tbody></table>
+<h3>Buchungstypen (<code>--type</code>)</h3>
+<p>Die CLI validiert <code>--type</code> gegen <code>BookingType(value.upper())</code>. Die konkret zulässigen Enum-Werte werden in dieser Datei nur in den belegten Beispielen geführt:</p>
+<table><thead><tr><th>Wert</th><th>Bedeutung</th></tr></thead><tbody><tr><td><code>COME</code></td><td>Kommen</td></tr><tr><td><code>GO</code></td><td>Gehen</td></tr><tr><td><code>BREAK_START</code></td><td>Pause Beginn</td></tr><tr><td><code>BREAK_END</code></td><td>Pause Ende</td></tr></tbody></table>
+<hr>
+<h2>Admin-CLI</h2>
+<hr>
+<h3>employees</h3>
+<p>Mitarbeiterverwaltung. Schreibzugriffe laufen über Use Cases der Application-Schicht.</p>
+<hr>
+<h4><code>employees list</code></h4>
 <p>Listet alle Mitarbeiter auf.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> employees list</span></code></pre></div>
-<p><strong>Rolle:</strong> keine<br />
-<strong>Ausgabe:</strong></p>
-<pre class="text"><code>  ID  Nr            Name                            Status
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; employees list</code></pre>
+<p><strong>Rolle:</strong> keine <strong>Ausgabe:</strong></p>
+<pre><code class="language-text">  ID  Nr            Name                            Status
 ------------------------------------------------------------
    1  M001          Maria Mustermann                aktiv
    2  M002          Klaus Beispiel                  inaktiv</code></pre>
 <p>oder <code>Keine Mitarbeiter vorhanden.</code></p>
-<hr />
-<h4 id="employees-add"><code>employees add</code></h4>
+<hr>
+<h4><code>employees add</code></h4>
 <p>Legt einen neuen Mitarbeiter an.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> employees add <span class="dt">\</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--personnel-no</span> <span class="op">&lt;</span>PERSONALNUMMER<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--first-name</span> <span class="op">&lt;</span>VORNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--last-name</span> <span class="op">&lt;</span>NACHNAME<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--personnel-no</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Eindeutige Personalnummer</td>
-</tr>
-<tr>
-<td><code>--first-name</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Vorname</td>
-</tr>
-<tr>
-<td><code>--last-name</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Nachname</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong>
-<code>Mitarbeiter angelegt (ID 3).</code><br />
-<strong>Fehler:</strong> Doppelte Personalnummer → Exit 1</p>
-<hr />
-<h4 id="employees-deactivate"><code>employees deactivate</code></h4>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; employees add \
+  --personnel-no &lt;PERSONALNUMMER&gt; \
+  --first-name &lt;VORNAME&gt; \
+  --last-name &lt;NACHNAME&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--personnel-no</code></td><td>string</td><td>ja</td><td>Eindeutige Personalnummer</td></tr><tr><td><code>--first-name</code></td><td>string</td><td>ja</td><td>Vorname</td></tr><tr><td><code>--last-name</code></td><td>string</td><td>ja</td><td>Nachname</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Mitarbeiter angelegt (ID 3).</code> <strong>Fehler:</strong> Domänenfehler, z. B. doppelte Personalnummer → Exit 1</p>
+<hr>
+<h4><code>employees deactivate</code></h4>
 <p>Deaktiviert einen Mitarbeiter.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> employees deactivate <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Mitarbeiter-ID (positional)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong> <code>Mitarbeiter 3 deaktiviert.</code><br />
-<strong>Fehler:</strong> ID nicht gefunden → Exit 1</p>
-<hr />
-<h3 id="cards">cards</h3>
-<p>RFID-Kartenverwaltung. Alle Schreibzugriffe erfordern
-<code>ADMIN</code>-Rolle.</p>
-<hr />
-<h4 id="cards-assign"><code>cards assign</code></h4>
-<p>Weist einem Mitarbeiter eine neue RFID-Karte zu. Die UID kann direkt
-vom RFID-Reader eingelesen (<code>--scan --rfid</code>) oder als vorab
-berechneter Hash übergeben werden (<code>--uid-hash</code>). Beide
-Optionen schließen sich gegenseitig aus.</p>
-<p><strong>Methode 1 – Direkt scannen (empfohlen):</strong></p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards assign <span class="dt">\</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--scan</span> <span class="dt">\</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="st">&quot;HID 1234:5678&quot;</span></span></code></pre></div>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; employees deactivate &lt;MITARBEITER-ID&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>id</code></td><td>int</td><td>ja</td><td>Mitarbeiter-ID (positional)</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Mitarbeiter 3 deaktiviert.</code></p>
+<hr>
+<h3>cards</h3>
+<p>RFID-Kartenverwaltung. Alle Schreibzugriffe erfordern <code>ADMIN</code>.</p>
+<hr>
+<h4><code>cards assign</code></h4>
+<p>Weist einem Mitarbeiter eine neue RFID-Karte zu. Die UID kann direkt vom RFID-Reader eingelesen (<code>--scan --rfid</code>) oder als vorab berechneter Hash übergeben werden (<code>--uid-hash</code>). Beide Varianten schließen sich gegenseitig aus.</p>
+<p><strong>Methode 1 – Direkt scannen:</strong></p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; cards assign \
+  --employee-id &lt;MITARBEITER-ID&gt; \
+  --scan \
+  --rfid "HID 1234:5678"</code></pre>
 <p><strong>Methode 2 – Hash manuell angeben:</strong></p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards assign <span class="dt">\</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>HASH<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID des zugehörigen Mitarbeiters</td>
-</tr>
-<tr>
-<td><code>--scan</code></td>
-<td>flag</td>
-<td>nein¹</td>
-<td>UID direkt vom RFID-Reader einlesen (15 s Timeout)</td>
-</tr>
-<tr>
-<td><code>--rfid</code></td>
-<td>string</td>
-<td>nein¹</td>
-<td>Gerätename oder -pfad des RFID-Readers (für
-<code>--scan</code>)</td>
-</tr>
-<tr>
-<td><code>--uid-hash</code></td>
-<td>string</td>
-<td>nein¹</td>
-<td>SHA-256-Hash der Karten-UID (siehe
-<code>scripts/verify_hardware.py</code>)</td>
-</tr>
-</tbody>
-</table>
-<p>¹ Entweder <code>--uid-hash</code> oder <code>--scan</code> (zusammen
-mit <code>--rfid</code>) muss angegeben werden.</p>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong> <code>Karte zugewiesen (ID 5).</code><br />
-<strong>Fehler:</strong> UID-Hash bereits vergeben, Mitarbeiter nicht
-gefunden, RFID-Scan-Timeout, Gerät nicht gefunden → Exit 1</p>
-<hr />
-<h4 id="cards-replace"><code>cards replace</code></h4>
-<p>Ersetzt eine verlorene oder defekte Karte durch eine neue. Die alte
-Karte erhält den Status <code>REPLACED</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards replace <span class="dt">\</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--old-card-id</span> <span class="op">&lt;</span>ALTE-KARTEN-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--uid-hash</span> <span class="op">&lt;</span>NEUER-HASH<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--old-card-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID der zu ersetzenden Karte</td>
-</tr>
-<tr>
-<td><code>--uid-hash</code></td>
-<td>string</td>
-<td>ja</td>
-<td>SHA-256-Hash der neuen Karte</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong>
-<code>Karte ersetzt: alt=5, neu=6.</code><br />
-<strong>Fehler:</strong> Alte Karte nicht gefunden, neuer UID-Hash
-bereits vergeben → Exit 1</p>
-<hr />
-<h4 id="cards-deactivate"><code>cards deactivate</code></h4>
-<p>Deaktiviert eine RFID-Karte (Status → <code>INACTIVE</code>).</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> cards deactivate <span class="op">&lt;</span>KARTEN-ID<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Karten-ID (positional)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong> <code>Karte 5 deaktiviert.</code><br />
-<strong>Fehler:</strong> ID nicht gefunden → Exit 1</p>
-<hr />
-<h3 id="bookings">bookings</h3>
-<p>Buchungskorrekturen und Nachträge. Rollenprüfung erfolgt vollständig
-in der Anwendungsschicht.</p>
-<hr />
-<h4 id="bookings-correct"><code>bookings correct</code></h4>
-<p>Korrigiert eine bestehende Buchung (ändert Typ oder Zeitstempel).</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings correct <span class="dt">\</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--booking-id</span> <span class="op">&lt;</span>BUCHUNGS-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type</span> <span class="op">&lt;</span>BUCHUNGSTYP<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--at</span> <span class="op">&lt;</span>ISO-DATETIME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--booking-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID der zu korrigierenden Buchung</td>
-</tr>
-<tr>
-<td><code>--type</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Neuer Buchungstyp (<code>COME</code>, <code>GO</code>,
-<code>BREAK_START</code>, <code>BREAK_END</code>)</td>
-</tr>
-<tr>
-<td><code>--at</code></td>
-<td>ISO-8601</td>
-<td>ja</td>
-<td>Neuer Buchungszeitpunkt</td>
-</tr>
-<tr>
-<td><code>--reason</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Begründung der Korrektur</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN, REVIEWER<br />
-<strong>Ausgabe:</strong>
-<code>Korrektur angelegt (ID 12), Buchung 47 auf CORRECTED gesetzt.</code><br />
-<strong>Fehler:</strong> Ungültiger Buchungstyp, ungültiges Datum,
-Buchung nicht gefunden → Exit 1</p>
-<hr />
-<h4 id="bookings-supplement"><code>bookings supplement</code></h4>
-<p>Erfasst eine nachträgliche Buchung (Nachtrag). Erzeugt automatisch
-einen Prüffall.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings supplement <span class="dt">\</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--type</span> <span class="op">&lt;</span>BUCHUNGSTYP<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--at</span> <span class="op">&lt;</span>ISO-DATETIME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  [--related-booking-id <span class="op">&lt;</span>BUCHUNGS-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Mitarbeiter-ID</td>
-</tr>
-<tr>
-<td><code>--type</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Buchungstyp</td>
-</tr>
-<tr>
-<td><code>--at</code></td>
-<td>ISO-8601</td>
-<td>ja</td>
-<td>Ereigniszeitpunkt</td>
-</tr>
-<tr>
-<td><code>--reason</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Begründung</td>
-</tr>
-<tr>
-<td><code>--related-booking-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Verknüpfte Buchung (optional)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN, REVIEWER<br />
-<strong>Ausgabe:</strong>
-<code>Nachtrag angelegt (ID 8), Prüffall 3 erzeugt.</code><br />
-<strong>Fehler:</strong> Ungültiger Buchungstyp, Mitarbeiter nicht
-gefunden → Exit 1</p>
-<hr />
-<h4 id="bookings-approve-supplement"><code>bookings approve-supplement</code></h4>
-<p>Genehmigt einen Nachtrag. Erstellt eine wirksame Buchung.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings approve-supplement <span class="dt">\</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--supplement-id</span> <span class="op">&lt;</span>NACHTRAGS-ID<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--supplement-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID des zu genehmigenden Nachtrags</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN, REVIEWER<br />
-<strong>Ausgabe:</strong>
-<code>Nachtrag 8 genehmigt, Buchung 52 angelegt (Status: OK).</code><br />
-<strong>Fehler:</strong> Nachtrag nicht gefunden, bereits bearbeitet →
-Exit 1</p>
-<hr />
-<h4 id="bookings-reject-supplement"><code>bookings reject-supplement</code></h4>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; cards assign \
+  --employee-id &lt;MITARBEITER-ID&gt; \
+  --uid-hash &lt;HASH&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--employee-id</code></td><td>int</td><td>ja</td><td>ID des zugehörigen Mitarbeiters</td></tr><tr><td><code>--scan</code></td><td>flag</td><td>nein¹</td><td>UID direkt vom RFID-Reader einlesen</td></tr><tr><td><code>--rfid</code></td><td>string</td><td>nein¹</td><td>Gerätename oder -pfad des RFID-Readers für <code>--scan</code></td></tr><tr><td><code>--uid-hash</code></td><td>string</td><td>nein¹</td><td>SHA-256-Hash der Karten-UID</td></tr></tbody></table>
+<p>¹ Entweder <code>--uid-hash</code> oder <code>--scan</code> zusammen mit <code>--rfid</code> muss angegeben werden.</p>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Karte zugewiesen (ID 5).</code> <strong>Fehler:</strong> UID-Hash bereits vergeben, Mitarbeiter nicht gefunden, RFID-Scan-Timeout, Gerät nicht gefunden → Exit 1</p>
+<hr>
+<h4><code>cards replace</code></h4>
+<p>Ersetzt eine verlorene oder defekte Karte durch eine neue.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; cards replace \
+  --old-card-id &lt;ALTE-KARTEN-ID&gt; \
+  --uid-hash &lt;NEUER-HASH&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--old-card-id</code></td><td>int</td><td>ja</td><td>ID der zu ersetzenden Karte</td></tr><tr><td><code>--uid-hash</code></td><td>string</td><td>ja</td><td>SHA-256-Hash der neuen Karte</td></tr></tbody></table>
+<p><strong>Hinweis:</strong> <code>cards replace</code> akzeptiert keinen <code>--scan</code>-Modus. Den UID-Hash der neuen Karte vorab mit <code>scripts/verify_hardware.py</code> ermitteln (beim Scan wird der Hash ausgegeben).</p>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Karte ersetzt: alt=5, neu=6.</code></p>
+<hr>
+<h4><code>cards deactivate</code></h4>
+<p>Deaktiviert eine RFID-Karte.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; cards deactivate &lt;KARTEN-ID&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>id</code></td><td>int</td><td>ja</td><td>Karten-ID (positional)</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Karte 5 deaktiviert.</code></p>
+<hr>
+<h3>bookings</h3>
+<p>Buchungskorrekturen und Nachträge. Die CLI validiert Eingabeformate und übergibt an Use Cases der Application-Schicht.</p>
+<hr>
+<h4><code>bookings correct</code></h4>
+<p>Korrigiert eine bestehende Buchung.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; bookings correct \
+  --booking-id &lt;BUCHUNGS-ID&gt; \
+  --type &lt;BUCHUNGSTYP&gt; \
+  --at &lt;ISO-DATETIME&gt; \
+  --reason &lt;BEGRÜNDUNG&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--booking-id</code></td><td>int</td><td>ja</td><td>ID der zu korrigierenden Buchung</td></tr><tr><td><code>--type</code></td><td>string</td><td>ja</td><td>Neuer Buchungstyp</td></tr><tr><td><code>--at</code></td><td>ISO-8601</td><td>ja</td><td>Neuer Buchungszeitpunkt</td></tr><tr><td><code>--reason</code></td><td>string</td><td>ja</td><td>Begründung der Korrektur</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN, REVIEWER <strong>Ausgabe:</strong> <code>Korrektur angelegt (ID 12), Buchung 47 auf CORRECTED gesetzt.</code> <strong>Fehler:</strong> Ungültiger Buchungstyp, ungültiges Datum, Domänenfehler → Exit 1</p>
+<hr>
+<h4><code>bookings supplement</code></h4>
+<p>Erfasst eine nachträgliche Buchung und erzeugt einen Prüffall.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; bookings supplement \
+  --employee-id &lt;MITARBEITER-ID&gt; \
+  --type &lt;BUCHUNGSTYP&gt; \
+  --at &lt;ISO-DATETIME&gt; \
+  --reason &lt;BEGRÜNDUNG&gt; \
+  [--related-booking-id &lt;BUCHUNGS-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--employee-id</code></td><td>int</td><td>ja</td><td>Mitarbeiter-ID</td></tr><tr><td><code>--type</code></td><td>string</td><td>ja</td><td>Buchungstyp</td></tr><tr><td><code>--at</code></td><td>ISO-8601</td><td>ja</td><td>Ereigniszeitpunkt</td></tr><tr><td><code>--reason</code></td><td>string</td><td>ja</td><td>Begründung</td></tr><tr><td><code>--related-booking-id</code></td><td>int</td><td>nein</td><td>Verknüpfte Buchung</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN, REVIEWER <strong>Ausgabe:</strong> <code>Nachtrag angelegt (ID 8), Prüffall 3 erzeugt.</code></p>
+<hr>
+<h4><code>bookings approve-supplement</code></h4>
+<p>Genehmigt einen Nachtrag.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; bookings approve-supplement \
+  --supplement-id &lt;NACHTRAGS-ID&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--supplement-id</code></td><td>int</td><td>ja</td><td>ID des zu genehmigenden Nachtrags</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN, REVIEWER <strong>Ausgabe:</strong> <code>Nachtrag 8 genehmigt, Buchung 52 angelegt (Status: OK).</code></p>
+<hr>
+<h4><code>bookings reject-supplement</code></h4>
 <p>Lehnt einen Nachtrag ab.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> bookings reject-supplement <span class="dt">\</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--supplement-id</span> <span class="op">&lt;</span>NACHTRAGS-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--reason</span> <span class="op">&lt;</span>BEGRÜNDUNG<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--supplement-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID des abzulehnenden Nachtrags</td>
-</tr>
-<tr>
-<td><code>--reason</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Ablehnungsgrund</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN, REVIEWER<br />
-<strong>Ausgabe:</strong> <code>Nachtrag 8 abgelehnt.</code><br />
-<strong>Fehler:</strong> Nachtrag nicht gefunden, bereits bearbeitet →
-Exit 1</p>
-<hr />
-<h3 id="schedule">schedule</h3>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; bookings reject-supplement \
+  --supplement-id &lt;NACHTRAGS-ID&gt; \
+  --reason &lt;BEGRÜNDUNG&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--supplement-id</code></td><td>int</td><td>ja</td><td>ID des abzulehnenden Nachtrags</td></tr><tr><td><code>--reason</code></td><td>string</td><td>ja</td><td>Ablehnungsgrund</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN, REVIEWER <strong>Ausgabe:</strong> <code>Nachtrag 8 abgelehnt.</code></p>
+<hr>
+<h3>schedule</h3>
 <p>Regelarbeitszeit verwalten.</p>
-<hr />
-<h4 id="schedule-set"><code>schedule set</code></h4>
-<p>Setzt die Regelarbeitszeit für einen Wochentag — global (alle
-Mitarbeiter) oder mitarbeiterspezifisch. Jede Änderung erzeugt eine neue
-Version und schließt die Vorgängerversion.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> schedule set <span class="dt">\</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--weekday</span> <span class="op">&lt;</span>1-7<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--start</span> <span class="op">&lt;</span>HH:MM<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--end</span> <span class="op">&lt;</span>HH:MM<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--weekday</code></td>
-<td>int (1–7)</td>
-<td>ja</td>
-<td>Wochentag: 1=Mo, 2=Di, …, 7=So</td>
-</tr>
-<tr>
-<td><code>--start</code></td>
-<td>HH:MM</td>
-<td>ja</td>
-<td>Beginn der Regelarbeitszeit</td>
-</tr>
-<tr>
-<td><code>--end</code></td>
-<td>HH:MM</td>
-<td>ja</td>
-<td>Ende der Regelarbeitszeit</td>
-</tr>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Gültig ab diesem Datum</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Wenn angegeben: mitarbeiterspezifische Ausnahme</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN (Prüfung in
-<code>ManageWorkScheduleUseCase</code>)<br />
-<strong>Ausgabe (global):</strong></p>
-<pre class="text"><code>Globale Regelarbeitszeit gesetzt (Version 3): Mo 08:00–17:00 ab 2026-08-01.
+<hr>
+<h4><code>schedule set</code></h4>
+<p>Setzt die Regelarbeitszeit für einen Wochentag global oder mitarbeiterspezifisch.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; schedule set \
+  --weekday &lt;1-7&gt; \
+  --start &lt;HH:MM&gt; \
+  --end &lt;HH:MM&gt; \
+  --from &lt;YYYY-MM-DD&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--weekday</code></td><td>int (1–7)</td><td>ja</td><td>Wochentag: 1=Mo, 2=Di, …, 7=So</td></tr><tr><td><code>--start</code></td><td>HH:MM</td><td>ja</td><td>Beginn der Regelarbeitszeit</td></tr><tr><td><code>--end</code></td><td>HH:MM</td><td>ja</td><td>Ende der Regelarbeitszeit</td></tr><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Gültig ab diesem Datum</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Mitarbeiterspezifische Ausnahme</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe (global):</strong></p>
+<pre><code class="language-text">Globale Regelarbeitszeit gesetzt (Version 3): Mo 08:00–17:00 ab 2026-08-01.
 Vorgängerversion 1 geschlossen.</code></pre>
 <p><strong>Ausgabe (mitarbeiterspezifisch):</strong></p>
-<pre class="text"><code>Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version 4): Mitarbeiter 2, Mo 09:00–16:00 ab 2026-08-01.</code></pre>
-<p><strong>Fehler:</strong> Ungültiges Datum/Uhrzeit, Versionskonflikt →
-Exit 1</p>
-<hr />
-<h4 id="schedule-show"><code>schedule show</code></h4>
+<pre><code class="language-text">Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version 4): Mitarbeiter 2, Mo 09:00–16:00 ab 2026-08-01.</code></pre>
+<hr>
+<h4><code>schedule show</code></h4>
 <p>Zeigt alle aktiven Regelarbeitszeitversionen.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> schedule show</span></code></pre></div>
-<p><strong>Rolle:</strong> ADMIN, REVIEWER (Prüfung in CLI via
-<code>require_admin_or_reviewer</code>)<br />
-<strong>Ausgabe:</strong></p>
-<pre class="text"><code>Globale Regelarbeitszeit (gültige Versionen):
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; schedule show</code></pre>
+<p><strong>Rolle:</strong> ADMIN, REVIEWER <strong>Ausgabe:</strong></p>
+<pre><code class="language-text">Globale Regelarbeitszeit (gültige Versionen):
     ID  Tag  Von    Bis    Gültig ab
-   -----------------------------------
      3  Mo   08:00  17:00  2026-08-01
 
 Mitarbeiterspezifische Regelarbeitszeit:
     ID  MitarID  Tag  Von    Bis    Gültig ab
-   -------------------------------------------
-     4        2  Mo   09:00  16:00  2026-08-01
-
-Hinweis: Globale Praxisregel gilt für alle Mitarbeiter (keine Ausnahmen).</code></pre>
-<p>oder
-<code>Keine aktiven Regelarbeitszeitversionen vorhanden.</code></p>
-<hr />
-<h3 id="reports">reports</h3>
-<p>Berichte und Pflichtauswertungen. Alle Report-Befehle erfordern
-<code>ADMIN</code>- oder <code>REVIEWER</code>-Rolle; die Prüfung
-erfolgt in der CLI via <code>require_admin_or_reviewer</code>. Das
-Exportverzeichnis wird aus <code>system_config</code> (Schlüssel
-<code>export.export_dir</code>) gelesen.</p>
-<hr />
-<h4 id="reports-export-csv"><code>reports export-csv</code></h4>
+     4        2  Mo   09:00  16:00  2026-08-01</code></pre>
+<p>oder <code>Keine aktiven Regelarbeitszeitversionen vorhanden.</code></p>
+<hr>
+<h3>reports</h3>
+<p>Berichte und Pflichtauswertungen. Alle Report-Befehle erfordern <code>ADMIN</code> oder <code>REVIEWER</code>. Das Exportverzeichnis wird aus <code>config.toml</code> <code>[backup] export_dir</code> gelesen — gesetzt via <code>scripts/setup.py</code> oder <code>system setup</code>.</p>
+<hr>
+<h4><code>reports export-csv</code></h4>
 <p>Exportiert Detailbuchungen und verdichtete Übersicht als CSV.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-csv <span class="dt">\</span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Beginn des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--to</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Ende des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Nur für diesen Mitarbeiter</td>
-</tr>
-</tbody>
-</table>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports export-csv \
+  --from &lt;YYYY-MM-DD&gt; \
+  --to &lt;YYYY-MM-DD&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Beginn des Zeitraums</td></tr><tr><td><code>--to</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Ende des Zeitraums</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Nur für diesen Mitarbeiter</td></tr></tbody></table>
 <p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Detail-CSV: /var/exports/arbeitszeit/export_detail_20260701_20260731_20260701T120000Z.csv
+<pre><code class="language-text">Detail-CSV: /var/exports/arbeitszeit/export_detail_20260701_20260731_20260701T120000Z.csv
 Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_20260701T120000Z.csv</code></pre>
-<hr />
-<h4 id="reports-export-csv-review-cases"><code>reports export-csv-review-cases</code></h4>
-<p>Exportiert offene Prüffälle im Zeitraum als CSV (Pflichtenheft
-§7.13).</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-csv-review-cases <span class="dt">\</span></span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Beginn des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--to</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Ende des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Nur für diesen Mitarbeiter</td>
-</tr>
-</tbody>
-</table>
+<hr>
+<h4><code>reports export-csv-review-cases</code></h4>
+<p>Exportiert Prüffälle im Zeitraum als CSV.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports export-csv-review-cases \
+  --from &lt;YYYY-MM-DD&gt; \
+  --to &lt;YYYY-MM-DD&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Beginn des Zeitraums</td></tr><tr><td><code>--to</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Ende des Zeitraums</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Nur für diesen Mitarbeiter</td></tr></tbody></table>
 <p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Prüffälle-CSV: /var/exports/arbeitszeit/export_prueffaelle_20260701_20260731_20260701T120000Z.csv</code></pre>
-<hr />
-<h4 id="reports-export-pdf-day"><code>reports export-pdf-day</code></h4>
+<pre><code class="language-text">Prüffälle-CSV: /var/exports/arbeitszeit/export_prueffaelle_20260701_20260731_20260701T120000Z.csv</code></pre>
+<hr>
+<h4><code>reports export-pdf-day</code></h4>
 <p>Erstellt einen Tagesbericht als PDF.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-day <span class="dt">\</span></span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--date</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--date</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Kalendertag des Berichts</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong>
-<code>PDF: /var/exports/arbeitszeit/bericht_tag_2026-07-01_….pdf</code></p>
-<hr />
-<h4 id="reports-export-pdf-week"><code>reports export-pdf-week</code></h4>
-<p>Erstellt einen Wochenbericht (ISO-Woche) als PDF.</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-week <span class="dt">\</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--year</span> <span class="op">&lt;</span>YYYY<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--week</span> <span class="op">&lt;</span>1-53<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--year</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Jahr</td>
-</tr>
-<tr>
-<td><code>--week</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ISO-Wochennummer</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong>
-<code>PDF: /var/exports/arbeitszeit/bericht_woche_2026-W27_….pdf</code></p>
-<hr />
-<h4 id="reports-export-pdf-month"><code>reports export-pdf-month</code></h4>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports export-pdf-day \
+  --date &lt;YYYY-MM-DD&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--date</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Kalendertag des Berichts</td></tr></tbody></table>
+<p><strong>Ausgabe:</strong> <code>PDF: /var/exports/arbeitszeit/bericht_tag_2026-07-01_….pdf</code></p>
+<hr>
+<h4><code>reports export-pdf-week</code></h4>
+<p>Erstellt einen Wochenbericht als PDF.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports export-pdf-week \
+  --year &lt;YYYY&gt; \
+  --week &lt;1-53&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--year</code></td><td>int</td><td>ja</td><td>Jahr</td></tr><tr><td><code>--week</code></td><td>int</td><td>ja</td><td>ISO-Wochennummer</td></tr></tbody></table>
+<p><strong>Ausgabe:</strong> <code>PDF: /var/exports/arbeitszeit/bericht_woche_2026-W27_….pdf</code></p>
+<hr>
+<h4><code>reports export-pdf-month</code></h4>
 <p>Erstellt einen Monatsbericht als PDF.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-month <span class="dt">\</span></span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--year</span> <span class="op">&lt;</span>YYYY<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--month</span> <span class="op">&lt;</span>1-12<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--year</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Jahr</td>
-</tr>
-<tr>
-<td><code>--month</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Monatsnummer</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong>
-<code>PDF: /var/exports/arbeitszeit/bericht_monat_2026-07_….pdf</code></p>
-<hr />
-<h4 id="reports-export-pdf-employee"><code>reports export-pdf-employee</code></h4>
-<p>Erstellt einen Mitarbeiterbericht für einen freien Zeitraum als
-PDF.</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports export-pdf-employee <span class="dt">\</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--employee-id</span> <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Mitarbeiter-ID</td>
-</tr>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Beginn des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--to</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Ende des Zeitraums</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong>
-<code>PDF: /var/exports/arbeitszeit/bericht_mitarbeiter_0001_….pdf</code></p>
-<hr />
-<h4 id="reports-open-bookings"><code>reports open-bookings</code></h4>
-<p>Listet alle Buchungen mit Status <code>OPEN</code>, optional im
-Zeitraum gefiltert.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports open-bookings <span class="dt">\</span></span>
-<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  [--from <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> --to <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>nein</td>
-<td>Beginn des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--to</code></td>
-<td>YYYY-MM-DD</td>
-<td>nein</td>
-<td>Ende des Zeitraums</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Nur für diesen Mitarbeiter</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Hinweis:</strong> Werden mehr als 50 Einträge ohne
-Zeitraumfilter gefunden, erscheint ein Hinweis auf stderr,
-<code>--from</code>/<code>--to</code> zu verwenden.</p>
-<p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Offene Buchungen (Status OPEN) — alle:
-    ID  Mitarbeiter               Art           Zeitpunkt                Status
----------------------------------------------------------------------------------
-    47  Maria Mustermann          COME          2026-07-01T08:05:00Z     OPEN
-
-1 Buchung(en).</code></pre>
-<hr />
-<h4 id="reports-warn-cases"><code>reports warn-cases</code></h4>
-<p>Listet Buchungen mit Status <code>WARN</code> oder
-<code>NEEDS_REVIEW</code> im Zeitraum.</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports warn-cases <span class="dt">\</span></span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Beginn</td>
-</tr>
-<tr>
-<td><code>--to</code></td>
-<td>YYYY-MM-DD</td>
-<td>ja</td>
-<td>Ende</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Filter</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong> Gleiches Tabellenformat wie
-<code>open-bookings</code>, jedoch mit eigener Kopfzeile
-<code>Buchungen mit WARN/NEEDS_REVIEW:</code> statt
-<code>Offene Buchungen (Status OPEN) — alle:</code>.</p>
-<hr />
-<h4 id="reports-corrections"><code>reports corrections</code></h4>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports export-pdf-month \
+  --year &lt;YYYY&gt; \
+  --month &lt;1-12&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--year</code></td><td>int</td><td>ja</td><td>Jahr</td></tr><tr><td><code>--month</code></td><td>int</td><td>ja</td><td>Monatsnummer</td></tr></tbody></table>
+<p><strong>Ausgabe:</strong> <code>PDF: /var/exports/arbeitszeit/bericht_monat_2026-07_….pdf</code></p>
+<hr>
+<h4><code>reports export-pdf-employee</code></h4>
+<p>Erstellt einen Mitarbeiterbericht für einen Zeitraum als PDF.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports export-pdf-employee \
+  --employee-id &lt;MITARBEITER-ID&gt; \
+  --from &lt;YYYY-MM-DD&gt; \
+  --to &lt;YYYY-MM-DD&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--employee-id</code></td><td>int</td><td>ja</td><td>Mitarbeiter-ID</td></tr><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Beginn des Zeitraums</td></tr><tr><td><code>--to</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Ende des Zeitraums</td></tr></tbody></table>
+<p><strong>Ausgabe:</strong> <code>PDF: /var/exports/arbeitszeit/bericht_mitarbeiter_0001_….pdf</code></p>
+<hr>
+<h4><code>reports open-bookings</code></h4>
+<p>Listet Buchungen mit Status <code>OPEN</code>, optional im Zeitraum gefiltert.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports open-bookings \
+  [--from &lt;YYYY-MM-DD&gt; --to &lt;YYYY-MM-DD&gt;] \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>nein</td><td>Beginn des Zeitraums</td></tr><tr><td><code>--to</code></td><td>YYYY-MM-DD</td><td>nein</td><td>Ende des Zeitraums</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Nur für diesen Mitarbeiter</td></tr></tbody></table>
+<p><strong>Hinweis:</strong> Werden mehr als 50 Einträge ohne Zeitraumfilter gefunden, erscheint ein Hinweis auf stderr, <code>--from</code> und <code>--to</code> zu verwenden.</p>
+<hr>
+<h4><code>reports warn-cases</code></h4>
+<p>Listet Buchungen mit Status <code>WARN</code> oder <code>NEEDS_REVIEW</code> im Zeitraum.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports warn-cases \
+  --from &lt;YYYY-MM-DD&gt; \
+  --to &lt;YYYY-MM-DD&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Beginn</td></tr><tr><td><code>--to</code></td><td>YYYY-MM-DD</td><td>ja</td><td>Ende</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Filter</td></tr></tbody></table>
+<hr>
+<h4><code>reports corrections</code></h4>
 <p>Listet Buchungskorrekturen im Zeitraum.</p>
-<div class="sourceCode" id="cb31"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports corrections <span class="dt">\</span></span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Buchungskorrekturen:
-[12] Maria Mustermann (M001): COME @ 2026-07-01T08:00:00Z → COME @ 2026-07-01T08:05:00Z (Grund: Zeitstempel korrigiert)
-
-1 Korrektur(en).</code></pre>
-<hr />
-<h4 id="reports-supplements"><code>reports supplements</code></h4>
-<p>Listet Nachträge (Nachtragsbuchungen) im Zeitraum.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports supplements <span class="dt">\</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--from</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--to</span> <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Nachträge:
-[8] Maria Mustermann (M001): GO @ 2026-07-01T17:00:00Z (APPROVED) — Vergessen zu stempeln
-
-1 Nachtrag/Nachträge.</code></pre>
-<hr />
-<h4 id="reports-open-review-cases"><code>reports open-review-cases</code></h4>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports corrections \
+  --from &lt;YYYY-MM-DD&gt; \
+  --to &lt;YYYY-MM-DD&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<hr>
+<h4><code>reports supplements</code></h4>
+<p>Listet Nachträge im Zeitraum.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports supplements \
+  --from &lt;YYYY-MM-DD&gt; \
+  --to &lt;YYYY-MM-DD&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<hr>
+<h4><code>reports open-review-cases</code></h4>
 <p>Listet offene Prüffälle, optional im Zeitraum gefiltert.</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> reports open-review-cases <span class="dt">\</span></span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  [--from <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span> --to <span class="op">&lt;</span>YYYY-MM-DD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--from</code></td>
-<td>YYYY-MM-DD</td>
-<td>nein</td>
-<td>Beginn</td>
-</tr>
-<tr>
-<td><code>--to</code></td>
-<td>YYYY-MM-DD</td>
-<td>nein</td>
-<td>Ende</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Filter</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Hinweis:</strong> Wie <code>open-bookings</code> — Warnung
-bei &gt;50 ungefilterten Einträgen.</p>
-<p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Offene Prüffälle — alle:
-[3] Maria Mustermann (M001): POSSIBLE_BREAK_VIOLATION (WARN) — Mögliche Pausenverletzung §4 ArbZG
-
-1 Prüffall/-fälle.</code></pre>
-<hr />
-<h3 id="system">system</h3>
-<p>Systemcheck und Backup.</p>
-<hr />
-<h4 id="system-check"><code>system check</code></h4>
-<p>Führt einen Systemcheck durch und gibt den Status aller Prüfpunkte
-aus.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> system check</span></code></pre></div>
-<p><strong>Rolle:</strong> ADMIN, TECH (Prüfung in CLI via
-<code>require_admin_or_tech</code>)<br />
-<strong>Exit-Code:</strong> <code>0</code> = alles OK, <code>1</code> =
-mindestens ein Check fehlgeschlagen<br />
-<strong>Ausgabe:</strong></p>
-<pre class="text"><code>Systemcheck-Ergebnis:
-  Gesamt: OK
-
-  [OK  ] db_access: Datenbankzugriff OK
-  [OK  ] config_keys: Alle Pflichtschlüssel vorhanden
-  [OK  ] nas_reachability: NAS erreichbar
-  [OK  ] fk_consistency: Fremdschlüsselkonsistenz OK
-  [OK  ] ntp_sync: NTP aktiv und synchronisiert
-  [OK  ] device_availability: Geräte verfügbar</code></pre>
-<hr />
-<h4 id="system-backup"><code>system backup</code></h4>
-<p>Erstellt manuell ein Datenbank-Backup und synchronisiert optional auf
-den NAS.</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> system backup</span></code></pre></div>
-<p><strong>Rolle:</strong> ADMIN, TECH (Prüfung in CLI via
-<code>require_admin_or_tech</code>)<br />
-<strong>Ausgabe (Erfolg, NAS aktiv):</strong></p>
-<pre class="text"><code>Backup erstellt: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; reports open-review-cases \
+  [--from &lt;YYYY-MM-DD&gt; --to &lt;YYYY-MM-DD&gt;] \
+  [--employee-id &lt;MITARBEITER-ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--from</code></td><td>YYYY-MM-DD</td><td>nein</td><td>Beginn</td></tr><tr><td><code>--to</code></td><td>YYYY-MM-DD</td><td>nein</td><td>Ende</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Filter</td></tr></tbody></table>
+<p><strong>Hinweis:</strong> Wie <code>open-bookings</code> erfolgt bei mehr als 50 ungefilterten Einträgen ein Hinweis auf stderr.</p>
+<hr>
+<h3>system</h3>
+<p>Systemcheck, Backup und Konfiguration.</p>
+<hr>
+<h4><code>system check</code></h4>
+<p>Führt einen Systemcheck durch und gibt den Status aller Prüfpunkte aus.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; system check</code></pre>
+<p><strong>Rolle:</strong> ADMIN, TECH <strong>Exit-Code:</strong> <code>0</code> = alles OK, <code>1</code> = mindestens ein Check fehlgeschlagen</p>
+<hr>
+<h4><code>system backup</code></h4>
+<p>Erstellt manuell ein Datenbank-Backup und synchronisiert optional auf den NAS.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; system backup</code></pre>
+<p><strong>Rolle:</strong> ADMIN, TECH <strong>Ausgabe (Erfolg, NAS aktiv):</strong></p>
+<pre><code class="language-text">Backup erstellt: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db
 NAS-Synchronisation erfolgreich.</code></pre>
 <p><strong>Ausgabe (Erfolg, kein NAS):</strong></p>
-<pre class="text"><code>Backup erstellt: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db</code></pre>
-<p><strong>Fehler:</strong> Backup-Verzeichnis nicht konfiguriert → Exit
-1; NAS-Synchronisation fehlgeschlagen → Exit 1 (lokales Backup bereits
-erstellt)</p>
-<hr />
-<h3 id="users">users</h3>
-<p>Benutzerkontenverwaltung. Schreibzugriffe erfordern
-<code>ADMIN</code>-Rolle; Passwörter werden mit PBKDF2-HMAC-SHA256
-(260.000 Iterationen, Zufallssalt) gehasht. Klartextpasswörter werden
-nach der einmaligen Anzeige nirgends gespeichert.</p>
-<hr />
-<h4 id="users-bootstrap"><code>users bootstrap</code></h4>
-<p>Legt das erste Administratorkonto an. Schlägt fehl, wenn bereits ein
-aktives Administratorkonto existiert.</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> users bootstrap <span class="dt">\</span></span>
-<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> <span class="op">&lt;</span>BENUTZERNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  [--password <span class="op">&lt;</span>PASSWORT<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--username</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Benutzername des ersten Administrators</td>
-</tr>
-<tr>
-<td><code>--password</code></td>
-<td>string</td>
-<td>nein</td>
-<td>Passwort (wird automatisch generiert wenn leer)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> keine (<code>--user-id</code> nicht
-erforderlich)<br />
-<strong>Ausgabe:</strong></p>
-<pre class="text"><code>Erstes Administratorkonto angelegt (ID 1).
+<pre><code class="language-text">Backup erstellt: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db</code></pre>
+<p><strong>Fehler:</strong> <code>backup_dir</code> nicht konfiguriert → Exit 1; NAS-Synchronisation fehlgeschlagen → Exit 1</p>
+<hr>
+<h4><code>system setup</code></h4>
+<p>Bearbeitet die <code>config.toml</code> interaktiv.</p>
+<pre><code class="language-bash">azadmin [--config &lt;CONFIG_PATH&gt;] --db &lt;PFAD&gt; --user-id &lt;ID&gt; system setup</code></pre>
+<p><strong>Wichtig:</strong> <code>--config</code> ist ein <strong>globales Argument</strong> und muss <strong>vor</strong> dem Domainnamen <code>system</code> angegeben werden. Die folgende Syntax ist falsch:</p>
+<pre><code class="language-bash">azadmin system setup --config /pfad/config.toml  # FALSCH – --config gehört vor "system"</code></pre>
+<p><strong>Rolle:</strong> ADMIN, TECH <strong>Verhalten:</strong> Der Schreibpfad wird über <code>resolve_config_write_path()</code> bestimmt; anschließend wird <code>setup_config()</code> aufgerufen.</p>
+<hr>
+<h3>users</h3>
+<p>Benutzerkontenverwaltung. Passwörter werden mit PBKDF2-HMAC-SHA256, 260.000 Iterationen und Zufallssalt gehasht.</p>
+<hr>
+<h4><code>users bootstrap</code></h4>
+<p>Legt das erste Administratorkonto an.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; users bootstrap \
+  --username &lt;BENUTZERNAME&gt; \
+  [--password &lt;PASSWORT&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--username</code></td><td>string</td><td>ja</td><td>Benutzername des ersten Administrators</td></tr><tr><td><code>--password</code></td><td>string</td><td>nein</td><td>Passwort; wird bei Weglassen generiert</td></tr></tbody></table>
+<p><strong>Rolle:</strong> keine <strong>Ausgabe:</strong></p>
+<pre><code class="language-text">Erstes Administratorkonto angelegt (ID 1).
 Generiertes Passwort (einmalig sichtbar): xKj8!mP2nqR5</code></pre>
-<p><strong>Fehler:</strong> Admin bereits vorhanden, Benutzername
-bereits vergeben → Exit 1</p>
-<hr />
-<h4 id="users-add"><code>users add</code></h4>
+<hr>
+<h4><code>users add</code></h4>
 <p>Legt ein neues Benutzerkonto an.</p>
-<div class="sourceCode" id="cb44"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users add <span class="dt">\</span></span>
-<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--username</span> <span class="op">&lt;</span>BENUTZERNAME<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> <span class="op">&lt;</span>ROLLE<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb44-4"><a href="#cb44-4" aria-hidden="true" tabindex="-1"></a>  [--employee-id <span class="op">&lt;</span>MITARBEITER-ID<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb44-5"><a href="#cb44-5" aria-hidden="true" tabindex="-1"></a>  [--password <span class="op">&lt;</span>PASSWORT<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--username</code></td>
-<td>string</td>
-<td>ja</td>
-<td>Eindeutiger Benutzername</td>
-</tr>
-<tr>
-<td><code>--role</code></td>
-<td>ADMIN|REVIEWER|TECH</td>
-<td>ja</td>
-<td>Rolle</td>
-</tr>
-<tr>
-<td><code>--employee-id</code></td>
-<td>int</td>
-<td>nein</td>
-<td>Verknüpfter Mitarbeiter</td>
-</tr>
-<tr>
-<td><code>--password</code></td>
-<td>string</td>
-<td>nein</td>
-<td>Passwort (automatisch generiert wenn leer)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong></p>
-<pre class="text"><code>Benutzerkonto angelegt (ID 2).
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; users add \
+  --username &lt;BENUTZERNAME&gt; \
+  --role &lt;ROLLE&gt; \
+  [--employee-id &lt;MITARBEITER-ID&gt;] \
+  [--password &lt;PASSWORT&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--username</code></td><td>string</td><td>ja</td><td>Eindeutiger Benutzername</td></tr><tr><td><code>--role</code></td><td>ADMIN\</td><td>REVIEWER\</td><td>TECH</td><td>ja</td><td>Rolle</td></tr><tr><td><code>--employee-id</code></td><td>int</td><td>nein</td><td>Verknüpfter Mitarbeiter</td></tr><tr><td><code>--password</code></td><td>string</td><td>nein</td><td>Passwort; wird bei Weglassen generiert</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong></p>
+<pre><code class="language-text">Benutzerkonto angelegt (ID 2).
 Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w</code></pre>
-<p><strong>Fehler:</strong> Benutzername bereits vergeben → Exit 1</p>
-<hr />
-<h4 id="users-list"><code>users list</code></h4>
-<p>Listet alle Benutzerkonten (ADMIN, REVIEWER, TECH) auf.</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> users list</span></code></pre></div>
-<p><strong>Rolle:</strong> keine<br />
-<strong>Ausgabe:</strong></p>
-<pre class="text"><code>  ID  Benutzername          Rolle       Status
-----------------------------------------------------
-   1  admin                 ADMIN       aktiv
-   2  pruefer01             REVIEWER    aktiv
-   3  technik               TECH        inaktiv</code></pre>
-<p>oder <code>Keine Benutzerkonten vorhanden.</code></p>
-<hr />
-<h4 id="users-deactivate"><code>users deactivate</code></h4>
+<hr>
+<h4><code>users list</code></h4>
+<p>Listet alle Benutzerkonten außer <code>EMPLOYEE</code> auf.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; users list</code></pre>
+<p><strong>Rolle:</strong> keine</p>
+<hr>
+<h4><code>users deactivate</code></h4>
 <p>Deaktiviert ein Benutzerkonto.</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users deactivate <span class="dt">\</span></span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--user-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID des zu deaktivierenden Kontos</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong>
-<code>Benutzerkonto 3 deaktiviert.</code><br />
-<strong>Fehler:</strong> ID nicht gefunden → Exit 1</p>
-<hr />
-<h4 id="users-reactivate"><code>users reactivate</code></h4>
+<p><strong>Achtung — zwei <code>--user-id</code>-Argumente:</strong> Das erste (globale) <code>--user-id</code> ist die ID des ausführenden Admins. Das zweite <code>--user-id</code> (nach dem Subcommand) ist das Zielkonto. Beispiel: Admin mit ID 1 deaktiviert Konto mit ID 3:</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id 1 users deactivate --user-id 3</code></pre>
+<p>Vollständige Syntax:</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; users deactivate \
+  --user-id &lt;ZIEL-BENUTZER-ID&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--user-id</code></td><td>int</td><td>ja</td><td>ID des zu deaktivierenden Kontos</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Benutzerkonto 3 deaktiviert.</code></p>
+<hr>
+<h4><code>users reactivate</code></h4>
 <p>Reaktiviert ein deaktiviertes Benutzerkonto.</p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users reactivate <span class="dt">\</span></span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--user-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID des zu reaktivierenden Kontos</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong>
-<code>Benutzerkonto 3 reaktiviert.</code><br />
-<strong>Fehler:</strong> ID nicht gefunden → Exit 1</p>
-<hr />
-<h4 id="users-change-role"><code>users change-role</code></h4>
+<p><strong>Achtung — zwei <code>--user-id</code>-Argumente:</strong> Wie bei <code>users deactivate</code> gilt das erste <code>--user-id</code> dem ausführenden Admin, das zweite dem Zielkonto.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; users reactivate \
+  --user-id &lt;ZIEL-BENUTZER-ID&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--user-id</code></td><td>int</td><td>ja</td><td>ID des zu reaktivierenden Kontos</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Benutzerkonto 3 reaktiviert.</code></p>
+<hr>
+<h4><code>users change-role</code></h4>
 <p>Ändert die Rolle eines Benutzerkontos.</p>
-<div class="sourceCode" id="cb50"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="ex">admin</span> <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> --user-id <span class="op">&lt;</span>ID<span class="op">&gt;</span> users change-role <span class="dt">\</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--user-id</span> <span class="op">&lt;</span>ZIEL-BENUTZER-ID<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--role</span> <span class="op">&lt;</span>NEUE-ROLLE<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--user-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>ID des Benutzerkontos</td>
-</tr>
-<tr>
-<td><code>--role</code></td>
-<td>ADMIN|REVIEWER|TECH</td>
-<td>ja</td>
-<td>Neue Rolle</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Rolle:</strong> ADMIN<br />
-<strong>Ausgabe:</strong>
-<code>Rolle von Benutzerkonto 2 geändert.</code><br />
-<strong>Fehler:</strong> ID nicht gefunden, ungültige Rolle → Exit 1</p>
-<hr />
-<h2 id="terminal-ui">Terminal-UI</h2>
-<p>Die Terminal-UI läuft dauerhaft am Buchungsgerät und verarbeitet
-RFID-Scans und Numpad-Eingaben.</p>
-<h3 id="aufruf">Aufruf</h3>
-<div class="sourceCode" id="cb51"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> arbeitszeit.presentation.terminal_ui.main <span class="dt">\</span></span>
-<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> <span class="op">&lt;</span>DATENBANKPFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">--numpad</span> <span class="op">&lt;</span>GERÄTENAME_ODER_PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">--rfid</span> <span class="op">&lt;</span>GERÄTENAME_ODER_PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">--terminal-id</span> <span class="op">&lt;</span>ID<span class="op">&gt;</span></span></code></pre></div>
-<table>
-<colgroup>
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-<col style="width: 25%" />
-</colgroup>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Typ</th>
-<th>Pflicht</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--db</code></td>
-<td>Pfad</td>
-<td>ja</td>
-<td>SQLite-Datenbankdatei</td>
-</tr>
-<tr>
-<td><code>--numpad</code></td>
-<td>Gerätename oder -pfad</td>
-<td>ja</td>
-<td>z.B. <code>&quot;USB Numpad&quot;</code> oder
-<code>/dev/input/event3</code></td>
-</tr>
-<tr>
-<td><code>--rfid</code></td>
-<td>Gerätename oder -pfad</td>
-<td>ja</td>
-<td>z.B. <code>&quot;HID 1234:5678&quot;</code> oder
-<code>/dev/input/event4</code></td>
-</tr>
-<tr>
-<td><code>--terminal-id</code></td>
-<td>int</td>
-<td>ja</td>
-<td>Eindeutige Terminal-ID</td>
-</tr>
-</tbody>
-</table>
-<h3 id="buchungszyklus">Buchungszyklus</h3>
-<ol type="1">
-<li><p>Mitarbeiter drückt auf dem Numpad eine Taste (1–4):</p>
-<table>
-<thead>
-<tr>
-<th>Taste</th>
-<th>Buchungstyp</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>1</code></td>
-<td>Kommen</td>
-</tr>
-<tr>
-<td><code>2</code></td>
-<td>Gehen</td>
-</tr>
-<tr>
-<td><code>3</code></td>
-<td>Pause Beginn</td>
-</tr>
-<tr>
-<td><code>4</code></td>
-<td>Pause Ende</td>
-</tr>
-</tbody>
-</table></li>
-<li><p>Mitarbeiter hält RFID-Karte an den Leser.</p></li>
-<li><p>System verarbeitet die Buchung und gibt Feedback aus.</p></li>
-</ol>
-<h3 id="rückmeldungen">Rückmeldungen</h3>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th>Situation</th>
-<th>Ausgabe</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Buchung erfasst (Status OK oder OPEN)</td>
-<td><code>Buchung erfasst.</code></td>
-</tr>
-<tr>
-<td>Buchung erfasst (Status WARN)</td>
-<td><code>Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.</code></td>
-</tr>
-<tr>
-<td>Buchung erfasst (Status NEEDS_REVIEW)</td>
-<td><code>Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.</code></td>
-</tr>
-<tr>
-<td>Karte unbekannt</td>
-<td><code>Karte nicht erkannt.</code></td>
-</tr>
-<tr>
-<td>Karte deaktiviert</td>
-<td><code>Karte deaktiviert.</code></td>
-</tr>
-<tr>
-<td>Mitarbeiter inaktiv</td>
-<td><code>Mitarbeiter inaktiv.</code></td>
-</tr>
-<tr>
-<td>Falsche Buchungsreihenfolge</td>
-<td><code>Ungültige Buchungsreihenfolge.</code></td>
-</tr>
-<tr>
-<td>Offene Phase</td>
-<td><code>Offene Phase — bitte zuerst abschließen.</code></td>
-</tr>
-<tr>
-<td>Interner Fehler</td>
-<td><code>Interner Fehler — Betrieb wird fortgesetzt.</code>
-(stderr)</td>
-</tr>
-</tbody>
-</table>
-<h3 id="beenden">Beenden</h3>
-<p><code>Ctrl+C</code> — sicheres Beenden ohne Datenverlust.</p>
-<hr />
-<h2 id="hilfsskripte">Hilfsskripte</h2>
-<hr />
-<h3 id="scriptsinit_db.py"><code>scripts/init_db.py</code></h3>
+<p><strong>Achtung — zwei <code>--user-id</code>-Argumente:</strong> Wie bei <code>users deactivate</code> gilt das erste <code>--user-id</code> dem ausführenden Admin, das zweite dem Zielkonto.</p>
+<pre><code class="language-bash">azadmin --db &lt;PFAD&gt; --user-id &lt;ID&gt; users change-role \
+  --user-id &lt;ZIEL-BENUTZER-ID&gt; \
+  --role &lt;NEUE-ROLLE&gt;</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Pflicht</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--user-id</code></td><td>int</td><td>ja</td><td>ID des Benutzerkontos</td></tr><tr><td><code>--role</code></td><td>ADMIN\</td><td>REVIEWER\</td><td>TECH</td><td>ja</td><td>Neue Rolle</td></tr></tbody></table>
+<p><strong>Rolle:</strong> ADMIN <strong>Ausgabe:</strong> <code>Rolle von Benutzerkonto 2 geändert.</code></p>
+<hr>
+<h2>Terminal-UI</h2>
+<p>Die Terminal-UI läuft dauerhaft am Buchungsgerät und verarbeitet RFID-Scans und Numpad-Eingaben.</p>
+<h3>Aufruf</h3>
+<pre><code class="language-bash">python -m arbeitszeit.presentation.terminal_ui.main \
+  [--config &lt;CONFIG_PATH&gt;] \
+  [--db &lt;DATENBANKPFAD&gt;] \
+  [--numpad &lt;GERÄTENAME_ODER_PFAD&gt;] \
+  [--rfid &lt;GERÄTENAME_ODER_PFAD&gt;] \
+  [--terminal-id &lt;ID&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Typ</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--config</code></td><td>Pfad</td><td>Pfad zu <code>config.toml</code></td></tr><tr><td><code>--db</code></td><td>Pfad</td><td>SQLite-Datenbankdatei; alternativ aus <code>config.toml</code></td></tr><tr><td><code>--numpad</code></td><td>Gerätename oder -pfad</td><td>z. B. <code>USB Numpad</code> oder <code>/dev/input/event3</code></td></tr><tr><td><code>--rfid</code></td><td>Gerätename oder -pfad</td><td>z. B. <code>RFID Reader</code> oder <code>/dev/input/event4</code></td></tr><tr><td><code>--terminal-id</code></td><td>int</td><td>Eindeutige Terminal-ID; alternativ aus <code>config.toml</code></td></tr></tbody></table>
+<p><strong>Hinweis:</strong> Die Werte werden in der Priorität CLI → <code>config.toml</code> → Fehler aufgelöst. Die Argumente sind daher nicht in jedem Fall als CLI-Pflicht zu verstehen, müssen aber insgesamt auflösbar sein.</p>
+<h3>Buchungszyklus</h3>
+<ol><li>Mitarbeiter drückt auf dem Numpad eine Taste (<code>1</code> bis <code>4</code>).</li><li>Mitarbeiter hält RFID-Karte an den Leser.</li><li>System verarbeitet die Buchung und gibt Feedback aus.</li></ol>
+<h3>Rückmeldungen</h3>
+<table><thead><tr><th>Situation</th><th>Ausgabe</th></tr></thead><tbody><tr><td>Buchung erfasst (Status <code>OK</code> oder <code>OPEN</code>)</td><td><code>Buchung erfasst.</code></td></tr><tr><td>Buchung erfasst (Status <code>WARN</code>)</td><td><code>Buchung erfasst — Hinweis: Regelzeitabweichung festgestellt.</code></td></tr><tr><td>Buchung erfasst (Status <code>NEEDS_REVIEW</code>)</td><td><code>Buchung erfasst — Prüfpflicht: Manuelle Überprüfung erforderlich.</code></td></tr><tr><td>Karte unbekannt</td><td><code>Karte nicht erkannt.</code></td></tr><tr><td>Karte deaktiviert</td><td><code>Karte deaktiviert.</code></td></tr><tr><td>Mitarbeiter inaktiv</td><td><code>Mitarbeiter inaktiv.</code></td></tr><tr><td>Falsche Buchungsreihenfolge</td><td><code>Ungültige Buchungsreihenfolge.</code></td></tr><tr><td>Offene Phase</td><td><code>Offene Phase — bitte zuerst abschließen.</code></td></tr><tr><td>Interner Fehler</td><td><code>Interner Fehler — Betrieb wird fortgesetzt.</code></td></tr></tbody></table>
+<h3>Beenden</h3>
+<p><code>Ctrl+C</code> oder <code>SIGTERM</code> — sauberes Beenden der Schleife.</p>
+<hr>
+<h2>Hilfsskripte</h2>
+<hr>
+<h3><code>scripts/init_db.py</code></h3>
 <p>Führt alle ausstehenden Datenbankmigrationen aus.</p>
-<div class="sourceCode" id="cb52"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/init_db.py [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Standard</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--db</code></td>
-<td><code>arbeitszeit.db</code></td>
-<td>Datenbankdatei</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong> Eine Zeile pro angewendeter Migration;
-Hinweis auf Ersteinrichtung wenn <code>scripts/setup.py</code> noch
-nicht ausgeführt wurde.</p>
-<hr />
-<h3 id="scriptssetup.py"><code>scripts/setup.py</code></h3>
-<p>Konfiguriert Backup- und Exportverzeichnis (idempotent — bereits
-gesetzte Werte werden nicht überschrieben).</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/setup.py <span class="dt">\</span></span>
-<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>  [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  [--backup-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  [--export-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Standard</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--db</code></td>
-<td><code>arbeitszeit.db</code></td>
-<td>Datenbankdatei</td>
-</tr>
-<tr>
-<td><code>--backup-dir</code></td>
-<td>interaktiv</td>
-<td>Verzeichnis für lokale Backups</td>
-</tr>
-<tr>
-<td><code>--export-dir</code></td>
-<td>interaktiv</td>
-<td>Verzeichnis für Exporte und PDFs</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="scriptsbackup.py"><code>scripts/backup.py</code></h3>
-<p>Erstellt ein lokales Backup und synchronisiert optional auf den
-NAS.</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/backup.py <span class="dt">\</span></span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  [--db <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>  [--backup-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>  [--export-dir <span class="op">&lt;</span>PFAD<span class="op">&gt;</span>]</span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Standard</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--db</code></td>
-<td><code>arbeitszeit.db</code></td>
-<td>Quelldatenbank</td>
-</tr>
-<tr>
-<td><code>--backup-dir</code></td>
-<td><code>backups/</code></td>
-<td>Backup-Zielverzeichnis</td>
-</tr>
-<tr>
-<td><code>--export-dir</code></td>
-<td>—</td>
-<td>Exportverzeichnis (wird mitgesichert)</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe:</strong></p>
-<pre class="text"><code>Backup: /var/backups/arbeitszeit/arbeitszeit_20260701T120000Z.db  (2097152 Bytes)
-NAS-Sync: /mnt/nas/backups/arbeitszeit | deaktiviert</code></pre>
-<hr />
-<h3 id="scriptsverify_hardware.py"><code>scripts/verify_hardware.py</code></h3>
-<p>Interaktiver Hardware-Smoke-Test für Numpad und RFID-Leser. Gibt den
-SHA-256-Hash einer gescannten Karte aus — nützlich zur Diagnose und als
-Alternative zu <code>cards assign --scan --rfid</code>.</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/verify_hardware.py <span class="dt">\</span></span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  [--numpad <span class="op">&lt;</span>GERÄTEPFAD<span class="op">&gt;</span> --rfid <span class="op">&lt;</span>GERÄTEPFAD<span class="op">&gt;</span>] <span class="dt">\</span></span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">list</span><span class="pp">]</span> <span class="dt">\</span></span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">skip</span><span class="pp">-</span><span class="ss">interactive</span><span class="pp">]</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--numpad</code></td>
-<td>Numpad-Gerätepfad (z.B. <code>/dev/input/event3</code>)</td>
-</tr>
-<tr>
-<td><code>--rfid</code></td>
-<td>RFID-Lesegerätepfad (z.B. <code>/dev/input/event4</code>)</td>
-</tr>
-<tr>
-<td><code>--list</code></td>
-<td>Nur Gerätedateien auflisten, dann beenden</td>
-</tr>
-<tr>
-<td><code>--skip-interactive</code></td>
-<td>Hardwaretests überspringen</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Wichtig:</strong> <code>--numpad</code> und
-<code>--rfid</code> müssen immer <strong>gemeinsam</strong> angegeben
-werden — eines ohne das andere erzeugt einen Fehler. Werden beide
-weggelassen, startet eine interaktive Geräteauswahl.</p>
-<p><strong>Exit-Codes:</strong> <code>0</code> = alle Tests bestanden,
-<code>1</code> = mindestens ein Test fehlgeschlagen, <code>2</code> =
-evdev nicht installiert</p>
-<p><strong>Hinweis:</strong> Der angezeigte SHA-256-Hash
-(<code>wie in DB gespeichert</code>) entspricht dem Wert für
-<code>cards assign --uid-hash</code>. Die einfachere Alternative ist
-<code>cards assign --scan --rfid</code>, die die UID direkt
-einliest.</p>
-<hr />
-<h3 id="scriptsshow_config.py"><code>scripts/show_config.py</code></h3>
-<p>Zeigt die aktuellen Systemkonfigurationswerte an.</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode bash"><code class="sourceCode bash"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> scripts/show_config.py <span class="dt">\</span></span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">--db</span> <span class="op">&lt;</span>PFAD<span class="op">&gt;</span> <span class="dt">\</span></span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">all</span><span class="pp">-</span><span class="ss">versions</span><span class="pp">]</span> <span class="dt">\</span></span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>  <span class="pp">[--</span><span class="ss">json</span><span class="pp">]</span></span></code></pre></div>
-<table>
-<thead>
-<tr>
-<th>Argument</th>
-<th>Beschreibung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>--db</code></td>
-<td>Datenbankdatei (Pflicht)</td>
-</tr>
-<tr>
-<td><code>--all-versions</code></td>
-<td>Alle Versionen anzeigen (nicht nur aktuelle)</td>
-</tr>
-<tr>
-<td><code>--json</code></td>
-<td>JSON-Ausgabe statt Tabelle</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Ausgabe (Tabelle):</strong></p>
-<pre class="text"><code>Schlüssel                Wert                             Ver  Herkunft    Geändert am
-────────────────────────────────────────────────────────────────────────────────────────
-backup.backup_dir        /var/backups/arbeitszeit         1    MIGRATION   2026-07-01T12:00
-export.export_dir        /var/exports/arbeitszeit         1    MIGRATION   2026-07-01T12:00
-4 Eintrag/Einträge</code></pre>
-<hr />
-<h2 id="rollenübersicht">Rollenübersicht</h2>
-<table>
-<colgroup>
-<col style="width: 33%" />
-<col style="width: 33%" />
-<col style="width: 33%" />
-</colgroup>
-<thead>
-<tr>
-<th>Befehl</th>
-<th>Rolle</th>
-<th>Prüfung</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>employees list</code></td>
-<td>keine</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>employees add</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>employees deactivate</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>cards assign</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>cards replace</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>cards deactivate</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>bookings correct</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>bookings supplement</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>bookings approve-supplement</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>bookings reject-supplement</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>schedule set</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>schedule show</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports export-csv</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports export-csv-review-cases</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports export-pdf-day</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports export-pdf-week</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports export-pdf-month</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports export-pdf-employee</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports open-bookings</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports warn-cases</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports corrections</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports supplements</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>reports open-review-cases</code></td>
-<td>ADMIN, REVIEWER</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>system check</code></td>
-<td>ADMIN, TECH</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>system backup</code></td>
-<td>ADMIN, TECH</td>
-<td>CLI (<code>_auth.py</code>)</td>
-</tr>
-<tr>
-<td><code>users bootstrap</code></td>
-<td>keine (Sonderfall)</td>
-<td>Use Case (kein Admin vorhanden?)</td>
-</tr>
-<tr>
-<td><code>users add</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>users list</code></td>
-<td>keine</td>
-<td>—</td>
-</tr>
-<tr>
-<td><code>users deactivate</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>users reactivate</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td><code>users change-role</code></td>
-<td>ADMIN</td>
-<td>Use Case</td>
-</tr>
-<tr>
-<td>Terminal-UI</td>
-<td>keine (RFID-Karte)</td>
-<td>Use Case</td>
-</tr>
-</tbody>
-</table>
+<pre><code class="language-bash">python scripts/init_db.py [--db &lt;PFAD&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Standard</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--db</code></td><td><code>arbeitszeit.db</code></td><td>Datenbankdatei</td></tr></tbody></table>
+<p><strong>Ausgabe:</strong> Eine Zeile pro angewendeter Migration; Hinweis auf Ersteinrichtung, wenn <code>scripts/setup.py</code> noch erforderlich ist.</p>
+<hr>
+<h3><code>scripts/setup.py</code></h3>
+<p>Ersteinrichtung und Pflege der <code>config.toml</code>.</p>
+<pre><code class="language-bash">python scripts/setup.py \
+  [--config &lt;CONFIG_PATH&gt;] \
+  [--db &lt;DB_PATH&gt;] \
+  [--terminal-id &lt;ID&gt;] \
+  [--numpad &lt;NAME&gt;] \
+  [--rfid &lt;NAME&gt;] \
+  [--admin-user-id &lt;ID&gt;] \
+  [--backup-dir &lt;PFAD&gt;] \
+  [--export-dir &lt;PFAD&gt;] \
+  [--log-dir &lt;PFAD&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--config</code></td><td>Zielpfad für <code>config.toml</code></td></tr><tr><td><code>--db</code></td><td>Datenbankpfad; wird auch als Hinweisquelle für Migrationswerte genutzt</td></tr><tr><td><code>--terminal-id</code></td><td>Terminal-ID</td></tr><tr><td><code>--numpad</code></td><td>Numpad-Gerätename</td></tr><tr><td><code>--rfid</code></td><td>RFID-Gerätename</td></tr><tr><td><code>--admin-user-id</code></td><td>Admin-Benutzer-ID</td></tr><tr><td><code>--backup-dir</code></td><td>Backup-Verzeichnis</td></tr><tr><td><code>--export-dir</code></td><td>Exportverzeichnis</td></tr><tr><td><code>--log-dir</code></td><td>Log-Verzeichnis</td></tr></tbody></table>
+<p><strong>Hinweis:</strong> Das Skript schreibt <code>config.toml</code> und nicht primär <code>system_config</code>-Einträge.</p>
+<hr>
+<h3><code>scripts/backup.py</code></h3>
+<p>Erstellt ein lokales Backup und synchronisiert optional auf den NAS.</p>
+<pre><code class="language-bash">python scripts/backup.py \
+  [--db &lt;PFAD&gt;] \
+  [--config &lt;CONFIG_PATH&gt;] \
+  [--backup-dir &lt;PFAD&gt;] \
+  [--export-dir &lt;PFAD&gt;]</code></pre>
+<table><thead><tr><th>Argument</th><th>Standard</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--db</code></td><td><code>arbeitszeit.db</code></td><td>Quelldatenbank</td></tr><tr><td><code>--config</code></td><td>automatische Suche</td><td>Pfad zu <code>config.toml</code></td></tr><tr><td><code>--backup-dir</code></td><td><code>backups/</code></td><td>Backup-Zielverzeichnis, falls nicht in <code>config.toml</code> gesetzt</td></tr><tr><td><code>--export-dir</code></td><td>—</td><td>Exportverzeichnis</td></tr></tbody></table>
+<hr>
+<h3><code>scripts/verify_hardware.py</code></h3>
+<p>Interaktiver Hardware-Smoke-Test für Numpad und RFID-Leser.</p>
+<pre><code class="language-bash">python scripts/verify_hardware.py \
+  [--numpad &lt;GERÄTEPFAD&gt; --rfid &lt;GERÄTEPFAD&gt;] \
+  [--list] \
+  [--skip-interactive]</code></pre>
+<table><thead><tr><th>Argument</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--numpad</code></td><td>Numpad-Gerätepfad</td></tr><tr><td><code>--rfid</code></td><td>RFID-Lesegerätepfad</td></tr><tr><td><code>--list</code></td><td>Nur Gerätedateien auflisten</td></tr><tr><td><code>--skip-interactive</code></td><td>Nur Gerätezugriff prüfen</td></tr></tbody></table>
+<p><strong>Wichtig:</strong> <code>--numpad</code> und <code>--rfid</code> müssen gemeinsam angegeben werden. Werden beide weggelassen, startet eine interaktive Geräteauswahl.</p>
+<p><strong>Exit-Codes:</strong> <code>0</code> = alle Tests bestanden, <code>1</code> = mindestens ein Test fehlgeschlagen, <code>2</code> = <code>evdev</code> nicht installiert</p>
+<hr>
+<h3><code>scripts/show_config.py</code></h3>
+<p>Zeigt die aktuelle Konfiguration aus <code>config.toml</code> und <code>system_config</code> an.</p>
+<pre><code class="language-bash">python scripts/show_config.py \
+  --db &lt;PFAD&gt; \
+  [--config &lt;CONFIG_PATH&gt;] \
+  [--all-versions] \
+  [--json]</code></pre>
+<table><thead><tr><th>Argument</th><th>Beschreibung</th></tr></thead><tbody><tr><td><code>--db</code></td><td>Datenbankdatei (Pflicht)</td></tr><tr><td><code>--config</code></td><td>Pfad zu <code>config.toml</code></td></tr><tr><td><code>--all-versions</code></td><td>Alle Versionen statt nur aktueller Werte anzeigen</td></tr><tr><td><code>--json</code></td><td>JSON-Ausgabe statt Tabelle</td></tr></tbody></table>
+<hr>
+<h2>Rollenübersicht</h2>
+<table><thead><tr><th>Befehl</th><th>Rolle</th><th>Prüfung</th></tr></thead><tbody><tr><td><code>employees list</code></td><td>keine</td><td>—</td></tr><tr><td><code>employees add</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>employees deactivate</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>cards assign</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>cards replace</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>cards deactivate</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>bookings correct</code></td><td>ADMIN, REVIEWER</td><td>Use Case</td></tr><tr><td><code>bookings supplement</code></td><td>ADMIN, REVIEWER</td><td>Use Case</td></tr><tr><td><code>bookings approve-supplement</code></td><td>ADMIN, REVIEWER</td><td>Use Case</td></tr><tr><td><code>bookings reject-supplement</code></td><td>ADMIN, REVIEWER</td><td>Use Case</td></tr><tr><td><code>schedule set</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>schedule show</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports export-csv</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports export-csv-review-cases</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports export-pdf-day</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports export-pdf-week</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports export-pdf-month</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports export-pdf-employee</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports open-bookings</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports warn-cases</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports corrections</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports supplements</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>reports open-review-cases</code></td><td>ADMIN, REVIEWER</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>system check</code></td><td>ADMIN, TECH</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>system backup</code></td><td>ADMIN, TECH</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>system setup</code></td><td>ADMIN, TECH</td><td>CLI (<code>_auth.py</code>)</td></tr><tr><td><code>users bootstrap</code></td><td>keine</td><td>Use Case</td></tr><tr><td><code>users add</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>users list</code></td><td>keine</td><td>—</td></tr><tr><td><code>users deactivate</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>users reactivate</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td><code>users change-role</code></td><td>ADMIN</td><td>Use Case</td></tr><tr><td>Terminal-UI</td><td>keine CLI-Rolle</td><td>Use Case</td></tr></tbody></table>
+<hr>
+<h2>Versionsvermerk</h2>
+<ul><li><strong>Vorversion:</strong> 1.4</li><li><strong>Neue Version:</strong> 1.5</li><li><strong>Begründung:</strong> Minor-Erhöhung wegen grundlegender Korrektur der Befehlsbeispiele (alle <code>admin ...</code>-Kurzformen durch belegbaren <code>azadmin</code>-Alias ersetzt), Behebung veralteter Dokumentation (<code>export_dir</code>-Quelle), Belegung der bookings-Rollen aus Use Cases (ADMIN, REVIEWER) sowie Laien-gerechten Hinweisen zum <code>--user-id</code>-Konflikt, zur <code>--config</code>-Platzierung bei <code>system setup</code>, zur Alias-Einrichtung und zu <code>cards replace</code>.</li></ul>
 </body>
 </html>
-
