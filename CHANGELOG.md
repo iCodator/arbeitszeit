@@ -5,6 +5,58 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Modulhandbücher v1.0 — Doppelversion IT/Laien] – 2026-07-17
+
+### Hinzugefügt
+
+16 neue Handbuchdateien in `docs/02_anwender/module/` — je Kapitel eine
+vollständige IT-Version (Entwickler/Systemverantwortliche) und eine
+aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
+
+**IT-Versionen (`*_it.md`):**
+
+- `handbuch_overview_it.md` — Systemcharakteristik, Verzeichnisbaum,
+  Einstiegspunkte, Schichtenmodell
+- `handbuch_domain_it.md` — alle 8 Entitäten, 11 Enumerationen, 9 Fehlerklassen,
+  Buchungssequenzregeln, ArbZG-Compliance-Schwellenwerte (§3/§4/§5 in Sekunden)
+- `handbuch_application_it.md` — alle 13 Use Cases mit Berechtigungen, alle
+  16 Command-DTOs, 11 Result-DTOs, 4 Query-Row-DTOs, UoW-Protokoll,
+  evaluate_booking()-Logik, `_CORRECTABLE_CASE_TYPES`
+- `handbuch_infrastructure_it.md` — Config-Dataklassen, find_config()-Suchpfad,
+  11 SQLite-Repositories, Backup-Service (SQLite Backup API, rsync),
+  Systemprüfung (7 Checks), NTP-Check via timedatectl
+- `handbuch_datenbankschema_it.md` — alle 16 Tabellen, 17 Indizes,
+  6 Migrationen; K6-Korrektur: supplements.rejected_at als nullable dokumentiert
+- `handbuch_audit_it.md` — run_audit.sh vollständig (8 Tools, Ausgabepfad,
+  Exit-Code 0), generate_audit_notes.py, import-linter-Constraint,
+  system_check-Befehl
+- `handbuch_presentation_it.md` — alle 7 Befehlsgruppen × alle Subcommands
+  mit Beispielen, Auflösungsreihenfolge --config/--db/--user-id,
+  Terminal-UI-Initialisierung und Buchungsschleife
+- `handbuch_show_config_it.md` — Exit-Code-Tabelle, JSON-Modus,
+  Projektroot-Hinweis, konkretes Beispiel
+
+**Laien-Versionen (`*_laien.md`):**
+
+- `handbuch_overview_laien.md` — Was ist das System, wer benutzt was,
+  wo liegen die Daten
+- `handbuch_domain_laien.md` — Buchungstypen und -sequenz in Alltagssprache,
+  ArbZG-Grenzen als Stundentabelle, Erklärung Prüffall/Nachtrag/Korrektur
+- `handbuch_application_laien.md` — Buchungsablauf in 6 Schritten,
+  Statustabelle, Korrektur- und Nachtragsprozess, Rollentabelle
+- `handbuch_infrastructure_laien.md` — Konfigurationsdatei-Erklärung,
+  config.toml-Beispiel, Backup- und Systemprüfungsbefehle in Alltagssprache
+- `handbuch_datenbankschema_laien.md` — Datenbereiche als Tabelle,
+  Backup-Hinweis, Warnung vor direktem DB-Zugriff
+- `handbuch_audit_laien.md` — Systemprüfung (7 Punkte) in Alltagssprache,
+  wann manuell aufrufen
+- `handbuch_presentation_laien.md` — Kurzanleitung aller Befehlsgruppen
+  mit konkreten Beispielen, Terminal-Beschreibung
+- `handbuch_show_config_laien.md` — Befehl, Beispielausgabe,
+  Erklärung der Systemeinstellungen in Alltagssprache
+
+---
+
 ## [Laien-Handbuch v1.7] – 2026-07-17
 
 ### Geändert

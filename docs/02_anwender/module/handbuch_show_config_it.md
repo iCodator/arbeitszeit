@@ -1,12 +1,10 @@
-# Handbuch – `scripts/show_config.py`
+# Handbuch – `scripts/show_config.py` — technisches Referenzhandbuch
 
-**Kapitel:** 8
-**Version:** 1.1
+**Kapitel:** 8-IT
+**Version:** 1.0
 **Stand:** Juli 2026
-**Quelldatei:** `docs/02_anwender/module/handbuch_show_config.md`
-**Grundlage:** Ausschließlich der Quellcode `scripts/show_config.py` sowie die
-verwendeten Infrastrukturmodule für Konfigurations- und
-Datenbankzugriff.
+**Zielgruppe:** Entwickler, Systemverantwortliche
+**Quelldatei:** `scripts/show_config.py`
 
 ## Zweck
 
@@ -21,13 +19,17 @@ schreibenden Datenbankoperationen und keine Änderungen an der
 
 ## Aufruf
 
+Das Skript muss aus dem Projektroot aufgerufen werden, da es via
+`sys.path.insert(...)` das Verzeichnis `src` in den Importpfad aufnimmt:
+
 ```bash
+cd /pfad/zu/arbeitszeit
 python scripts/show_config.py --db <DB_PATH> [--config <CONFIG_PATH>] [--all-versions] [--json]
 ```
 
 Das Argument `--db` ist zwingend erforderlich. Fehlt die Datenbankdatei am
 angegebenen Pfad, bricht das Skript mit einer Fehlermeldung auf `stderr` und
-Exit-Code 1 ab.
+Exit-Code 1 ab — auch im JSON-Modus (`--json`).
 
 ## Optionen
 
@@ -42,6 +44,13 @@ Die Langform `--json` wird intern auf das Attribut `as_json` abgebildet. Die
 Option `--config` überschreibt die automatische Suche nach der
 Konfigurationsdatei.
 
+## Exit-Codes
+
+| Code | Bedeutung |
+| --- | --- |
+| 0 | Erfolg |
+| 1 | DB-Datei nicht gefunden oder nicht lesbar (auch im JSON-Modus) |
+
 ## Datenquellen
 
 Das Skript verwendet zwei voneinander getrennte Datenquellen:
@@ -51,9 +60,9 @@ Das Skript verwendet zwei voneinander getrennte Datenquellen:
 2. die Tabelle `system_config` der angegebenen SQLite-Datenbank.
 
 Die automatische Suche nach `config.toml` erfolgt über `find_config()` aus
-`arbeitszeit.infrastructure.config_file`. Dabei werden der in diesem Modul
-implementierte Suchpfad über Umgebungsvariable, XDG-Pfad und lokales
-Arbeitsverzeichnis genutzt.
+`arbeitszeit.infrastructure.config_file`. Dabei werden Umgebungsvariable
+`ARBEITSZEIT_CONFIG`, XDG-Pfad `~/.config/arbeitszeit/config.toml` und
+lokales Arbeitsverzeichnis `./config.toml` geprüft.
 
 ## Abfrage der Datenbank
 
@@ -98,89 +107,75 @@ Sind keine Werte gesetzt, gibt das Skript den Text `(keine Werte gesetzt)` aus.
 Schlägt das Laden der Datei fehl, wird eine Fehlermeldung in der Form
 `Fehler beim Lesen: ...` ausgegeben.
 
-## Textausgabe
+## Textausgabe (Beispiel)
 
-Ohne `--json` erzeugt das Skript eine zweigeteilte Textausgabe.
-
-Zuerst wird ein Abschnitt für `config.toml` ausgegeben:
+Ohne `--json` erzeugt das Skript eine zweigeteilte Textausgabe:
 
 ```text
-=== config.toml: <pfad> ===
+=== config.toml: /home/user/.config/arbeitszeit/config.toml ===
+database.path      = /home/user/data/arbeitszeit.db
+terminal.id        = 1
+backup.backup_dir  = /var/backups/arbeitszeit
+
+=== DB (system_config): /home/user/data/arbeitszeit.db ===
+Schlüssel                                   Wert              Ver  Herkunft     Geändert am
+app.timezone                                Europe/Berlin       1   SYSTEM_SEED  2026-01-01T00:00
+booking.grace_seconds_after_numpad_select   30                  1   SYSTEM_SEED  2026-01-01T00:00
+backup.nas_enabled                          False               1   SYSTEM_SEED  2026-01-01T00:00
+backup.nas_path                             (nicht gesetzt)     1   SYSTEM_SEED  2026-01-01T00:00
+
+4 Einträge
 ```
 
-Dabei sind drei Fälle implementiert:
+Die drei Fälle für `config.toml`:
 
-- Es wurde eine Datei gefunden und sie existiert: Die Werte werden formatiert
-  ausgegeben.
-- Es wurde ein Pfad bestimmt, aber die Datei existiert nicht: Ausgabe
-  `(Datei nicht vorhanden)`.
-- Es wurde keine Datei gefunden: Ausgabe
-  `(keine config.toml gefunden — nutze --config um Pfad anzugeben)`.
+- Datei gefunden und lesbar: Werte werden formatiert ausgegeben.
+- Pfad bestimmt, Datei existiert nicht: `(Datei nicht vorhanden)`.
+- Keine Datei gefunden: `(keine config.toml gefunden — nutze --config um Pfad anzugeben)`.
 
-Danach folgt immer der Datenbankabschnitt:
-
-```text
-=== DB (system_config): <db-pfad> ===
-```
-
-Für die Tabellenansicht der Datenbankwerte wird `_print_table()` verwendet.
-Die Ausgabe enthält folgende Spalten:
+Die Tabellenansicht der Datenbankwerte (`_print_table()`) enthält folgende
+Spalten:
 
 | Spalte | Quelle | Hinweise |
 | --- | --- | --- |
 | `Schlüssel` | `config_key` | linke Ausrichtung, dynamische Breite |
-| `Wert` | `config_value_json` | dekodiert über `_decode_value()`, Breite maximal 40 Zeichen |
+| `Wert` | `config_value_json` | dekodiert über `_decode_value()`, maximal 40 Zeichen |
 | `Ver` | `version` | rechtsbündige Ganzzahl |
 | `Herkunft` | `change_origin` | linke Ausrichtung, dynamische Breite |
 | `Geändert am` | `changed_at` | auf die ersten 16 Zeichen gekürzt |
 
-Überlange Werte werden vor der Ausgabe mit einem abschließenden Ellipsenzeichen
-`…` gekürzt. Bei `--all-versions` wird zwischen Einträgen verschiedener
-`config_key` jeweils eine Leerzeile eingefügt.
-
-Am Ende der Tabelle steht eine Zählerzeile in der Form:
-
-```text
-N Eintrag/Einträge
-```
-
-Sind keine Datenbankeinträge vorhanden, gibt das Skript aus:
-
-```text
-Keine Konfigurationseinträge vorhanden.
-```
+Überlange Werte werden mit `…` gekürzt. Bei `--all-versions` wird zwischen
+Einträgen verschiedener `config_key` jeweils eine Leerzeile eingefügt.
 
 ## JSON-Ausgabe
 
-Mit `--json` gibt das Skript ein JSON-Objekt auf `stdout` aus. Die Ausgabe ist
-nicht auf die Datenbank beschränkt.
-
-Das oberste Objekt enthält mindestens den Schlüssel `db`. Dessen Wert ist eine
-Liste von Objekten mit folgenden Feldern:
+Mit `--json` gibt das Skript ein JSON-Objekt auf `stdout` aus:
 
 ```json
 {
-  "key": "<config_key>",
-  "value": <dekodierter JSON-Wert>,
-  "version": <integer>,
-  "change_origin": "<string>",
-  "changed_at": "<string>",
-  "reason": "<string|null>"
+  "db": [
+    {
+      "key": "app.timezone",
+      "value": "Europe/Berlin",
+      "version": 1,
+      "change_origin": "SYSTEM_SEED",
+      "changed_at": "2026-01-01T00:00:00",
+      "reason": null
+    }
+  ],
+  "config_toml": {
+    "path": "/home/user/.config/arbeitszeit/config.toml",
+    "database_path": "/home/user/data/arbeitszeit.db",
+    "terminal_id": 1,
+    "terminal_numpad": "Usb KeyBoard Usb KeyBoard",
+    "terminal_rfid": "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader",
+    "backup_dir": "/var/backups/arbeitszeit",
+    "export_dir": null,
+    "log_dir": "/var/log/arbeitszeit",
+    "admin_user_id": null
+  }
 }
 ```
-
-Wenn eine `config.toml` gefunden wird und erfolgreich geladen werden kann,
-fügt das Skript zusätzlich ein Objekt `config_toml` hinzu. Dieses enthält:
-
-- `path`
-- `database_path`
-- `terminal_id`
-- `terminal_numpad`
-- `terminal_rfid`
-- `backup_dir`
-- `export_dir`
-- `log_dir`
-- `admin_user_id`
 
 Schlägt das Laden der TOML-Datei im JSON-Pfad fehl, wird statt `config_toml`
 das Feld `config_toml_error` gesetzt. Die JSON-Ausgabe erfolgt mit
@@ -189,16 +184,12 @@ das Feld `config_toml_error` gesetzt. Die JSON-Ausgabe erfolgt mit
 ## Wertdekodierung
 
 Für die Tabellenansicht dekodiert `_decode_value()` jeden Wert aus
-`config_value_json` mittels `json.loads()`.
+`config_value_json` mittels `json.loads()`:
 
-Die implementierten Regeln lauten:
-
-- JSON-`null` wird als `(nicht gesetzt)` ausgegeben.
-- Ein JSON-String wird unverändert zurückgegeben.
-- Andere erfolgreich dekodierte Typen werden mit `str(...)` in Text
-  umgewandelt.
-- Bei `json.JSONDecodeError` oder `TypeError` wird der Rohwert unverändert
-  zurückgegeben.
+- JSON-`null` → `(nicht gesetzt)`
+- JSON-String → unveränderter String
+- Andere Typen → `str(...)`
+- `json.JSONDecodeError` oder `TypeError` → Rohwert unverändert
 
 Diese Dekodierungslogik gilt nur für die Textdarstellung. Im JSON-Ausgabepfad
 wird `config_value_json` direkt mit `json.loads(...)` in einen JSON-Wert
@@ -214,7 +205,8 @@ Das Skript verwendet folgende Module:
 - `arbeitszeit.infrastructure.db.connection.open_connection`
 
 Zusätzlich wird zu Beginn des Skripts das Projektverzeichnis `src` über
-`sys.path.insert(...)` in den Importpfad aufgenommen.
+`sys.path.insert(...)` in den Importpfad aufgenommen. Das Skript muss daher
+aus dem Projektroot aufgerufen werden.
 
 ## Abgrenzung
 

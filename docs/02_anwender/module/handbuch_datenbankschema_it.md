@@ -1,8 +1,9 @@
-# Datenbankschema `arbeitszeit`
+# Datenbankschema `arbeitszeit` — technisches Referenzhandbuch
 
-**Kapitel:** 6.1 (Ergänzung zu Infrastructure Layer)
-**Version:** 1.1
+**Kapitel:** 6.1-IT
+**Version:** 1.0
 **Stand:** Juli 2026
+**Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `migrations/0001_schema.sql` bis `migrations/0006_system_events_application_error.sql`
 
 ## Zweck dieses Dokuments
@@ -165,7 +166,7 @@ Ablehnung eines Nachtrags über getrennte Spaltenpaare abzubilden.
 | `approved_by_user_id` | INTEGER | FOREIGN KEY → `user_accounts(id)` |
 | `approved_at` | TEXT | — |
 | `rejected_by_user_id` | INTEGER | FOREIGN KEY → `user_accounts(id)` (seit 0004) |
-| `rejected_at` | TEXT | seit 0004 |
+| `rejected_at` | TEXT | — (seit 0004) |
 
 Tabellen-Constraint (seit 0004): Bei `PENDING` müssen alle vier Felder
 (`approved_by_user_id`, `approved_at`, `rejected_by_user_id`,
@@ -261,7 +262,7 @@ Freitag 07:30–16:00 Uhr, jeweils gültig ab dem 2026-01-01 mit
 
 `UNIQUE (config_key, version)` verhindert doppelte Versionen je
 Schlüssel. Die Auslesestrategie (aktuell gültiger Wert = höchste
-`version`-Zahl je Schlüssel) ist in `handbuch_infrastructure.md`
+`version`-Zahl je Schlüssel) ist in `handbuch_infrastructure_it.md`
 beschrieben und nicht allein aus dem Schemacode ableitbar.
 
 Migration 0002 seedet vier Startwerte: `app.timezone`

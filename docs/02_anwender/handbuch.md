@@ -1,4 +1,7 @@
 # Handbuch: Zeiterfassungssystem arbeitszeit
+**Version:** 1.7
+**Stand:** Juli 2026
+**Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
 ## Über dieses Handbuch
 

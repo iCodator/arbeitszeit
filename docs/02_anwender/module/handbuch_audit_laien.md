@@ -1,0 +1,57 @@
+# Wie überprüfe ich ob alles läuft?
+
+**Kapitel:** 9-Laien
+**Version:** 1.0
+**Stand:** Juli 2026
+**Zielgruppe:** Praxisleitung, Verwaltung
+
+## Zwei Arten von Systemprüfungen
+
+Das System bietet zwei verschiedene Arten von Prüfungen:
+
+1. **Systemprüfung** — prüft, ob alle technischen Komponenten des
+   laufenden Betriebs in Ordnung sind (Datenbank, Konfiguration, Geräte,
+   Zeitserver).
+2. **Codeprüfung** — ein technisches Werkzeug für Entwickler, das die
+   Softwarequalität prüft. Sie müssen sich darum nicht kümmern.
+
+## Die Systemprüfung
+
+Die Systemprüfung prüft automatisch 7 Punkte und zeigt an, ob alles
+in Ordnung ist.
+
+### Wann wird die Systemprüfung ausgeführt?
+
+- **Automatisch** bei jedem Start des Buchungsterminals. Wenn ein
+  Problem erkannt wird, erscheint eine Warnung — der Buchungsbetrieb
+  wird aber trotzdem fortgesetzt.
+- **Manuell auf Abruf** über den folgenden Befehl:
+
+```bash
+azadmin system check --db arbeitszeit.db
+```
+
+### Was wird geprüft?
+
+| Nr. | Was wird geprüft | Wann ist es ein Problem? |
+| --- | --- | --- |
+| 1 | Datenbankstand | Migrationen wurden nicht vollständig ausgeführt |
+| 2 | Pflicht-Einstellungen | Systemkonfiguration fehlt oder ist unvollständig |
+| 3 | Backup-Speicherort | Der Sicherungsordner ist nicht erreichbar |
+| 4 | Datenbankintegrität | Interne Datenbankverknüpfungen sind beschädigt |
+| 5 | Verzeichnisse | Backup- oder Exportordner existiert nicht |
+| 6 | Zeitserver | Systemzeit ist nicht synchronisiert |
+| 7 | Eingabegeräte | RFID-Reader oder Numpad nicht erreichbar |
+
+### Was tun wenn die Prüfung Fehler zeigt?
+
+Bei Fehlern in der Systemprüfung wenden Sie sich an Ihre IT-Betreuung.
+Das System notiert alle Prüfergebnisse automatisch in der Datenbank
+(`SELFTEST_OK` oder `SELFTEST_FAIL`), damit der Verlauf nachvollziehbar bleibt.
+
+## Wann sollte ich die Systemprüfung manuell ausführen?
+
+- Nach einem Stromausfall
+- Nach einer Änderung der Konfiguration
+- Wenn das Terminal ungewöhnlich reagiert oder Buchungen fehlschlagen
+- Als regelmäßige Routinekontrolle (z. B. einmal pro Woche)
