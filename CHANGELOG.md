@@ -5,6 +5,37 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Laien-Handbuch v1.7] – 2026-07-17
+
+### Geändert
+
+- `docs/02_anwender/handbuch.md` (v1.6 → v1.7): Vollständige Neustrukturierung
+  als aufgabenorientiertes Laien-Handbuch für Praxispersonal ohne IT-Kenntnisse.
+  Technische Architekturkapitel (Anwendungsschicht, Domain-Modell,
+  Infrastrukturschicht, Datenbankschema) entfernt; ersetzt durch zehn
+  aufgabenorientierte Kapitel mit konkreten Befehlsbeispielen:
+  - Kap. 1: Systemüberblick ohne Technik
+  - Kap. 2: Erste Schritte — Alias `azadmin`, Konfigurationsdatei,
+    Bootstrap des ersten Admins
+  - Kap. 3: Mitarbeitende verwalten — anlegen, deaktivieren,
+    RFID-Karte zuweisen/ersetzen/sperren
+  - Kap. 4: Buchungsbetrieb — Numpad-Tasten (1–4), Buchungszyklus,
+    Rückmeldungen, Fehlermeldungen
+  - Kap. 5: Buchungen korrigieren und Nachträge — correct, supplement,
+    approve-supplement, reject-supplement
+  - Kap. 6: Alle 11 Berichts-Subcommands mit Beispielen und
+    Exportverzeichnis-Hinweis (`config.toml [backup] export_dir`)
+  - Kap. 7: Arbeitszeitplan — globale und individuelle Regelzeiten,
+    Seed-Defaults dokumentiert
+  - Kap. 8: Benutzerverwaltung — Rollen (ADMIN/REVIEWER/TECH/EMPLOYEE),
+    anlegen/deaktivieren/reaktivieren/Rolle-ändern
+  - Kap. 9: System-Wartung — Backup, Systemcheck (7 Prüfpunkte),
+    system setup, show_config, verify_hardware
+  - Kap. 10: Häufige Fragen — Fehlermeldungen, Buchungsstatus-Erklärung,
+    Troubleshooting
+
+---
+
 ## [Befehlsreferenz auf v1.5 aktualisiert] – 2026-07-17
 
 ### Geändert
