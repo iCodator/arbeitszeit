@@ -1,6 +1,6 @@
 # Befehlsreferenz `arbeitszeit`
 
-**Version:** 1.4
+**Version:** 1.5
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -42,16 +42,28 @@ python -m arbeitszeit.presentation.admin_cli.main \
   <domäne> <befehl> [argumente]
 ```
 
-Die Befehlsbeispiele in diesem Dokument verwenden zusätzlich die Kurzform
-`admin ...`, weil das Dokument selbst diese Form bereits etabliert. Ein als
-Entry-Point installierter Befehl `admin` ist aus `pyproject.toml` jedoch nicht
-belegbar; belegbar ist nur der Modulaufruf.
+Da der Modulpfad lang ist, verwenden alle Beispiele in diesem Dokument den
+Alias `azadmin`. Einmalig in der aktuellen Shell-Sitzung einrichten:
+
+```bash
+alias azadmin="python -m arbeitszeit.presentation.admin_cli.main"
+```
+
+Für dauerhafte Verfügbarkeit in `~/.bashrc` eintragen:
+
+```bash
+echo 'alias azadmin="python -m arbeitszeit.presentation.admin_cli.main"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Hinweis:** Falls der Alias nicht aktiv ist, ersetze `azadmin` in allen
+Beispielen durch `python -m arbeitszeit.presentation.admin_cli.main`.
 
 Alternativ kann die Benutzer-ID über die Umgebungsvariable gesetzt werden:
 
 ```bash
 export ADMIN_USER_ID=1
-python -m arbeitszeit.presentation.admin_cli.main --db arbeitszeit.db employees list
+azadmin --db arbeitszeit.db employees list
 ```
 
 ### Globale Pflichtargumente
@@ -78,6 +90,18 @@ Die Benutzer-ID wird in folgender Reihenfolge aufgelöst:
 
 **Ausnahme `users bootstrap`:** Kein `--user-id` erforderlich. Dieser Befehl
 wird vor der Anlage des ersten Administrators ausgeführt.
+
+### Auflösung der Konfigurationsdatei
+
+`config.toml` wird in folgender Reihenfolge gesucht:
+
+1. `--config <PFAD>` (explizit angegeben)
+2. Umgebungsvariable `ARBEITSZEIT_CONFIG`
+3. `~/.config/arbeitszeit/config.toml`
+4. `./config.toml` (aktuelles Verzeichnis)
+
+Ist keine Konfigurationsdatei auffindbar und kein `--db` angegeben, bricht
+das Programm mit Exit-Code `1` ab.
 
 ### Exit-Codes
 
@@ -127,7 +151,7 @@ Application-Schicht.
 Listet alle Mitarbeiter auf.
 
 ```bash
-admin --db <PFAD> employees list
+azadmin --db <PFAD> employees list
 ```
 
 **Rolle:** keine
@@ -149,7 +173,7 @@ oder `Keine Mitarbeiter vorhanden.`
 Legt einen neuen Mitarbeiter an.
 
 ```bash
-admin --db <PFAD> --user-id <ID> employees add \
+azadmin --db <PFAD> --user-id <ID> employees add \
   --personnel-no <PERSONALNUMMER> \
   --first-name <VORNAME> \
   --last-name <NACHNAME>
@@ -172,7 +196,7 @@ admin --db <PFAD> --user-id <ID> employees add \
 Deaktiviert einen Mitarbeiter.
 
 ```bash
-admin --db <PFAD> --user-id <ID> employees deactivate <MITARBEITER-ID>
+azadmin --db <PFAD> --user-id <ID> employees deactivate <MITARBEITER-ID>
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
@@ -199,7 +223,7 @@ RFID-Reader eingelesen (`--scan --rfid`) oder als vorab berechneter Hash
 **Methode 1 – Direkt scannen:**
 
 ```bash
-admin --db <PFAD> --user-id <ID> cards assign \
+azadmin --db <PFAD> --user-id <ID> cards assign \
   --employee-id <MITARBEITER-ID> \
   --scan \
   --rfid "HID 1234:5678"
@@ -208,7 +232,7 @@ admin --db <PFAD> --user-id <ID> cards assign \
 **Methode 2 – Hash manuell angeben:**
 
 ```bash
-admin --db <PFAD> --user-id <ID> cards assign \
+azadmin --db <PFAD> --user-id <ID> cards assign \
   --employee-id <MITARBEITER-ID> \
   --uid-hash <HASH>
 ```
@@ -235,7 +259,7 @@ RFID-Scan-Timeout, Gerät nicht gefunden → Exit 1
 Ersetzt eine verlorene oder defekte Karte durch eine neue.
 
 ```bash
-admin --db <PFAD> --user-id <ID> cards replace \
+azadmin --db <PFAD> --user-id <ID> cards replace \
   --old-card-id <ALTE-KARTEN-ID> \
   --uid-hash <NEUER-HASH>
 ```
@@ -244,6 +268,10 @@ admin --db <PFAD> --user-id <ID> cards replace \
 | --- | --- | --- | --- |
 | `--old-card-id` | int | ja | ID der zu ersetzenden Karte |
 | `--uid-hash` | string | ja | SHA-256-Hash der neuen Karte |
+
+**Hinweis:** `cards replace` akzeptiert keinen `--scan`-Modus. Den UID-Hash der
+neuen Karte vorab mit `scripts/verify_hardware.py` ermitteln (beim Scan wird
+der Hash ausgegeben).
 
 **Rolle:** ADMIN
 **Ausgabe:** `Karte ersetzt: alt=5, neu=6.`
@@ -255,7 +283,7 @@ admin --db <PFAD> --user-id <ID> cards replace \
 Deaktiviert eine RFID-Karte.
 
 ```bash
-admin --db <PFAD> --user-id <ID> cards deactivate <KARTEN-ID>
+azadmin --db <PFAD> --user-id <ID> cards deactivate <KARTEN-ID>
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
@@ -279,7 +307,7 @@ Buchungskorrekturen und Nachträge. Die CLI validiert Eingabeformate und
 Korrigiert eine bestehende Buchung.
 
 ```bash
-admin --db <PFAD> --user-id <ID> bookings correct \
+azadmin --db <PFAD> --user-id <ID> bookings correct \
   --booking-id <BUCHUNGS-ID> \
   --type <BUCHUNGSTYP> \
   --at <ISO-DATETIME> \
@@ -293,6 +321,7 @@ admin --db <PFAD> --user-id <ID> bookings correct \
 | `--at` | ISO-8601 | ja | Neuer Buchungszeitpunkt |
 | `--reason` | string | ja | Begründung der Korrektur |
 
+**Rolle:** ADMIN, REVIEWER
 **Ausgabe:** `Korrektur angelegt (ID 12), Buchung 47 auf CORRECTED gesetzt.`
 **Fehler:** Ungültiger Buchungstyp, ungültiges Datum, Domänenfehler → Exit 1
 
@@ -303,7 +332,7 @@ admin --db <PFAD> --user-id <ID> bookings correct \
 Erfasst eine nachträgliche Buchung und erzeugt einen Prüffall.
 
 ```bash
-admin --db <PFAD> --user-id <ID> bookings supplement \
+azadmin --db <PFAD> --user-id <ID> bookings supplement \
   --employee-id <MITARBEITER-ID> \
   --type <BUCHUNGSTYP> \
   --at <ISO-DATETIME> \
@@ -319,6 +348,7 @@ admin --db <PFAD> --user-id <ID> bookings supplement \
 | `--reason` | string | ja | Begründung |
 | `--related-booking-id` | int | nein | Verknüpfte Buchung |
 
+**Rolle:** ADMIN, REVIEWER
 **Ausgabe:** `Nachtrag angelegt (ID 8), Prüffall 3 erzeugt.`
 
 ---
@@ -328,7 +358,7 @@ admin --db <PFAD> --user-id <ID> bookings supplement \
 Genehmigt einen Nachtrag.
 
 ```bash
-admin --db <PFAD> --user-id <ID> bookings approve-supplement \
+azadmin --db <PFAD> --user-id <ID> bookings approve-supplement \
   --supplement-id <NACHTRAGS-ID>
 ```
 
@@ -336,6 +366,7 @@ admin --db <PFAD> --user-id <ID> bookings approve-supplement \
 | --- | --- | --- | --- |
 | `--supplement-id` | int | ja | ID des zu genehmigenden Nachtrags |
 
+**Rolle:** ADMIN, REVIEWER
 **Ausgabe:** `Nachtrag 8 genehmigt, Buchung 52 angelegt (Status: OK).`
 
 ---
@@ -345,7 +376,7 @@ admin --db <PFAD> --user-id <ID> bookings approve-supplement \
 Lehnt einen Nachtrag ab.
 
 ```bash
-admin --db <PFAD> --user-id <ID> bookings reject-supplement \
+azadmin --db <PFAD> --user-id <ID> bookings reject-supplement \
   --supplement-id <NACHTRAGS-ID> \
   --reason <BEGRÜNDUNG>
 ```
@@ -355,6 +386,7 @@ admin --db <PFAD> --user-id <ID> bookings reject-supplement \
 | `--supplement-id` | int | ja | ID des abzulehnenden Nachtrags |
 | `--reason` | string | ja | Ablehnungsgrund |
 
+**Rolle:** ADMIN, REVIEWER
 **Ausgabe:** `Nachtrag 8 abgelehnt.`
 
 ---
@@ -371,7 +403,7 @@ Setzt die Regelarbeitszeit für einen Wochentag global oder
 mitarbeiterspezifisch.
 
 ```bash
-admin --db <PFAD> --user-id <ID> schedule set \
+azadmin --db <PFAD> --user-id <ID> schedule set \
   --weekday <1-7> \
   --start <HH:MM> \
   --end <HH:MM> \
@@ -408,7 +440,7 @@ Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version 4): Mitarbeiter 2, Mo 0
 Zeigt alle aktiven Regelarbeitszeitversionen.
 
 ```bash
-admin --db <PFAD> --user-id <ID> schedule show
+azadmin --db <PFAD> --user-id <ID> schedule show
 ```
 
 **Rolle:** ADMIN, REVIEWER
@@ -431,8 +463,8 @@ oder `Keine aktiven Regelarbeitszeitversionen vorhanden.`
 ### reports
 
 Berichte und Pflichtauswertungen. Alle Report-Befehle erfordern `ADMIN` oder
-`REVIEWER`. Das Exportverzeichnis wird in `reports.py` aus `system_config`
-über den Schlüssel `export.export_dir` gelesen.
+`REVIEWER`. Das Exportverzeichnis wird aus `config.toml` `[backup] export_dir`
+gelesen — gesetzt via `scripts/setup.py` oder `system setup`.
 
 ---
 
@@ -441,7 +473,7 @@ Berichte und Pflichtauswertungen. Alle Report-Befehle erfordern `ADMIN` oder
 Exportiert Detailbuchungen und verdichtete Übersicht als CSV.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports export-csv \
+azadmin --db <PFAD> --user-id <ID> reports export-csv \
   --from <YYYY-MM-DD> \
   --to <YYYY-MM-DD> \
   [--employee-id <MITARBEITER-ID>]
@@ -467,7 +499,7 @@ Verdichtet-CSV: /var/exports/arbeitszeit/export_verdichtet_20260701_20260731_202
 Exportiert Prüffälle im Zeitraum als CSV.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports export-csv-review-cases \
+azadmin --db <PFAD> --user-id <ID> reports export-csv-review-cases \
   --from <YYYY-MM-DD> \
   --to <YYYY-MM-DD> \
   [--employee-id <MITARBEITER-ID>]
@@ -492,7 +524,7 @@ Prüffälle-CSV: /var/exports/arbeitszeit/export_prueffaelle_20260701_20260731_2
 Erstellt einen Tagesbericht als PDF.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports export-pdf-day \
+azadmin --db <PFAD> --user-id <ID> reports export-pdf-day \
   --date <YYYY-MM-DD>
 ```
 
@@ -509,7 +541,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-day \
 Erstellt einen Wochenbericht als PDF.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports export-pdf-week \
+azadmin --db <PFAD> --user-id <ID> reports export-pdf-week \
   --year <YYYY> \
   --week <1-53>
 ```
@@ -528,7 +560,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-week \
 Erstellt einen Monatsbericht als PDF.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports export-pdf-month \
+azadmin --db <PFAD> --user-id <ID> reports export-pdf-month \
   --year <YYYY> \
   --month <1-12>
 ```
@@ -547,7 +579,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-month \
 Erstellt einen Mitarbeiterbericht für einen Zeitraum als PDF.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports export-pdf-employee \
+azadmin --db <PFAD> --user-id <ID> reports export-pdf-employee \
   --employee-id <MITARBEITER-ID> \
   --from <YYYY-MM-DD> \
   --to <YYYY-MM-DD>
@@ -568,7 +600,7 @@ admin --db <PFAD> --user-id <ID> reports export-pdf-employee \
 Listet Buchungen mit Status `OPEN`, optional im Zeitraum gefiltert.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports open-bookings \
+azadmin --db <PFAD> --user-id <ID> reports open-bookings \
   [--from <YYYY-MM-DD> --to <YYYY-MM-DD>] \
   [--employee-id <MITARBEITER-ID>]
 ```
@@ -589,7 +621,7 @@ erscheint ein Hinweis auf stderr, `--from` und `--to` zu verwenden.
 Listet Buchungen mit Status `WARN` oder `NEEDS_REVIEW` im Zeitraum.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports warn-cases \
+azadmin --db <PFAD> --user-id <ID> reports warn-cases \
   --from <YYYY-MM-DD> \
   --to <YYYY-MM-DD> \
   [--employee-id <MITARBEITER-ID>]
@@ -608,7 +640,7 @@ admin --db <PFAD> --user-id <ID> reports warn-cases \
 Listet Buchungskorrekturen im Zeitraum.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports corrections \
+azadmin --db <PFAD> --user-id <ID> reports corrections \
   --from <YYYY-MM-DD> \
   --to <YYYY-MM-DD> \
   [--employee-id <MITARBEITER-ID>]
@@ -621,7 +653,7 @@ admin --db <PFAD> --user-id <ID> reports corrections \
 Listet Nachträge im Zeitraum.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports supplements \
+azadmin --db <PFAD> --user-id <ID> reports supplements \
   --from <YYYY-MM-DD> \
   --to <YYYY-MM-DD> \
   [--employee-id <MITARBEITER-ID>]
@@ -634,7 +666,7 @@ admin --db <PFAD> --user-id <ID> reports supplements \
 Listet offene Prüffälle, optional im Zeitraum gefiltert.
 
 ```bash
-admin --db <PFAD> --user-id <ID> reports open-review-cases \
+azadmin --db <PFAD> --user-id <ID> reports open-review-cases \
   [--from <YYYY-MM-DD> --to <YYYY-MM-DD>] \
   [--employee-id <MITARBEITER-ID>]
 ```
@@ -661,7 +693,7 @@ Systemcheck, Backup und Konfiguration.
 Führt einen Systemcheck durch und gibt den Status aller Prüfpunkte aus.
 
 ```bash
-admin --db <PFAD> --user-id <ID> system check
+azadmin --db <PFAD> --user-id <ID> system check
 ```
 
 **Rolle:** ADMIN, TECH
@@ -674,7 +706,7 @@ admin --db <PFAD> --user-id <ID> system check
 Erstellt manuell ein Datenbank-Backup und synchronisiert optional auf den NAS.
 
 ```bash
-admin --db <PFAD> --user-id <ID> system backup
+azadmin --db <PFAD> --user-id <ID> system backup
 ```
 
 **Rolle:** ADMIN, TECH
@@ -701,7 +733,14 @@ NAS-Synchronisation fehlgeschlagen → Exit 1
 Bearbeitet die `config.toml` interaktiv.
 
 ```bash
-admin --db <PFAD> --user-id <ID> [--config <CONFIG_PATH>] system setup
+azadmin [--config <CONFIG_PATH>] --db <PFAD> --user-id <ID> system setup
+```
+
+**Wichtig:** `--config` ist ein **globales Argument** und muss **vor** dem
+Domainnamen `system` angegeben werden. Die folgende Syntax ist falsch:
+
+```bash
+azadmin system setup --config /pfad/config.toml  # FALSCH – --config gehört vor "system"
 ```
 
 **Rolle:** ADMIN, TECH
@@ -722,7 +761,7 @@ Benutzerkontenverwaltung. Passwörter werden mit PBKDF2-HMAC-SHA256,
 Legt das erste Administratorkonto an.
 
 ```bash
-admin --db <PFAD> users bootstrap \
+azadmin --db <PFAD> users bootstrap \
   --username <BENUTZERNAME> \
   [--password <PASSWORT>]
 ```
@@ -747,7 +786,7 @@ Generiertes Passwort (einmalig sichtbar): xKj8!mP2nqR5
 Legt ein neues Benutzerkonto an.
 
 ```bash
-admin --db <PFAD> --user-id <ID> users add \
+azadmin --db <PFAD> --user-id <ID> users add \
   --username <BENUTZERNAME> \
   --role <ROLLE> \
   [--employee-id <MITARBEITER-ID>] \
@@ -776,7 +815,7 @@ Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w
 Listet alle Benutzerkonten außer `EMPLOYEE` auf.
 
 ```bash
-admin --db <PFAD> users list
+azadmin --db <PFAD> users list
 ```
 
 **Rolle:** keine
@@ -787,8 +826,18 @@ admin --db <PFAD> users list
 
 Deaktiviert ein Benutzerkonto.
 
+**Achtung — zwei `--user-id`-Argumente:** Das erste (globale) `--user-id` ist
+die ID des ausführenden Admins. Das zweite `--user-id` (nach dem Subcommand)
+ist das Zielkonto. Beispiel: Admin mit ID 1 deaktiviert Konto mit ID 3:
+
 ```bash
-admin --db <PFAD> --user-id <ID> users deactivate \
+azadmin --db <PFAD> --user-id 1 users deactivate --user-id 3
+```
+
+Vollständige Syntax:
+
+```bash
+azadmin --db <PFAD> --user-id <ID> users deactivate \
   --user-id <ZIEL-BENUTZER-ID>
 ```
 
@@ -805,8 +854,11 @@ admin --db <PFAD> --user-id <ID> users deactivate \
 
 Reaktiviert ein deaktiviertes Benutzerkonto.
 
+**Achtung — zwei `--user-id`-Argumente:** Wie bei `users deactivate` gilt das
+erste `--user-id` dem ausführenden Admin, das zweite dem Zielkonto.
+
 ```bash
-admin --db <PFAD> --user-id <ID> users reactivate \
+azadmin --db <PFAD> --user-id <ID> users reactivate \
   --user-id <ZIEL-BENUTZER-ID>
 ```
 
@@ -823,8 +875,11 @@ admin --db <PFAD> --user-id <ID> users reactivate \
 
 Ändert die Rolle eines Benutzerkontos.
 
+**Achtung — zwei `--user-id`-Argumente:** Wie bei `users deactivate` gilt das
+erste `--user-id` dem ausführenden Admin, das zweite dem Zielkonto.
+
 ```bash
-admin --db <PFAD> --user-id <ID> users change-role \
+azadmin --db <PFAD> --user-id <ID> users change-role \
   --user-id <ZIEL-BENUTZER-ID> \
   --role <NEUE-ROLLE>
 ```
@@ -1026,10 +1081,10 @@ python scripts/show_config.py \
 | `cards assign` | ADMIN | Use Case |
 | `cards replace` | ADMIN | Use Case |
 | `cards deactivate` | ADMIN | Use Case |
-| `bookings correct` | im CLI nicht abschließend belegt | Use Case |
-| `bookings supplement` | im CLI nicht abschließend belegt | Use Case |
-| `bookings approve-supplement` | im CLI nicht abschließend belegt | Use Case |
-| `bookings reject-supplement` | im CLI nicht abschließend belegt | Use Case |
+| `bookings correct` | ADMIN, REVIEWER | Use Case |
+| `bookings supplement` | ADMIN, REVIEWER | Use Case |
+| `bookings approve-supplement` | ADMIN, REVIEWER | Use Case |
+| `bookings reject-supplement` | ADMIN, REVIEWER | Use Case |
 | `schedule set` | ADMIN | Use Case |
 | `schedule show` | ADMIN, REVIEWER | CLI (`_auth.py`) |
 | `reports export-csv` | ADMIN, REVIEWER | CLI (`_auth.py`) |
@@ -1058,11 +1113,11 @@ python scripts/show_config.py \
 
 ## Versionsvermerk
 
-- **Vorversion:** 1.3
-- **Neue Version:** 1.4
-- **Begründung:** Minor-Erhöhung wegen belegter Korrekturen, Präzisierungen und
-  Ergänzungen ohne grundlegende Strukturänderung. Eingearbeitet wurden unter
-  anderem `--config`, die Auflösungslogik für `user_id`, die korrigierte
-  Dokumentation der Terminal-UI, die vollständige Beschreibung von
-  `scripts/setup.py`, Ergänzungen zu `scripts/backup.py` und
-  `scripts/show_config.py` sowie der fehlende Subcommand `system setup`.
+- **Vorversion:** 1.4
+- **Neue Version:** 1.5
+- **Begründung:** Minor-Erhöhung wegen grundlegender Korrektur der Befehlsbeispiele
+  (alle `admin ...`-Kurzformen durch belegbaren `azadmin`-Alias ersetzt), Behebung
+  veralteter Dokumentation (`export_dir`-Quelle), Belegung der bookings-Rollen aus
+  Use Cases (ADMIN, REVIEWER) sowie Laien-gerechten Hinweisen zum `--user-id`-Konflikt,
+  zur `--config`-Platzierung bei `system setup`, zur Alias-Einrichtung und zu
+  `cards replace`.

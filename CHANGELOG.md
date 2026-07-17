@@ -5,6 +5,33 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Befehlsreferenz auf v1.5 aktualisiert] – 2026-07-17
+
+### Geändert
+
+- `docs/03_installation_technik/befehlsreferenz.md` (v1.4 → v1.5):
+  - Alle ~33 `admin ...`-Kurzformen (nicht belegbarer Entry-Point) durch
+    `azadmin ...` ersetzt; Alias `azadmin` in der Einleitung erklärt und
+    Einrichtung in `~/.bashrc` dokumentiert.
+  - Neuer Unterabschnitt **Auflösung der Konfigurationsdatei** mit der
+    Suchpfad-Reihenfolge aus `config_file.py` (`find_config()`).
+  - **Reports**: `export_dir`-Quelle korrigiert — Wert kommt aus
+    `config.toml [backup] export_dir`, nicht mehr aus `system_config`.
+  - **bookings**: Rollen `ADMIN, REVIEWER` für alle vier Subcommands belegt
+    (aus Use Cases `correct_booking.py`, `register_supplement.py`,
+    `approve_supplement.py`, `reject_supplement.py`).
+  - **users deactivate/reactivate/change-role**: Warnkasten für den
+    `--user-id`-Namenskonflikt (globales Argument vs. Subcommand-Argument)
+    mit Beispiel ergänzt.
+  - **system setup**: Hinweis, dass `--config` ein globales Argument ist
+    und vor dem Domainnamen `system` stehen muss.
+  - **cards replace**: Hinweis ergänzt, dass kein `--scan`-Modus verfügbar
+    ist und der Hash vorab via `scripts/verify_hardware.py` ermittelt werden muss.
+  - Rollenübersicht: bookings-Zeilen von „im CLI nicht abschließend belegt"
+    auf `ADMIN, REVIEWER` korrigiert.
+
+---
+
 ## [Installationsanleitung auf v1.6 aktualisiert] – 2026-07-17
 
 ### Geändert
