@@ -5,6 +5,33 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Installationsanleitung auf v1.6 aktualisiert] – 2026-07-17
+
+### Geändert
+
+- `docs/03_installation_technik/installationsanleitung.md` (v1.5 → v1.6):
+  - Neuer **Schritt 10**: Hardware-Smoke-Test via `scripts/verify_hardware.py`
+    als eigenständiger Pflichtschritt (bisher nur als Randnotiz in Schritt 11).
+  - Neuer **Schritt 11**: Backup-Verzeichnisse anlegen (`sudo mkdir -p …` +
+    `chown`), weil `system_check.py` deren physische Existenz beim Start prüft.
+  - Alte Schritte 10–13 → neue Nummerierung 12–15.
+  - **Schritt 2**: Python-PPA-Hinweis ergänzt (`ppa:deadsnakes/ppa`) für den
+    Fall, dass `python3.14` im Standard-Apt-Archiv nicht verfügbar ist.
+  - **Schritt 5**: Warnkasten „venv bei jeder Sitzung aktivieren" ergänzt.
+  - **Schritt 9**: Expliziter Warnkasten „Jetzt abmelden und neu anmelden"
+    nach `usermod -aG input`; Hinweis auf exaktes String-Matching der Gerätenamen.
+  - **Schritt 12** (ehem. 10): Warnkasten „Passwort sofort notieren" nach
+    `users bootstrap`.
+  - Voraussetzungen: Internetverbindung als dauerhaft erforderlich (NTP)
+    klargestellt; Glossar um NTP und LUKS erweitert.
+  - Häufige Probleme: neue Einträge für Python-PPA, NTP-Synchronisation
+    und `SELFTEST_FAIL: config_file_paths`.
+  - KI-Artefakte entfernt: `[cite:XX]`-Referenzen, Abschnitte
+    „Umgesetzte Änderungen" und „Vorgenommene Änderungen mit Belegbasis".
+  - Abschnitt „Weitere Informationen" um konkrete Dateipfade erweitert.
+
+---
+
 ## [Bereinigung: alle mypy-Fehler in tests/ behoben] – 2026-07-15
 
 ### Geändert
