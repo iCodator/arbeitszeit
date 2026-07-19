@@ -1,6 +1,6 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 import argparse
 import json
@@ -169,7 +169,7 @@ def _run_one_cycle(
                 "traceback": traceback.format_exc(),
             },
         )
-    time.sleep(5)
+    time.sleep(2)
 
 
 def run(

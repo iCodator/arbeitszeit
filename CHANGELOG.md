@@ -5,6 +5,16 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [terminal_ui: Wartezeit nach Buchung auf 2 s verkürzt] – 2026-07-19
+
+### Geändert
+
+- `src/arbeitszeit/presentation/terminal_ui/main.py` (v1.3 → v1.4):
+  `time.sleep(5)` → `time.sleep(2)` in `_run_one_cycle()` — 5 Sekunden waren
+  im Praxisbetrieb zu lang
+
+---
+
 ## [terminal_ui: Buchungsarten-Menü im Dauerbetrieb] – 2026-07-19
 
 ### Hinzugefügt
