@@ -5,6 +5,25 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Installationsanleitung v1.7] – 2026-07-17
+
+### Geändert
+
+- `docs/03_installation_technik/installationsanleitung.md` (v1.6 → v1.7):
+  - Schritt 7 (Datenbank anlegen): Erklärt das neue interaktive Verhalten
+    von `init_db.py` v1.1 — Script fragt nach dem Speicherort, zeigt
+    Vorschlag in eckigen Klammern, erklärt Enter=Vorschlag übernehmen
+    vs. eigenen Pfad eingeben; Hinweis auf automatische Pfadermittlung
+    aus `config.toml` bei späteren Aufrufen.
+  - Neue Empfehlung nach Schritt 12: Kurzbefehl `azadmin` dauerhaft
+    einrichten — erklärt Was-ist-ein-Alias, dauerhafter Eintrag in
+    `~/.bashrc` mit kombinierter venv-Aktivierung, Übernahme in alle
+    folgenden Schritte.
+  - Schritt 13: Alle Admin-CLI-Befehle von `python -m ...` auf `azadmin`
+    umgestellt.
+
+---
+
 ## [init_db.py v1.1] – 2026-07-17
 
 ### Geändert

@@ -20,7 +20,7 @@ header-includes:
 
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.6
+**Version:** 1.7
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
@@ -288,20 +288,51 @@ Entwicklungswerkzeuge. Dazu gehören unter anderem `evdev`, `reportlab`,
 ## Schritt 7: Datenbank anlegen
 
 `arbeitszeit` verwendet eine lokale SQLite-Datenbank. Beim ersten Start
-müssen die Migrationen ausgeführt werden:
+müssen die Migrationen ausgeführt werden. Starte das Script:
 
 ```bash
 python scripts/init_db.py
 ```
 
-`init_db.py` legt dabei standardmäßig die Datei `arbeitszeit.db` an,
-führt alle vorhandenen Migrationen aus und gibt jede erfolgreich
-angewendete Migration einzeln aus. Im Repository sind aktuell die
-Migrationen `0001` bis `0006` enthalten.
+### Das Script fragt nach dem Speicherort der Datenbank
 
-Eine typische Ausgabe sieht so aus:
+Da du in diesem Schritt noch keine Konfigurationsdatei hast, fragt das
+Script zuerst, wo die Datenbankdatei gespeichert werden soll. Die
+Ausgabe sieht etwa so aus:
 
 ```text
+Datenbankpfad [/home/deinname/arbeitszeit/arbeitszeit.db]:
+```
+
+Die Adresse in eckigen Klammern ist der **Vorschlag** des Systems — in
+diesem Fall der aktuelle Ordner, in dem du gerade arbeitest (der
+Projektordner `~/arbeitszeit/`). Du hast jetzt zwei Möglichkeiten:
+
+**Möglichkeit 1 — Vorschlag übernehmen:**
+Drücke einfach `Enter`, ohne etwas einzutippen. Die Datenbankdatei
+wird dann im vorgeschlagenen Pfad angelegt. Das ist für eine erste
+Installation in der Regel die einfachste Wahl.
+
+**Möglichkeit 2 — Anderen Pfad eingeben:**
+Tippe den gewünschten Pfad ein und drücke `Enter`. Wenn du die Datenbank
+zum Beispiel in einem separaten Datenordner speichern möchtest:
+
+```text
+Datenbankpfad [/home/deinname/arbeitszeit/arbeitszeit.db]: /home/deinname/data/arbeitszeit.db
+```
+
+> **Empfehlung:** Notiere dir den Pfad, den du hier eingibst oder
+> bestätigst. Du benötigst ihn im nächsten Schritt (Schritt 8) erneut,
+> damit die Konfigurationsdatei denselben Pfad kennt.
+
+### Anschließende Migrationen
+
+Nachdem du den Pfad bestätigt hast, richtet das Script die
+Datenbankstruktur automatisch ein. Es führt alle enthaltenen
+Migrationsschritte aus und zeigt jeden Schritt einzeln an:
+
+```text
+Datenbankpfad [/home/deinname/arbeitszeit/arbeitszeit.db]:
 Migration 0001 angewendet.
 Migration 0002 angewendet.
 Migration 0003 angewendet.
@@ -309,11 +340,22 @@ Migration 0004 angewendet.
 Migration 0005 angewendet.
 Migration 0006 angewendet.
 ⚠  Ersteinrichtung noch erforderlich:
-   python scripts/setup.py --db arbeitszeit.db
+   python scripts/setup.py --db /home/deinname/arbeitszeit/arbeitszeit.db
 ```
 
 Das `⚠`-Symbol bedeutet hier **keinen Fehler**, sondern den Hinweis,
-dass danach noch die Konfiguration erstellt werden muss.
+dass danach noch die Konfigurationsdatei erstellt werden muss —
+das ist Schritt 8.
+
+> **Hinweis für spätere Aufrufe:** Sobald in Schritt 8 eine
+> `config.toml` mit dem Datenbankpfad eingerichtet ist, liest
+> `init_db.py` den Pfad beim nächsten Mal automatisch daraus. Du
+> wirst dann nicht mehr gefragt:</p>
+>
+> ```text
+> Datenbankpfad aus /home/deinname/.config/arbeitszeit/config.toml: /home/deinname/arbeitszeit/arbeitszeit.db
+> Keine neuen Migrationen. System betriebsbereit.
+> ```
 
 ## Schritt 8: Ersteinrichtung und `config.toml` erstellen
 
@@ -540,6 +582,78 @@ Generiertes Passwort (einmalig sichtbar): <zufälliges Passwort>
 >
 > Ohne dieses Passwort ist kein Zugang zur Admin-Verwaltung möglich.
 
+## Empfehlung: Kurzbefehl `azadmin` dauerhaft einrichten
+
+Bevor es weitergeht: Der vollständige Befehl für die Admin-Verwaltung
+lautet:
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main
+```
+
+Das ist viel zu lang, um es immer wieder einzutippen. Unter Linux lässt
+sich für solche langen Befehle ein **Kurzname** (Fachbegriff: Alias)
+festlegen. Das Projekt empfiehlt den Kurznamen `azadmin`.
+
+### Was ist ein Alias?
+
+Ein Alias ist ein selbst gewählter Spitzname für einen beliebig langen
+Befehl. Statt den vollständigen Befehl jedes Mal zu tippen, genügt
+danach der Kurzname. Das Betriebssystem ersetzt ihn beim Ausführen
+automatisch durch den vollständigen Befehl.
+
+### Alias dauerhaft einrichten
+
+Die zuverlässigste Methode: Du trägst den Alias — und gleich auch die
+Aktivierung der virtuellen Umgebung — in die Datei `~/.bashrc` ein.
+Diese Datei wird bei jedem neuen Terminal-Fenster automatisch gelesen.
+
+Öffne die Datei mit dem Texteditor `nano`:
+
+```bash
+nano ~/.bashrc
+```
+
+Scrolle mit den Pfeiltasten ganz nach unten und füge dort diese zwei
+Zeilen ein:
+
+```bash
+source ~/arbeitszeit/.venv/bin/activate
+alias azadmin='python -m arbeitszeit.presentation.admin_cli.main'
+```
+
+Die erste Zeile aktiviert die virtuelle Umgebung automatisch. Die
+zweite Zeile richtet den Kurznamen ein.
+
+Speichern: `Strg` + `O`, dann `Enter`. Beenden: `Strg` + `X`.
+
+Damit die Änderungen sofort in diesem Terminal-Fenster wirksam werden,
+ohne es schließen zu müssen:
+
+```bash
+source ~/.bashrc
+```
+
+### Prüfen ob alles funktioniert
+
+```bash
+azadmin --help
+```
+
+Erscheint eine Hilfeanzeige mit einer Liste der verfügbaren Befehle,
+ist der Alias korrekt eingerichtet.
+
+### Was ändert sich dadurch?
+
+Ab jetzt steht `azadmin` in jedem neuen Terminal-Fenster sofort zur
+Verfügung — ohne vorherige Aktivierung der virtuellen Umgebung und ohne
+langen Befehl. Alle folgenden Schritte dieser Anleitung verwenden
+`azadmin`.
+
+> **Hinweis:** Wenn du das System auf einem Rechner einrichtest, auf
+> dem mehrere Benutzerkonten existieren, muss dieser Schritt für jedes
+> Benutzerkonto separat durchgeführt werden.
+
 ## Schritt 13: Mitarbeitende und Karten anlegen
 
 Nach dem Administrator-Konto können weitere Benutzer, Mitarbeitende und
@@ -548,8 +662,7 @@ RFID-Karten angelegt werden.
 ### Weiteres Benutzerkonto anlegen
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
+azadmin --db arbeitszeit.db \
   --user-id 1 \
   users add \
   --username pruefer01 \
@@ -562,8 +675,7 @@ für `users add` registriert.
 ### Mitarbeiter anlegen
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
+azadmin --db arbeitszeit.db \
   --user-id 1 \
   employees add \
   --personnel-no M001 \
@@ -574,8 +686,7 @@ python -m arbeitszeit.presentation.admin_cli.main \
 ### RFID-Karte direkt einlesen und zuweisen
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main \
-  --db arbeitszeit.db \
+azadmin --db arbeitszeit.db \
   --user-id 1 \
   cards assign \
   --employee-id 1 \
@@ -597,8 +708,7 @@ Auch alle oben gezeigten Admin-CLI-Aufrufe können statt mit `--db` mit
 vorliegt:
 
 ```bash
-python -m arbeitszeit.presentation.admin_cli.main \
-  --config ~/.config/arbeitszeit/config.toml \
+azadmin --config ~/.config/arbeitszeit/config.toml \
   --user-id 1 \
   employees add \
   --personnel-no M001 \
