@@ -5,6 +5,24 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [terminal_ui: Buchungsarten-Menü im Dauerbetrieb] – 2026-07-19
+
+### Hinzugefügt
+
+- `src/arbeitszeit/presentation/terminal_ui/main.py` (v1.2 → v1.3):
+  - `_BUCHUNGSARTEN`: Konstante mit der Taste-Buchungsart-Tabelle (4 Leerzeilen
+    oben und unten)
+  - `_clear_screen()`: ANSI-Escape-Sequenz `\033[2J\033[H` löscht den Bildschirm
+    und setzt den Cursor auf Position 0/0 (kein Subprozess, kein `os`-Import)
+  - `_run_one_cycle()` erweitert: Bildschirm leeren → Menü anzeigen →
+    Hardware-Input abwarten → Ergebnis/Fehler anzeigen → 5 Sekunden Pause;
+    dann beginnt der nächste Zyklus wieder mit Bildschirm leeren + Menü
+- `tests/integration/test_terminal_ui_main.py` (v1.0 → v1.1):
+  - Fixture `no_sleep_no_clear` mockt `time.sleep` und `_clear_screen` in allen
+    `_run_one_cycle`-Tests, damit die Testsuite nicht um ~25 Sekunden verzögert wird
+
+---
+
 ## [Datumsformat DD.MM.YYYY] – 2026-07-19
 
 ### Geändert

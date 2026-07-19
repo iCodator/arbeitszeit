@@ -1,6 +1,6 @@
 """Tests für presentation/terminal_ui/main.py."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 import logging
@@ -99,8 +99,17 @@ def _make_mock_reader() -> MagicMock:
     return MagicMock()
 
 
+@pytest.fixture
+def no_sleep_no_clear() -> Generator[None, None, None]:
+    with (
+        patch("time.sleep"),
+        patch(f"{_MAIN}._clear_screen"),
+    ):
+        yield
+
+
 def test_run_one_cycle_erfolg_druckt_feedback(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], no_sleep_no_clear: None
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -125,7 +134,7 @@ def test_run_one_cycle_erfolg_druckt_feedback(
 
 
 def test_run_one_cycle_domain_error_bekannt_druckt_meldung(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], no_sleep_no_clear: None
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -142,7 +151,7 @@ def test_run_one_cycle_domain_error_bekannt_druckt_meldung(
 
 
 def test_run_one_cycle_domain_error_unbekannt_zeigt_fehlermeldung(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], no_sleep_no_clear: None
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -162,7 +171,7 @@ def test_run_one_cycle_domain_error_unbekannt_zeigt_fehlermeldung(
 
 
 def test_run_one_cycle_generic_exception_loggt_und_faehrt_fort(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], no_sleep_no_clear: None
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()
@@ -186,7 +195,7 @@ def test_run_one_cycle_generic_exception_loggt_und_faehrt_fort(
 
 
 def test_run_one_cycle_open_phase_conflict_druckt_meldung(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], no_sleep_no_clear: None
 ) -> None:
     db = _make_db(tmp_path)
     reader = _make_mock_reader()

@@ -1,12 +1,13 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 import argparse
 import json
 import logging
 import signal
 import sys
+import time
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,6 +59,21 @@ _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
     InvalidBookingSequenceError: "Ungültige Buchungsreihenfolge.",
     OpenPhaseConflictError: "Offene Phase — bitte zuerst abschließen.",
 }
+
+_BUCHUNGSARTEN = (
+    "\n" * 4
+    + "  Taste  Buchungsart\n"
+    + "  ─────  ──────────────────────────\n"
+    + "  1      Kommen (Schichtbeginn)\n"
+    + "  2      Gehen (Schichtende)\n"
+    + "  3      Pause beginnen\n"
+    + "  4      Pause beenden\n"
+    + "\n" * 4
+)
+
+
+def _clear_screen() -> None:
+    print("\033[2J\033[H", end="", flush=True)
 
 
 def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]) -> None:
@@ -131,7 +147,9 @@ def _run_one_cycle(
     terminal_id: int,
     monitor: SystemTimeMonitor,
 ) -> None:
-    """Ein Buchungszyklus: Zeitcheck → Buchung → Feedback oder Fehlerbehandlung."""
+    """Ein Buchungszyklus: Menü → Zeitcheck → Buchung → Feedback → 5 s Pause."""
+    _clear_screen()
+    print(_BUCHUNGSARTEN, end="", flush=True)
     try:
         monitor.check()
         booking_result = process_booking(reader, db_path, terminal_id)
@@ -151,6 +169,7 @@ def _run_one_cycle(
                 "traceback": traceback.format_exc(),
             },
         )
+    time.sleep(5)
 
 
 def run(
