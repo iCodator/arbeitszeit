@@ -1,6 +1,6 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import json
@@ -132,8 +132,8 @@ def _run_one_cycle(
     monitor: SystemTimeMonitor,
 ) -> None:
     """Ein Buchungszyklus: Zeitcheck → Buchung → Feedback oder Fehlerbehandlung."""
-    monitor.check()
     try:
+        monitor.check()
         booking_result = process_booking(reader, db_path, terminal_id)
         print(format_feedback(booking_result))
     except DomainError as exc:
@@ -187,7 +187,6 @@ def run(
         notify("Arbeitszeit — Systemfehler", fehler, urgency="critical")
 
     _ensure_terminal_exists(db_path, terminal_id)
-    _setup_file_logging(db_path, app_config)
 
     running = True
 
@@ -279,7 +278,12 @@ def main() -> None:
         "--terminal-id / [terminal] id in config.toml",
     )
 
-    run(db_path, numpad, rfid, terminal_id, app_config=app_config)
+    _setup_file_logging(db_path, app_config)
+    try:
+        run(db_path, numpad, rfid, terminal_id, app_config=app_config)
+    except Exception:
+        logging.exception("Terminal-UI: nicht abgefangener Fehler in run()")
+        raise
 
 
 if __name__ == "__main__":  # pragma: no cover

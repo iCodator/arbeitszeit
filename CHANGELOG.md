@@ -5,6 +5,25 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [terminal_ui/main.py v1.2] – 2026-07-17
+
+### Behoben
+
+- `src/arbeitszeit/presentation/terminal_ui/main.py` (v1.1 → v1.2):
+  Fehler wurden nicht in die Log-Datei geschrieben, weil `_setup_file_logging()`
+  erst nach `resolve_evdev_device()` und `run_system_check()` aufgerufen wurde
+  und weil `main()` keinen Exception-Handler um `run()` hatte.
+  - `_setup_file_logging()` aus `run()` entfernt und in `main()` **vor** dem
+    `run()`-Aufruf gesetzt — alle Fehler ab Konfigurationsladen werden geloggt.
+  - `run()` in `main()` in `try/except Exception` eingewickelt — nicht
+    abgefangene Ausnahmen aus dem Startvorgang werden geloggt bevor sie
+    weitergeworfen werden.
+  - `monitor.check()` in `_run_one_cycle()` in den `try`-Block verschoben —
+    Ausnahmen aus dem Zeitcheck werden nun ebenfalls als APPLICATION_ERROR
+    geloggt statt unbehandelt zu propagieren.
+
+---
+
 ## [Installationsanleitung v1.7] – 2026-07-17
 
 ### Geändert
