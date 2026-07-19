@@ -5,6 +5,19 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [init_db.py v1.1] – 2026-07-17
+
+### Geändert
+
+- `scripts/init_db.py` (v1.0 → v1.1): Datenbankpfad-Ermittlung dreistufig
+  statt fest als `./arbeitszeit.db`:
+  - `--db PATH` (explizit) > `config.toml [database] path` > interaktive
+    Abfrage mit Vorschlag `./arbeitszeit.db`
+  - Neues Flag `--config PATH` für expliziten Config-Pfad
+  - Nutzt `find_config()` / `load_config()` aus `config_file.py`
+
+---
+
 ## [Modulhandbücher v1.0 — Doppelversion IT/Laien] – 2026-07-17
 
 ### Hinzugefügt
