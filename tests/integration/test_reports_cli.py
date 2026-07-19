@@ -159,7 +159,7 @@ def _review_case_row() -> ReviewCaseRow:
 
 def test_parse_date_gueltig() -> None:
 
-    d = _parse_date("2026-03-15")
+    d = _parse_date("15.03.2026")
     assert d.year == 2026 and d.month == 3 and d.day == 15
 
 
@@ -274,14 +274,14 @@ def test_open_bookings_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFixtur
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
     args = argparse.Namespace(
-        employee_id=None, from_date="2026-01-01", to_date="2026-01-31"
+        employee_id=None, from_date="01.01.2026", to_date="31.01.2026"
     )
     try:
         cmd_reports_open_bookings(conn, args, admin_id)
     finally:
         conn.close()
     out = capsys.readouterr().out
-    assert "2026-01-01" in out
+    assert "01.01.2026" in out
 
 
 def test_open_bookings_reviewer_zugelassen(tmp_path: Path) -> None:
@@ -304,7 +304,7 @@ def test_warn_cases_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str])
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
-    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    args = argparse.Namespace(from_date="01.01.2026", to_date="31.01.2026", employee_id=None)
     try:
         cmd_reports_warn_cases(conn, args, admin_id)
     finally:
@@ -321,7 +321,7 @@ def test_corrections_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
-    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    args = argparse.Namespace(from_date="01.01.2026", to_date="31.01.2026", employee_id=None)
     try:
         cmd_reports_corrections(conn, args, admin_id)
     finally:
@@ -338,7 +338,7 @@ def test_supplements_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
-    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    args = argparse.Namespace(from_date="01.01.2026", to_date="31.01.2026", employee_id=None)
     try:
         cmd_reports_supplements(conn, args, admin_id)
     finally:
@@ -370,14 +370,14 @@ def test_open_review_cases_mit_zeitraum(tmp_path: Path, capsys: pytest.CaptureFi
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
     args = argparse.Namespace(
-        employee_id=None, from_date="2026-01-01", to_date="2026-01-31"
+        employee_id=None, from_date="01.01.2026", to_date="31.01.2026"
     )
     try:
         cmd_reports_open_review_cases(conn, args, admin_id)
     finally:
         conn.close()
     out = capsys.readouterr().out
-    assert "2026-01-01" in out
+    assert "01.01.2026" in out
 
 
 # ---------------------------------------------------------------------------
@@ -404,7 +404,7 @@ def test_export_csv_gibt_pfade_aus(
     )
 
     conn = open_connection(db)
-    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    args = argparse.Namespace(from_date="01.01.2026", to_date="31.01.2026", employee_id=None)
     try:
         cmd_reports_export_csv(conn, args, admin_id)
     finally:
@@ -429,7 +429,7 @@ def test_export_csv_review_cases(
     )
 
     conn = open_connection(db)
-    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    args = argparse.Namespace(from_date="01.01.2026", to_date="31.01.2026", employee_id=None)
     try:
         cmd_reports_export_csv_review_cases(conn, args, admin_id)
     finally:
@@ -452,7 +452,7 @@ def test_export_pdf_day(
     )
 
     conn = open_connection(db)
-    args = argparse.Namespace(date="2026-01-15")
+    args = argparse.Namespace(date="15.01.2026")
     try:
         cmd_reports_export_pdf_day(conn, args, admin_id)
     finally:
@@ -521,7 +521,7 @@ def test_export_pdf_employee(
     )
 
     conn = open_connection(db)
-    args = argparse.Namespace(employee_id=1, from_date="2026-01-01", to_date="2026-01-31")
+    args = argparse.Namespace(employee_id=1, from_date="01.01.2026", to_date="31.01.2026")
     try:
         cmd_reports_export_pdf_employee(conn, args, admin_id)
     finally:
@@ -596,7 +596,7 @@ def test_cmd_export_csv_verwendet_app_config_export_dir(
     )
 
     conn = open_connection(db)
-    args = argparse.Namespace(from_date="2026-01-01", to_date="2026-01-31", employee_id=None)
+    args = argparse.Namespace(from_date="01.01.2026", to_date="31.01.2026", employee_id=None)
     try:
         cmd_reports_export_csv(conn, args, admin_id, app_config=app_config)
     finally:
@@ -635,7 +635,7 @@ def test_cli_run_config_toml_wirkt_bis_export_befehl(
         mock_daily_report,
     )
 
-    cli_run(["--config", str(config_toml), "reports", "export-pdf-day", "--date", "2026-01-15"])
+    cli_run(["--config", str(config_toml), "reports", "export-pdf-day", "--date", "15.01.2026"])
 
     assert len(captured_dirs) == 1
     assert captured_dirs[0] == config_export_dir

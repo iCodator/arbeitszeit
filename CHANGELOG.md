@@ -5,6 +5,43 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Datumsformat DD.MM.YYYY] – 2026-07-19
+
+### Geändert
+
+Alle nutzersichtigen Datumseingaben und -ausgaben von ISO-Format (YYYY-MM-DD /
+ISO-8601) auf deutsches Format (DD.MM.YYYY bzw. DD.MM.YYYY HH:MM) umgestellt.
+Interne Speicherung in der Datenbank (ISO 8601 UTC) bleibt unverändert.
+
+- `src/arbeitszeit/presentation/admin_cli/reports.py` (v1.1 → v1.2):
+  - `_parse_date()`: `date.fromisoformat()` → `datetime.strptime("%d.%m.%Y")`
+  - `_print_bookings_table()`: `booked_at.isoformat()` → `.astimezone().strftime("%d.%m.%Y %H:%M")`
+  - `_print_corrections_table()`: `old_booked_at` / `new_booked_at` analog
+  - `_print_supplements_table()`: `event_at` analog
+  - Alle 10 `metavar="YYYY-MM-DD"` → `metavar="TT.MM.JJJJ"`
+- `src/arbeitszeit/presentation/admin_cli/bookings.py` (v1.0 → v1.1):
+  - `_parse_dt()`: `datetime.fromisoformat()` → `datetime.strptime("%d.%m.%Y %H:%M")`,
+    immer UTC; Timezone-aware-Eingabe entfällt (war nicht dokumentiert)
+  - Beide `metavar="DATETIME"` → `metavar="TT.MM.JJJJ HH:MM"`
+- `src/arbeitszeit/presentation/admin_cli/schedule.py` (v1.1 → v1.2):
+  - Datum-Parsing: `date.fromisoformat()` → `datetime.strptime("%d.%m.%Y")`
+  - Ausgabe `valid_from.isoformat()` → `valid_from.strftime("%d.%m.%Y")`
+  - DB-Rohtexte in `_print_global_section` / `_print_employee_section`:
+    `r['valid_from']` → `date.fromisoformat(r['valid_from']).strftime("%d.%m.%Y")`
+  - `metavar="YYYY-MM-DD"` → `metavar="TT.MM.JJJJ"`
+- `scripts/generate_audit_notes.py` (v1.0 → v1.1):
+  - Dokumenttitel-Zeitstempel: `"%Y-%m-%d %H:%M"` → `"%d.%m.%Y %H:%M"`
+- `tests/integration/test_bookings_cli.py`:
+  - Alle `at=`-Strings von ISO auf `DD.MM.YYYY HH:MM` umgestellt
+  - `test_parse_dt_mit_timezone_bleibt_erhalten` entfernt (Format unterstützt
+    keine Timezone-Angabe mehr) → ersetzt durch `test_parse_dt_ergibt_utc`
+    und `test_parse_dt_deutsches_format_korrekt`
+- `tests/integration/test_reports_cli.py`:
+  - Alle `from_date=` / `to_date=` / `date=`-Strings auf deutsches Format umgestellt
+  - Assertions auf echoed Datums-Strings angepasst
+
+---
+
 ## [terminal_ui/main.py v1.2] – 2026-07-17
 
 ### Behoben

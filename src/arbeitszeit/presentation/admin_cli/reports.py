@@ -1,12 +1,12 @@
 """Admin-CLI: PDF/CSV-Export und Pflichtauswertungen (ADMIN/REVIEWER-Rolle)."""
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import json
 import sqlite3
 import sys
-from datetime import date
+from datetime import date, datetime
 
 from arbeitszeit.application.queries import BookingRow, CorrectionRow, ReviewCaseRow, SupplementRow
 from arbeitszeit.infrastructure.config_file import AppConfig
@@ -48,9 +48,9 @@ def _get_export_dir(conn: sqlite3.Connection, app_config: AppConfig | None = Non
 
 def _parse_date(value: str) -> date:
     try:
-        return date.fromisoformat(value)
+        return datetime.strptime(value, "%d.%m.%Y").date()
     except ValueError:
-        print(f"Fehler: Ungültiges Datum {value!r} (erwartet YYYY-MM-DD)", file=sys.stderr)
+        print(f"Fehler: Ungültiges Datum {value!r} (erwartet TT.MM.JJJJ)", file=sys.stderr)
         sys.exit(1)
 
 
@@ -58,12 +58,13 @@ def _print_bookings_table(rows: list[BookingRow]) -> None:
     if not rows:
         print("Keine Buchungen gefunden.")
         return
-    print(f"{'ID':>6}  {'Mitarbeiter':25}  {'Art':12}  {'Zeitpunkt':22}  Status")
-    print("-" * 85)
+    print(f"{'ID':>6}  {'Mitarbeiter':25}  {'Art':12}  {'Zeitpunkt':16}  Status")
+    print("-" * 79)
     for r in rows:
+        zeitpunkt = r.booked_at.astimezone().strftime("%d.%m.%Y %H:%M")
         print(
             f"{r.booking_id:>6}  {r.employee_name:25}  "
-            f"{r.booking_type.value:12}  {r.booked_at.isoformat():22}  {r.status.value}"
+            f"{r.booking_type.value:12}  {zeitpunkt:16}  {r.status.value}"
         )
     print(f"\n{len(rows)} Buchung(en).")
 
@@ -73,10 +74,12 @@ def _print_corrections_table(rows: list[CorrectionRow]) -> None:
         print("Keine Korrekturen gefunden.")
         return
     for r in rows:
+        alt = r.old_booked_at.astimezone().strftime("%d.%m.%Y %H:%M")
+        neu = r.new_booked_at.astimezone().strftime("%d.%m.%Y %H:%M")
         print(
             f"[{r.correction_id}] {r.employee_name} ({r.personnel_no}): "
-            f"{r.old_booking_type.value} @ {r.old_booked_at.isoformat()} → "
-            f"{r.new_booking_type.value} @ {r.new_booked_at.isoformat()} "
+            f"{r.old_booking_type.value} @ {alt} → "
+            f"{r.new_booking_type.value} @ {neu} "
             f"(Grund: {r.reason})"
         )
     print(f"\n{len(rows)} Korrektur(en).")
@@ -89,7 +92,7 @@ def _print_supplements_table(rows: list[SupplementRow]) -> None:
     for r in rows:
         print(
             f"[{r.supplement_id}] {r.employee_name} ({r.personnel_no}): "
-            f"{r.booking_type.value} @ {r.event_at.isoformat()} "
+            f"{r.booking_type.value} @ {r.event_at.astimezone().strftime('%d.%m.%Y %H:%M')} "
             f"({r.approval_status.value}) — {r.reason}"
         )
     print(f"\n{len(rows)} Nachtrag/Nachträge.")
@@ -302,17 +305,17 @@ def register_subcommands(
 
     # --- Export ---
     csv_cmd = rsub.add_parser("export-csv", help="CSV-Export (Detail + verdichtet)")
-    csv_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
-    csv_cmd.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    csv_cmd.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
+    csv_cmd.add_argument("--to", required=True, dest="to_date", metavar="TT.MM.JJJJ")
     csv_cmd.add_argument("--employee-id", type=int, default=None)
 
     rc_csv = rsub.add_parser("export-csv-review-cases", help="Offene Prüffälle als CSV exportieren")
-    rc_csv.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
-    rc_csv.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    rc_csv.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
+    rc_csv.add_argument("--to", required=True, dest="to_date", metavar="TT.MM.JJJJ")
     rc_csv.add_argument("--employee-id", type=int, default=None)
 
     pdf_day = rsub.add_parser("export-pdf-day", help="Tagesbericht als PDF")
-    pdf_day.add_argument("--date", required=True, metavar="YYYY-MM-DD")
+    pdf_day.add_argument("--date", required=True, metavar="TT.MM.JJJJ")
 
     pdf_week = rsub.add_parser("export-pdf-week", help="Wochenbericht als PDF")
     pdf_week.add_argument("--year", required=True, type=int)
@@ -324,31 +327,31 @@ def register_subcommands(
 
     pdf_emp = rsub.add_parser("export-pdf-employee", help="Mitarbeiterbericht als PDF")
     pdf_emp.add_argument("--employee-id", required=True, type=int)
-    pdf_emp.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
-    pdf_emp.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    pdf_emp.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
+    pdf_emp.add_argument("--to", required=True, dest="to_date", metavar="TT.MM.JJJJ")
 
     # --- Pflichtauswertungen ---
     ob = rsub.add_parser("open-bookings", help="Offene Buchungen anzeigen")
-    ob.add_argument("--from", dest="from_date", metavar="YYYY-MM-DD", default=None)
-    ob.add_argument("--to", dest="to_date", metavar="YYYY-MM-DD", default=None)
+    ob.add_argument("--from", dest="from_date", metavar="TT.MM.JJJJ", default=None)
+    ob.add_argument("--to", dest="to_date", metavar="TT.MM.JJJJ", default=None)
     ob.add_argument("--employee-id", type=int, default=None)
 
     wc = rsub.add_parser("warn-cases", help="WARN/NEEDS_REVIEW-Buchungen anzeigen")
-    wc.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
-    wc.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    wc.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
+    wc.add_argument("--to", required=True, dest="to_date", metavar="TT.MM.JJJJ")
     wc.add_argument("--employee-id", type=int, default=None)
 
     corr = rsub.add_parser("corrections", help="Buchungskorrekturen anzeigen")
-    corr.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
-    corr.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    corr.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
+    corr.add_argument("--to", required=True, dest="to_date", metavar="TT.MM.JJJJ")
     corr.add_argument("--employee-id", type=int, default=None)
 
     suppl = rsub.add_parser("supplements", help="Nachträge anzeigen")
-    suppl.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
-    suppl.add_argument("--to", required=True, dest="to_date", metavar="YYYY-MM-DD")
+    suppl.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
+    suppl.add_argument("--to", required=True, dest="to_date", metavar="TT.MM.JJJJ")
     suppl.add_argument("--employee-id", type=int, default=None)
 
     orc = rsub.add_parser("open-review-cases", help="Offene Prüffälle anzeigen")
-    orc.add_argument("--from", dest="from_date", metavar="YYYY-MM-DD", default=None)
-    orc.add_argument("--to", dest="to_date", metavar="YYYY-MM-DD", default=None)
+    orc.add_argument("--from", dest="from_date", metavar="TT.MM.JJJJ", default=None)
+    orc.add_argument("--to", dest="to_date", metavar="TT.MM.JJJJ", default=None)
     orc.add_argument("--employee-id", type=int, default=None)

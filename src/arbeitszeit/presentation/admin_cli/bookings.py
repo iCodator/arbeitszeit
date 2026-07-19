@@ -5,7 +5,7 @@ Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und
 Ausgabe gemacht.
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import sqlite3
@@ -42,18 +42,16 @@ def _make_uow(conn: sqlite3.Connection, audit_conn: sqlite3.Connection) -> SQLit
 
 
 def _parse_dt(value: str) -> datetime:
-    """Parst einen ISO-8601-Datetime-String mit UTC-Fallback."""
+    """Parst einen Datums-Zeit-String im Format TT.MM.JJJJ HH:MM (UTC)."""
     try:
-        dt = datetime.fromisoformat(value)
+        dt = datetime.strptime(value, "%d.%m.%Y %H:%M")
     except ValueError:
         print(
-            f"Fehler: Ungültiges Datumsformat: {value!r} (erwartet ISO-8601)",
+            f"Fehler: Ungültiges Datumsformat: {value!r} (erwartet TT.MM.JJJJ HH:MM)",
             file=sys.stderr,
         )
         sys.exit(1)
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt
+    return dt.replace(tzinfo=timezone.utc)
 
 
 def _parse_booking_type(value: str) -> BookingType:
@@ -167,13 +165,13 @@ def register_subcommands(
     correct = bsub.add_parser("correct", help="Buchung korrigieren")
     correct.add_argument("--booking-id", required=True, type=int)
     correct.add_argument("--type", required=True, metavar="BOOKING_TYPE")
-    correct.add_argument("--at", required=True, metavar="DATETIME")
+    correct.add_argument("--at", required=True, metavar="TT.MM.JJJJ HH:MM")
     correct.add_argument("--reason", required=True)
 
     supplement = bsub.add_parser("supplement", help="Nachtrag erfassen")
     supplement.add_argument("--employee-id", required=True, type=int)
     supplement.add_argument("--type", required=True, metavar="BOOKING_TYPE")
-    supplement.add_argument("--at", required=True, metavar="DATETIME")
+    supplement.add_argument("--at", required=True, metavar="TT.MM.JJJJ HH:MM")
     supplement.add_argument("--reason", required=True)
     supplement.add_argument("--related-booking-id", type=int, default=None)
 

@@ -6,12 +6,12 @@ schedule show: ADMIN und REVIEWER; Rollenprüfung auf CLI-Ebene via
                require_admin_or_reviewer() aus _auth.py.
 """
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import sqlite3
 import sys
-from datetime import date, time
+from datetime import date, datetime, time
 
 from arbeitszeit.application.commands import ChangeWorkScheduleCommand
 from arbeitszeit.application.use_cases.manage_work_schedule import (
@@ -42,10 +42,10 @@ def cmd_schedule_set(
     user_id: int,
 ) -> None:
     try:
-        valid_from = date.fromisoformat(args.from_date)
+        valid_from = datetime.strptime(args.from_date, "%d.%m.%Y").date()
     except ValueError:
         print(
-            f"Fehler: Ungültiges Datum {args.from_date!r} (erwartet YYYY-MM-DD)",
+            f"Fehler: Ungültiges Datum {args.from_date!r} (erwartet TT.MM.JJJJ)",
             file=sys.stderr,
         )
         sys.exit(1)
@@ -79,12 +79,12 @@ def cmd_schedule_set(
         print(
             f"Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version {result.new_version_id}): "
             f"Mitarbeiter {args.employee_id}, {day_name} {args.start}–{args.end} "
-            f"ab {valid_from.isoformat()}."
+            f"ab {valid_from.strftime('%d.%m.%Y')}."
         )
     else:
         print(
             f"Globale Regelarbeitszeit gesetzt (Version {result.new_version_id}): "
-            f"{day_name} {args.start}–{args.end} ab {valid_from.isoformat()}."
+            f"{day_name} {args.start}–{args.end} ab {valid_from.strftime('%d.%m.%Y')}."
         )
     if result.superseded_version_id is not None:
         print(f"Vorgängerversion {result.superseded_version_id} geschlossen.")
@@ -103,9 +103,10 @@ def _print_global_section(global_rows: list[sqlite3.Row]) -> None:
     print(f"  {'ID':>4}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
     for r in global_rows:
         day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
+        gueltig_ab = date.fromisoformat(r["valid_from"]).strftime("%d.%m.%Y")
         print(
             f"  {r['id']:>4}  {day_name:3}  "
-            f"{r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+            f"{r['start_time']:5}  {r['end_time']:5}  {gueltig_ab}"
         )
 
 
@@ -116,9 +117,10 @@ def _print_employee_section(employee_rows: list[sqlite3.Row]) -> None:
     print(f"  {'ID':>4}  {'MitarID':>7}  {'Tag':3}  {'Von':5}  {'Bis':5}  {'Gültig ab'}")
     for r in employee_rows:
         day_name = _WEEKDAY_NAMES.get(r["weekday"], str(r["weekday"]))
+        gueltig_ab = date.fromisoformat(r["valid_from"]).strftime("%d.%m.%Y")
         print(
             f"  {r['id']:>4}  {r['scope_employee_id']:>7}  "
-            f"{day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {r['valid_from']}"
+            f"{day_name:3}  {r['start_time']:5}  {r['end_time']:5}  {gueltig_ab}"
         )
 
 
@@ -159,7 +161,7 @@ def register_subcommands(
     )
     set_cmd.add_argument("--start", required=True, metavar="HH:MM")
     set_cmd.add_argument("--end", required=True, metavar="HH:MM")
-    set_cmd.add_argument("--from", required=True, dest="from_date", metavar="YYYY-MM-DD")
+    set_cmd.add_argument("--from", required=True, dest="from_date", metavar="TT.MM.JJJJ")
     set_cmd.add_argument(
         "--employee-id",
         type=int,

@@ -11,7 +11,7 @@ Verwendung:
 
 from __future__ import annotations
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import json
@@ -321,7 +321,7 @@ def render(data: dict[str, ReportData], timestamp: datetime) -> str:
     cov = data["coverage"]
     tests = data["tests"]
 
-    ts_display = timestamp.strftime("%Y-%m-%d %H:%M")  # lokale Zeit
+    ts_display = timestamp.strftime("%d.%m.%Y %H:%M")  # lokale Zeit
     ts_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")  # Meta: UTC
 
     lines: list[str] = []

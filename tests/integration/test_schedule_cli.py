@@ -226,7 +226,7 @@ def test_schedule_set_global_erfolg(
     conn = open_connection(db)
     audit_conn = open_connection(db)
     args = argparse.Namespace(
-        from_date="2026-01-01",
+        from_date="01.01.2026",
         weekday=1,
         start="07:30",
         end="16:00",

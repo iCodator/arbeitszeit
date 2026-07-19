@@ -80,7 +80,7 @@ def _insert_supplement(db: Path, employee_id: int, admin_id: int) -> int:
     args = argparse.Namespace(
         employee_id=employee_id,
         type="COME",
-        at="2026-01-01T08:00:00",
+        at="01.01.2026 08:00",
         reason="Test-Nachtrag",
         related_booking_id=None,
     )
@@ -96,14 +96,15 @@ def _insert_supplement(db: Path, employee_id: int, admin_id: int) -> int:
 # ---------------------------------------------------------------------------
 
 
-def test_parse_dt_ohne_timezone_erhaelt_utc() -> None:
-    dt = _parse_dt("2026-01-01T08:00:00")
+def test_parse_dt_ergibt_utc() -> None:
+    dt = _parse_dt("01.01.2026 08:00")
     assert dt.tzinfo == timezone.utc
 
 
-def test_parse_dt_mit_timezone_bleibt_erhalten() -> None:
-    dt = _parse_dt("2026-01-01T08:00:00+01:00")
-    assert dt.utcoffset() is not None
+def test_parse_dt_deutsches_format_korrekt() -> None:
+    dt = _parse_dt("15.07.2026 14:30")
+    assert dt.year == 2026 and dt.month == 7 and dt.day == 15
+    assert dt.hour == 14 and dt.minute == 30
 
 
 def test_parse_dt_ungueltig_exitiert_1() -> None:
@@ -140,7 +141,7 @@ def test_bookings_correct_buchung_nicht_gefunden_exitiert_1(tmp_path: Path) -> N
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)
     audit_conn = open_connection(db)
-    args = argparse.Namespace(booking_id=9999, type="GO", at="2026-01-01T09:00:00", reason="x")
+    args = argparse.Namespace(booking_id=9999, type="GO", at="01.01.2026 09:00", reason="x")
     try:
         with pytest.raises(SystemExit) as exc:
             cmd_bookings_correct(conn, audit_conn, args, admin_id)
@@ -156,7 +157,7 @@ def test_bookings_correct_ungueltige_buchungsart_exitiert_1(tmp_path: Path) -> N
     conn = open_connection(db)
     audit_conn = open_connection(db)
     args = argparse.Namespace(
-        booking_id=1, type="FALSCH", at="2026-01-01T09:00:00", reason="x"
+        booking_id=1, type="FALSCH", at="01.01.2026 09:00", reason="x"
     )
     try:
         with pytest.raises(SystemExit) as exc:
@@ -177,7 +178,7 @@ def test_bookings_correct_erfolg(tmp_path: Path, capsys: pytest.CaptureFixture[s
     args = argparse.Namespace(
         booking_id=booking_id,
         type="GO",
-        at="2026-01-01T17:00:00",
+        at="01.01.2026 17:00",
         reason="Korrektur",
     )
     try:
@@ -200,7 +201,7 @@ def test_bookings_supplement_mitarbeiter_nicht_gefunden_exitiert_1(tmp_path: Pat
     conn = open_connection(db)
     audit_conn = open_connection(db)
     args = argparse.Namespace(
-        employee_id=9999, type="COME", at="2026-01-01T08:00:00", reason="x", related_booking_id=None
+        employee_id=9999, type="COME", at="01.01.2026 08:00", reason="x", related_booking_id=None
     )
     try:
         with pytest.raises(SystemExit) as exc:
@@ -220,7 +221,7 @@ def test_bookings_supplement_erfolg(tmp_path: Path, capsys: pytest.CaptureFixtur
     args = argparse.Namespace(
         employee_id=employee_id,
         type="COME",
-        at="2026-01-01T08:00:00",
+        at="01.01.2026 08:00",
         reason="Vergessen",
         related_booking_id=None,
     )
