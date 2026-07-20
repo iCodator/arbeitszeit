@@ -19,7 +19,8 @@ header-includes:
 ---
 
 # Handbuch: Zeiterfassungssystem arbeitszeit
-**Version:** 1.7
+
+**Version:** 1.8
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -282,7 +283,8 @@ Einrichtung im Betriebshandbuch `docs/04_betrieb/`).
 
 ### 4.2 Buchung durchführen
 
-Jede Buchung läuft in zwei Schritten ab:
+Am Beginn jedes Buchungszyklus wird der Bildschirm geleert und das
+Buchungsarten-Menü angezeigt. Jede Buchung läuft dann in zwei Schritten ab:
 
 **Schritt 1 — Buchungsart auf dem Numpad wählen:**
 
@@ -298,6 +300,9 @@ Schritt 2: RFID-Karte vorhalten.
 Das System hat nach der Numpad-Eingabe 30 Sekunden Zeit für den
 Kartenscan (konfigurierbar über `booking.grace_seconds_after_numpad_select`
 in der Datenbank).
+
+Nach der Rückmeldung wartet das System 2 Sekunden, dann beginnt der
+nächste Zyklus.
 
 ### 4.3 Rückmeldungen des Terminals
 
@@ -342,7 +347,7 @@ kann sie korrigiert werden:
 azadmin --db db.db --user-id 1 bookings correct \
   --booking-id 42 \
   --type COME \
-  --at 2026-07-15T08:00:00 \
+  --at "15.07.2026 08:00" \
   --reason "Kartenleser hat nicht reagiert, manuell nachgepflegt"
 ```
 
@@ -355,7 +360,7 @@ azadmin --db db.db --user-id 1 bookings correct \
 | `BREAK_START` | Pause beginnen |
 | `BREAK_END` | Pause beenden |
 
-**Format für `--at`:** ISO-8601, z. B. `2026-07-15T08:30:00`
+**Format für `--at`:** `TT.MM.JJJJ HH:MM` (UTC), z. B. `15.07.2026 08:30`
 
 Die Buchungs-ID (`--booking-id`) steht in der Ausgabe von
 `reports open-bookings` oder `reports warn-cases`.
@@ -369,7 +374,7 @@ erfasst wurde (z. B. weil jemand vergessen hat auszustempeln):
 azadmin --db db.db --user-id 1 bookings supplement \
   --employee-id 3 \
   --type GO \
-  --at 2026-07-15T17:30:00 \
+  --at "15.07.2026 17:30" \
   --reason "Vergessen auszustempeln, per Rücksprache bestätigt"
 ```
 
@@ -400,14 +405,14 @@ Alle ausstehenden Nachträge anzeigen:
 
 ```bash
 azadmin --db db.db --user-id 1 reports supplements \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 ```
 
 Alle Korrekturen eines Zeitraums anzeigen:
 
 ```bash
 azadmin --db db.db --user-id 1 reports corrections \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 ```
 
 ---
@@ -424,7 +429,7 @@ Dateien werden automatisch im Verzeichnis gespeichert, das in
 
 ```bash
 azadmin --db db.db --user-id 1 reports export-csv \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 ```
 
 Erzeugt zwei Dateien:
@@ -437,14 +442,14 @@ Erzeugt zwei Dateien:
 
 ```bash
 azadmin --db db.db --user-id 1 reports export-csv \
-  --from 2026-07-01 --to 2026-07-31 --employee-id 3
+  --from 01.07.2026 --to 31.07.2026 --employee-id 3
 ```
 
 **Prüffälle (Arbeitszeitverstöße) als CSV:**
 
 ```bash
 azadmin --db db.db --user-id 1 reports export-csv-review-cases \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 ```
 
 ### 6.2 PDF-Berichte
@@ -453,7 +458,7 @@ azadmin --db db.db --user-id 1 reports export-csv-review-cases \
 
 ```bash
 azadmin --db db.db --user-id 1 reports export-pdf-day \
-  --date 2026-07-15
+  --date 15.07.2026
 ```
 
 **Wochenbericht (ISO-Wochennummer):**
@@ -475,8 +480,8 @@ azadmin --db db.db --user-id 1 reports export-pdf-month \
 ```bash
 azadmin --db db.db --user-id 1 reports export-pdf-employee \
   --employee-id 3 \
-  --from 2026-07-01 \
-  --to 2026-07-31
+  --from 01.07.2026 \
+  --to 31.07.2026
 ```
 
 ### 6.3 Pflichtauswertungen
@@ -493,7 +498,7 @@ azadmin --db db.db --user-id 1 reports open-bookings
 
 # Eingegrenzt auf einen Zeitraum
 azadmin --db db.db --user-id 1 reports open-bookings \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 ```
 
 **Buchungen mit Hinweis oder Prüfpflicht** (WARN- und
@@ -501,7 +506,7 @@ NEEDS\_REVIEW-Status):
 
 ```bash
 azadmin --db db.db --user-id 1 reports warn-cases \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 ```
 
 **Offene Prüffälle** (müssen von einem REVIEWER bearbeitet werden):
@@ -540,14 +545,14 @@ azadmin --db db.db --user-id 1 schedule set \
   --weekday 5 \
   --start 07:30 \
   --end 16:00 \
-  --from 2026-08-01
+  --from 01.08.2026
 ```
 
 **Wochentage:** 1 = Montag, 2 = Dienstag, … 7 = Sonntag
 
 **Zeitformat:** HH:MM (z. B. `07:30`, `17:00`)
 
-**Datumsformat:** YYYY-MM-DD (z. B. `2026-08-01`)
+**Datumsformat:** TT.MM.JJJJ (z. B. `01.08.2026`)
 
 **Rolle:** ADMIN
 
@@ -560,7 +565,7 @@ azadmin --db db.db --user-id 1 schedule set \
   --weekday 5 \
   --start 07:30 \
   --end 13:00 \
-  --from 2026-08-01 \
+  --from 01.08.2026 \
   --employee-id 3
 ```
 
@@ -791,7 +796,7 @@ azadmin --db db.db --user-id 1 reports open-review-cases
 
 # Details zur betroffenen Buchung
 azadmin --db db.db --user-id 1 reports warn-cases \
-  --from 2026-07-01 --to 2026-07-31
+  --from 01.07.2026 --to 31.07.2026
 
 # Korrektur oder Nachtrag anlegen
 azadmin --db db.db --user-id 1 bookings correct \
@@ -816,5 +821,6 @@ azadmin --db db.db --user-id 1 bookings correct \
 
 | Version | Datum | Änderungen |
 | --- | --- | --- |
+| v1.8 | 2026-07-20 | Datumsformat auf TT.MM.JJJJ umgestellt; --at-Format auf TT.MM.JJJJ HH:MM; Terminal-UI: Hinweis auf Menüanzeige und 2-Sekunden-Pause ergänzt |
 | v1.7 | 2026-07-17 | Vollständige Neustrukturierung als Laien-Handbuch: aufgabenorientiert, ohne Architekturdetails, mit konkreten Beispielen für alle Befehle |
 | v1.6 | 2026-05-22 | Technisch-architektonische Dokumentation |

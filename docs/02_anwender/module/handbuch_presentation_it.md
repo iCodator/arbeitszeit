@@ -1,7 +1,7 @@
 # Präsentationsschicht — technisches Referenzhandbuch
 
 **Kapitel:** 4-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/presentation/`
@@ -122,7 +122,7 @@ Beispiel:
 
 ```bash
 azadmin bookings correct --booking-id 17 \
-  --new-type GO --new-time "2026-07-15 17:30" --reason "Falsche Uhrzeit"
+  --type GO --at "15.07.2026 17:30" --reason "Falsche Uhrzeit"
 ```
 
 #### schedule
@@ -135,7 +135,7 @@ azadmin bookings correct --booking-id 17 \
 Beispiel:
 
 ```bash
-azadmin schedule set --weekday 1 --start 07:30 --end 18:00 --from 2026-08-01
+azadmin schedule set --weekday 1 --start 07:30 --end 18:00 --from 01.08.2026
 ```
 
 #### reports
@@ -226,10 +226,13 @@ Vor der Buchungsschleife:
 
 ### Buchungsschleife
 
-Die Endlosschleife in `run()` führt bei jedem Durchlauf aus:
+Die Endlosschleife in `run()` führt bei jedem Durchlauf `_run_one_cycle()` aus:
 
-1. `monitor.check()` — Systemzeitüberwachung
-2. `process_booking(reader, db_path, terminal_id)` — Buchungszyklus
+1. `_clear_screen()` — Bildschirm leeren
+2. `print(_BUCHUNGSARTEN)` — Buchungsarten-Menü ausgeben (Tasten 1–4)
+3. `monitor.check()` — Systemzeitüberwachung
+4. `process_booking(reader, db_path, terminal_id)` — Buchungszyklus
+5. `time.sleep(2)` — 2-Sekunden-Pause vor dem nächsten Zyklus
 
 Bei einer erfolgreichen Buchung gibt `format_feedback(result)` eine
 Bestätigung aus.
