@@ -5,6 +5,28 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [docs(handbuch): Kapitel 10 — Terminal als systemd-Dienst einrichten] – 2026-07-20
+
+### Hinzugefügt
+
+- `docs/02_anwender/handbuch.md` (v1.8 → v1.9):
+  - Neues Kapitel 10: „Buchungsterminal als Systemdienst einrichten und verwalten"
+    - 10.1 Warum systemd? (Autostart, automatischer Neustart bei Absturz, Logging)
+    - 10.2 Dienst-Datei erstellen (`/etc/systemd/system/arbeitszeit-terminal.service`)
+    - 10.3 Dienst aktivieren und starten (`daemon-reload`, `enable`, `start`, `status`)
+    - 10.4 Auswirkungen auf den täglichen Betrieb (Vergleichstabelle)
+    - 10.5 Terminal über systemctl steuern (start/stop/restart/enable/disable)
+    - 10.6 Meldungen des Terminals einsehen (`journalctl`)
+    - 10.7 Terminal beenden — per SSH ohne systemd (`pgrep` + `kill`)
+    - 10.8 Was man nicht tun sollte (`kill -9`, abruptes Ausschalten)
+  - Altes Kapitel 10 (Häufige Fragen) → Kapitel 11; alle Unterabschnitte
+    10.1–10.6 → 11.1–11.6
+  - Abschnitt 4.1: Verweis auf neues Kapitel 10 statt auf `docs/04_betrieb/`
+  - Abschnitt 4.4: Dünner `ps aux`-Block durch Verweis auf Kapitel 10 ersetzt
+  - Inhaltsverzeichnis: Eintrag 10 neu, Eintrag 11 (ehemals 10) aktualisiert
+
+---
+
 ## [docs: Handbücher an jüngste main-Änderungen angepasst] – 2026-07-20
 
 ### Geändert

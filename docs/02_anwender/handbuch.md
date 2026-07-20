@@ -20,7 +20,7 @@ header-includes:
 
 # Handbuch: Zeiterfassungssystem arbeitszeit
 
-**Version:** 1.8
+**Version:** 1.9
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -48,7 +48,8 @@ hier bewusst weggelassen. Diese finden sich im technischen Handbuch
 7. [Arbeitszeitplan setzen](#kapitel-7-arbeitszeitplan-setzen)
 8. [Benutzerverwaltung](#kapitel-8-benutzerverwaltung)
 9. [System-Wartung](#kapitel-9-system-wartung)
-10. [Häufige Fragen und Fehlermeldungen](#kapitel-10-häufige-fragen-und-fehlermeldungen)
+10. [Buchungsterminal als Systemdienst einrichten und verwalten](#kapitel-10-buchungsterminal-als-systemdienst-einrichten-und-verwalten)
+11. [Häufige Fragen und Fehlermeldungen](#kapitel-11-häufige-fragen-und-fehlermeldungen)
 
 ---
 
@@ -277,9 +278,8 @@ python -m arbeitszeit.presentation.terminal_ui.main \
   --db /pfad/zur/datenbank.db
 ```
 
-Das Terminal läuft dann dauerhaft im Hintergrund. Es sollte beim
-Systemstart automatisch gestartet werden (via `systemd` o. ä. —
-Einrichtung im Betriebshandbuch `docs/04_betrieb/`).
+Das Terminal läuft dann dauerhaft im Hintergrund. Wie es beim
+Systemstart automatisch gestartet wird, erklärt Kapitel 10.
 
 ### 4.2 Buchung durchführen
 
@@ -321,13 +321,8 @@ Nach jeder Buchung erscheint eine Meldung:
 
 ### 4.4 Terminal beenden
 
-```bash
-# Prozess-ID ermitteln
-ps aux | grep terminal_ui
-
-# Sauber beenden
-kill <PID>
-```
+Wie das Terminal sauber beendet und als Systemdienst verwaltet wird,
+erklärt Kapitel 10.
 
 Alternativ im Vordergrund: `STRG+C`.
 
@@ -732,9 +727,175 @@ beschreibt:
 
 ---
 
-## Kapitel 10: Häufige Fragen und Fehlermeldungen
+## Kapitel 10: Buchungsterminal als Systemdienst einrichten und verwalten
 
-### 10.1 Fehlermeldungen am Terminal
+Das Buchungsterminal soll dauerhaft laufen — auch nach einem Systemneustart.
+Am einfachsten gelingt das mit **systemd**, dem Dienst-Manager von Linux.
+Dieser Abschnitt erklärt, wie der Dienst eingerichtet wird und wie man das
+Terminal danach startet, stoppt und überwacht.
+
+### 10.1 Warum systemd?
+
+Ohne systemd muss das Terminal nach jedem Neustart manuell gestartet werden.
+Mit systemd:
+
+- startet das Terminal **automatisch** nach jedem Systemneustart,
+- wird bei einem Absturz **automatisch neu gestartet**,
+- sind alle Meldungen des Terminals in der **System-Protokolldatei**
+  (`journalctl`) abrufbar,
+- lässt sich das Terminal mit einem einzigen Befehl sauber stoppen.
+
+### 10.2 Dienst-Datei erstellen
+
+Als Administrator folgenden Inhalt in die Datei
+`/etc/systemd/system/arbeitszeit-terminal.service` schreiben
+(Pfade anpassen!):
+
+```ini
+[Unit]
+Description=arbeitszeit Buchungsterminal
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/pfad/zu/arbeitszeit
+User=<linux-benutzer>
+Group=<linux-gruppe>
+Environment="VIRTUAL_ENV=/pfad/zu/arbeitszeit/.venv"
+Environment="PATH=/pfad/zu/arbeitszeit/.venv/bin:/usr/bin"
+ExecStart=/pfad/zu/arbeitszeit/.venv/bin/python \
+  -m arbeitszeit.presentation.terminal_ui.main \
+  --config /etc/arbeitszeit/config.toml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**Was bedeuten die wichtigsten Zeilen?**
+
+| Zeile | Bedeutung |
+| --- | --- |
+| `WorkingDirectory` | Verzeichnis, in dem das Programm gestartet wird |
+| `User` / `Group` | Linux-Konto, unter dem das Terminal läuft |
+| `ExecStart` | Der vollständige Startbefehl |
+| `Restart=on-failure` | Neustart bei unerwartetem Absturz |
+| `RestartSec=5` | 5 Sekunden warten vor dem Neustart |
+
+### 10.3 Dienst aktivieren und starten
+
+```bash
+# systemd über die neue Datei informieren
+sudo systemctl daemon-reload
+
+# Dienst beim Systemstart automatisch starten (einmalig einrichten)
+sudo systemctl enable arbeitszeit-terminal
+
+# Dienst jetzt sofort starten
+sudo systemctl start arbeitszeit-terminal
+
+# Prüfen, ob der Dienst läuft
+sudo systemctl status arbeitszeit-terminal
+```
+
+Ein grünes `active (running)` in der Statusanzeige bedeutet: das Terminal
+läuft.
+
+### 10.4 Auswirkungen auf den täglichen Betrieb
+
+Nach der Einrichtung ändert sich der Alltag so:
+
+| Vorher (ohne systemd) | Nachher (mit systemd) |
+| --- | --- |
+| Terminal nach Neustart manuell starten | Startet automatisch |
+| Bei Absturz: Terminal bleibt aus | Neustart nach 5 Sekunden |
+| Keine strukturierten Protokolleinträge | Alle Meldungen in `journalctl` |
+| Beenden nur über `kill` per SSH | `sudo systemctl stop …` |
+
+Das Terminal selbst verhält sich für Mitarbeitende genauso wie bisher —
+die Buchungsmaske erscheint, Karten werden gescannt, alles läuft wie
+gewohnt.
+
+### 10.5 Terminal über systemctl steuern
+
+| Aktion | Befehl |
+| --- | --- |
+| Status prüfen | `sudo systemctl status arbeitszeit-terminal` |
+| Starten | `sudo systemctl start arbeitszeit-terminal` |
+| Sauber beenden | `sudo systemctl stop arbeitszeit-terminal` |
+| Neu starten | `sudo systemctl restart arbeitszeit-terminal` |
+| Autostart aktivieren | `sudo systemctl enable arbeitszeit-terminal` |
+| Autostart deaktivieren | `sudo systemctl disable arbeitszeit-terminal` |
+
+`systemctl stop` sendet ein Stoppsignal an das Terminal. Das Terminal
+beendet den laufenden Buchungsschritt, gibt Numpad und RFID-Reader frei
+und schaltet sich dann ab. Das dauert wenige Sekunden.
+
+### 10.6 Meldungen des Terminals einsehen
+
+```bash
+# Meldungen live verfolgen (mit STRG+C beenden)
+journalctl -u arbeitszeit-terminal -f
+
+# Meldungen von heute
+journalctl -u arbeitszeit-terminal --since today
+
+# Nur Warnungen und Fehler
+journalctl -u arbeitszeit-terminal -p warning --since today
+```
+
+### 10.7 Terminal beenden — per SSH (ohne systemd)
+
+Falls das Terminal nicht als systemd-Dienst läuft, kann es über SSH
+sauber beendet werden.
+
+**Schritt 1:** Per SSH auf den Praxis-PC verbinden:
+
+```bash
+ssh benutzername@praxis-pc
+```
+
+**Schritt 2:** Prozess-ID des Buchungsterminals herausfinden:
+
+```bash
+pgrep -f "terminal_ui"
+```
+
+Die Ausgabe ist eine Zahl, z. B. `4287`. Keine Ausgabe bedeutet:
+Terminal läuft gerade nicht.
+
+**Schritt 3:** Terminal sauber beenden:
+
+```bash
+kill 4287
+```
+
+Die Zahl durch die eigene Prozess-ID aus Schritt 2 ersetzen.
+Das Terminal beendet den aktuellen Buchungsschritt, gibt die Hardware frei
+und schaltet sich dann ab.
+
+**Schritt 4 (Kontrolle):**
+
+```bash
+pgrep -f "terminal_ui"
+```
+
+Keine Ausgabe: Terminal ist gestoppt.
+
+### 10.8 Was man nicht tun sollte
+
+| Aktion | Warum vermeiden |
+| --- | --- |
+| `kill -9 <pid>` | Erzwingt sofortigen Abbruch — Hardware wird nicht freigegeben |
+| Computer ausschalten ohne vorheriges Stoppen | Gleiche Wirkung wie `kill -9` |
+| SSH-Verbindung ohne `kill` trennen | Der Prozess läuft weiter — nichts passiert |
+
+---
+
+## Kapitel 11: Häufige Fragen und Fehlermeldungen
+
+### 11.1 Fehlermeldungen am Terminal
 
 | Meldung | Ursache | Was tun? |
 | --- | --- | --- |
@@ -744,7 +905,7 @@ beschreibt:
 | `Ungültige Buchungsreihenfolge.` | Z. B. zweimal Kommen ohne Gehen | Korrektur via `bookings correct` |
 | `Offene Phase — bitte zuerst abschließen.` | Noch eine offene Schicht oder Pause | Offene Buchung via `bookings correct` schließen |
 
-### 10.2 Buchungsstatus verstehen
+### 11.2 Buchungsstatus verstehen
 
 | Status | Bedeutung |
 | --- | --- |
@@ -755,7 +916,7 @@ beschreibt:
 | `CORRECTED` | Wurde nachträglich korrigiert |
 | `CLOSED_WITH_NOTE` | Manuell mit Begründung abgeschlossen |
 
-### 10.3 Berichte: Dateien nicht gefunden
+### 11.3 Berichte: Dateien nicht gefunden
 
 **Problem:** Die Berichtsdatei erscheint nicht.
 
@@ -770,7 +931,7 @@ export_dir = "/var/exports/arbeitszeit"
 
 Das Verzeichnis muss existieren und beschreibbar sein.
 
-### 10.4 Terminal startet nicht
+### 11.4 Terminal startet nicht
 
 **Problem:** `python -m arbeitszeit.presentation.terminal_ui.main`
 schlägt fehl.
@@ -785,7 +946,7 @@ python scripts/verify_hardware.py --list
 Den angezeigten genauen Namen in `config.toml` unter `[terminal]`
 eintragen.
 
-### 10.5 Prüffälle bearbeiten
+### 11.5 Prüffälle bearbeiten
 
 Wenn eine Buchung den Status `NEEDS_REVIEW` hat, muss eine Person mit
 Rolle REVIEWER aktiv werden:
@@ -803,7 +964,7 @@ azadmin --db db.db --user-id 1 bookings correct \
   --booking-id <ID> --type <TYP> --at <ZEITPUNKT> --reason "<BEGRÜNDUNG>"
 ```
 
-### 10.6 Admin-Programm antwortet mit Fehler
+### 11.6 Admin-Programm antwortet mit Fehler
 
 **Problem:** Fehlermeldung nach dem Aufruf.
 
@@ -821,6 +982,7 @@ azadmin --db db.db --user-id 1 bookings correct \
 
 | Version | Datum | Änderungen |
 | --- | --- | --- |
+| v1.9 | 2026-07-20 | Neues Kapitel 10: Terminal als systemd-Dienst einrichten und verwalten (inkl. SSH-Fallback); Kapitel 10 (FAQ) → 11 |
 | v1.8 | 2026-07-20 | Datumsformat auf TT.MM.JJJJ umgestellt; --at-Format auf TT.MM.JJJJ HH:MM; Terminal-UI: Hinweis auf Menüanzeige und 2-Sekunden-Pause ergänzt |
 | v1.7 | 2026-07-17 | Vollständige Neustrukturierung als Laien-Handbuch: aufgabenorientiert, ohne Architekturdetails, mit konkreten Beispielen für alle Befehle |
 | v1.6 | 2026-05-22 | Technisch-architektonische Dokumentation |
