@@ -1,6 +1,6 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.4"
+__version__ = "1.5"
 
 import argparse
 import json
@@ -30,7 +30,7 @@ from arbeitszeit.infrastructure.hardware.evdev_reader import (
     EvdevHardwareReader,
     resolve_evdev_device,
 )
-from arbeitszeit.infrastructure.hardware.ports import HardwareReader
+from arbeitszeit.infrastructure.hardware.ports import AdminActionRequest, HardwareReader
 from arbeitszeit.infrastructure.notification import notify
 from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.infrastructure.time_monitor import (
@@ -147,12 +147,17 @@ def _run_one_cycle(
     terminal_id: int,
     monitor: SystemTimeMonitor,
 ) -> None:
-    """Ein Buchungszyklus: Menü → Zeitcheck → Buchung → Feedback → 5 s Pause."""
+    """Ein Buchungszyklus: Menü → Zeitcheck → Eingabe → Buchung → Feedback → Pause."""
     _clear_screen()
     print(_BUCHUNGSARTEN, end="", flush=True)
     try:
         monitor.check()
-        booking_result = process_booking(reader, db_path, terminal_id)
+        raw = reader.read_next()
+        if isinstance(raw, AdminActionRequest):
+            # Admin-Aktion: Schritt 6 fügt _handle_admin_action ein.
+            time.sleep(2)
+            return
+        booking_result = process_booking(raw, db_path, terminal_id)
         print(format_feedback(booking_result))
     except DomainError as exc:
         msg = _DOMAIN_MESSAGES.get(type(exc), f"Fehler: {exc.message}")
