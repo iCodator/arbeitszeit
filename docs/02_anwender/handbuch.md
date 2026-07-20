@@ -1,3 +1,23 @@
+---
+lang: de-DE
+mainfont: "Myriad Pro"
+monofont: "DejaVu Sans Mono"
+fontsize: 11pt
+geometry:
+  - margin=2cm
+  - bindingoffset=1cm
+header-includes:
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyhf{}
+  - \fancyhead{}
+  - \fancyfoot[R]{\fontsize{8}{9.5}\selectfont Seite \thepage/\pageref{LastPage}}
+  - \renewcommand{\headrulewidth}{0pt}
+  - \renewcommand{\footrulewidth}{0.2pt}
+  - \usepackage{lastpage}
+  - \fancypagestyle{plain}{\fancyhf{}\fancyhead{}\fancyfoot[R]{\fontsize{8}{9.5}\selectfont Seite \thepage/\pageref{LastPage}}\renewcommand{\headrulewidth}{0pt}\renewcommand{\footrulewidth}{0.2pt}}
+---
+
 # Handbuch: Zeiterfassungssystem arbeitszeit
 **Version:** 1.7
 **Stand:** Juli 2026
