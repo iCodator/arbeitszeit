@@ -5,6 +5,43 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [docs: Handbücher an jüngste main-Änderungen angepasst] – 2026-07-20
+
+### Geändert
+
+- `docs/03_installation_technik/befehlsreferenz.md` (v1.5 → v1.6):
+  - Datumsformat in allen `--from`/`--to`/`--date`-Argumenten von `YYYY-MM-DD`
+    auf `TT.MM.JJJJ` umgestellt (9 Befehle betroffen)
+  - `--at`-Format von ISO-8601 auf `TT.MM.JJJJ HH:MM` (UTC) umgestellt
+    (`bookings correct`, `bookings supplement`)
+  - Ausgabebeispiele von `schedule set` und `schedule show` angepasst
+    (`2026-08-01` → `01.08.2026`)
+  - Terminal-UI Buchungszyklus um Bildschirmleerung, Menüanzeige und
+    2-Sekunden-Pause ergänzt
+  - `scripts/init_db.py`: `--config`-Flag und interaktive Datenbankpfad-Abfrage
+    dokumentiert (v1.1)
+- `docs/02_anwender/module/handbuch_presentation_it.md` (v1.0 → v1.1):
+  - `bookings correct`-Beispiel: Argumentnamen (`--new-type` → `--type`,
+    `--new-time` → `--at`) und Datumsformat korrigiert
+  - `schedule set`-Beispiel: Datumsformat korrigiert
+  - Buchungsschleife: `_clear_screen()`, `print(_BUCHUNGSARTEN)` und
+    `time.sleep(2)` als Schritte ergänzt
+- `docs/02_anwender/module/handbuch_presentation_laien.md` (v1.0 → v1.1):
+  - `bookings correct`-Beispiel: Argumentnamen und Datumsformat korrigiert
+  - `bookings supplement`-Beispiel: `--event-at` → `--at`, Datumsformat
+    korrigiert
+  - `schedule set`-Beispiel: Datumsformat korrigiert
+  - Terminal-Beschreibung: Reihenfolge (Numpad vor RFID) und Menüanzeige
+    korrigiert
+- `docs/02_anwender/handbuch.md` (v1.7 → v1.8):
+  - Datumsformat in allen Befehlsbeispielen auf `TT.MM.JJJJ` umgestellt
+    (12 Stellen; `bookings correct`, `bookings supplement`, alle `reports`-
+    Befehle, beide `schedule set`-Beispiele)
+  - `--at`-Formathinweis: ISO-8601 → `TT.MM.JJJJ HH:MM` (UTC)
+  - Abschnitt 4.2: Hinweis auf Menüanzeige am Zyklusanfang und 2-Sekunden-Pause
+
+---
+
 ## [Admin-RFID: Admin-Kartenverwaltung und Terminal-Steuerung] – 2026-07-20
 
 ### Hinzugefügt
