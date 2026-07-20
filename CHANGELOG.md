@@ -5,6 +5,60 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [Admin-RFID: Admin-Kartenverwaltung und Terminal-Steuerung] – 2026-07-20
+
+### Hinzugefügt
+
+- **DB-Migration 0007** (`migrations/0007_admin_rfid_cards.sql`):
+  - Tabelle `admin_rfid_cards` (id, uid_hash UNIQUE, label, active, created_at)
+  - Index `idx_admin_rfid_cards_uid_hash` auf `uid_hash`
+  - `system_events.event_type`-CHECK um `ADMIN_ACCESS_GRANTED` und
+    `ADMIN_ACCESS_DENIED` erweitert (Table-Rebuild, da SQLite CHECK nicht per
+    ALTER TABLE änderbar ist)
+- **Domain** (Schritte 1–2):
+  - `AdminAction(StrEnum)`: `STOP`, `RESTART`
+  - `AdminRfidCardId = NewType("AdminRfidCardId", int)` in `value_objects.py`
+  - `AdminRfidCard`-Dataclass (frozen) in `entities.py`
+  - `AdminRfidCardRepository`-Protocol in `domain/ports/repositories.py`
+  - `SQLiteAdminRfidCardRepository` in `infrastructure/db/repositories/`
+    (add, get_active_by_uid_hash, deactivate, list_all)
+  - `admin_rfid_card_repo`-Feld im `SQLiteUnitOfWork`
+- **Admin-CLI** (Schritt 3):
+  - Neue Kommandogruppe `admin-cards` mit Unterkommandos:
+    - `assign --uid-hash <hash> [--label <text>]` — Karte anlegen
+    - `assign --scan --rfid <gerät> [--label <text>]` — Karte per Scan anlegen
+    - `deactivate <id>` — Karte deaktivieren
+    - `list` — alle Karten tabellarisch auflisten
+- **Hardware-Layer** (Schritt 4):
+  - `AdminActionRequest(action: AdminAction)`-Dataclass in `hardware/ports.py`
+  - `HardwareReader.read_next()` gibt jetzt `RawBookingRequest | AdminActionRequest` zurück
+  - `HardwareReader.read_rfid_uid_hash(timeout)` als neue Protokoll-Methode
+  - `EvdevHardwareReader`: Numpad-Tasten 7 (STOP) und 9 (RESTART) als Admin-Tasten;
+    `_read_booking_type_or_admin()` trennt Buchungs- von Admin-Eingaben
+  - `SimulatedHardwareReader`: `inject_admin_action()`, `inject_rfid_uid_hash()`,
+    `read_rfid_uid_hash()` ergänzt
+- **Terminal-UI** (Schritte 5–6):
+  - `process_booking()` liest nicht mehr vom Reader; nimmt `RawBookingRequest` direkt
+  - `CycleResult(StrEnum)`: `CONTINUE`, `STOP`, `RESTART`
+  - `_handle_admin_action()`: Admin-RFID scannen (15 s), gegen DB prüfen;
+    schreibt `ADMIN_ACCESS_GRANTED` (INFO) oder `ADMIN_ACCESS_DENIED` (WARN)
+    in `system_events`
+  - `_run_one_cycle()` gibt `CycleResult` zurück; leitet `AdminActionRequest`
+    an `_handle_admin_action` weiter
+  - `run()`: bei `STOP` sauberes Beenden, bei `RESTART` Neustart via `os.execv`
+  - `_BUCHUNGSARTEN` zeigt jetzt auch Tasten 7 (Terminal beenden) und
+    9 (Terminal neu starten)
+  - `_log_system_event()` nimmt `severity`-Parameter (Standard `"ERROR"`)
+
+### Geändert
+
+- `src/arbeitszeit/presentation/terminal_ui/booking_loop.py` (v1.0 → v1.1):
+  Reader-Argument aus `process_booking()` entfernt; reine DB-Logik
+- `src/arbeitszeit/presentation/terminal_ui/main.py` (v1.4 → v1.6):
+  Admin-RFID-Modus, `CycleResult`, `_BUCHUNGSARTEN` erweitert
+
+---
+
 ## [terminal_ui: Wartezeit nach Buchung auf 2 s verkürzt] – 2026-07-19
 
 ### Geändert
