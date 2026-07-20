@@ -1,4 +1,4 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 from dataclasses import dataclass
 from datetime import date, datetime, time
@@ -17,6 +17,7 @@ from arbeitszeit.domain.enums import (
     UserRole,
 )
 from arbeitszeit.domain.value_objects import (
+    AdminRfidCardId,
     AuditLogEntryId,
     BookingCorrectionId,
     DeviceEventId,
@@ -222,6 +223,15 @@ class BookingCorrection:
                 "created_at darf nicht vor old_booked_at liegen — "
                 "eine Korrektur kann nicht vor der Originalbuchung erstellt worden sein."
             )
+
+
+@dataclass(frozen=True)
+class AdminRfidCard:
+    id: AdminRfidCardId
+    uid_hash: str
+    label: str | None
+    active: bool
+    created_at: datetime
 
 
 @dataclass(frozen=True)

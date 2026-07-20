@@ -13,7 +13,7 @@ Wichtig: Alle IDs sind Subtypen von `int` — NewType-Werte sind überall
 dort verwendbar, wo `int` erwartet wird (z. B. SQL-Parameter).
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 from typing import NewType
 
@@ -28,3 +28,4 @@ SupplementId = NewType("SupplementId", int)
 BookingCorrectionId = NewType("BookingCorrectionId", int)
 DeviceEventId = NewType("DeviceEventId", int)
 AuditLogEntryId = NewType("AuditLogEntryId", int)
+AdminRfidCardId = NewType("AdminRfidCardId", int)

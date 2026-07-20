@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from enum import StrEnum
 
@@ -81,3 +81,8 @@ class ApprovalStatus(StrEnum):
 class ScopeType(StrEnum):
     GLOBAL = "GLOBAL"
     EMPLOYEE = "EMPLOYEE"
+
+
+class AdminAction(StrEnum):
+    STOP = "STOP"
+    RESTART = "RESTART"

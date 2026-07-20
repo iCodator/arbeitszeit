@@ -1,9 +1,10 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import sqlite3
 from types import TracebackType
 
 from arbeitszeit.domain.ports.repositories import (
+    AdminRfidCardRepository,
     AuditLogRepository,
     BookingCorrectionRepository,
     DeviceEventRepository,
@@ -17,6 +18,7 @@ from arbeitszeit.domain.ports.repositories import (
     WorkScheduleRepository,
 )
 from arbeitszeit.infrastructure.db.repositories import (
+    SQLiteAdminRfidCardRepository,
     SQLiteAuditLogRepository,
     SQLiteBookingCorrectionRepository,
     SQLiteDeviceEventRepository,
@@ -49,6 +51,7 @@ class SQLiteUnitOfWork:
         # Ohne audit_conn fällt das AuditLog auf conn zurück; Einträge vor Rollback gehen verloren.
         self._conn = conn
         self._transaction_open = False
+        self.admin_rfid_card_repo: AdminRfidCardRepository = SQLiteAdminRfidCardRepository(conn)
         self.device_event_repo: DeviceEventRepository = SQLiteDeviceEventRepository(conn)
         self.employee_repo: EmployeeRepository = SQLiteEmployeeRepository(conn)
         self.user_account_repo: UserAccountRepository = SQLiteUserAccountRepository(conn)

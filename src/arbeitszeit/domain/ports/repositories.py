@@ -1,9 +1,10 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from datetime import date, datetime
 from typing import Literal, Protocol
 
 from arbeitszeit.domain.entities import (
+    AdminRfidCard,
     AuditLogEntry,
     BookingCorrection,
     Employee,
@@ -22,6 +23,7 @@ from arbeitszeit.domain.enums import (
     UserRole,
 )
 from arbeitszeit.domain.value_objects import (
+    AdminRfidCardId,
     DeviceEventId,
     EmployeeId,
     ReviewCaseId,
@@ -171,3 +173,10 @@ class SystemConfigRepository(Protocol):
         changed_at: datetime,
         reason: str | None = None,
     ) -> None: ...
+
+
+class AdminRfidCardRepository(Protocol):
+    def add(self, uid_hash: str, label: str | None) -> AdminRfidCard: ...
+    def get_active_by_uid_hash(self, uid_hash: str) -> AdminRfidCard | None: ...
+    def deactivate(self, card_id: AdminRfidCardId) -> None: ...
+    def list_all(self) -> list[AdminRfidCard]: ...
