@@ -1,8 +1,8 @@
 ---
 lang: de-DE
-mainfont: "Myriad Pro"
+mainfont: "Clear Sans"
 monofont: "DejaVu Sans Mono"
-fontsize: 11pt
+fontsize: 10pt
 geometry:
   - margin=2cm
   - bindingoffset=1cm
