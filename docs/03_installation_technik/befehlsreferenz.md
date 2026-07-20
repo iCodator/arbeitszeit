@@ -20,7 +20,7 @@ header-includes:
 
 # Befehlsreferenz `arbeitszeit`
 
-**Version:** 1.5
+**Version:** 1.6
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -134,9 +134,9 @@ das Programm mit Exit-Code `1` ab.
 
 | Format | Beispiel | Verwendung |
 | --- | --- | --- |
-| `YYYY-MM-DD` | `2026-07-01` | Datumsargumente (`--from`, `--to`, `--date`) |
+| `TT.MM.JJJJ` | `01.07.2026` | Datumsargumente (`--from`, `--to`, `--date`) |
 | `HH:MM` | `08:30` | Uhrzeitargumente (`--start`, `--end`) |
-| ISO-8601 Datetime | `2026-07-01T08:30:00` oder `2026-07-01T08:30:00Z` | `--at`-Argumente; fehlende Zeitzone wird als UTC behandelt |
+| `TT.MM.JJJJ HH:MM` | `01.07.2026 08:30` | `--at`-Argumente; fehlende Zeitzone wird als UTC behandelt |
 | ISO-Wochennummer | `1` bis `53` | `--week`-Argument |
 | Monatsnummer | `1` bis `12` | `--month`-Argument |
 
@@ -330,7 +330,7 @@ Korrigiert eine bestehende Buchung.
 azadmin --db <PFAD> --user-id <ID> bookings correct \
   --booking-id <BUCHUNGS-ID> \
   --type <BUCHUNGSTYP> \
-  --at <ISO-DATETIME> \
+  --at <TT.MM.JJJJ HH:MM> \
   --reason <BEGRÜNDUNG>
 ```
 
@@ -338,7 +338,7 @@ azadmin --db <PFAD> --user-id <ID> bookings correct \
 | --- | --- | --- | --- |
 | `--booking-id` | int | ja | ID der zu korrigierenden Buchung |
 | `--type` | string | ja | Neuer Buchungstyp |
-| `--at` | ISO-8601 | ja | Neuer Buchungszeitpunkt |
+| `--at` | TT.MM.JJJJ HH:MM | ja | Neuer Buchungszeitpunkt (UTC) |
 | `--reason` | string | ja | Begründung der Korrektur |
 
 **Rolle:** ADMIN, REVIEWER
@@ -355,7 +355,7 @@ Erfasst eine nachträgliche Buchung und erzeugt einen Prüffall.
 azadmin --db <PFAD> --user-id <ID> bookings supplement \
   --employee-id <MITARBEITER-ID> \
   --type <BUCHUNGSTYP> \
-  --at <ISO-DATETIME> \
+  --at <TT.MM.JJJJ HH:MM> \
   --reason <BEGRÜNDUNG> \
   [--related-booking-id <BUCHUNGS-ID>]
 ```
@@ -364,7 +364,7 @@ azadmin --db <PFAD> --user-id <ID> bookings supplement \
 | --- | --- | --- | --- |
 | `--employee-id` | int | ja | Mitarbeiter-ID |
 | `--type` | string | ja | Buchungstyp |
-| `--at` | ISO-8601 | ja | Ereigniszeitpunkt |
+| `--at` | TT.MM.JJJJ HH:MM | ja | Ereigniszeitpunkt (UTC) |
 | `--reason` | string | ja | Begründung |
 | `--related-booking-id` | int | nein | Verknüpfte Buchung |
 
@@ -427,7 +427,7 @@ azadmin --db <PFAD> --user-id <ID> schedule set \
   --weekday <1-7> \
   --start <HH:MM> \
   --end <HH:MM> \
-  --from <YYYY-MM-DD> \
+  --from <TT.MM.JJJJ> \
   [--employee-id <MITARBEITER-ID>]
 ```
 
@@ -436,21 +436,21 @@ azadmin --db <PFAD> --user-id <ID> schedule set \
 | `--weekday` | int (1–7) | ja | Wochentag: 1=Mo, 2=Di, …, 7=So |
 | `--start` | HH:MM | ja | Beginn der Regelarbeitszeit |
 | `--end` | HH:MM | ja | Ende der Regelarbeitszeit |
-| `--from` | YYYY-MM-DD | ja | Gültig ab diesem Datum |
+| `--from` | TT.MM.JJJJ | ja | Gültig ab diesem Datum |
 | `--employee-id` | int | nein | Mitarbeiterspezifische Ausnahme |
 
 **Rolle:** ADMIN
 **Ausgabe (global):**
 
 ```text
-Globale Regelarbeitszeit gesetzt (Version 3): Mo 08:00–17:00 ab 2026-08-01.
+Globale Regelarbeitszeit gesetzt (Version 3): Mo 08:00–17:00 ab 01.08.2026.
 Vorgängerversion 1 geschlossen.
 ```
 
 **Ausgabe (mitarbeiterspezifisch):**
 
 ```text
-Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version 4): Mitarbeiter 2, Mo 09:00–16:00 ab 2026-08-01.
+Mitarbeiterspezifische Regelarbeitszeit gesetzt (Version 4): Mitarbeiter 2, Mo 09:00–16:00 ab 01.08.2026.
 ```
 
 ---
@@ -469,11 +469,11 @@ azadmin --db <PFAD> --user-id <ID> schedule show
 ```text
 Globale Regelarbeitszeit (gültige Versionen):
     ID  Tag  Von    Bis    Gültig ab
-     3  Mo   08:00  17:00  2026-08-01
+     3  Mo   08:00  17:00  01.08.2026
 
 Mitarbeiterspezifische Regelarbeitszeit:
     ID  MitarID  Tag  Von    Bis    Gültig ab
-     4        2  Mo   09:00  16:00  2026-08-01
+     4        2  Mo   09:00  16:00  01.08.2026
 ```
 
 oder `Keine aktiven Regelarbeitszeitversionen vorhanden.`
@@ -494,15 +494,15 @@ Exportiert Detailbuchungen und verdichtete Übersicht als CSV.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports export-csv \
-  --from <YYYY-MM-DD> \
-  --to <YYYY-MM-DD> \
+  --from <TT.MM.JJJJ> \
+  --to <TT.MM.JJJJ> \
   [--employee-id <MITARBEITER-ID>]
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
-| `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
-| `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
+| `--from` | TT.MM.JJJJ | ja | Beginn des Zeitraums |
+| `--to` | TT.MM.JJJJ | ja | Ende des Zeitraums |
 | `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
 
 **Ausgabe:**
@@ -520,15 +520,15 @@ Exportiert Prüffälle im Zeitraum als CSV.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports export-csv-review-cases \
-  --from <YYYY-MM-DD> \
-  --to <YYYY-MM-DD> \
+  --from <TT.MM.JJJJ> \
+  --to <TT.MM.JJJJ> \
   [--employee-id <MITARBEITER-ID>]
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
-| `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
-| `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
+| `--from` | TT.MM.JJJJ | ja | Beginn des Zeitraums |
+| `--to` | TT.MM.JJJJ | ja | Ende des Zeitraums |
 | `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
 
 **Ausgabe:**
@@ -545,12 +545,12 @@ Erstellt einen Tagesbericht als PDF.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports export-pdf-day \
-  --date <YYYY-MM-DD>
+  --date <TT.MM.JJJJ>
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
-| `--date` | YYYY-MM-DD | ja | Kalendertag des Berichts |
+| `--date` | TT.MM.JJJJ | ja | Kalendertag des Berichts |
 
 **Ausgabe:** `PDF: /var/exports/arbeitszeit/bericht_tag_2026-07-01_….pdf`
 
@@ -601,15 +601,15 @@ Erstellt einen Mitarbeiterbericht für einen Zeitraum als PDF.
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports export-pdf-employee \
   --employee-id <MITARBEITER-ID> \
-  --from <YYYY-MM-DD> \
-  --to <YYYY-MM-DD>
+  --from <TT.MM.JJJJ> \
+  --to <TT.MM.JJJJ>
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
 | `--employee-id` | int | ja | Mitarbeiter-ID |
-| `--from` | YYYY-MM-DD | ja | Beginn des Zeitraums |
-| `--to` | YYYY-MM-DD | ja | Ende des Zeitraums |
+| `--from` | TT.MM.JJJJ | ja | Beginn des Zeitraums |
+| `--to` | TT.MM.JJJJ | ja | Ende des Zeitraums |
 
 **Ausgabe:** `PDF: /var/exports/arbeitszeit/bericht_mitarbeiter_0001_….pdf`
 
@@ -621,14 +621,14 @@ Listet Buchungen mit Status `OPEN`, optional im Zeitraum gefiltert.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports open-bookings \
-  [--from <YYYY-MM-DD> --to <YYYY-MM-DD>] \
+  [--from <TT.MM.JJJJ> --to <TT.MM.JJJJ>] \
   [--employee-id <MITARBEITER-ID>]
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
-| `--from` | YYYY-MM-DD | nein | Beginn des Zeitraums |
-| `--to` | YYYY-MM-DD | nein | Ende des Zeitraums |
+| `--from` | TT.MM.JJJJ | nein | Beginn des Zeitraums |
+| `--to` | TT.MM.JJJJ | nein | Ende des Zeitraums |
 | `--employee-id` | int | nein | Nur für diesen Mitarbeiter |
 
 **Hinweis:** Werden mehr als 50 Einträge ohne Zeitraumfilter gefunden,
@@ -642,15 +642,15 @@ Listet Buchungen mit Status `WARN` oder `NEEDS_REVIEW` im Zeitraum.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports warn-cases \
-  --from <YYYY-MM-DD> \
-  --to <YYYY-MM-DD> \
+  --from <TT.MM.JJJJ> \
+  --to <TT.MM.JJJJ> \
   [--employee-id <MITARBEITER-ID>]
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
-| `--from` | YYYY-MM-DD | ja | Beginn |
-| `--to` | YYYY-MM-DD | ja | Ende |
+| `--from` | TT.MM.JJJJ | ja | Beginn |
+| `--to` | TT.MM.JJJJ | ja | Ende |
 | `--employee-id` | int | nein | Filter |
 
 ---
@@ -661,8 +661,8 @@ Listet Buchungskorrekturen im Zeitraum.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports corrections \
-  --from <YYYY-MM-DD> \
-  --to <YYYY-MM-DD> \
+  --from <TT.MM.JJJJ> \
+  --to <TT.MM.JJJJ> \
   [--employee-id <MITARBEITER-ID>]
 ```
 
@@ -674,8 +674,8 @@ Listet Nachträge im Zeitraum.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports supplements \
-  --from <YYYY-MM-DD> \
-  --to <YYYY-MM-DD> \
+  --from <TT.MM.JJJJ> \
+  --to <TT.MM.JJJJ> \
   [--employee-id <MITARBEITER-ID>]
 ```
 
@@ -687,14 +687,14 @@ Listet offene Prüffälle, optional im Zeitraum gefiltert.
 
 ```bash
 azadmin --db <PFAD> --user-id <ID> reports open-review-cases \
-  [--from <YYYY-MM-DD> --to <YYYY-MM-DD>] \
+  [--from <TT.MM.JJJJ> --to <TT.MM.JJJJ>] \
   [--employee-id <MITARBEITER-ID>]
 ```
 
 | Argument | Typ | Pflicht | Beschreibung |
 | --- | --- | --- | --- |
-| `--from` | YYYY-MM-DD | nein | Beginn |
-| `--to` | YYYY-MM-DD | nein | Ende |
+| `--from` | TT.MM.JJJJ | nein | Beginn |
+| `--to` | TT.MM.JJJJ | nein | Ende |
 | `--employee-id` | int | nein | Filter |
 
 **Hinweis:** Wie `open-bookings` erfolgt bei mehr als 50 ungefilterten
@@ -944,9 +944,11 @@ verstehen, müssen aber insgesamt auflösbar sein.
 
 ### Buchungszyklus
 
-1. Mitarbeiter drückt auf dem Numpad eine Taste (`1` bis `4`).
-2. Mitarbeiter hält RFID-Karte an den Leser.
-3. System verarbeitet die Buchung und gibt Feedback aus.
+1. Bildschirm wird geleert; das Buchungsarten-Menü erscheint.
+2. Mitarbeiter drückt auf dem Numpad eine Taste (`1` bis `4`).
+3. Mitarbeiter hält RFID-Karte an den Leser.
+4. System verarbeitet die Buchung und gibt Feedback aus.
+5. 2-Sekunden-Pause, dann startet der nächste Zyklus.
 
 ### Rückmeldungen
 
@@ -977,12 +979,17 @@ verstehen, müssen aber insgesamt auflösbar sein.
 Führt alle ausstehenden Datenbankmigrationen aus.
 
 ```bash
-python scripts/init_db.py [--db <PFAD>]
+python scripts/init_db.py [--config <CONFIG_PATH>] [--db <PFAD>]
 ```
 
 | Argument | Standard | Beschreibung |
 | --- | --- | --- |
-| `--db` | `arbeitszeit.db` | Datenbankdatei |
+| `--config` | automatische Suche | Pfad zu `config.toml` (überschreibt automatische Suche) |
+| `--db` | interaktive Abfrage | Datenbankpfad (überschreibt `config.toml` und interaktive Abfrage) |
+
+Der Datenbankpfad wird in folgender Priorität ermittelt: `--db` > `config.toml`
+`[database] path` > interaktive Eingabeaufforderung (Standardwert:
+`<absoluter Pfad>/arbeitszeit.db`).
 
 **Ausgabe:** Eine Zeile pro angewendeter Migration; Hinweis auf
 Ersteinrichtung, wenn `scripts/setup.py` noch erforderlich ist.
@@ -1133,11 +1140,11 @@ python scripts/show_config.py \
 
 ## Versionsvermerk
 
-- **Vorversion:** 1.4
-- **Neue Version:** 1.5
-- **Begründung:** Minor-Erhöhung wegen grundlegender Korrektur der Befehlsbeispiele
-  (alle `admin ...`-Kurzformen durch belegbaren `azadmin`-Alias ersetzt), Behebung
-  veralteter Dokumentation (`export_dir`-Quelle), Belegung der bookings-Rollen aus
-  Use Cases (ADMIN, REVIEWER) sowie Laien-gerechten Hinweisen zum `--user-id`-Konflikt,
-  zur `--config`-Platzierung bei `system setup`, zur Alias-Einrichtung und zu
-  `cards replace`.
+- **Vorversion:** 1.5
+- **Neue Version:** 1.6
+- **Begründung:** Datumsformate auf `TT.MM.JJJJ` umgestellt (`--from`, `--to`,
+  `--date`); `--at`-Format von ISO-8601 auf `TT.MM.JJJJ HH:MM` (UTC) umgestellt;
+  Ausgabebeispiele von `schedule set` und `schedule show` angepasst; Terminal-UI
+  Buchungszyklus um Bildschirmleerung, Menüanzeige und 2-Sekunden-Pause ergänzt;
+  `scripts/init_db.py` um `--config`-Flag und interaktive Datenbankpfad-Abfrage
+  dokumentiert.

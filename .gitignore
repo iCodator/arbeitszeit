@@ -23,3 +23,6 @@ config.toml
 
 .coverage
 htmlcov/
+
+docs/**/*.html
+docs/**/*.pdf

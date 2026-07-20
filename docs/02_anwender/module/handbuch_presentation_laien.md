@@ -1,7 +1,7 @@
 # Das Verwaltungsprogramm — Kurzanleitung
 
 **Kapitel:** 4-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -67,12 +67,12 @@ azadmin cards deactivate --card-id 7
 ```bash
 # Buchung korrigieren
 azadmin bookings correct --booking-id 17 \
-  --new-type GO --new-time "2026-07-15 17:30" \
+  --type GO --at "15.07.2026 17:30" \
   --reason "Falsche Uhrzeit"
 
 # Nachtrag anlegen (vergessene Buchung)
 azadmin bookings supplement --employee-id 3 \
-  --type COME --event-at "2026-07-14 08:00" \
+  --type COME --at "14.07.2026 08:00" \
   --reason "Stempelgerät war defekt"
 
 # Nachtrag genehmigen
@@ -108,7 +108,7 @@ azadmin reports export-csv --output /tmp/buchungen.csv
 ```bash
 # Standardarbeitszeit für Montag einstellen
 azadmin schedule set --weekday 1 --start 07:30 --end 18:00 \
-  --from 2026-08-01
+  --from 01.08.2026
 
 # Aktuellen Dienstplan anzeigen
 azadmin schedule show
@@ -140,8 +140,9 @@ azadmin users bootstrap --username admin
 ## Das Buchungsterminal
 
 Das Terminal läuft als eigenes Programm, das dauerhaft im Hintergrund
-aktiv ist. Mitarbeitende halten ihre RFID-Karte vor den Reader, wählen
-die Buchungsart (Kommen / Gehen / Pause) auf dem Numpad und erhalten
+aktiv ist. Am Beginn jedes Zyklus erscheint das Buchungsarten-Menü auf
+dem Bildschirm. Mitarbeitende wählen die Buchungsart (1–4) auf dem
+Numpad, halten anschließend ihre RFID-Karte vor den Reader und erhalten
 eine Bestätigung.
 
 Das Terminal läuft in einer Endlosschleife und muss nur bei Wartung
