@@ -1,6 +1,6 @@
-"""Buchungsablauf: Numpad-Eingabe → RFID-Scan → BookUseCase → Feedback."""
+"""Buchungsablauf: RawBookingRequest → BookUseCase → Feedback."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from pathlib import Path
@@ -12,7 +12,7 @@ from arbeitszeit.domain.enums import BookingSource, BookingStatus, BookingType
 from arbeitszeit.domain.value_objects import TerminalId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork
-from arbeitszeit.infrastructure.hardware.ports import HardwareReader
+from arbeitszeit.infrastructure.hardware.ports import RawBookingRequest
 
 _STATUS_MESSAGES = {
     BookingStatus.OPEN: "Buchung erfasst.",
@@ -30,16 +30,15 @@ _BOOKING_TYPE_DISPLAY: dict[BookingType, str] = {
 
 
 def process_booking(
-    reader: HardwareReader,
+    request: RawBookingRequest,
     db_path: Path,
     terminal_id: int,
 ) -> BookResult:
-    """Liest eine Buchungsanforderung vom Hardware-Reader und verarbeitet sie.
+    """Verarbeitet eine Buchungsanforderung gegen die Datenbank.
 
     Gibt BookResult bei Erfolg zurück. Wirft DomainError-Subklassen bei
     fachlichen Fehlern (unbekannte Karte, inaktive Karte, ungültige Sequenz).
     """
-    request = reader.read_next()
     conn = open_connection(db_path)
     audit_conn = open_connection(db_path)
     try:

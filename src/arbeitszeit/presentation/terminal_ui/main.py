@@ -1,19 +1,22 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.4"
+__version__ = "1.6"
 
 import argparse
 import json
 import logging
+import os
 import signal
 import sys
 import time
 import traceback
 from datetime import datetime, timezone
+from enum import StrEnum
 from pathlib import Path
 from types import FrameType
 from typing import TypeVar
 
+from arbeitszeit.domain.enums import AdminAction
 from arbeitszeit.domain.errors import (
     DomainError,
     InactiveCardError,
@@ -24,13 +27,16 @@ from arbeitszeit.domain.errors import (
 )
 from arbeitszeit.infrastructure.config_file import AppConfig, find_config, load_config
 from arbeitszeit.infrastructure.db.connection import open_connection
-from arbeitszeit.infrastructure.db.repositories import SQLiteSystemConfigRepository
+from arbeitszeit.infrastructure.db.repositories import (
+    SQLiteAdminRfidCardRepository,
+    SQLiteSystemConfigRepository,
+)
 from arbeitszeit.infrastructure.hardware.evdev_reader import (
     DeviceNotFoundError,
     EvdevHardwareReader,
     resolve_evdev_device,
 )
-from arbeitszeit.infrastructure.hardware.ports import HardwareReader
+from arbeitszeit.infrastructure.hardware.ports import AdminActionRequest, HardwareReader
 from arbeitszeit.infrastructure.notification import notify
 from arbeitszeit.infrastructure.system_check import run_system_check
 from arbeitszeit.infrastructure.time_monitor import (
@@ -41,6 +47,12 @@ from arbeitszeit.infrastructure.time_monitor import (
 from .booking_loop import format_feedback, process_booking
 
 _T = TypeVar("_T")
+
+
+class CycleResult(StrEnum):
+    CONTINUE = "CONTINUE"
+    STOP = "STOP"
+    RESTART = "RESTART"
 
 
 def _resolve_or_exit(cli_val: _T | None, cfg_val: _T | None, label: str) -> _T:
@@ -68,6 +80,8 @@ _BUCHUNGSARTEN = (
     + "  2      Gehen (Schichtende)\n"
     + "  3      Pause beginnen\n"
     + "  4      Pause beenden\n"
+    + "  7      Terminal beenden\n"
+    + "  9      Terminal neu starten\n"
     + "\n" * 4
 )
 
@@ -76,7 +90,12 @@ def _clear_screen() -> None:
     print("\033[2J\033[H", end="", flush=True)
 
 
-def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]) -> None:
+def _log_system_event(
+    db_path: Path,
+    event_type: str,
+    details: dict[str, object],
+    severity: str = "ERROR",
+) -> None:
     try:
         conn = open_connection(db_path)
         try:
@@ -87,7 +106,7 @@ def _log_system_event(db_path: Path, event_type: str, details: dict[str, object]
                 (
                     event_type,
                     "terminal_ui",
-                    "ERROR",
+                    severity,
                     datetime.now(timezone.utc).isoformat(),
                     json.dumps(details, default=str),
                 ),
@@ -112,7 +131,6 @@ def _ensure_terminal_exists(db_path: Path, terminal_id: int) -> None:
 
 def _setup_file_logging(db_path: Path, app_config: AppConfig | None = None) -> None:
     try:
-        # config.toml hat Vorrang; Fallback auf DB (Rückwärtskompatibilität)
         log_dir: Path | None = app_config.backup.log_dir if app_config is not None else None
         if log_dir is None:
             conn = open_connection(db_path)
@@ -141,18 +159,86 @@ def _setup_file_logging(db_path: Path, app_config: AppConfig | None = None) -> N
         logging.warning("Logging-Konfiguration fehlgeschlagen: %s", exc)
 
 
+def _should_continue(result: CycleResult, reader: HardwareReader) -> bool:
+    """Gibt False zurück wenn die Buchungsschleife beendet werden soll."""
+    if result == CycleResult.STOP:
+        return False
+    if result == CycleResult.RESTART:
+        reader.close()
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    return True
+
+
+def _handle_admin_action(
+    action: AdminAction,
+    reader: HardwareReader,
+    db_path: Path,
+    terminal_id: int,
+) -> CycleResult:
+    """Prüft Admin-RFID und führt die angeforderte Aktion aus."""
+    _clear_screen()
+    print("\n  Admin-Ausweis scannen (15 s) ...\n", flush=True)
+
+    try:
+        uid_hash = reader.read_rfid_uid_hash(timeout=15.0)
+    except Exception as exc:  # noqa: BLE001
+        print("  Lesefehler — Aktion abgebrochen.", flush=True)
+        logging.warning("Admin-RFID Lesefehler: %s", exc)
+        return CycleResult.CONTINUE
+
+    conn = open_connection(db_path)
+    try:
+        card = SQLiteAdminRfidCardRepository(conn).get_active_by_uid_hash(uid_hash)
+    finally:
+        conn.close()
+
+    if card is None:
+        print("  Karte nicht berechtigt.", flush=True)
+        _log_system_event(
+            db_path,
+            "ADMIN_ACCESS_DENIED",
+            {"uid_hash_prefix": uid_hash[:8], "requested_action": action.value},
+            severity="WARN",
+        )
+        return CycleResult.CONTINUE
+
+    _log_system_event(
+        db_path,
+        "ADMIN_ACCESS_GRANTED",
+        {
+            "card_id": card.id,
+            "label": card.label,
+            "action": action.value,
+            "terminal_id": terminal_id,
+        },
+        severity="INFO",
+    )
+
+    if action == AdminAction.STOP:
+        print("  Terminal wird beendet ...", flush=True)
+        return CycleResult.STOP
+
+    print("  Terminal wird neu gestartet ...", flush=True)
+    return CycleResult.RESTART
+
+
 def _run_one_cycle(
     reader: HardwareReader,
     db_path: Path,
     terminal_id: int,
     monitor: SystemTimeMonitor,
-) -> None:
-    """Ein Buchungszyklus: Menü → Zeitcheck → Buchung → Feedback → 5 s Pause."""
+) -> CycleResult:
+    """Ein Buchungszyklus: Menü → Zeitcheck → Eingabe → Buchung → Feedback → Pause."""
     _clear_screen()
     print(_BUCHUNGSARTEN, end="", flush=True)
     try:
         monitor.check()
-        booking_result = process_booking(reader, db_path, terminal_id)
+        raw = reader.read_next()
+        if isinstance(raw, AdminActionRequest):
+            result = _handle_admin_action(raw.action, reader, db_path, terminal_id)
+            time.sleep(2)
+            return result
+        booking_result = process_booking(raw, db_path, terminal_id)
         print(format_feedback(booking_result))
     except DomainError as exc:
         msg = _DOMAIN_MESSAGES.get(type(exc), f"Fehler: {exc.message}")
@@ -170,6 +256,7 @@ def _run_one_cycle(
             },
         )
     time.sleep(2)
+    return CycleResult.CONTINUE
 
 
 def run(
@@ -201,7 +288,6 @@ def run(
             if not check.ok:
                 print(f"  FEHLER: {check.name}: {check.detail}")
         print("=" * 50)
-        # Kein sys.exit() — Buchungsbetrieb läuft weiter (Praxisbetrieb darf nicht blockieren)
         fehler = "; ".join(c.detail for c in result.checks if not c.ok)
         notify("Arbeitszeit — Systemfehler", fehler, urgency="critical")
 
@@ -218,7 +304,7 @@ def run(
 
     threshold = load_threshold_from_config(db_path)
     monitor = SystemTimeMonitor(db_path, threshold_seconds=threshold)
-    monitor.check()  # Basiszeitpunkt setzen
+    monitor.check()
 
     grace_conn = open_connection(db_path)
     try:
@@ -236,7 +322,10 @@ def run(
     )
     try:
         while running:
-            _run_one_cycle(reader, db_path, terminal_id, monitor)
+            if not _should_continue(
+                _run_one_cycle(reader, db_path, terminal_id, monitor), reader
+            ):
+                break
     finally:
         reader.close()
 
@@ -265,7 +354,6 @@ def main() -> None:
     parser.add_argument("--terminal-id", type=int, default=None)
     args = parser.parse_args()
 
-    # Config laden: explizit > ENV ARBEITSZEIT_CONFIG > XDG > lokal
     app_config: AppConfig | None = None
     cfg_src: Path | None = args.config if args.config is not None else find_config()
     if cfg_src is not None:
@@ -275,7 +363,6 @@ def main() -> None:
             print(f"Fehler beim Laden von {cfg_src}: {exc}", file=sys.stderr)
             sys.exit(1)
 
-    # Werte auflösen: CLI > config.toml > Fehler
     db_path = _resolve_or_exit(
         args.db,
         app_config.database.path if app_config else None,

@@ -1,6 +1,6 @@
 """Tests für presentation/terminal_ui/main.py."""
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import json
 import logging
@@ -15,6 +15,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
+from arbeitszeit.domain.enums import AdminAction
 from arbeitszeit.domain.errors import (
     InvalidBookingSequenceError,
     OpenPhaseConflictError,
@@ -24,12 +25,17 @@ from arbeitszeit.infrastructure.config_file import AppConfig, BackupConfig
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.hardware.evdev_reader import DeviceNotFoundError
+from arbeitszeit.infrastructure.hardware.ports import AdminActionRequest
+from arbeitszeit.infrastructure.hardware.simulator import SimulatedHardwareReader
 from arbeitszeit.infrastructure.system_check import CheckResult, SystemCheckResult
 from arbeitszeit.presentation.terminal_ui.main import (
+    CycleResult,
+    _handle_admin_action,
     _log_system_event,
     _resolve_or_exit,
     _run_one_cycle,
     _setup_file_logging,
+    _should_continue,
     main,
     run,
 )
@@ -506,3 +512,263 @@ def test_main_fehlender_db_arg_beendet_programm(capsys: pytest.CaptureFixture[st
     assert exc_info.value.code == 1
     err = capsys.readouterr().err
     assert "database" in err or "--db" in err
+
+
+# ---------------------------------------------------------------------------
+# _log_system_event — severity-Parameter
+# ---------------------------------------------------------------------------
+
+
+def test_log_system_event_info_severity_wird_gespeichert(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    _log_system_event(
+        db,
+        "ADMIN_ACCESS_GRANTED",
+        {"card_id": 1, "action": "STOP"},
+        severity="INFO",
+    )
+    conn = open_connection(db)
+    row = conn.execute(
+        "SELECT severity FROM system_events WHERE event_type = 'ADMIN_ACCESS_GRANTED'"
+    ).fetchone()
+    conn.close()
+    assert row is not None
+    assert row["severity"] == "INFO"
+
+
+def test_log_system_event_warn_severity_wird_gespeichert(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    _log_system_event(
+        db,
+        "ADMIN_ACCESS_DENIED",
+        {"uid_hash_prefix": "aabbccdd"},
+        severity="WARN",
+    )
+    conn = open_connection(db)
+    row = conn.execute(
+        "SELECT severity FROM system_events WHERE event_type = 'ADMIN_ACCESS_DENIED'"
+    ).fetchone()
+    conn.close()
+    assert row is not None
+    assert row["severity"] == "WARN"
+
+
+# ---------------------------------------------------------------------------
+# _should_continue
+# ---------------------------------------------------------------------------
+
+
+def test_should_continue_continue_gibt_true() -> None:
+    assert _should_continue(CycleResult.CONTINUE, MagicMock()) is True
+
+
+def test_should_continue_stop_gibt_false() -> None:
+    assert _should_continue(CycleResult.STOP, MagicMock()) is False
+
+
+def test_should_continue_restart_schliesst_reader_und_ruft_execv_auf() -> None:
+    reader = MagicMock()
+    with patch(f"{_MAIN}.os.execv") as mock_execv:
+        _should_continue(CycleResult.RESTART, reader)
+    reader.close.assert_called_once()
+    mock_execv.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# _handle_admin_action
+# ---------------------------------------------------------------------------
+
+
+def _insert_admin_card(db: Path, uid_hash: str, label: str | None = None) -> int:
+    conn = open_connection(db)
+    row = conn.execute(
+        "INSERT INTO admin_rfid_cards (uid_hash, label, active, created_at) "
+        "VALUES (?, ?, 1, '2026-01-01T00:00:00') RETURNING id",
+        (uid_hash, label),
+    ).fetchone()
+    conn.close()
+    return int(row["id"])
+
+
+def _system_events(db: Path, event_type: str) -> list[dict[str, object]]:
+    conn = open_connection(db)
+    rows = conn.execute(
+        "SELECT event_type, severity, details_json FROM system_events "
+        "WHERE event_type = ? ORDER BY id",
+        (event_type,),
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+@pytest.fixture
+def no_sleep_clear() -> Generator[None, None, None]:
+    with (
+        patch("time.sleep"),
+        patch(f"{_MAIN}._clear_screen"),
+    ):
+        yield
+
+
+def test_handle_admin_action_bekannte_karte_stop_gibt_stop(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    uid_hash = "aabbccdd" * 8
+    _insert_admin_card(db, uid_hash, label="Testkarte")
+
+    sim = SimulatedHardwareReader()
+    sim.inject_rfid_uid_hash(uid_hash)
+
+    result = _handle_admin_action(AdminAction.STOP, sim, db, terminal_id=1)
+    assert result == CycleResult.STOP
+
+
+def test_handle_admin_action_bekannte_karte_restart_gibt_restart(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    uid_hash = "deadbeef" * 8
+    _insert_admin_card(db, uid_hash, label="Neustarter")
+
+    sim = SimulatedHardwareReader()
+    sim.inject_rfid_uid_hash(uid_hash)
+
+    result = _handle_admin_action(AdminAction.RESTART, sim, db, terminal_id=1)
+    assert result == CycleResult.RESTART
+
+
+def test_handle_admin_action_bekannte_karte_schreibt_access_granted(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    uid_hash = "11223344" * 8
+    card_id = _insert_admin_card(db, uid_hash, label="Karte A")
+
+    sim = SimulatedHardwareReader()
+    sim.inject_rfid_uid_hash(uid_hash)
+
+    _handle_admin_action(AdminAction.STOP, sim, db, terminal_id=2)
+
+    events = _system_events(db, "ADMIN_ACCESS_GRANTED")
+    assert len(events) == 1
+    assert events[0]["severity"] == "INFO"
+    details = json.loads(str(events[0]["details_json"]))
+    assert details["card_id"] == card_id
+    assert details["action"] == "STOP"
+
+
+def test_handle_admin_action_unbekannte_karte_gibt_continue(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+
+    sim = SimulatedHardwareReader()
+    sim.inject_rfid_uid_hash("unbekannter_hash")
+
+    result = _handle_admin_action(AdminAction.STOP, sim, db, terminal_id=1)
+    assert result == CycleResult.CONTINUE
+
+
+def test_handle_admin_action_unbekannte_karte_schreibt_access_denied(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+
+    sim = SimulatedHardwareReader()
+    sim.inject_rfid_uid_hash("unbekannt_xyz")
+
+    _handle_admin_action(AdminAction.RESTART, sim, db, terminal_id=1)
+
+    events = _system_events(db, "ADMIN_ACCESS_DENIED")
+    assert len(events) == 1
+    assert events[0]["severity"] == "WARN"
+
+
+def test_handle_admin_action_lesefehler_gibt_continue(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    sim = SimulatedHardwareReader()
+
+    result = _handle_admin_action(AdminAction.STOP, sim, db, terminal_id=1)
+    assert result == CycleResult.CONTINUE
+
+
+def test_handle_admin_action_lesefehler_schreibt_kein_system_event(
+    tmp_path: Path, no_sleep_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    sim = SimulatedHardwareReader()
+
+    _handle_admin_action(AdminAction.STOP, sim, db, terminal_id=1)
+
+    conn = open_connection(db)
+    count = conn.execute("SELECT COUNT(*) FROM system_events").fetchone()[0]
+    conn.close()
+    assert count == 0
+
+
+# ---------------------------------------------------------------------------
+# _run_one_cycle — CycleResult-Rückgabewert + AdminActionRequest
+# ---------------------------------------------------------------------------
+
+
+def test_run_one_cycle_erfolg_gibt_continue(
+    tmp_path: Path, no_sleep_no_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    reader = _make_mock_reader()
+    monitor = _make_mock_monitor()
+
+    with (
+        patch(f"{_MAIN}.process_booking", return_value=MagicMock()),
+        patch(f"{_MAIN}.format_feedback", return_value="OK"),
+    ):
+        result = _run_one_cycle(reader, db, terminal_id=1, monitor=monitor)
+
+    assert result == CycleResult.CONTINUE
+
+
+def test_run_one_cycle_domain_error_gibt_continue(
+    tmp_path: Path, no_sleep_no_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    reader = _make_mock_reader()
+    monitor = _make_mock_monitor()
+
+    with patch(f"{_MAIN}.process_booking", side_effect=UnknownCardError("x")):
+        result = _run_one_cycle(reader, db, terminal_id=1, monitor=monitor)
+
+    assert result == CycleResult.CONTINUE
+
+
+def test_run_one_cycle_exception_gibt_continue(
+    tmp_path: Path, no_sleep_no_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    reader = _make_mock_reader()
+    monitor = _make_mock_monitor()
+
+    with patch(f"{_MAIN}.process_booking", side_effect=RuntimeError("boom")):
+        result = _run_one_cycle(reader, db, terminal_id=1, monitor=monitor)
+
+    assert result == CycleResult.CONTINUE
+
+
+def test_run_one_cycle_admin_action_request_delegiert_an_handle(
+    tmp_path: Path, no_sleep_no_clear: None
+) -> None:
+    db = _make_db(tmp_path)
+    monitor = _make_mock_monitor()
+    reader = MagicMock()
+    reader.read_next.return_value = AdminActionRequest(action=AdminAction.STOP)
+
+    with patch(
+        f"{_MAIN}._handle_admin_action",
+        return_value=CycleResult.STOP,
+    ) as mock_handle:
+        result = _run_one_cycle(reader, db, terminal_id=1, monitor=monitor)
+
+    assert result == CycleResult.STOP
+    mock_handle.assert_called_once_with(AdminAction.STOP, reader, db, 1)

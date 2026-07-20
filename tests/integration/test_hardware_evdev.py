@@ -221,7 +221,7 @@ class TestReadRfidUid:
         assert result == "1"
 
 
-# --- EvdevHardwareReader._read_booking_type() ---
+# --- EvdevHardwareReader._read_booking_type_or_admin() ---
 
 
 class TestReadBookingType:
@@ -231,7 +231,9 @@ class TestReadBookingType:
         numpad = cast(MagicMock, reader._numpad)
         numpad.read_loop.return_value = iter(events)
         with patch(_CATEGORIZE, side_effect=_categorize_mock):
-            return reader._read_booking_type()
+            result = reader._read_booking_type_or_admin()
+        assert isinstance(result, BookingType)
+        return result
 
     def test_kp1_liefert_come(self) -> None:
         reader = _make_reader()
@@ -255,7 +257,7 @@ class TestReadBookingType:
         numpad = cast(MagicMock, reader._numpad)
         numpad.read_loop.return_value = iter([])
         with pytest.raises(OSError):
-            reader._read_booking_type()
+            reader._read_booking_type_or_admin()
 
 
 # --- resolve_evdev_device() ---

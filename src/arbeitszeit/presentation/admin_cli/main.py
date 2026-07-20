@@ -1,6 +1,6 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 import argparse
 import os
@@ -13,7 +13,7 @@ from arbeitszeit.infrastructure.config_file import AppConfig, find_config, load_
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 
-from . import bookings, employees, reports, schedule, system, user_accounts
+from . import admin_cards, bookings, employees, reports, schedule, system, user_accounts
 
 
 def _load_app_config(args: argparse.Namespace) -> AppConfig | None:
@@ -102,6 +102,7 @@ def run(argv: list[str] | None = None) -> None:
     reports.register_subcommands(sub)
     system.register_subcommands(sub)
     user_accounts.register_subcommands(sub)
+    admin_cards.register_subcommands(sub)
 
     args = parser.parse_args(argv)
 
@@ -220,6 +221,13 @@ def _dispatch(
             conn, audit_conn, args, user_id
         ),
         ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, audit_conn, args),
+        ("admin-cards", "assign"): lambda: admin_cards.cmd_admin_cards_assign(
+            conn, audit_conn, args, app_config=app_config
+        ),
+        ("admin-cards", "deactivate"): lambda: admin_cards.cmd_admin_cards_deactivate(
+            conn, audit_conn, args
+        ),
+        ("admin-cards", "list"): lambda: admin_cards.cmd_admin_cards_list(conn),
     }
     domain: str = args.domain
     cmd: str | None = getattr(args, f"{domain}_cmd", None)
