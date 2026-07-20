@@ -27,7 +27,7 @@ Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutz
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import logging
 import select
@@ -38,9 +38,10 @@ from typing import cast
 from evdev import InputDevice, categorize, ecodes, list_devices
 from evdev.events import KeyEvent
 
-from arbeitszeit.domain.enums import BookingType
+from arbeitszeit.domain.enums import AdminAction, BookingType
 
 from .ports import (
+    AdminActionRequest,
     EmptyUidError,
     HardwareReader,
     HardwareTimeoutError,
@@ -63,6 +64,14 @@ _NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType] = {
     "KEY_3": BookingType.BREAK_START,
     "KEY_KP4": BookingType.BREAK_END,
     "KEY_4": BookingType.BREAK_END,
+}
+
+# Numpad-Tasten 7 und 9 → AdminAction (Stop / Neustart)
+_NUMPAD_TO_ADMIN_ACTION: dict[str, AdminAction] = {
+    "KEY_KP7": AdminAction.STOP,
+    "KEY_7": AdminAction.STOP,
+    "KEY_KP9": AdminAction.RESTART,
+    "KEY_9": AdminAction.RESTART,
 }
 
 # Nur Hex-Zeichen (0–9, A–F) – RFID-Lesegeräte liefern ausschließlich Hex-UIDs.
@@ -214,8 +223,10 @@ class EvdevHardwareReader(HardwareReader):
             self._numpad.grab()
             self._rfid.grab()
 
-    def read_next(self) -> RawBookingRequest:
-        booking_type = self._read_booking_type()
+    def read_next(self) -> RawBookingRequest | AdminActionRequest:
+        key = self._read_booking_type_or_admin()
+        if isinstance(key, AdminAction):
+            return AdminActionRequest(action=key)
         # occurred_at erst nach vollständiger UID-Lesung:
         # Setzt den Zeitstempel auf den Abschluss der Buchungsanforderung,
         # nicht auf den Zwischenstand nach Tastenauswahl.
@@ -224,12 +235,18 @@ class EvdevHardwareReader(HardwareReader):
         if not raw_uid:
             raise EmptyUidError("RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen.")
         return RawBookingRequest(
-            booking_type=booking_type,
+            booking_type=key,
             uid_hash=hash_uid(raw_uid),
             occurred_at=occurred_at,
         )
 
-    def _read_booking_type(self) -> BookingType:
+    def read_rfid_uid_hash(self, timeout: float = 15.0) -> str:
+        raw_uid = self._read_rfid_uid(timeout=timeout).strip()
+        if not raw_uid:
+            raise EmptyUidError("RFID-Lesegerät lieferte leere UID.")
+        return hash_uid(raw_uid)
+
+    def _read_booking_type_or_admin(self) -> BookingType | AdminAction:
         for event in self._numpad.read_loop():
             if event.type != ecodes.EV_KEY:
                 continue
@@ -240,6 +257,9 @@ class EvdevHardwareReader(HardwareReader):
             bt = _NUMPAD_TO_BOOKING_TYPE.get(keycode)
             if bt is not None:
                 return bt
+            aa = _NUMPAD_TO_ADMIN_ACTION.get(keycode)
+            if aa is not None:
+                return aa
         raise OSError("Numpad-Gerät unerwartet geschlossen.")
 
     def _wait_rfid_ready(self, deadline: float, timeout: float) -> None:

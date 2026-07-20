@@ -1,10 +1,10 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
-from arbeitszeit.domain.enums import BookingType
+from arbeitszeit.domain.enums import AdminAction, BookingType
 
 
 class EmptyUidError(RuntimeError):
@@ -22,7 +22,13 @@ class RawBookingRequest:
     occurred_at: datetime
 
 
+@dataclass(frozen=True)
+class AdminActionRequest:
+    action: AdminAction
+
+
 @runtime_checkable
 class HardwareReader(Protocol):
-    def read_next(self) -> RawBookingRequest: ...
+    def read_next(self) -> RawBookingRequest | AdminActionRequest: ...
+    def read_rfid_uid_hash(self, timeout: float = 15.0) -> str: ...
     def close(self) -> None: ...
