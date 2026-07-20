@@ -43,12 +43,12 @@ hier bewusst weggelassen. Diese finden sich im technischen Handbuch
 2. [Erste Schritte](#kapitel-2-erste-schritte)
 3. [Mitarbeitende verwalten](#kapitel-3-mitarbeitende-verwalten)
 4. [Buchungsbetrieb am Terminal](#kapitel-4-buchungsbetrieb-am-terminal)
-5. [Buchungen korrigieren und Nachträge](#kapitel-5-buchungen-korrigieren-und-nachtr%C3%A4ge)
+5. [Buchungen korrigieren und Nachträge](#kapitel-5-buchungen-korrigieren-und-nachträge)
 6. [Berichte erstellen](#kapitel-6-berichte-erstellen)
 7. [Arbeitszeitplan setzen](#kapitel-7-arbeitszeitplan-setzen)
 8. [Benutzerverwaltung](#kapitel-8-benutzerverwaltung)
 9. [System-Wartung](#kapitel-9-system-wartung)
-10. [Häufige Fragen und Fehlermeldungen](#kapitel-10-h%C3%A4ufige-fragen-und-fehlermeldungen)
+10. [Häufige Fragen und Fehlermeldungen](#kapitel-10-häufige-fragen-und-fehlermeldungen)
 
 ---
 
