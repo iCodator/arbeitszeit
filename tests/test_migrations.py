@@ -1,12 +1,14 @@
-"""Gesamtmigrations-Test: verifiziert die vollständige Migrationskette 0001–0006.
+"""Gesamtmigrations-Test: verifiziert die vollständige Migrationskette 0001–0007.
 
 Historischer Ursprung: Phase 1 (Grundgerüst). Ursprünglich 6 Testfälle für
-Migrationen 0001 und 0002. Mit jeder späteren Migration (0003–0006, Phase 4/5)
-wurden passende Testfälle ergänzt; der Prüfumfang wuchs auf 12 Tests.
+Migrationen 0001 und 0002. Mit jeder späteren Migration (0003–0007) wurden
+passende Testfälle ergänzt; der Prüfumfang wuchs auf 13 Tests.
 
 Jeder Testlauf verifiziert den aktuellen Gesamtstand der Migrationskette,
 nicht nur den historischen Phase-1-Lieferumfang.
 """
+
+__version__ = "1.1"
 
 import shutil
 import sqlite3
@@ -38,6 +40,7 @@ _EXPECTED_TABLES = {
     "device_events",
     "system_events",
     "audit_log",
+    "admin_rfid_cards",
 }
 
 
@@ -62,7 +65,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn: sqlite3.Connection) -> None:
     executed = run_migrations(conn)
 
-    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006"]
+    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006", "0007"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
@@ -101,11 +104,13 @@ def test_audit_log_enthaelt_seed_eintraege(conn: sqlite3.Connection) -> None:
     assert count == 9
 
 
-def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn: sqlite3.Connection) -> None:
+def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(
+    conn: sqlite3.Connection,
+) -> None:
     run_migrations(conn)
 
     versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
-    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006"}
+    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006", "0007"}
 
 
 def test_migration_0004_fuegt_neue_spalten_ein(conn: sqlite3.Connection) -> None:
@@ -131,7 +136,9 @@ def test_migration_0005_fuegt_device_event_id_ein(conn: sqlite3.Connection) -> N
     assert "device_events" in fk_targets
 
 
-def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(conn: sqlite3.Connection) -> None:
+def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(
+    conn: sqlite3.Connection,
+) -> None:
     run_migrations(conn)
 
     fk_targets = {
@@ -201,7 +208,9 @@ def test_migration_0005_datensatz_bleibt_erhalten(conn: sqlite3.Connection, tmp_
     assert row["device_event_id"] is None
 
 
-def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(conn: sqlite3.Connection, tmp_path: Path) -> None:
+def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(
+    conn: sqlite3.Connection, tmp_path: Path
+) -> None:
     partial_dir = tmp_path / "partial"
     partial_dir.mkdir()
     shutil.copy(_MIGRATIONS_ROOT / "0001_schema.sql", partial_dir / "0001_schema.sql")
@@ -231,7 +240,54 @@ def test_migration_0006_application_error_event_type_verfuegbar(conn: sqlite3.Co
     assert row["event_type"] == "APPLICATION_ERROR"
 
 
-def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn: sqlite3.Connection) -> None:
+def test_migration_0007_admin_rfid_cards_tabelle_und_neue_event_types(
+    conn: sqlite3.Connection,
+) -> None:
+    run_migrations(conn)
+
+    # Tabelle und Index vorhanden
+    tables = _table_names(conn)
+    assert "admin_rfid_cards" in tables
+    index_row = conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_admin_rfid_cards_uid_hash'"
+    ).fetchone()
+    assert index_row is not None
+
+    # Einfügen und Auslesen
+    conn.execute(
+        "INSERT INTO admin_rfid_cards (uid_hash, label, created_at) VALUES (?, ?, ?)",
+        ("deadbeef0001", "Testkarte", "2026-07-20T10:00:00"),
+    )
+    row = conn.execute("SELECT uid_hash, label, active FROM admin_rfid_cards").fetchone()
+    assert row["uid_hash"] == "deadbeef0001"
+    assert row["active"] == 1
+
+    # UNIQUE-Constraint
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute(
+            "INSERT INTO admin_rfid_cards (uid_hash, label, created_at) VALUES (?, ?, ?)",
+            ("deadbeef0001", "Duplikat", "2026-07-20T10:00:00"),
+        )
+
+    # Neue system_events-Typen funktionieren
+    _insert_sys = (
+        "INSERT INTO system_events (event_type, source, severity, event_at)"
+        " VALUES (?, ?, ?, ?)"
+    )
+    for et in ("ADMIN_ACCESS_GRANTED", "ADMIN_ACCESS_DENIED"):
+        conn.execute(_insert_sys, (et, "terminal_ui", "INFO", "2026-07-20T10:00:00"))
+    count = conn.execute(
+        "SELECT COUNT(*) FROM system_events WHERE event_type LIKE 'ADMIN_%'"
+    ).fetchone()[0]
+    assert count == 2
+
+    # Alter event_type bleibt weiterhin gültig
+    conn.execute(_insert_sys, ("APPLICATION_ERROR", "terminal_ui", "ERROR", "2026-07-20T10:00:00"))
+
+
+def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(
+    conn: sqlite3.Connection,
+) -> None:
     run_migrations(conn)
     run_migrations(conn)
 
