@@ -1,4 +1,4 @@
-__version__ = "1.3"
+__version__ = "1.4"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -9,7 +9,14 @@ from arbeitszeit.application.results import BookResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases._booking_evaluation import evaluate_booking
 from arbeitszeit.domain import audit_events
-from arbeitszeit.domain.entities import AuditLogEntry, Employee, ReviewCase, RfidCard, TimeBooking
+from arbeitszeit.domain.entities import (
+    AuditLogEntry,
+    Employee,
+    ReviewCase,
+    RfidCard,
+    TimeBooking,
+    WorkScheduleVersion,
+)
 from arbeitszeit.domain.enums import (
     BookingStatus,
     BookingType,
@@ -41,11 +48,32 @@ _NEXT_BOOKING_TYPE: dict[BookingType, BookingType] = {
 }
 
 
-def derive_booking_type(day_bookings: Sequence[BookingType]) -> BookingType:
+def _schedule_duration(schedule: WorkScheduleVersion) -> timedelta:
+    base = datetime(2000, 1, 1)
+    return datetime.combine(base, schedule.end_time) - datetime.combine(base, schedule.start_time)
+
+
+def _is_short_day(schedule: WorkScheduleVersion | None) -> bool:
+    """True wenn Zeitplan vorhanden und Solldauer ≤ 6 h (§ 4 ArbZG: kein Pausenanspruch)."""
+    return schedule is not None and _schedule_duration(schedule) <= timedelta(hours=6)
+
+
+def derive_booking_type(
+    day_bookings: Sequence[BookingType],
+    schedule: WorkScheduleVersion | None = None,
+) -> BookingType:
     """Leitet den nächsten Buchungstyp aus der bisherigen Tagessequenz ab.
 
-    Sequenz: COME → BREAK_START → BREAK_END → GO.
+    Standardsequenz: COME → BREAK_START → BREAK_END → GO.
     Wirft InvalidBookingSequenceError wenn der Tagesablauf abgeschlossen ist.
+
+    Ausnahme beim 2. Scan (Tagessequenz: genau [COME]):
+    Liegt eine WorkScheduleVersion vor und ist deren Solldauer (end_time −
+    start_time) höchstens 6 Stunden, wird GO statt BREAK_START abgeleitet.
+    Begründung: Nach § 4 ArbZG besteht erst bei mehr als 6 Stunden Arbeitszeit
+    ein Pausenanspruch; bis einschließlich 6 h gilt kein Pausenzwang.
+    Ist kein Zeitplan vorhanden (schedule is None), greift die Ausnahme nicht
+    und die reine Positionslogik gilt unverändert.
     """
     if not day_bookings:
         return BookingType.COME
@@ -54,6 +82,8 @@ def derive_booking_type(day_bookings: Sequence[BookingType]) -> BookingType:
         raise InvalidBookingSequenceError(
             "Tagesablauf abgeschlossen — keine weitere Buchung zulässig."
         )
+    if next_type == BookingType.BREAK_START and _is_short_day(schedule):
+        return BookingType.GO
     return next_type
 
 
@@ -94,13 +124,14 @@ class BookUseCase:
             )
 
             day_booking_types = [b.booking_type for b in day_bookings]
-            booking_type = derive_booking_type(day_booking_types)
-            validate_booking_sequence(booking_type, day_booking_types)
 
-            schedule_flags: list[ComplianceFlag] = []
             schedule = self._uow.work_schedule_repo.get_effective(
                 cmd.booked_at.isoweekday(), cmd.booked_at.date(), employee.id
             )
+            booking_type = derive_booking_type(day_booking_types, schedule)
+            validate_booking_sequence(booking_type, day_booking_types)
+
+            schedule_flags: list[ComplianceFlag] = []
             if schedule is not None and not (
                 schedule.start_time <= cmd.booked_at.time() <= schedule.end_time
             ):

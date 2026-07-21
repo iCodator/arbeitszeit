@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 import sys
@@ -495,3 +495,77 @@ def test_derive_nach_vollstaendigem_tag_wirft_invalid_sequence_error() -> None:
         derive_booking_type(
             [BookingType.COME, BookingType.BREAK_START, BookingType.BREAK_END, BookingType.GO]
         )
+
+
+# --- derive_booking_type: Sollzeit-Ausnahmeregel (§ 4 ArbZG) ---
+
+
+def _make_schedule(start: time, end: time) -> WorkScheduleVersion:
+    return WorkScheduleVersion(
+        id=WorkScheduleVersionId(0),
+        scope_type=ScopeType.GLOBAL,
+        scope_employee_id=None,
+        weekday=1,
+        start_time=start,
+        end_time=end,
+        valid_from=date(2000, 1, 1),
+        valid_until=None,
+        change_origin=ChangeOrigin.SYSTEM_SEED,
+        changed_by_user_id=None,
+    )
+
+
+def test_derive_booking_type_break_start_when_schedule_over_6h() -> None:
+    # 7-h-Schicht (08:00–15:00): > 6 h → Pausenpflicht → BREAK_START
+    sched = _make_schedule(time(8, 0), time(15, 0))
+    assert derive_booking_type([BookingType.COME], schedule=sched) == BookingType.BREAK_START
+
+
+def test_derive_booking_type_go_when_schedule_under_6h() -> None:
+    # 5-h-Schicht (08:00–13:00): ≤ 6 h → kein Pausenanspruch → GO
+    sched = _make_schedule(time(8, 0), time(13, 0))
+    assert derive_booking_type([BookingType.COME], schedule=sched) == BookingType.GO
+
+
+def test_derive_booking_type_go_when_schedule_exactly_6h_no_break_required() -> None:
+    # Grenzfall: exakt 6 h (08:00–14:00).
+    # § 4 ArbZG schreibt Pause erst bei *mehr als* 6 h vor; bei genau 6 h
+    # besteht kein Pausenanspruch. Die Bedingung ist daher ≤ 6 h (inklusiv).
+    sched = _make_schedule(time(8, 0), time(14, 0))
+    assert derive_booking_type([BookingType.COME], schedule=sched) == BookingType.GO
+
+
+def test_derive_booking_type_break_start_when_no_schedule_fallback() -> None:
+    # Kein Zeitplan → Positionslogik greift unverändert: 2. Scan = BREAK_START
+    assert derive_booking_type([BookingType.COME], schedule=None) == BookingType.BREAK_START
+
+
+# --- Sollzeit-Ausnahmeregel: Integration über BookUseCase ---
+
+
+def test_zweiter_scan_mit_kurzem_zeitplan_ergibt_go() -> None:
+    # Schicht ≤ 6 h: 2. Scan soll GO erzeugen (keine Pause nötig)
+    # _DATE = 2025-03-10 → isoweekday = 1 (Montag)
+    uow = _make_uow()
+    _add_global_schedule(uow, weekday=1, start=time(8, 0), end=time(13, 0))  # 5 h
+    _add_booking(uow, BookingType.COME, 8)
+    uc = BookUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booked_at=_T(13)))
+
+    saved = uow.time_booking_repo.get_by_id(result.booking_id)
+    assert saved is not None
+    assert saved.booking_type == BookingType.GO
+
+
+def test_zweiter_scan_ohne_zeitplan_ergibt_break_start() -> None:
+    # Kein Zeitplan: 2. Scan bleibt BREAK_START (Positionslogik)
+    uow = _make_uow()
+    _add_booking(uow, BookingType.COME, 8)
+    uc = BookUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booked_at=_T(10)))
+
+    saved = uow.time_booking_repo.get_by_id(result.booking_id)
+    assert saved is not None
+    assert saved.booking_type == BookingType.BREAK_START
