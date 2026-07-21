@@ -5,6 +5,34 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [feat(admin_cli): audit open-shifts — offene Vortagsschichten abfragen] – 2026-07-21
+
+### Hinzugefügt
+
+- `src/arbeitszeit/presentation/admin_cli/audit.py` (neu, v1.0):
+  Neues CLI-Modul für Audit-Log-Abfragen. Erster Unterbefehl:
+  `admin audit open-shifts [--days N]` (Standard: 30 Tage).
+  - Liest `OPEN_SHIFT_PREVIOUS_DAY_DETECTED`-Einträge aus dem Audit-Log,
+    joined mit `employees` für Vor-/Nachname.
+  - Ausgabe tabellarisch, chronologisch aufsteigend (älteste offene Schicht zuerst).
+  - Leermeldung wenn keine Einträge gefunden.
+  - `--days` validiert: negativ, null und nicht-numerisch werden mit
+    Fehlermeldung abgewiesen.
+  - Rollenprüfung: ADMIN und REVIEWER. TECH wird abgewiesen.
+
+- `tests/integration/test_audit_cli.py` (neu, v1.0):
+  7 Tests: mehrere Einträge (chronologisch sortiert), Leermeldung,
+  Zeitraum-Filterung, negative/null/nicht-numerische --days-Werte,
+  REVIEWER-Zugriff, TECH-Abweisung.
+
+### Geändert
+
+- `src/arbeitszeit/presentation/admin_cli/main.py` (v1.3 → v1.4):
+  `audit`-Modul importiert, `audit.register_subcommands(sub)` registriert,
+  Dispatch-Eintrag `("audit", "open-shifts")` ergänzt.
+
+---
+
 ## [feat(book_time): offene Vortagsschicht als Audit-Log-Eintrag protokollieren] – 2026-07-21
 
 ### Hinzugefügt
