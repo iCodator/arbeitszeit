@@ -62,7 +62,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn: sqlite3.Connection) -> None:
     executed = run_migrations(conn)
 
-    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006"]
+    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006", "0007"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
@@ -105,7 +105,7 @@ def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn: sqlite3
     run_migrations(conn)
 
     versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
-    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006"}
+    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006", "0007"}
 
 
 def test_migration_0004_fuegt_neue_spalten_ein(conn: sqlite3.Connection) -> None:
@@ -239,4 +239,4 @@ def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn: sqlite
     assert schedule_count == 5
 
     config_count = conn.execute("SELECT COUNT(*) FROM system_config").fetchone()[0]
-    assert config_count == 4
+    assert config_count == 3

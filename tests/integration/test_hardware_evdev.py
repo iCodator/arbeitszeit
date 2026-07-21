@@ -40,7 +40,6 @@ def _make_reader() -> EvdevHardwareReader:
     reader._rfid = MagicMock()
     reader._rfid.path = "/dev/input/event1"
     reader._rfid.fd = 99  # Dummy-FD, da select.select gemockt wird
-    reader._rfid_timeout = 5.0
     return reader
 
 

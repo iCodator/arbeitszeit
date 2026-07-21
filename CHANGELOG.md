@@ -5,6 +5,38 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [chore(rfid): booking.grace_seconds_after_numpad_select entfernen] – 2026-07-21
+
+### Entfernt
+
+- `migrations/0007_remove_numpad_grace_config.sql` (neu):
+  Löscht `booking.grace_seconds_after_numpad_select` aus `system_config` aller
+  bestehenden Datenbanken. Der Schlüssel steuerte den Timeout zwischen NumPad-
+  Auswahl und RFID-Scan — ein Konzept, das im RFID-only-Modell entfällt.
+- `src/arbeitszeit/infrastructure/system_check.py` (v1.0 → v1.1):
+  `booking.grace_seconds_after_numpad_select` aus `_REQUIRED_CONFIG_KEYS` entfernt.
+- `src/arbeitszeit/presentation/terminal_ui/main.py` (v1.4 → v1.5):
+  `grace_conn`-Leseblock und `rfid_timeout`-Parameter-Übergabe an
+  `EvdevHardwareReader` entfernt. Import `SQLiteSystemConfigRepository` entfernt.
+- `src/arbeitszeit/infrastructure/hardware/evdev_reader.py` (v1.0 → v1.1):
+  `rfid_timeout`-Konstruktorparameter aus `EvdevHardwareReader.__init__()` entfernt.
+  `_read_rfid_uid()` verwendet intern weiterhin `_RFID_READ_TIMEOUT = 5.0`.
+
+### Geändert
+
+- `tests/test_migrations.py`: erwartete Versionsliste auf `"0007"` erweitert,
+  Seed-Zählung von 4 auf 3 korrigiert.
+- `tests/integration/test_hardware_evdev.py`: `reader._rfid_timeout = 5.0` aus
+  `_make_reader()` entfernt.
+- `tests/integration/test_terminal_ui_main.py`: `rfid_timeout`-Assertion entfernt.
+
+### Hinzugefügt
+
+- `docs/08_planung_intern/decisions/0002-remove-numpad-grace-config.md`:
+  Decision Record zur Entfernung des Config-Keys.
+
+---
+
 ## [fix(booking_rules): COME nach abgeschlossenem Tagesablauf abweisen] – 2026-07-21
 
 ### Geändert

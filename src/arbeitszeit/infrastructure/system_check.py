@@ -6,7 +6,7 @@ in system_events. Aufrufbar manuell und beim Systemstart.
 
 from __future__ import annotations
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 import logging
@@ -22,7 +22,6 @@ from arbeitszeit.infrastructure.db.connection import open_connection
 
 _REQUIRED_CONFIG_KEYS = (
     "app.timezone",
-    "booking.grace_seconds_after_numpad_select",
     "backup.nas_enabled",
     "backup.nas_path",
     # backup_dir, export_dir, log_dir sind in config.toml gewandert

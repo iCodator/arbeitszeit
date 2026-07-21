@@ -273,7 +273,6 @@ def test_run_initialisiert_reader_mit_gerätepfaden(tmp_path: Path) -> None:
     kwargs = mock_reader_cls.call_args.kwargs
     assert kwargs.get("numpad_path") == "/dev/numpad"
     assert kwargs.get("rfid_path") == "/dev/rfid"
-    assert isinstance(kwargs.get("rfid_timeout"), float)
 
 
 def test_run_sigterm_beendet_schleife_sauber(tmp_path: Path) -> None:
