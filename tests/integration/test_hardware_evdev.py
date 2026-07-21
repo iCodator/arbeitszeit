@@ -3,7 +3,7 @@ Tests für evdev-spezifische Logik: Hex-Filter (map_rfid_key), Fehlerhierarchie
 und Unit-Tests für EvdevHardwareReader-Methoden (ohne physische Hardware).
 """
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 import logging
 import sys
@@ -152,7 +152,7 @@ class TestReadRfidUid:
         with patch("select.select", return_value=select_ret):
             with patch(_CATEGORIZE, side_effect=_categorize_mock):
                 with patch("time.monotonic", return_value=0.0):
-                    return reader._read_rfid_uid(5.0)
+                    return reader._read_rfid_uid()
 
     def test_einfache_uid_eine_ziffer(self) -> None:
         reader = _make_reader()
@@ -194,7 +194,7 @@ class TestReadRfidUid:
         with patch(_CATEGORIZE, side_effect=_categorize_mock):
             with patch("time.monotonic", side_effect=[0.0, 1000.0]):
                 with pytest.raises(HardwareTimeoutError):
-                    reader._read_rfid_uid(5.0)
+                    reader._read_rfid_uid()
 
     def test_nicht_hex_taste_wird_ignoriert(self) -> None:
         reader = _make_reader()

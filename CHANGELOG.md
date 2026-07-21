@@ -5,6 +5,28 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [refactor(evdev): _RFID_READ_TIMEOUT entfernt — kein fachliches Scan-Zeitlimit mehr] – 2026-07-21
+
+### Geändert
+
+- `src/arbeitszeit/infrastructure/hardware/evdev_reader.py` (v1.2 → v1.3):
+  - `_RFID_READ_TIMEOUT: float = 5.0` vollständig entfernt. Das Timeout war
+    historisch an die NumPad-Eingabe gekoppelt (Zeitfenster zwischen Typwahl und
+    RFID-Scan); im RFID-only-Modell ist es fachlich nicht mehr erforderlich.
+  - `read_next()` wartet nun blockierend ohne fachliches Zeitlimit. Intern werden
+    kurze select()-Intervalle (1 s) verwendet, damit SIGTERM innerhalb endlicher
+    Zeit wirksam wird. `HardwareTimeoutError` wird von `read_next()` nicht mehr
+    nach außen weitergegeben.
+  - `_read_rfid_uid(timeout: float)` → `_read_rfid_uid()`: Parameter entfernt,
+    internes 1-s-Intervall fest eingebaut.
+  - `_wait_rfid_ready(deadline, timeout)` → `_wait_rfid_ready(deadline)`:
+    `timeout`-Parameter war nur für die Fehlermeldung genutzt, entfällt.
+
+- `tests/integration/test_hardware_evdev.py` (v1.2 → v1.3):
+  - Direkte `_read_rfid_uid(5.0)`-Aufrufe auf `_read_rfid_uid()` umgestellt.
+
+---
+
 ## [feat(book_time): Kurztag-Abschluss — 3. Scan bei Sollzeit ≤ 6 h abweisen] – 2026-07-21
 
 ### Hinzugefügt

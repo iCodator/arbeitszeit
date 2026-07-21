@@ -14,10 +14,10 @@ Unterstütztes Reader-Modell:
   abgeschlossen durch Enter. Nicht-Hex-Zeichen werden ignoriert; Präfixe,
   Suffixe oder abweichende Kodierungen erfordern eine angepasste Reader-Policy.
 
-read_next() wartet blockierend bis zu _RFID_READ_TIMEOUT Sekunden auf einen
-RFID-Scan. Bei Ablauf des Timeouts wird HardwareTimeoutError geworfen und der
-Zyklus in der aufrufenden Schicht neu gestartet. Dies ermöglicht einen
-Graceful Shutdown nach SIGTERM innerhalb endlicher Zeit.
+read_next() wartet blockierend auf einen RFID-Scan ohne fachliches Zeitlimit.
+Intern wiederholt die Methode kurze select()-Intervalle (1 s), damit SIGTERM
+nach spätestens diesem Intervall wirksam werden kann. HardwareTimeoutError
+wird von read_next() nicht nach außen weitergegeben.
 
 Lebenszyklus: Die aufrufende Schicht ist für close() verantwortlich.
 Empfohlen ist try/finally oder ein Context Manager, damit close()
@@ -27,7 +27,7 @@ Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutz
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 import logging
 import select
@@ -59,12 +59,6 @@ _HEX_KEY_CHAR: dict[str, str] = {
     **{f"KEY_KP{d}": d for d in "0123456789"},
 }
 _HEX_KEY_CHAR_SHIFT: dict[str, str] = {k: v.upper() for k, v in _HEX_KEY_CHAR.items()}
-
-# Timeout (Sekunden) für den RFID-Lesevorgang. Begrenzt die Wartezeit in
-# select.select() so dass SIGTERM nach spätestens diesem Intervall wirksam wird
-# (PEP 475: select.select() wird nach EINTR automatisch neu gestartet,
-# kehrt aber beim Timeout-Ablauf zurück → Hauptschleife kann running prüfen).
-_RFID_READ_TIMEOUT: float = 5.0
 
 _SHIFT_KEYS = ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT")
 _ENTER_KEYS = ("KEY_ENTER", "KEY_KPENTER")
@@ -199,7 +193,18 @@ class EvdevHardwareReader(HardwareReader):
             self._rfid.grab()
 
     def read_next(self) -> RawBookingRequest:
-        raw_uid = self._read_rfid_uid(timeout=_RFID_READ_TIMEOUT).strip()
+        """Wartet blockierend auf den nächsten RFID-Scan.
+
+        Kehrt zurück sobald eine vollständige UID gelesen wurde.
+        Interne Poll-Timeouts (für SIGTERM-Reaktion) werden transparent wiederholt.
+        Wirft EmptyUidError wenn die gescannte UID leer ist.
+        """
+        while True:
+            try:
+                raw_uid = self._read_rfid_uid().strip()
+                break
+            except HardwareTimeoutError:
+                continue
         occurred_at = datetime.now(timezone.utc)
         if not raw_uid:
             raise EmptyUidError("RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen.")
@@ -208,17 +213,18 @@ class EvdevHardwareReader(HardwareReader):
             occurred_at=occurred_at,
         )
 
-    def _wait_rfid_ready(self, deadline: float, timeout: float) -> None:
+    def _wait_rfid_ready(self, deadline: float) -> None:
         """Wartet auf ein RFID-Event innerhalb der Deadline.
 
-        Wirft HardwareTimeoutError wenn die Deadline abgelaufen ist oder select() nicht antwortet.
+        Wirft HardwareTimeoutError wenn die Deadline abgelaufen ist
+        oder select() kein Ereignis liefert.
         """
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
+            raise HardwareTimeoutError("RFID-Poll-Intervall abgelaufen.")
         ready, _, _ = select.select([self._rfid.fd], [], [], remaining)
         if not ready:
-            raise HardwareTimeoutError(f"RFID-Lesevorgang überschritt {timeout}s-Zeitlimit.")
+            raise HardwareTimeoutError("RFID-Poll-Intervall abgelaufen.")
 
     def _read_rfid_batch(
         self,
@@ -239,18 +245,18 @@ class EvdevHardwareReader(HardwareReader):
                 return uid, shift_active
         return None, shift_active
 
-    def _read_rfid_uid(self, timeout: float) -> str:
-        """Liest Hex-UID vom RFID-Reader bis Enter oder Timeout.
+    def _read_rfid_uid(self) -> str:
+        """Liest Hex-UID vom RFID-Reader bis Enter oder Ende des Poll-Intervalls.
 
-        Wirft HardwareTimeoutError wenn innerhalb von `timeout` Sekunden
-        keine vollständige UID (abgeschlossen durch Enter) gelesen wird.
+        Wirft HardwareTimeoutError nach dem internen 1-s-Intervall; read_next()
+        fängt dies ab und startet einen neuen Versuch.
         Nicht-Hex-Zeichen werden ignoriert.
         """
         chars: list[str] = []
         shift_active = False
-        deadline = time.monotonic() + timeout
+        deadline = time.monotonic() + 1.0  # 1 s: kurzes Intervall für SIGTERM-Reaktion
         while True:
-            self._wait_rfid_ready(deadline, timeout)
+            self._wait_rfid_ready(deadline)
             result, shift_active = self._read_rfid_batch(chars, shift_active)
             if result is not None:
                 return result
