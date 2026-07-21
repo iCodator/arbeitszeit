@@ -1,5 +1,6 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
+from .debounce import DebouncedHardwareReader
 from .ports import (
     EmptyUidError,
     HardwareReader,
@@ -10,6 +11,7 @@ from .simulator import SimulatedHardwareReader
 from .uid_hash import hash_uid
 
 __all__ = [
+    "DebouncedHardwareReader",
     "EmptyUidError",
     "HardwareReader",
     "HardwareTimeoutError",

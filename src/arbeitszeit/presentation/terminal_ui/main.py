@@ -1,6 +1,6 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.6"
+__version__ = "1.7"
 
 import argparse
 import json
@@ -24,6 +24,7 @@ from arbeitszeit.domain.errors import (
 )
 from arbeitszeit.infrastructure.config_file import AppConfig, find_config, load_config
 from arbeitszeit.infrastructure.db.connection import open_connection
+from arbeitszeit.infrastructure.hardware.debounce import DebouncedHardwareReader
 from arbeitszeit.infrastructure.hardware.evdev_reader import (
     DeviceNotFoundError,
     EvdevHardwareReader,
@@ -207,7 +208,7 @@ def run(
     monitor = SystemTimeMonitor(db_path, threshold_seconds=threshold)
     monitor.check()  # Basiszeitpunkt setzen
 
-    reader = EvdevHardwareReader(rfid_path=rfid_path)
+    reader = DebouncedHardwareReader(EvdevHardwareReader(rfid_path=rfid_path))
     try:
         while running:
             _run_one_cycle(reader, db_path, terminal_id, monitor)

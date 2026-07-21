@@ -5,6 +5,33 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [feat(hardware): Anti-Doppel-Scan-Schutz (Entprellung, 3 s) eingeführt] – 2026-07-21
+
+### Hinzugefügt
+
+- `src/arbeitszeit/infrastructure/hardware/debounce.py` (neu, v1.0):
+  `DebouncedHardwareReader` wraps jeden `HardwareReader` und verwirft
+  Scans derselben Karte (uid_hash), die innerhalb von `DEBOUNCE_SECONDS = 3.0 s`
+  aufeinanderfolgen. Verworfene Doppel-Scans werden als INFO geloggt.
+  Kein fachliches Zeitlimit: kein ArbZG-Bezug, kein Einfluss auf die
+  Buchungssequenz (Kurztag/Langtag). Unterschiedliche Karten bleiben unberührt.
+
+- `tests/integration/test_hardware_debounce.py` (neu, v1.0):
+  9 Tests: Grundverhalten, Doppel-Scan-Erkennung (< 3 s), Grenzfall (= 3 s),
+  Timestamp-Invariante (Duplikat setzt Uhr nicht weiter), legitimer Folgescan
+  (> 3 s), verschiedene Karten, Logging, kein Logging bei Akzeptanz, close().
+
+### Geändert
+
+- `src/arbeitszeit/infrastructure/hardware/__init__.py` (v1.0 → v1.1):
+  `DebouncedHardwareReader` in `__all__` aufgenommen.
+
+- `src/arbeitszeit/presentation/terminal_ui/main.py` (v1.6 → v1.7):
+  `EvdevHardwareReader` wird beim Start in `DebouncedHardwareReader` eingebettet.
+  `booking_loop.py` und die Domain-Schicht bleiben unverändert.
+
+---
+
 ## [refactor(evdev): _RFID_READ_TIMEOUT entfernt — kein fachliches Scan-Zeitlimit mehr] – 2026-07-21
 
 ### Geändert
