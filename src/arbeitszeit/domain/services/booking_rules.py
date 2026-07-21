@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from typing import Callable, Sequence
 
@@ -34,6 +34,11 @@ def _validate_come(open_work: bool, open_break: bool) -> None:
         raise InvalidBookingSequenceError("COME nach offenem COME nicht zulässig.")
     if open_break:
         raise InvalidBookingSequenceError("COME während offener Pause nicht zulässig.")
+    # Diese Funktion wird nur aufgerufen, wenn day_bookings nicht leer ist
+    # (validate_booking_sequence() gibt bei leerem day_bookings frühzeitig zurück).
+    # open_work=False bei nicht-leerem day_bookings bedeutet: GO hat die letzte
+    # Arbeitsphase geschlossen — der Tagesablauf ist abgeschlossen.
+    raise InvalidBookingSequenceError("COME nach abgeschlossenem Tagesablauf nicht zulässig.")
 
 
 def _validate_go(open_work: bool, open_break: bool) -> None:

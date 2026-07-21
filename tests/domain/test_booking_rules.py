@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import sys
 from pathlib import Path
@@ -84,9 +84,17 @@ def test_come_erste_buchung_wird_akzeptiert() -> None:
     validate_booking_sequence(BookingType.COME, [])
 
 
-def test_come_nach_vollstaendigem_kommen_gehen_zyklus() -> None:
-    # Nach abgeschlossenem COME→GO: open_work=False, open_break=False → COME gültig.
-    validate_booking_sequence(BookingType.COME, [BookingType.COME, BookingType.GO])
+def test_come_nach_abgeschlossenem_kommen_gehen_zyklus_wird_abgelehnt() -> None:
+    with pytest.raises(InvalidBookingSequenceError):
+        validate_booking_sequence(BookingType.COME, [BookingType.COME, BookingType.GO])
+
+
+def test_come_nach_vollem_zyklus_mit_pause_wird_abgelehnt() -> None:
+    with pytest.raises(InvalidBookingSequenceError):
+        validate_booking_sequence(
+            BookingType.COME,
+            [BookingType.COME, BookingType.BREAK_START, BookingType.BREAK_END, BookingType.GO],
+        )
 
 
 def test_go_nach_come_wird_akzeptiert() -> None:

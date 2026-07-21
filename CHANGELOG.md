@@ -5,6 +5,32 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [fix(booking_rules): COME nach abgeschlossenem Tagesablauf abweisen] – 2026-07-21
+
+### Geändert
+
+- `src/arbeitszeit/domain/services/booking_rules.py` (v1.0 → v1.1):
+  - `_validate_come()` wirft jetzt `InvalidBookingSequenceError` wenn
+    `day_bookings` nicht leer und `open_work=False` — d. h. ein GO hat
+    die letzte Arbeitsphase geschlossen. Bisher wurde in diesem Zustand
+    keine Exception geworfen, was eine fünfte Buchung (COME) nach einem
+    vollständigen Zyklus (COME → BREAK_START → BREAK_END → GO) ermöglichte.
+  - Keine Signaturänderung: die bestehende `(open_work, open_break)`-Signatur
+    ist ausreichend, da `_validate_come` ausschließlich aus dem Nicht-Leer-Pfad
+    von `validate_booking_sequence()` aufgerufen wird.
+
+- `tests/domain/test_booking_rules.py` (v1.0 → v1.1):
+  - `test_come_nach_vollstaendigem_kommen_gehen_zyklus` (Erfolgstest, bisher
+    falsch positiv) ersetzt durch
+    `test_come_nach_abgeschlossenem_kommen_gehen_zyklus_wird_abgelehnt`
+    (erwartet `InvalidBookingSequenceError`)
+  - Neu: `test_come_nach_vollem_zyklus_mit_pause_wird_abgelehnt` für den
+    vollständigen Zyklus COME → BREAK_START → BREAK_END → GO
+  - `test_come_erste_buchung_wird_akzeptiert` (leeres `day_bookings`) bleibt
+    unverändert und grün
+
+---
+
 ## [docs(handbuch): Kapitel 10 — Terminal als systemd-Dienst einrichten] – 2026-07-20
 
 ### Hinzugefügt
