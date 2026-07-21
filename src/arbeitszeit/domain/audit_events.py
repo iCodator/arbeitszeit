@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 # Zentraler Katalog aller Audit-Log-Eventnamen (event_type in AuditLogEntry).
 # Alle Use Cases und Infrastrukturkomponenten importieren hier — keine freien
@@ -32,6 +32,9 @@ USER_ACCOUNT_CREATED = "USER_ACCOUNT_CREATED"
 USER_ACCOUNT_DEACTIVATED = "USER_ACCOUNT_DEACTIVATED"
 USER_ACCOUNT_REACTIVATED = "USER_ACCOUNT_REACTIVATED"
 USER_ACCOUNT_ROLE_CHANGED = "USER_ACCOUNT_ROLE_CHANGED"
+
+# --- Buchungsanomalien ---
+OPEN_SHIFT_PREVIOUS_DAY_DETECTED = "OPEN_SHIFT_PREVIOUS_DAY_DETECTED"
 
 # --- Backup / Restore ---
 BACKUP_CREATED = "BACKUP_CREATED"

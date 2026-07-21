@@ -27,6 +27,7 @@ _EXPECTED = {
     audit_events.USER_ACCOUNT_DEACTIVATED,
     audit_events.USER_ACCOUNT_REACTIVATED,
     audit_events.USER_ACCOUNT_ROLE_CHANGED,
+    audit_events.OPEN_SHIFT_PREVIOUS_DAY_DETECTED,
 }
 
 

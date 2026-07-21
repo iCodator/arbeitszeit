@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -11,6 +11,7 @@ from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, ReviewCase, TimeBooking
 from arbeitszeit.domain.enums import (
     BookingStatus,
+    BookingType,
     CardStatus,
     ReviewCaseStatus,
     ReviewCaseType,
@@ -121,6 +122,22 @@ class BookUseCase:
                 employee.id, cmd.booked_at.date() - timedelta(days=1)
             )
 
+            # Offene Vortagsschicht erkennen: tritt auf, wenn die heutige Buchungsliste
+            # leer ist, aber am Vortag Buchungen existieren und die letzte davon kein GO
+            # ist. Kein normaler Betriebsfall (keine Nachtschichten) — deutet auf eine
+            # vergessene Abmeldung hin. Die aktuelle Buchung wird trotzdem regulär
+            # verarbeitet; der Befund wird als Audit-Log-Eintrag festgehalten.
+            _open_prev_shift_details: dict[str, object] | None = None
+            if not day_bookings and prev_bookings:
+                last_prev = prev_bookings[-1]
+                if last_prev.booking_type != BookingType.GO:
+                    _open_prev_shift_details = {
+                        "employee_id": employee.id,
+                        "previous_day_date": (cmd.booked_at.date() - timedelta(days=1)).isoformat(),
+                        "last_known_booking_type": last_prev.booking_type.value,
+                        "last_known_booking_at": last_prev.booked_at.isoformat(),
+                    }
+
             placeholder = TimeBooking(
                 id=TimeBookingId(0),
                 employee_id=employee.id,
@@ -202,6 +219,24 @@ class BookUseCase:
                     ),
                 )
             )
+
+            if _open_prev_shift_details is not None:
+                self._uow.audit_log_repo.add(
+                    AuditLogEntry(
+                        id=AuditLogEntryId(0),
+                        event_type=audit_events.OPEN_SHIFT_PREVIOUS_DAY_DETECTED,
+                        object_type="time_bookings",
+                        object_id=booking.id,
+                        user_id=None,
+                        employee_id=employee.id,
+                        event_at=now,
+                        details_json=json.dumps(
+                            _open_prev_shift_details,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        ),
+                    )
+                )
 
             return BookResult(
                 booking_id=booking.id,

@@ -5,6 +5,39 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [feat(book_time): offene Vortagsschicht als Audit-Log-Eintrag protokollieren] – 2026-07-21
+
+### Hinzugefügt
+
+- `src/arbeitszeit/domain/audit_events.py` (v1.0 → v1.1):
+  Neuer Eventtyp `OPEN_SHIFT_PREVIOUS_DAY_DETECTED` für den Fall, dass eine
+  als erste Tagesbuchung erkannte Buchung auf eine offene Vortagsschicht ohne
+  GO-Abschluss trifft.
+
+- `src/arbeitszeit/application/use_cases/book_time.py` (v1.0 → v1.1):
+  `BookUseCase.execute()` prüft nach dem Abruf von `prev_bookings`, ob der
+  aktuelle Scan die erste Buchung des Tages ist und die letzte Buchung des
+  Vortags kein GO war. Falls ja, wird nach `commit()` ein strukturierter
+  `OPEN_SHIFT_PREVIOUS_DAY_DETECTED`-Eintrag im Audit-Log gespeichert.
+  Die aktuelle Buchung wird regulär als Kommen verarbeitet — kein Abweisen,
+  keine Exception, kein Blocking.
+
+  Details im `details_json`: `employee_id`, `previous_day_date`,
+  `last_known_booking_type`, `last_known_booking_at`.
+
+### Geändert
+
+- `tests/application/test_book_time.py` (neu: v1.0):
+  Drei neue Tests für die offene-Vortagsschicht-Erkennung:
+  - `test_offene_vortagsschicht_erzeugt_audit_log_eintrag`
+  - `test_korrekt_abgeschlossener_vortag_erzeugt_kein_sonderaudit`
+  - `test_kein_vortag_erzeugt_kein_sonderaudit`
+
+- `tests/domain/test_audit_events.py`: `OPEN_SHIFT_PREVIOUS_DAY_DETECTED`
+  in den Erwartungskatalog aufgenommen.
+
+---
+
 ## [chore(rfid): booking.grace_seconds_after_numpad_select entfernen] – 2026-07-21
 
 ### Entfernt

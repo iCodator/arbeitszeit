@@ -1,3 +1,6 @@
+__version__ = "1.0"
+
+import json
 import sys
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
@@ -43,10 +46,15 @@ from arbeitszeit.domain.value_objects import (
 from tests.application.fakes import FakeUnitOfWork
 
 _DATE = date(2025, 3, 10)
+_YESTERDAY = _DATE - timedelta(days=1)
 
 
 def _T(h: int, m: int = 0) -> datetime:
     return datetime(_DATE.year, _DATE.month, _DATE.day, h, m, tzinfo=timezone.utc)
+
+
+def _TY(h: int, m: int = 0) -> datetime:
+    return datetime(_YESTERDAY.year, _YESTERDAY.month, _YESTERDAY.day, h, m, tzinfo=timezone.utc)
 
 
 def _as_uow(uow: FakeUnitOfWork) -> UnitOfWork:
@@ -413,3 +421,66 @@ def test_come_ausserhalb_regelzeitfenster_erzeugt_review_case() -> None:
     assert len(result.follow_up_case_ids) > 0
     cases = uow.review_case_repo.list_open_for_employee(1)
     assert any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)
+
+
+# --- Offene Vortagsschicht ---
+
+
+def test_offene_vortagsschicht_erzeugt_audit_log_eintrag() -> None:
+    uow = _make_uow()
+    # Vortag: COME ohne GO — offene Schicht
+    _add_booking_at(uow, BookingType.COME, _TY(8))
+    uc = BookUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+
+    # Buchung muss trotzdem erfolgreich sein
+    assert result.status == BookingStatus.OPEN
+    saved = uow.time_booking_repo.get_by_id(result.booking_id)
+    assert saved is not None
+    assert saved.booking_type == BookingType.COME
+
+    # Audit-Log-Eintrag für offene Vortagsschicht muss vorhanden sein
+    anomalie_entries = [
+        e
+        for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.OPEN_SHIFT_PREVIOUS_DAY_DETECTED
+    ]
+    assert len(anomalie_entries) == 1
+    details = json.loads(anomalie_entries[0].details_json)
+    assert details["employee_id"] == 1
+    assert details["previous_day_date"] == _YESTERDAY.isoformat()
+    assert details["last_known_booking_type"] == BookingType.COME.value
+    assert "last_known_booking_at" in details
+
+
+def test_korrekt_abgeschlossener_vortag_erzeugt_kein_sonderaudit() -> None:
+    uow = _make_uow()
+    # Vortag: vollständiger Zyklus COME → GO
+    _add_booking_at(uow, BookingType.COME, _TY(8))
+    _add_booking_at(uow, BookingType.GO, _TY(17))
+    uc = BookUseCase(_as_uow(uow))
+
+    uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+
+    anomalie_entries = [
+        e
+        for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.OPEN_SHIFT_PREVIOUS_DAY_DETECTED
+    ]
+    assert len(anomalie_entries) == 0
+
+
+def test_kein_vortag_erzeugt_kein_sonderaudit() -> None:
+    uow = _make_uow()
+    # Keine Buchungen am Vortag
+    uc = BookUseCase(_as_uow(uow))
+
+    uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+
+    anomalie_entries = [
+        e
+        for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.OPEN_SHIFT_PREVIOUS_DAY_DETECTED
+    ]
+    assert len(anomalie_entries) == 0
