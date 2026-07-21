@@ -1,4 +1,4 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 import json
 import sys
@@ -569,3 +569,53 @@ def test_zweiter_scan_ohne_zeitplan_ergibt_break_start() -> None:
     saved = uow.time_booking_repo.get_by_id(result.booking_id)
     assert saved is not None
     assert saved.booking_type == BookingType.BREAK_START
+
+
+# --- Schritt 4: Dritter Scan auf Kurztag ---
+
+
+def test_derive_booking_type_kurztag_dritter_scan_wirft_invalid_sequence_error() -> None:
+    # [COME, GO] + Kurztag-Zeitplan → 3. Scan muss InvalidBookingSequenceError werfen,
+    # Fehlermeldung muss "Kurztag" enthalten
+    sched = _make_schedule(time(8, 0), time(13, 0))  # 5 h ≤ 6 h
+    with pytest.raises(InvalidBookingSequenceError, match="Kurztag"):
+        derive_booking_type([BookingType.COME, BookingType.GO], schedule=sched)
+
+
+def test_derive_booking_type_langtag_dritter_scan_ergibt_break_end() -> None:
+    # [COME, BREAK_START] + Langtag-Zeitplan (> 6 h) → regulärer Ablauf: BREAK_END
+    sched = _make_schedule(time(8, 0), time(17, 0))  # 9 h > 6 h
+    result = derive_booking_type([BookingType.COME, BookingType.BREAK_START], schedule=sched)
+    assert result == BookingType.BREAK_END
+
+
+def test_kurztag_dritter_scan_wird_abgewiesen_ohne_buchung() -> None:
+    # Integration: Kurztag ≤ 6 h, bereits COME + GO im Repo → 3. Scan wirft Exception,
+    # keine Buchung wird geschrieben
+    uow = _make_uow()
+    _add_global_schedule(uow, weekday=1, start=time(8, 0), end=time(13, 0))  # 5 h
+    _add_booking(uow, BookingType.COME, 8)
+    _add_booking(uow, BookingType.GO, 13)
+    buchungen_vorher = len(uow.time_booking_repo._store)
+    uc = BookUseCase(_as_uow(uow))
+
+    with pytest.raises(InvalidBookingSequenceError, match="Kurztag"):
+        uc.execute(_cmd(booked_at=_T(14)))
+
+    assert len(uow.time_booking_repo._store) == buchungen_vorher
+
+
+def test_langtag_dritter_scan_ergibt_break_end() -> None:
+    # Integration: Langtag > 6 h, bereits COME + BREAK_START im Repo
+    # → 3. Scan via BookUseCase = BREAK_END (kein Kurztag-Fehler)
+    uow = _make_uow()
+    _add_global_schedule(uow, weekday=1, start=time(8, 0), end=time(17, 0))  # 9 h
+    _add_booking(uow, BookingType.COME, 8)
+    _add_booking(uow, BookingType.BREAK_START, 12)
+    uc = BookUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booked_at=_T(13)))
+
+    saved = uow.time_booking_repo.get_by_id(result.booking_id)
+    assert saved is not None
+    assert saved.booking_type == BookingType.BREAK_END

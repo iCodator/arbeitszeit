@@ -1,4 +1,4 @@
-__version__ = "1.4"
+__version__ = "1.5"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -58,6 +58,20 @@ def _is_short_day(schedule: WorkScheduleVersion | None) -> bool:
     return schedule is not None and _schedule_duration(schedule) <= timedelta(hours=6)
 
 
+def _derive_for_short_day(day_bookings: Sequence[BookingType]) -> BookingType:
+    """Buchungstyp-Ableitung für einen Kurztag (Sollzeit ≤ 6 h, §4 ArbZG).
+
+    2. Scan (genau 1 Buchung vorhanden): GO.
+    3. Scan oder mehr (≥ 2 Buchungen): InvalidBookingSequenceError.
+    """
+    if len(day_bookings) >= 2:
+        raise InvalidBookingSequenceError(
+            "Kurztag (Sollzeit ≤ 6 h): Tagesablauf nach COME und GO bereits "
+            "abgeschlossen — weitere Buchung unzulässig."
+        )
+    return BookingType.GO
+
+
 def derive_booking_type(
     day_bookings: Sequence[BookingType],
     schedule: WorkScheduleVersion | None = None,
@@ -67,23 +81,19 @@ def derive_booking_type(
     Standardsequenz: COME → BREAK_START → BREAK_END → GO.
     Wirft InvalidBookingSequenceError wenn der Tagesablauf abgeschlossen ist.
 
-    Ausnahme beim 2. Scan (Tagessequenz: genau [COME]):
-    Liegt eine WorkScheduleVersion vor und ist deren Solldauer (end_time −
-    start_time) höchstens 6 Stunden, wird GO statt BREAK_START abgeleitet.
-    Begründung: Nach § 4 ArbZG besteht erst bei mehr als 6 Stunden Arbeitszeit
-    ein Pausenanspruch; bis einschließlich 6 h gilt kein Pausenzwang.
-    Ist kein Zeitplan vorhanden (schedule is None), greift die Ausnahme nicht
-    und die reine Positionslogik gilt unverändert.
+    Kurztag-Ausnahme (Sollzeit ≤ 6 h, §4 ArbZG): 2. Scan → GO statt
+    BREAK_START; 3. Scan → InvalidBookingSequenceError mit Kurztag-Hinweis.
+    Ohne schedule greift ausschließlich die Standard-Positionslogik.
     """
     if not day_bookings:
         return BookingType.COME
+    if _is_short_day(schedule):
+        return _derive_for_short_day(day_bookings)
     next_type = _NEXT_BOOKING_TYPE.get(day_bookings[-1])
     if next_type is None:
         raise InvalidBookingSequenceError(
             "Tagesablauf abgeschlossen — keine weitere Buchung zulässig."
         )
-    if next_type == BookingType.BREAK_START and _is_short_day(schedule):
-        return BookingType.GO
     return next_type
 
 

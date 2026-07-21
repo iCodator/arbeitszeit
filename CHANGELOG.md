@@ -5,6 +5,30 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [feat(book_time): Kurztag-Abschluss — 3. Scan bei Sollzeit ≤ 6 h abweisen] – 2026-07-21
+
+### Hinzugefügt
+
+- `_derive_for_short_day(day_bookings)` in `book_time.py`:
+  Neue Hilfsfunktion kapselt die Kurztag-Ableitung. Erster Scan (1 Buchung):
+  GO. Dritter Scan oder mehr (≥ 2 Buchungen): `InvalidBookingSequenceError`
+  mit Kurztag-Hinweis in der Fehlermeldung.
+
+- 4 neue Tests in `tests/application/test_book_time.py` (v1.1 → v1.2):
+  - `test_derive_booking_type_kurztag_dritter_scan_wirft_invalid_sequence_error`
+  - `test_derive_booking_type_langtag_dritter_scan_ergibt_break_end`
+  - `test_kurztag_dritter_scan_wird_abgewiesen_ohne_buchung`
+  - `test_langtag_dritter_scan_ergibt_break_end`
+
+### Geändert
+
+- `src/arbeitszeit/application/use_cases/book_time.py` (v1.4 → v1.5):
+  `derive_booking_type()` delegiert den Kurztag-Pfad an `_derive_for_short_day()`.
+  Dadurch entfällt die `BREAK_START`-Bedingung; die Funktion ist kompakter und
+  CC sinkt von 5 auf 4 (weiterhin Note A).
+
+---
+
 ## [feat(rfid): NumPad entfernt — Buchungstyp positionsbasiert ableiten] – 2026-07-21
 
 ### Hinzugefügt
