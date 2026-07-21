@@ -7,7 +7,7 @@ setup_config() auf — keine doppelte Interaktions- oder Merge-Logik.
 
 from __future__ import annotations
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import json
 import sys
@@ -140,7 +140,6 @@ def setup_config(
     *,
     cli_db_path: Path | None = None,
     cli_terminal_id: int | None = None,
-    cli_numpad: str | None = None,
     cli_rfid: str | None = None,
     cli_admin_user_id: int | None = None,
     cli_backup_dir: Path | None = None,
@@ -167,7 +166,6 @@ def setup_config(
     try:
         db_path_val = _path_field("database.path", existing.database.path, cli_db_path)
         terminal_id_val = _int_field("terminal.id", existing.terminal.id, cli_terminal_id)
-        numpad_val = _str_field("terminal.numpad", existing.terminal.numpad, cli_numpad)
         rfid_val = _str_field("terminal.rfid", existing.terminal.rfid, cli_rfid)
         admin_user_id_val = _int_field(
             "admin.user_id (optional)", existing.admin.user_id, cli_admin_user_id
@@ -196,7 +194,7 @@ def setup_config(
 
     updated = AppConfig(
         database=DatabaseConfig(path=db_path_val),
-        terminal=TerminalConfig(id=terminal_id_val, numpad=numpad_val, rfid=rfid_val),
+        terminal=TerminalConfig(id=terminal_id_val, rfid=rfid_val),
         backup=BackupConfig(
             backup_dir=backup_dir_val, export_dir=export_dir_val, log_dir=log_dir_val
         ),
@@ -211,7 +209,6 @@ def setup_config(
         f for f, v in (
             ("database.path", updated.database.path),
             ("terminal.id", updated.terminal.id),
-            ("terminal.numpad", updated.terminal.numpad),
             ("terminal.rfid", updated.terminal.rfid),
         )
         if v is None

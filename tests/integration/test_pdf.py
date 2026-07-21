@@ -233,7 +233,9 @@ def test_mitarbeiterbericht_valides_pdf(conn: sqlite3.Connection, export_dir: Pa
     assert path.stat().st_size > 1000
 
 
-def test_mitarbeiterbericht_filtert_nach_employee(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_mitarbeiterbericht_filtert_nach_employee(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     emp1 = _insert_employee(conn, "E001")
     emp2 = _insert_employee(conn, "E002")
     _insert_booking(conn, emp1, "COME", _NOW, "OPEN")
@@ -259,7 +261,9 @@ def test_mitarbeiterbericht_filtert_nach_employee(conn: sqlite3.Connection, expo
 # ---------------------------------------------------------------------------
 
 
-def test_alle_vier_berichtstypen_erzeugen_gueltige_pdfs(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_alle_vier_berichtstypen_erzeugen_gueltige_pdfs(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     """Pflichtenheft v3 §7.11 + §16: Alle vier Berichte müssen generierbar sein."""
     emp_id = _base_setup(conn)
     results = [
@@ -279,7 +283,9 @@ def test_alle_vier_berichtstypen_erzeugen_gueltige_pdfs(conn: sqlite3.Connection
 # ---------------------------------------------------------------------------
 
 
-def test_tagesbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_tagesbericht_enthaelt_pflichtabschnitte(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     _base_setup(conn)
     path = create_daily_report(conn, date(2025, 6, 1), export_dir, now=_REPORT_NOW)
     text = _pdf_text(path)
@@ -287,7 +293,9 @@ def test_tagesbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, expor
         assert abschnitt in text, f"Abschnitt fehlt im Tagesbericht: {abschnitt}"
 
 
-def test_wochenbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_wochenbericht_enthaelt_pflichtabschnitte(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     _base_setup(conn)
     path = create_weekly_report(conn, 2025, 23, export_dir, now=_REPORT_NOW)
     text = _pdf_text(path)
@@ -295,7 +303,9 @@ def test_wochenbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, expo
         assert abschnitt in text, f"Abschnitt fehlt im Wochenbericht: {abschnitt}"
 
 
-def test_monatsbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_monatsbericht_enthaelt_pflichtabschnitte(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     _base_setup(conn)
     path = create_monthly_report(conn, 2025, 6, export_dir, now=_REPORT_NOW)
     text = _pdf_text(path)
@@ -303,7 +313,9 @@ def test_monatsbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, expo
         assert abschnitt in text, f"Abschnitt fehlt im Monatsbericht: {abschnitt}"
 
 
-def test_mitarbeiterbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_mitarbeiterbericht_enthaelt_pflichtabschnitte(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     emp_id = _base_setup(conn)
     path = create_employee_report(conn, emp_id, _FROM, _TO, export_dir, now=_REPORT_NOW)
     text = _pdf_text(path)
@@ -311,7 +323,9 @@ def test_mitarbeiterbericht_enthaelt_pflichtabschnitte(conn: sqlite3.Connection,
         assert abschnitt in text, f"Abschnitt fehlt im Mitarbeiterbericht: {abschnitt}"
 
 
-def test_erlaeuterungen_enthalten_statusbegriffe(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_erlaeuterungen_enthalten_statusbegriffe(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     """Pflichtenheft v3 §7.11: Berichte müssen Statusterminologie erläutern."""
     _base_setup(conn)
     path = create_daily_report(conn, date(2025, 6, 1), export_dir, now=_REPORT_NOW)
@@ -320,7 +334,9 @@ def test_erlaeuterungen_enthalten_statusbegriffe(conn: sqlite3.Connection, expor
         assert begriff in text, f"Erläuterungsbegriff fehlt: {begriff}"
 
 
-def test_mitarbeiterbericht_ohne_buchungen_robust(conn: sqlite3.Connection, export_dir: Path) -> None:
+def test_mitarbeiterbericht_ohne_buchungen_robust(
+    conn: sqlite3.Connection, export_dir: Path
+) -> None:
     """create_employee_report darf nicht fehlschlagen wenn keine Buchungen im Zeitraum."""
     emp_id = _insert_employee(conn, "E001")
     # keine Buchungen im Zeitraum

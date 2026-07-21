@@ -21,7 +21,6 @@ from arbeitszeit.application.commands import (
     CreateSupplementCommand,
     RejectSupplementCommand,
 )
-from arbeitszeit.domain.value_objects import EmployeeId, SupplementId, UserAccountId
 from arbeitszeit.application.use_cases.approve_supplement import (
     ApproveSupplementUseCase,
 )
@@ -36,6 +35,7 @@ from arbeitszeit.domain.errors import (
     PermissionDeniedError,
     ValidationError,
 )
+from arbeitszeit.domain.value_objects import EmployeeId, SupplementId, UserAccountId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.db.unit_of_work import SQLiteUnitOfWork

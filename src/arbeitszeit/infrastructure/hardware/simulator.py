@@ -1,9 +1,7 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from collections import deque
 from datetime import datetime, timezone
-
-from arbeitszeit.domain.enums import BookingType
 
 from .ports import HardwareReader, RawBookingRequest
 
@@ -16,13 +14,11 @@ class SimulatedHardwareReader(HardwareReader):
 
     def inject(
         self,
-        booking_type: BookingType,
         uid_hash: str,
         occurred_at: datetime | None = None,
     ) -> None:
         self._queue.append(
             RawBookingRequest(
-                booking_type=booking_type,
                 uid_hash=uid_hash,
                 occurred_at=occurred_at or datetime.now(timezone.utc),
             )

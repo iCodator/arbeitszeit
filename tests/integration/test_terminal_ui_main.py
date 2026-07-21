@@ -224,7 +224,7 @@ def test_run_schliesst_reader_in_finally(tmp_path: Path) -> None:
         patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
     ):
         with pytest.raises(StopIteration):
-            run(db, "/dev/null", "/dev/null", 1)
+            run(db, "/dev/null", 1)
     mock_reader_cls.return_value.close.assert_called_once()
 
 
@@ -239,7 +239,7 @@ def test_run_systemcheck_fehlerhaft_druckt_systemwarnung(
         patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
     ):
         with pytest.raises(StopIteration):
-            run(db, "/dev/null", "/dev/null", 1)
+            run(db, "/dev/null", 1)
     out = capsys.readouterr().out
     assert "SYSTEMWARNUNG" in out
     assert "NTP" in out
@@ -254,7 +254,7 @@ def test_run_systemcheck_fehlerhaft_ruft_notify_critical_auf(tmp_path: Path) -> 
         patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
     ):
         with pytest.raises(StopIteration):
-            run(db, "/dev/null", "/dev/null", 1)
+            run(db, "/dev/null", 1)
     mock_notify.assert_called_once()
     assert mock_notify.call_args.kwargs.get("urgency") == "critical"
 
@@ -268,10 +268,9 @@ def test_run_initialisiert_reader_mit_gerätepfaden(tmp_path: Path) -> None:
         patch(f"{_MAIN}._run_one_cycle", side_effect=StopIteration),
     ):
         with pytest.raises(StopIteration):
-            run(db, "/dev/numpad", "/dev/rfid", 1)
+            run(db, "/dev/rfid", 1)
     mock_reader_cls.assert_called_once()
     kwargs = mock_reader_cls.call_args.kwargs
-    assert kwargs.get("numpad_path") == "/dev/numpad"
     assert kwargs.get("rfid_path") == "/dev/rfid"
 
 
@@ -289,7 +288,7 @@ def test_run_sigterm_beendet_schleife_sauber(tmp_path: Path) -> None:
         patch(f"{_MAIN}.EvdevHardwareReader") as mock_reader_cls,
         patch(f"{_MAIN}._run_one_cycle", side_effect=fake_cycle),
     ):
-        run(db, "/dev/null", "/dev/null", 1)
+        run(db, "/dev/null", 1)
 
     assert cycle_count[0] == 1
     mock_reader_cls.return_value.close.assert_called_once()
@@ -305,7 +304,7 @@ def test_run_device_not_found_ruft_notify_auf_und_beendet(tmp_path: Path) -> Non
         patch(f"{_MAIN}.notify") as mock_notify,
         pytest.raises(SystemExit) as exc_info,
     ):
-        run(db, "USB Numpad", "RFID Reader", 1)
+        run(db, "RFID Reader", 1)
 
     assert exc_info.value.code == 1
     mock_notify.assert_called_once()
@@ -451,21 +450,21 @@ def test_main_alle_cli_args_ruft_run_auf(tmp_path: Path) -> None:
     with (
         patch(
             "sys.argv",
-            ["prog", "--db", str(db), "--numpad", "Numpad", "--rfid", "RFID", "--terminal-id", "1"],
+            ["prog", "--db", str(db), "--rfid", "RFID", "--terminal-id", "1"],
         ),
         patch(f"{_MAIN}.find_config", return_value=None),
         patch(f"{_MAIN}.run") as mock_run,
     ):
         main()
 
-    mock_run.assert_called_once_with(db, "Numpad", "RFID", 1, app_config=None)
+    mock_run.assert_called_once_with(db, "RFID", 1, app_config=None)
 
 
 def test_main_config_datei_laedt_werte_und_ruft_run_auf(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     config_toml = tmp_path / "config.toml"
     config_toml.write_text(
-        f'[database]\npath = "{db}"\n\n[terminal]\nnumpad = "Numpad"\nrfid = "RFID"\nid = 1\n'
+        f'[database]\npath = "{db}"\n\n[terminal]\nrfid = "RFID"\nid = 1\n'
     )
     with (
         patch("sys.argv", ["prog", "--config", str(config_toml)]),
@@ -496,7 +495,7 @@ def test_main_defekte_config_datei_beendet_programm(
 
 def test_main_fehlender_db_arg_beendet_programm(capsys: pytest.CaptureFixture[str]) -> None:
     with (
-        patch("sys.argv", ["prog", "--numpad", "Numpad", "--rfid", "RFID", "--terminal-id", "1"]),
+        patch("sys.argv", ["prog", "--rfid", "RFID", "--terminal-id", "1"]),
         patch(f"{_MAIN}.find_config", return_value=None),
         pytest.raises(SystemExit) as exc_info,
     ):

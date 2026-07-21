@@ -1,10 +1,8 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol, runtime_checkable
-
-from arbeitszeit.domain.enums import BookingType
 
 
 class EmptyUidError(RuntimeError):
@@ -17,7 +15,6 @@ class HardwareTimeoutError(RuntimeError):
 
 @dataclass(frozen=True)
 class RawBookingRequest:
-    booking_type: BookingType
     uid_hash: str
     occurred_at: datetime
 

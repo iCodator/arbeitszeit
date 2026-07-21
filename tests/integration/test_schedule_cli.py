@@ -124,7 +124,9 @@ def test_schedule_show_globale_version(tmp_path: Path, capsys: pytest.CaptureFix
     assert "Mo" in out
 
 
-def test_schedule_show_mitarbeiterspezifisch(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_schedule_show_mitarbeiterspezifisch(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)

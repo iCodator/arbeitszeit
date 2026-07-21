@@ -351,7 +351,9 @@ def test_supplements_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]
 # ---------------------------------------------------------------------------
 
 
-def test_open_review_cases_alle_leere_db(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_open_review_cases_alle_leere_db(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     db = _make_db(tmp_path)
     admin_id = _insert_user(db, "ADMIN")
     conn = open_connection(db)

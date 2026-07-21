@@ -1,8 +1,7 @@
-"""Buchungsablauf: Numpad-Eingabe → RFID-Scan → BookUseCase → Feedback."""
+"""Buchungsablauf: RFID-Scan → BookUseCase → Feedback."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
-import json
 from pathlib import Path
 
 from arbeitszeit.application.commands import BookCommand
@@ -51,22 +50,17 @@ def process_booking(
         # wenn die Buchung fachlich scheitert (z. B. UnknownCard). Das ist gewollt:
         # Das Geräteereignis ist real eingetreten, unabhängig vom Buchungsergebnis.
         # Schlägt dieser INSERT fehl, wird keine Buchung versucht (Exception weiterreichen).
-        payload_json = json.dumps(
-            {"booking_type": request.booking_type.value},
-            ensure_ascii=False,
-        )
         device_event_id = uow.device_event_repo.add(
             event_type="RFID_SCAN",
             terminal_id=TerminalId(terminal_id),
             rfid_uid_hash=request.uid_hash,
-            payload_json=payload_json,
+            payload_json="{}",
             occurred_at=request.occurred_at,
         )
 
         cmd = BookCommand(
             uid_hash=request.uid_hash,
             terminal_id=TerminalId(terminal_id),
-            booking_type=request.booking_type,
             booked_at=request.occurred_at,
             device_event_id=device_event_id,
             source=BookingSource.TERMINAL,

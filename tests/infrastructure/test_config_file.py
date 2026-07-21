@@ -34,7 +34,6 @@ path = "/home/user/data/arbeitszeit.db"
 
 [terminal]
 id = 1
-numpad = "Test Numpad"
 rfid = "Test RFID Reader"
 
 [backup]
@@ -129,7 +128,6 @@ def test_load_config_minimal(tmp_path: Path) -> None:
     config = load_config(config_file)
     assert config.database.path == Path("/tmp/arbeitszeit.db")
     assert config.terminal.id is None
-    assert config.terminal.numpad is None
     assert config.terminal.rfid is None
     assert config.backup.backup_dir is None
     assert config.admin.user_id is None
@@ -141,7 +139,6 @@ def test_load_config_alle_felder(tmp_path: Path) -> None:
     config = load_config(config_file)
     assert config.database.path == Path("/home/user/data/arbeitszeit.db")
     assert config.terminal.id == 1
-    assert config.terminal.numpad == "Test Numpad"
     assert config.terminal.rfid == "Test RFID Reader"
     assert config.backup.backup_dir == Path("/var/backups/arbeitszeit")
     assert config.backup.export_dir == Path("/var/exports/arbeitszeit")
@@ -169,7 +166,7 @@ def test_load_config_unbekannte_schluessel_werden_ignoriert(tmp_path: Path) -> N
 def test_write_config_roundtrip(tmp_path: Path) -> None:
     original = AppConfig(
         database=DatabaseConfig(path=Path("/home/user/arbeitszeit.db")),
-        terminal=TerminalConfig(id=2, numpad="USB Numpad", rfid="RFID Reader"),
+        terminal=TerminalConfig(id=2, rfid="RFID Reader"),
         backup=BackupConfig(
             backup_dir=Path("/var/backups"),
             export_dir=Path("/var/exports"),
@@ -253,19 +250,18 @@ def test_terminal_section_nur_id() -> None:
 
 
 def test_terminal_section_alle_felder() -> None:
-    config = AppConfig(terminal=TerminalConfig(id=1, numpad="USB Pad", rfid="RFID Dev"))
+    config = AppConfig(terminal=TerminalConfig(id=1, rfid="RFID Dev"))
     result = _terminal_section(config)
     assert result[0] == "[terminal]"
-    assert 'numpad = "USB Pad"' in result
     assert 'rfid = "RFID Dev"' in result
     assert result[-1] == ""
 
 
 def test_terminal_section_ohne_id() -> None:
-    config = AppConfig(terminal=TerminalConfig(numpad="Pad"))
+    config = AppConfig(terminal=TerminalConfig(rfid="RFID Dev"))
     result = _terminal_section(config)
     assert "[terminal]" in result
-    assert not any("id" in line for line in result)
+    assert not any(line.startswith("id") for line in result)
 
 
 # ---------------------------------------------------------------------------

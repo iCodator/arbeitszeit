@@ -1,6 +1,6 @@
 """Terminal-UI-Einstiegspunkt: Endlosschleife für den operativen Buchungsbetrieb."""
 
-__version__ = "1.5"
+__version__ = "1.6"
 
 import argparse
 import json
@@ -59,16 +59,7 @@ _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
     OpenPhaseConflictError: "Offene Phase — bitte zuerst abschließen.",
 }
 
-_BUCHUNGSARTEN = (
-    "\n" * 4
-    + "  Taste  Buchungsart\n"
-    + "  ─────  ──────────────────────────\n"
-    + "  1      Kommen (Schichtbeginn)\n"
-    + "  2      Gehen (Schichtende)\n"
-    + "  3      Pause beginnen\n"
-    + "  4      Pause beenden\n"
-    + "\n" * 4
-)
+_SCAN_PROMPT = "\n" * 4 + "  Karte an das RFID-Lesegerät halten ...\n" + "\n" * 4
 
 
 def _clear_screen() -> None:
@@ -148,7 +139,7 @@ def _run_one_cycle(
 ) -> None:
     """Ein Buchungszyklus: Menü → Zeitcheck → Buchung → Feedback → 5 s Pause."""
     _clear_screen()
-    print(_BUCHUNGSARTEN, end="", flush=True)
+    print(_SCAN_PROMPT, end="", flush=True)
     try:
         monitor.check()
         booking_result = process_booking(reader, db_path, terminal_id)
@@ -173,7 +164,6 @@ def _run_one_cycle(
 
 def run(
     db_path: Path,
-    numpad_device: str,
     rfid_device: str,
     terminal_id: int,
     *,
@@ -181,7 +171,6 @@ def run(
 ) -> None:
     """Endlosschleife mit Systemcheck, Buchungsverarbeitung und Graceful Shutdown."""
     try:
-        numpad_path = resolve_evdev_device(numpad_device)
         rfid_path = resolve_evdev_device(rfid_device)
     except DeviceNotFoundError as exc:
         notify("Arbeitszeit — Gerät nicht gefunden", str(exc), urgency="critical")
@@ -189,7 +178,6 @@ def run(
 
     result = run_system_check(
         db_path,
-        numpad_path=Path(numpad_path),
         rfid_path=Path(rfid_path),
         app_config=app_config,
     )
@@ -219,10 +207,7 @@ def run(
     monitor = SystemTimeMonitor(db_path, threshold_seconds=threshold)
     monitor.check()  # Basiszeitpunkt setzen
 
-    reader = EvdevHardwareReader(
-        numpad_path=numpad_path,
-        rfid_path=rfid_path,
-    )
+    reader = EvdevHardwareReader(rfid_path=rfid_path)
     try:
         while running:
             _run_one_cycle(reader, db_path, terminal_id, monitor)
@@ -241,11 +226,6 @@ def main() -> None:
         help="Pfad zu config.toml (Standard: automatische Suche)",
     )
     parser.add_argument("--db", type=Path, default=None)
-    parser.add_argument(
-        "--numpad",
-        default=None,
-        help='Gerätename (z.B. "USB Numpad") oder Pfad (/dev/input/eventX)',
-    )
     parser.add_argument(
         "--rfid",
         default=None,
@@ -270,11 +250,6 @@ def main() -> None:
         app_config.database.path if app_config else None,
         "--db / [database] path in config.toml",
     )
-    numpad = _resolve_or_exit(
-        args.numpad,
-        app_config.terminal.numpad if app_config else None,
-        "--numpad / [terminal] numpad in config.toml",
-    )
     rfid = _resolve_or_exit(
         args.rfid,
         app_config.terminal.rfid if app_config else None,
@@ -288,7 +263,7 @@ def main() -> None:
 
     _setup_file_logging(db_path, app_config)
     try:
-        run(db_path, numpad, rfid, terminal_id, app_config=app_config)
+        run(db_path, rfid, terminal_id, app_config=app_config)
     except Exception:
         logging.exception("Terminal-UI: nicht abgefangener Fehler in run()")
         raise

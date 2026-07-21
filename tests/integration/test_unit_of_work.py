@@ -30,7 +30,10 @@ def conn(db_path: Path) -> Generator[sqlite3.Connection, None, None]:
 
 
 @pytest.fixture
-def audit_conn(db_path: Path, conn: sqlite3.Connection) -> Generator[sqlite3.Connection, None, None]:  # conn zuerst, damit Migrationen angewendet sind
+def audit_conn(
+    db_path: Path,
+    conn: sqlite3.Connection,  # conn zuerst, damit Migrationen angewendet sind
+) -> Generator[sqlite3.Connection, None, None]:
     connection = open_connection(db_path)
     yield connection
     connection.close()
@@ -70,7 +73,9 @@ def test_rollback_verwirft_daten(conn: sqlite3.Connection, uow: SQLiteUnitOfWork
     assert count == 0
 
 
-def test_exception_im_with_block_loest_rollback_aus(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_exception_im_with_block_loest_rollback_aus(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     with pytest.raises(ValueError):
         with uow:
             conn.execute(
@@ -84,7 +89,9 @@ def test_exception_im_with_block_loest_rollback_aus(conn: sqlite3.Connection, uo
     assert count == 0
 
 
-def test_kein_spurious_rollback_nach_commit(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_kein_spurious_rollback_nach_commit(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     with uow:
         conn.execute(
             "INSERT INTO employees "
@@ -98,19 +105,25 @@ def test_kein_spurious_rollback_nach_commit(conn: sqlite3.Connection, uow: SQLit
     assert count == 1
 
 
-def test_transaction_open_flag_nach_commit_false(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_transaction_open_flag_nach_commit_false(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     with uow:
         uow.commit()
     assert not uow._transaction_open
 
 
-def test_transaction_open_flag_nach_rollback_false(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_transaction_open_flag_nach_rollback_false(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     with uow:
         uow.rollback()
     assert not uow._transaction_open
 
 
-def test_vergessenes_commit_rollt_automatisch_zurueck(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_vergessenes_commit_rollt_automatisch_zurueck(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     with uow:
         conn.execute(
             "INSERT INTO employees "
@@ -123,7 +136,9 @@ def test_vergessenes_commit_rollt_automatisch_zurueck(conn: sqlite3.Connection, 
     assert count == 0
 
 
-def test_mehrfache_transaktionen_hintereinander(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_mehrfache_transaktionen_hintereinander(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     with uow:
         conn.execute(
             "INSERT INTO employees "
@@ -149,7 +164,9 @@ def test_mehrfache_transaktionen_hintereinander(conn: sqlite3.Connection, uow: S
 # --- Audit-Log: Persistenz bei Rollback (via audit_conn) ---
 
 
-def test_audit_log_bleibt_nach_rollback_erhalten(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_audit_log_bleibt_nach_rollback_erhalten(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     entry = AuditLogEntry(
         id=AuditLogEntryId(0),
         event_type=audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
@@ -172,7 +189,9 @@ def test_audit_log_bleibt_nach_rollback_erhalten(conn: sqlite3.Connection, uow: 
     assert count == 1, "Audit-Log-Eintrag muss rollback-resistent sein"
 
 
-def test_audit_log_schreibbar_waehrend_conn_nur_liest(conn: sqlite3.Connection, uow: SQLiteUnitOfWork) -> None:
+def test_audit_log_schreibbar_waehrend_conn_nur_liest(
+    conn: sqlite3.Connection, uow: SQLiteUnitOfWork
+) -> None:
     # Spiegelt das Produktionsszenario in book_time.py:
     # Bei Abweisung (UnknownCard/InactiveCard) führt conn ausschließlich SELECTs aus
     # und hat keinen WRITE-Lock. WAL-Modus erlaubt audit_conn zu schreiben,

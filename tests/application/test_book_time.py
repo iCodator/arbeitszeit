@@ -11,7 +11,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.unit_of_work import UnitOfWork
-from arbeitszeit.application.use_cases.book_time import BookUseCase
+from arbeitszeit.application.use_cases.book_time import BookUseCase, derive_booking_type
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import (
     Employee,
@@ -33,7 +33,6 @@ from arbeitszeit.domain.errors import (
     InactiveEmployeeError,
     InvalidBookingSequenceError,
     NotFoundError,
-    OpenPhaseConflictError,
     UnknownCardError,
 )
 from arbeitszeit.domain.value_objects import (
@@ -92,7 +91,6 @@ def _cmd(**overrides: Any) -> BookCommand:
     defaults = dict(
         uid_hash="abc123",
         terminal_id=1,
-        booking_type=BookingType.COME,
         booked_at=_T(8),
         device_event_id=None,
         source=BookingSource.TERMINAL,
@@ -195,40 +193,17 @@ def test_fehlender_mitarbeiterdatensatz_loest_not_found_error() -> None:
 # --- Sequenzfehler ---
 
 
-def test_go_als_erste_buchung_loest_invalid_sequence_error() -> None:
+def test_fuenfter_scan_loest_invalid_sequence_error() -> None:
+    """Fünfter RFID-Scan (nach abgeschlossenem Tagesablauf) wirft InvalidBookingSequenceError."""
     uow = _make_uow()
+    _add_booking(uow, BookingType.COME, 8)
+    _add_booking(uow, BookingType.BREAK_START, 10)
+    _add_booking(uow, BookingType.BREAK_END, 11)
+    _add_booking(uow, BookingType.GO, 17)
     uc = BookUseCase(_as_uow(uow))
 
     with pytest.raises(InvalidBookingSequenceError):
-        uc.execute(_cmd(booking_type=BookingType.GO, booked_at=_T(17)))
-
-
-def test_break_end_ohne_offene_pause_loest_invalid_sequence_error() -> None:
-    uow = _make_uow()
-    _add_booking(uow, BookingType.COME, 8)
-    uc = BookUseCase(_as_uow(uow))
-
-    with pytest.raises(InvalidBookingSequenceError):
-        uc.execute(_cmd(booking_type=BookingType.BREAK_END, booked_at=_T(12)))
-
-
-def test_come_nach_offenem_come_loest_invalid_sequence_error() -> None:
-    uow = _make_uow()
-    _add_booking(uow, BookingType.COME, 8)
-    uc = BookUseCase(_as_uow(uow))
-
-    with pytest.raises(InvalidBookingSequenceError):
-        uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(9)))
-
-
-def test_go_bei_offener_pause_loest_open_phase_conflict_error() -> None:
-    uow = _make_uow()
-    _add_booking(uow, BookingType.COME, 8)
-    _add_booking(uow, BookingType.BREAK_START, 12)
-    uc = BookUseCase(_as_uow(uow))
-
-    with pytest.raises(OpenPhaseConflictError):
-        uc.execute(_cmd(booking_type=BookingType.GO, booked_at=_T(17)))
+        uc.execute(_cmd(booked_at=_T(18)))
 
 
 # --- Statusbestimmung ---
@@ -238,7 +213,7 @@ def test_come_buchung_hat_status_open() -> None:
     uow = _make_uow()
     uc = BookUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+    result = uc.execute(_cmd(booked_at=_T(8)))  # leere History → COME
 
     assert result.status == BookingStatus.OPEN
     assert result.follow_up_case_ids == ()
@@ -248,10 +223,11 @@ def test_come_buchung_hat_status_open() -> None:
 def test_go_ohne_compliance_flags_hat_status_ok() -> None:
     uow = _make_uow()
     _add_booking(uow, BookingType.COME, 8)
+    _add_booking(uow, BookingType.BREAK_START, 9)
+    _add_booking(uow, BookingType.BREAK_END, 9)  # 0-min Pause → netto = brutto = 5h
     uc = BookUseCase(_as_uow(uow))
 
-    # 5h Arbeitszeit ohne Pause: kein Compliance-Flag (< 6h ununterbrochen, < 6h netto)
-    result = uc.execute(_cmd(booking_type=BookingType.GO, booked_at=_T(13)))
+    result = uc.execute(_cmd(booked_at=_T(13)))  # 4. Scan → GO
 
     assert result.status == BookingStatus.OK
     assert result.follow_up_case_ids == ()
@@ -262,7 +238,7 @@ def test_break_start_hat_status_open() -> None:
     _add_booking(uow, BookingType.COME, 8)
     uc = BookUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(booking_type=BookingType.BREAK_START, booked_at=_T(12)))
+    result = uc.execute(_cmd(booked_at=_T(12)))  # COME in History → BREAK_START
 
     assert result.status == BookingStatus.OPEN
 
@@ -273,19 +249,20 @@ def test_break_end_nach_kurzer_pause_hat_status_ok() -> None:
     _add_booking(uow, BookingType.BREAK_START, 12)
     uc = BookUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(booking_type=BookingType.BREAK_END, booked_at=_T(12, 30)))
+    result = uc.execute(_cmd(booked_at=_T(12, 30)))  # COME+BREAK_START in History → BREAK_END
 
     assert result.status == BookingStatus.OK
 
 
 def test_go_nach_mehr_als_8h_hat_status_warn() -> None:
     uow = _make_uow()
-    come_at = _T(7)
     _add_booking(uow, BookingType.COME, 7)
+    _add_booking(uow, BookingType.BREAK_START, 9)
+    _add_booking(uow, BookingType.BREAK_END, 9)  # 0-min Pause → Schichtlänge unverändert
     uc = BookUseCase(_as_uow(uow))
 
-    go_at = come_at + timedelta(hours=8, minutes=30)
-    result = uc.execute(_cmd(booking_type=BookingType.GO, booked_at=go_at))
+    go_at = _T(7) + timedelta(hours=8, minutes=30)
+    result = uc.execute(_cmd(booked_at=go_at))  # 4. Scan → GO
 
     assert result.status == BookingStatus.WARN
     assert len(result.follow_up_case_ids) > 0
@@ -294,10 +271,12 @@ def test_go_nach_mehr_als_8h_hat_status_warn() -> None:
 def test_go_nach_mehr_als_10h_hat_status_needs_review() -> None:
     uow = _make_uow()
     _add_booking(uow, BookingType.COME, 7)
+    _add_booking(uow, BookingType.BREAK_START, 9)
+    _add_booking(uow, BookingType.BREAK_END, 9)  # 0-min Pause
     uc = BookUseCase(_as_uow(uow))
 
     go_at = _T(7) + timedelta(hours=10, minutes=30)
-    result = uc.execute(_cmd(booking_type=BookingType.GO, booked_at=go_at))
+    result = uc.execute(_cmd(booked_at=go_at))  # 4. Scan → GO
 
     assert result.status == BookingStatus.NEEDS_REVIEW
     assert len(result.follow_up_case_ids) > 0
@@ -306,10 +285,12 @@ def test_go_nach_mehr_als_10h_hat_status_needs_review() -> None:
 def test_buchung_wird_trotz_warn_gespeichert() -> None:
     uow = _make_uow()
     _add_booking(uow, BookingType.COME, 7)
+    _add_booking(uow, BookingType.BREAK_START, 9)
+    _add_booking(uow, BookingType.BREAK_END, 9)  # 0-min Pause
     uc = BookUseCase(_as_uow(uow))
 
     go_at = _T(7) + timedelta(hours=8, minutes=30)
-    result = uc.execute(_cmd(booking_type=BookingType.GO, booked_at=go_at))
+    result = uc.execute(_cmd(booked_at=go_at))  # 4. Scan → GO
 
     saved = uow.time_booking_repo.get_by_id(result.booking_id)
     assert saved is not None
@@ -393,12 +374,14 @@ def test_go_nach_weniger_als_11h_ruhezeit_hat_status_needs_review() -> None:
     # Vortag: COME 08:00 → GO 20:00
     _add_booking_at(uow, BookingType.COME, _TY(8))
     _add_booking_at(uow, BookingType.GO, _TY(20))
-    # Heute: COME 06:00 (nur 10h Ruhezeit nach 20:00 gestern)
+    # Heute: vollständige Sequenz bis vor GO (nur 10h Ruhezeit nach 20:00 gestern)
     _add_booking_at(uow, BookingType.COME, _T(6))
+    _add_booking_at(uow, BookingType.BREAK_START, _T(9))
+    _add_booking_at(uow, BookingType.BREAK_END, _T(9))  # 0-min Pause
     uc = BookUseCase(_as_uow(uow))
 
-    # GO heute → Ruhezeitprüfung: 20:00 → 06:00 = 10h < 11h → CRITICAL → NEEDS_REVIEW
-    result = uc.execute(_cmd(booking_type=BookingType.GO, booked_at=_T(14)))
+    # GO heute (4. Scan) → Ruhezeitprüfung: 20:00 → 06:00 = 10h < 11h → NEEDS_REVIEW
+    result = uc.execute(_cmd(booked_at=_T(14)))
 
     assert result.status == BookingStatus.NEEDS_REVIEW
     cases = uow.review_case_repo.list_open_for_employee(1)
@@ -414,8 +397,8 @@ def test_come_ausserhalb_regelzeitfenster_erzeugt_review_case() -> None:
     _add_global_schedule(uow, weekday=1, start=time(8, 0), end=time(17, 0))
     uc = BookUseCase(_as_uow(uow))
 
-    # COME um 06:00 – vor Fensterbeginn 08:00
-    result = uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(6)))
+    # COME um 06:00 – vor Fensterbeginn 08:00 (leere History → COME)
+    result = uc.execute(_cmd(booked_at=_T(6)))
 
     assert result.status == BookingStatus.OPEN
     assert len(result.follow_up_case_ids) > 0
@@ -432,7 +415,7 @@ def test_offene_vortagsschicht_erzeugt_audit_log_eintrag() -> None:
     _add_booking_at(uow, BookingType.COME, _TY(8))
     uc = BookUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+    result = uc.execute(_cmd(booked_at=_T(8)))  # leere Heute-History → COME
 
     # Buchung muss trotzdem erfolgreich sein
     assert result.status == BookingStatus.OPEN
@@ -461,7 +444,7 @@ def test_korrekt_abgeschlossener_vortag_erzeugt_kein_sonderaudit() -> None:
     _add_booking_at(uow, BookingType.GO, _TY(17))
     uc = BookUseCase(_as_uow(uow))
 
-    uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+    uc.execute(_cmd(booked_at=_T(8)))
 
     anomalie_entries = [
         e
@@ -476,7 +459,7 @@ def test_kein_vortag_erzeugt_kein_sonderaudit() -> None:
     # Keine Buchungen am Vortag
     uc = BookUseCase(_as_uow(uow))
 
-    uc.execute(_cmd(booking_type=BookingType.COME, booked_at=_T(8)))
+    uc.execute(_cmd(booked_at=_T(8)))
 
     anomalie_entries = [
         e
@@ -484,3 +467,31 @@ def test_kein_vortag_erzeugt_kein_sonderaudit() -> None:
         if e.event_type == audit_events.OPEN_SHIFT_PREVIOUS_DAY_DETECTED
     ]
     assert len(anomalie_entries) == 0
+
+
+# --- derive_booking_type ---
+
+
+def test_derive_leere_sequenz_ergibt_come() -> None:
+    assert derive_booking_type([]) == BookingType.COME
+
+
+def test_derive_nach_come_ergibt_break_start() -> None:
+    assert derive_booking_type([BookingType.COME]) == BookingType.BREAK_START
+
+
+def test_derive_nach_come_break_start_ergibt_break_end() -> None:
+    assert derive_booking_type([BookingType.COME, BookingType.BREAK_START]) == BookingType.BREAK_END
+
+
+def test_derive_nach_come_break_start_break_end_ergibt_go() -> None:
+    assert derive_booking_type(
+        [BookingType.COME, BookingType.BREAK_START, BookingType.BREAK_END]
+    ) == BookingType.GO
+
+
+def test_derive_nach_vollstaendigem_tag_wirft_invalid_sequence_error() -> None:
+    with pytest.raises(InvalidBookingSequenceError):
+        derive_booking_type(
+            [BookingType.COME, BookingType.BREAK_START, BookingType.BREAK_END, BookingType.GO]
+        )

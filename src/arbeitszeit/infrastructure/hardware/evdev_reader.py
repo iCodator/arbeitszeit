@@ -1,12 +1,11 @@
 """
-Liest Buchungsanfragen von zwei evdev-Geräten:
-  - Numpad (USB-Numpad): Buchungstyp-Auswahl per Taste 1–4
+Liest Buchungsanfragen vom RFID-Reader:
   - RFID-Reader (HID-Keyboard): Karten-UID als Tastenfolge + Enter
 
 Voraussetzungen:
-  - Linux, physische Geräte unter /dev/input/event*
-  - Gerätepfade werden übergeben (z. B. aus config oder Autodetect)
-  - Prozess benötigt Lesezugriff auf die Gerätedateien
+  - Linux, physisches Gerät unter /dev/input/event*
+  - Gerätepfad wird übergeben (z. B. aus config oder Autodetect)
+  - Prozess benötigt Lesezugriff auf die Gerätedatei
     (Gruppe 'input' oder root, oder udev-Regel)
 
 Unterstütztes Reader-Modell:
@@ -15,9 +14,10 @@ Unterstütztes Reader-Modell:
   abgeschlossen durch Enter. Nicht-Hex-Zeichen werden ignoriert; Präfixe,
   Suffixe oder abweichende Kodierungen erfordern eine angepasste Reader-Policy.
 
-_read_booking_type() blockiert unbegrenzt, bis eine gültige Taste gedrückt
-wird. Das ist beabsichtigt: Das System wartet im Idle auf eine Buchungsauswahl.
-Timeout-Logik für den Wartezustand gehört in die aufrufende Betriebsschicht.
+read_next() wartet blockierend bis zu _RFID_READ_TIMEOUT Sekunden auf einen
+RFID-Scan. Bei Ablauf des Timeouts wird HardwareTimeoutError geworfen und der
+Zyklus in der aufrufenden Schicht neu gestartet. Dies ermöglicht einen
+Graceful Shutdown nach SIGTERM innerhalb endlicher Zeit.
 
 Lebenszyklus: Die aufrufende Schicht ist für close() verantwortlich.
 Empfohlen ist try/finally oder ein Context Manager, damit close()
@@ -27,7 +27,7 @@ Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutz
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import logging
 import select
@@ -37,8 +37,6 @@ from typing import cast
 
 from evdev import InputDevice, categorize, ecodes, list_devices
 from evdev.events import KeyEvent
-
-from arbeitszeit.domain.enums import BookingType
 
 from .ports import (
     EmptyUidError,
@@ -53,18 +51,6 @@ class DeviceNotFoundError(OSError):
     """Kein evdev-Gerät mit dem angegebenen Namen gefunden."""
 
 
-# Numpad-Tasten 1–4 (KP-Variante und normale Ziffern) → BookingType
-_NUMPAD_TO_BOOKING_TYPE: dict[str, BookingType] = {
-    "KEY_KP1": BookingType.COME,
-    "KEY_1": BookingType.COME,
-    "KEY_KP2": BookingType.GO,
-    "KEY_2": BookingType.GO,
-    "KEY_KP3": BookingType.BREAK_START,
-    "KEY_3": BookingType.BREAK_START,
-    "KEY_KP4": BookingType.BREAK_END,
-    "KEY_4": BookingType.BREAK_END,
-}
-
 # Nur Hex-Zeichen (0–9, A–F) – RFID-Lesegeräte liefern ausschließlich Hex-UIDs.
 # Andere alphanumerische Zeichen werden bewusst ignoriert (kein Rauschen/Fremdeingaben).
 _HEX_KEY_CHAR: dict[str, str] = {
@@ -74,7 +60,10 @@ _HEX_KEY_CHAR: dict[str, str] = {
 }
 _HEX_KEY_CHAR_SHIFT: dict[str, str] = {k: v.upper() for k, v in _HEX_KEY_CHAR.items()}
 
-# Timeout (Sekunden) für den RFID-Lesevorgang nach Buchungstyp-Auswahl.
+# Timeout (Sekunden) für den RFID-Lesevorgang. Begrenzt die Wartezeit in
+# select.select() so dass SIGTERM nach spätestens diesem Intervall wirksam wird
+# (PEP 475: select.select() wird nach EINTR automatisch neu gestartet,
+# kehrt aber beim Timeout-Ablauf zurück → Hauptschleife kann running prüfen).
 _RFID_READ_TIMEOUT: float = 5.0
 
 _SHIFT_KEYS = ("KEY_LEFTSHIFT", "KEY_RIGHTSHIFT")
@@ -154,7 +143,7 @@ def _process_rfid_key(
 def scan_rfid_uid_hash(rfid_path: str, timeout: float = 15.0) -> str:
     """Liest einmalig eine RFID-UID und gibt deren SHA-256-Hash zurück.
 
-    Öffnet nur das RFID-Gerät (kein Numpad). Wirft HardwareTimeoutError wenn
+    Öffnet nur das RFID-Gerät. Wirft HardwareTimeoutError wenn
     innerhalb von `timeout` Sekunden keine vollständige UID gescannt wird,
     EmptyUidError wenn die UID nach dem Lesen leer ist.
     """
@@ -191,9 +180,9 @@ def scan_rfid_uid_hash(rfid_path: str, timeout: float = 15.0) -> str:
 
 
 class EvdevHardwareReader(HardwareReader):
-    """Liest Buchungsanfragen von physischen evdev-Geräten.
+    """Liest Buchungsanfragen vom physischen RFID-Reader.
 
-    grab=True (Standard) schließt die Geräte exklusiv für andere Prozesse.
+    grab=True (Standard) schließt das Gerät exklusiv für andere Prozesse.
     Sinnvoll im Kiosk-Betrieb; für Diagnose/Test grab=False übergeben.
     Bei Prozessabsturz mit grab=True kann das Gerät temporär blockiert bleiben –
     Absturzverhalten und Reconnect-Logik gehören in die aufrufende Schicht.
@@ -201,44 +190,23 @@ class EvdevHardwareReader(HardwareReader):
 
     def __init__(
         self,
-        numpad_path: str,
         rfid_path: str,
         *,
         grab: bool = True,
     ) -> None:
-        self._numpad = InputDevice(numpad_path)
         self._rfid = InputDevice(rfid_path)
         if grab:
-            self._numpad.grab()
             self._rfid.grab()
 
     def read_next(self) -> RawBookingRequest:
-        booking_type = self._read_booking_type()
-        # occurred_at erst nach vollständiger UID-Lesung:
-        # Setzt den Zeitstempel auf den Abschluss der Buchungsanforderung,
-        # nicht auf den Zwischenstand nach Tastenauswahl.
         raw_uid = self._read_rfid_uid(timeout=_RFID_READ_TIMEOUT).strip()
         occurred_at = datetime.now(timezone.utc)
         if not raw_uid:
             raise EmptyUidError("RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen.")
         return RawBookingRequest(
-            booking_type=booking_type,
             uid_hash=hash_uid(raw_uid),
             occurred_at=occurred_at,
         )
-
-    def _read_booking_type(self) -> BookingType:
-        for event in self._numpad.read_loop():
-            if event.type != ecodes.EV_KEY:
-                continue
-            key_event = cast(KeyEvent, categorize(event))
-            if key_event.keystate != key_event.key_down:
-                continue
-            keycode = _normalize_keycode(key_event.keycode)
-            bt = _NUMPAD_TO_BOOKING_TYPE.get(keycode)
-            if bt is not None:
-                return bt
-        raise OSError("Numpad-Gerät unerwartet geschlossen.")
 
     def _wait_rfid_ready(self, deadline: float, timeout: float) -> None:
         """Wartet auf ein RFID-Event innerhalb der Deadline.
@@ -288,16 +256,15 @@ class EvdevHardwareReader(HardwareReader):
                 return result
 
     def close(self) -> None:
-        for dev in (self._numpad, self._rfid):
-            try:
-                dev.ungrab()
-            except OSError as exc:
-                logging.warning(
-                    "evdev: ungrab() fehlgeschlagen [%s]: %s", dev.path, exc, exc_info=True
-                )
-            try:
-                dev.close()
-            except OSError as exc:
-                logging.warning(
-                    "evdev: close() fehlgeschlagen [%s]: %s", dev.path, exc, exc_info=True
-                )
+        try:
+            self._rfid.ungrab()
+        except OSError as exc:
+            logging.warning(
+                "evdev: ungrab() fehlgeschlagen [%s]: %s", self._rfid.path, exc, exc_info=True
+            )
+        try:
+            self._rfid.close()
+        except OSError as exc:
+            logging.warning(
+                "evdev: close() fehlgeschlagen [%s]: %s", self._rfid.path, exc, exc_info=True
+            )

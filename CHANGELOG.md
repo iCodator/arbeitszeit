@@ -5,6 +5,42 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [feat(rfid): NumPad entfernt — Buchungstyp positionsbasiert ableiten] – 2026-07-21
+
+### Hinzugefügt
+
+- `derive_booking_type(day_bookings)` in `book_time.py` (v1.3):
+  Modulare Funktion leitet den nächsten Buchungstyp aus der bisherigen
+  Tagessequenz ab (COME→BREAK_START→BREAK_END→GO).
+  Wirft `InvalidBookingSequenceError` bei abgeschlossenem Tagesablauf.
+- `SimulatedHardwareReader.inject(uid_hash, occurred_at)`:
+  NumPad-Parameter entfernt; Buchungstyp wird nicht mehr übergeben.
+- 5 Unit-Tests für `derive_booking_type` in `tests/application/test_book_time.py`.
+
+### Geändert
+
+- `src/arbeitszeit/application/use_cases/book_time.py` (v1.2 → v1.3):
+  `execute()` ruft `derive_booking_type()` auf, kein `booking_type` mehr
+  in `BookCommand`. Refactoring: `_verify_card`, `_verify_employee`,
+  `_write_review_cases`, `_detect_open_prev_shift` extrahiert.
+  Cyclomatic Complexity `execute`: 13 (C) → 5 (A).
+- `src/arbeitszeit/application/commands.py`: `booking_type` aus `BookCommand` entfernt.
+- `src/arbeitszeit/infrastructure/hardware/ports.py`, `simulator.py`, `evdev_reader.py`:
+  NumPad-Ports und -Pfade entfernt; `RawBookingRequest` nur noch `uid_hash` + `occurred_at`.
+- `src/arbeitszeit/infrastructure/config_file.py`, `config_setup.py`:
+  `numpad`-Felder aus Konfiguration entfernt.
+- `src/arbeitszeit/presentation/terminal_ui/main.py`, `booking_loop.py`:
+  NumPad-Argument aus `run()` entfernt.
+- `src/arbeitszeit/infrastructure/system_check.py`: NumPad-Prüfung entfernt.
+- 7 Testdateien angepasst: alle `BookingType`-Parameter aus `inject()`-Aufrufen
+  entfernt, Testsequenzen auf 4-Schritte-Ablauf umgestellt.
+
+### Korrigiert
+
+- E501-Verletzungen in 18 Testdateien behoben (zuvor pre-existing).
+
+---
+
 ## [feat(admin_cli): audit open-shifts — offene Vortagsschichten abfragen] – 2026-07-21
 
 ### Hinzugefügt
@@ -771,11 +807,13 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Typkorrektur & Abschluss] – 2026-07-14
 
 ### Behoben
+
 - 4 mypy-Fehler (`[type-arg]`) in `schedule.py`: bare `list`-Annotationen in
   `_partition_by_scope`, `_print_global_section`, `_print_employee_section`
   und `_print_scope_hint` durch `list[sqlite3.Row]` ersetzt.
 
 ### Geändert
+
 - `schedule.py`: `__version__` auf `1.1` erhöht.
 
 ---
@@ -783,6 +821,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Konfigurationspflege & Versionierung] – 2026-07-14
 
 ### Hinzugefügt
+
 - `src/arbeitszeit/infrastructure/config_setup.py` mit gemeinsamer
   Interaktionslogik für `scripts/setup.py` und `admin_cli system setup`.
 - `admin_cli system setup` als neuer Subcommand zur interaktiven Pflege der
@@ -798,6 +837,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   `test_setup_schreibt_config_toml`.
 
 ### Geändert
+
 - `scripts/setup.py` vollständig neu geschrieben: schreibt ausschließlich
   `config.toml`, liest keine DB-Werte mehr — nur noch als Migrationshinweise.
 - `scripts/backup.py` liest `backup_dir` und `export_dir` bevorzugt aus
@@ -813,6 +853,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Konfiguration & Terminalbetrieb] – 2026-07-14
 
 ### Hinzugefügt
+
 - `src/arbeitszeit/infrastructure/config_file.py` mit `AppConfig` sowie den
   Teilkonfigurationen `DatabaseConfig`, `TerminalConfig`, `BackupConfig` und
   `AdminConfig`.
@@ -828,6 +869,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 - `setup.py --log-dir` zur Konfiguration des Log-Verzeichnisses.
 
 ### Geändert
+
 - `terminal_ui` unterstützt jetzt `--config`; `--db`, `--numpad`, `--rfid` und
   `--terminal-id` können aus `config.toml` übernommen werden.
 - `terminal_ui.run()` akzeptiert jetzt den Keyword-Parameter `app_config`.
@@ -843,6 +885,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   Deployment-Schlüsseln bereinigt.
 
 ### Behoben
+
 - Fremdschlüsselproblem der Terminal-UI bei leerer `terminals`-Tabelle:
   `_ensure_terminal_exists()` legt den Terminal-Datensatz jetzt per
   `INSERT OR IGNORE` an.
@@ -856,6 +899,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Hardware & Dokumentation] – 2026-07-08 bis 2026-07-14
 
 ### Hinzugefügt
+
 - `resolve_evdev_device()` zur Auflösung von evdev-Geräten über stabile
   Gerätenamen statt nur über `/dev/input/eventX`-Pfade.
 - Direkter RFID-Scan für `cards assign` über `--scan --rfid` als Alternative
@@ -870,6 +914,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   `docs/arbeitszeit_docs.css`.
 
 ### Geändert
+
 - `--numpad` und `--rfid` akzeptieren jetzt sowohl stabile Gerätenamen als auch
   direkte Gerätepfade.
 - Handbuch, Befehlsreferenz und Installationsanleitung wurden auf die Nutzung
@@ -889,6 +934,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   Dateinamen angepasst.
 
 ### Behoben
+
 - Veraltete oder inkonsistente Dokumentationspfade in Handbuch und
   Installationsanleitung wurden bereinigt.
 
@@ -897,6 +943,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Qualität, Refactoring & Tests] – 2026-07-03 bis 2026-07-05
 
 ### Hinzugefügt
+
 - Deutlich ausgebaute Testabdeckung für mehrere unterabgedeckte Module,
   darunter `_intervals.py`, `_auth.py`, `reports.py`, `schedule.py`,
   `bookings.py`, `terminal_ui/main.py`, `notification.py`,
@@ -906,6 +953,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   Reader-Lebenszyklus und Signalbehandlung.
 
 ### Geändert
+
 - Mehrere Methoden und Funktionen wurden zur Reduktion zyklomatischer
   Komplexität refaktoriert, unter anderem:
   - `ManageWorkScheduleUseCase.execute`
@@ -922,6 +970,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   Bandit-Funde ergänzt.
 
 ### Behoben
+
 - Bare-`except: pass`-Stellen wurden durch explizites Warning-Logging mit
   `exc_info=True` ersetzt.
 - Sicherheitsproblem durch partielle Executable-Pfade: `rsync`, `notify-send`
@@ -936,6 +985,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Dokumentationsprüfung & Bereinigung] – 2026-07-03
 
 ### Hinzugefügt
+
 - Umfangreiche Prüfberichte für Handbuch, Präsentationsschicht,
   Installationskapitel, Audit-Status, `show_config.py`, CONTRIBUTING,
   Regelwerk, Pflichtenheft-Anlage, Datenbankschema, Domain-,
@@ -949,6 +999,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   dokumentarischer Widersprüche.
 
 ### Geändert
+
 - Die Dokumentationsstruktur unter `docs/` wurde umfassend in nummerierte
   Themenordner neu gegliedert.
 - 100+ interne Querverweise wurden an die neue Struktur angepasst.
@@ -964,6 +1015,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   wurden neu erzeugt und gegen ihre Markdown-Quellen geprüft.
 
 ### Behoben
+
 - Doppelte Prüfberichtsverzeichnisse mit Encoding-Fehlern wurden bereinigt.
 - Tote oder falsche Referenzen in ADRs, Sicherheitsdokumentation und
   Inventarlisten wurden entfernt oder korrigiert.
@@ -975,6 +1027,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Admin-GUI, CLI & Fachlogik] – 2026-07-01 bis 2026-07-03
 
 ### Hinzugefügt
+
 - Admin-GUI auf Basis von `tkinter/ttk` zur Verwaltung ohne Kommandozeile,
   mit Tabs für Mitarbeiter, Karten, Benutzer, Regelzeiten und System.
 - `tests/presentation/test_admin_gui_controller.py` mit 21 Tests nach
@@ -990,6 +1043,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 - `docs/domain/enums.md` und `docs/infrastructure/evdev_reader.md`.
 
 ### Geändert
+
 - Schreibende Admin-CLI-Operationen für Mitarbeiter, Karten und Benutzerkonten
   laufen jetzt über die Anwendungsschicht statt über direkte SQL-Zugriffe.
 - `schedule set` unterstützt jetzt optional `--employee-id`.
@@ -1005,6 +1059,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 - `show_config.py` wurde dokumentiert.
 
 ### Behoben
+
 - `system backup` signalisiert NAS-Sync-Fehler jetzt mit `sys.exit(1)`.
 - Warnhinweis bei ungefilterten Großmengen in `open-bookings` und
   `open-review-cases` ergänzt.
@@ -1017,6 +1072,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   schrittweise korrigiert.
 
 ### Entfernt
+
 - Die Admin-GUI wurde am 2026-07-03 aus dem `main`-Zweig entfernt und in den
   separaten Entwicklungszweig `admin_gui` ausgelagert.
 - Zugehörige GUI-Verweise wurden aus README, CONTRIBUTING, Handbuch,
@@ -1027,6 +1083,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Pflichtenheft v6 & Dokumentationsaufbau] – 2026-06-30 bis 2026-07-01
 
 ### Hinzugefügt
+
 - Vollständige Befehlsreferenz als `befehlsreferenz_arbeitszeit.md`.
 - HTML-Version der Installationsanleitung.
 - Modularisierte Handbuchstruktur mit getrennten Kapiteldateien für
@@ -1039,6 +1096,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   als Zusammenführung mehrerer Einzeldokumente.
 
 ### Geändert
+
 - Pflichtenheft wurde von Version 5 auf Version 6 angehoben.
 - Aktive Referenzen im Repository wurden von `pflichtenheft_arbeitszeit_v5.md`
   auf `pflichtenheft_arbeitszeit_v6.md` umgestellt; historische Artefakte
@@ -1053,6 +1111,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   eigene Unterverzeichnisse verschoben.
 
 ### Behoben
+
 - Die Installationsanleitung wurde mehrfach gegen den tatsächlichen Ablauf
   korrigiert, unter anderem für `verify_hardware.py`, UID-Hash-Beschaffung,
   `setup.py` und `evtest`.
@@ -1063,6 +1122,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Audit-Tooling & Entwicklerwerkzeuge] – 2026-06-16 bis 2026-06-29
 
 ### Hinzugefügt
+
 - `scripts/generate_audit_notes.py` zur automatischen Auswertung von
   Audit-Reportdateien.
 - `run_audit.sh` ruft am Ende automatisch `generate_audit_notes.py` auf.
@@ -1078,6 +1138,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   `pyproject.toml`.
 
 ### Geändert
+
 - `run_audit.sh` läuft jetzt trotz Befunden vollständig durch und erzeugt
   alle Reports zuverlässig.
 - Report-Dateinamen und Coverage-/Lint-Konfigurationen wurden vereinheitlicht.
@@ -1088,6 +1149,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   eine Dispatch-Tabelle umgestellt.
 
 ### Behoben
+
 - Bandit-Warnung in `migrations.py` durch korrekte `nosec`-Schreibweise
   beseitigt.
 - 40 mypy-Fehler und weitere Typprobleme wurden systematisch behoben.
@@ -1102,6 +1164,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Audit & Dokumentation] – 2026-06-13
 
 ### Hinzugefügt
+
 - Audit-Bericht `docs/audits/audit_arbeitszeit_v1_2026-06-13_09-04.md` mit Phasenbewertung 1–5,
   GO/NO-GO-Matrix, Befundklassifikation und priorisierter To-do-Liste.
 - Dokumentation der Migrationshistorie zu `BookingStatus` (Entfernung der Werte
@@ -1123,6 +1186,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
   `docs/betrieb/rollenzuweisung_arbeitszeit_v1_0.md`.
 
 ### Geändert
+
 - Abschnitt „Betrieb & Rechtliches“ im `README.md` inhaltlich an den
   Audit-Bericht angepasst (explizite Hinweise auf organisatorische Auflagen
   zu Rollenzuweisung, Aufbewahrungs- und Löschkonzept, Datenschutz- und
@@ -1139,6 +1203,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Audit & Dokumentation] – 2026-06-11 bis 2026-06-12
 
 ### Hinzugefügt
+
 - `users reactivate`, `users change-role`, `users bootstrap` in der Admin-CLI
 - device_events-Produktionspfad: RFID_SCAN-Record (Autocommit) vor `BookUseCase` —
   Audit-Trail bleibt auch bei Buchungsfehler erhalten
@@ -1151,11 +1216,13 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 - Pflichtenheft v5 und Regelwerk v5
 
 ### Geändert
+
 - Python-Zielversion auf 3.14 angehoben
 - Alle Phasenpläne auf Pflichtenheft v5 / Regelwerk v5 aktualisiert
 - `init_db.py` auf `argparse` (`--db`-Flag) umgestellt
 
 ### Behoben
+
 - `FakeUnitOfWork` commit-or-rollback-Semantik korrigiert
   (`if not self.committed` statt `if exc_type is not None`)
 - `_REQUIRED_CONFIG_KEYS` um `backup.backup_dir` und `export.export_dir` ergänzt
@@ -1166,6 +1233,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Phase 5: Präsentation] – 2026-05-26 bis 2026-05-27
 
 ### Hinzugefügt
+
 - `presentation/terminal_ui/` — Buchungsschleife (RFID + Numpad, `_run_one_cycle()`)
 - `presentation/admin_cli/` — vollständige Admin-Kommandozeile
   - Mitarbeiterverwaltung (`employees add/list/deactivate`)
@@ -1179,6 +1247,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 - `scripts/setup.py` — interaktive Erstkonfiguration
 
 ### Behoben
+
 - PDF-Intervalle auf halb-offene UTC-Intervalle umgestellt
 - CSV-Intervallbildung vereinheitlicht
 - `open_bookings` und `open_review_cases` mit `--from`/`--to`-Zeitraumfilter versehen
@@ -1188,6 +1257,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Phase 4: Infrastruktur] – 2026-05-22 bis 2026-05-26
 
 ### Hinzugefügt
+
 - `SQLiteUnitOfWork` mit commit-or-rollback-Semantik und separater `audit_conn`
 - 10 SQLite-Repositories mit Roundtrip-Integrationstests
 - `infrastructure/hardware/` — `evdev`-Reader (RFID + Numpad) + `SimulatedHardwareReader`
@@ -1211,6 +1281,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 - WAL-Modus, `busy_timeout`, Autocommit-Garantie für `audit_conn` explizit belegt
 
 ### Geändert
+
 - Audit-Log rollback-resistent (schreibt über separate Verbindung außerhalb der UoW-Transaktion)
 - `BookingStatus` auf 6 orthogonale Werte reduziert; Compliance-Zustand über `ReviewCaseType`
 
@@ -1219,6 +1290,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Phase 3: Application] – 2026-05-22
 
 ### Hinzugefügt
+
 - `UnitOfWork`-Protokoll + `FakeUnitOfWork` (In-Memory-Testdouble)
 - Commands / Results für alle Use Cases
 - `BookUseCase` — COME / GO / BREAK mit Audit-Log und Buchungssequenzprüfung
@@ -1234,6 +1306,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Phase 2: Domäne] – 2026-05-21
 
 ### Hinzugefügt
+
 - `domain/enums.py` — 11 StrEnum-Klassen (`BookingType`, `BookingStatus`,
   `UserRole`, `ReviewCaseType` u. a.)
 - `domain/entities.py` — 9 frozen `@dataclass` (`Employee`, `TimeBooking`,
@@ -1251,6 +1324,7 @@ aufgabenorientierte Laien-Version (Praxisleitung/Verwaltung):
 ## [Phase 1: Grundgerüst] – 2026-05-21
 
 ### Hinzugefügt
+
 - `migrations/0001_schema.sql` — Initialschema: 16 Tabellen, 17 Indizes,
   `schema_migrations`-Versionsverfolgung
 - `migrations/0002_seed_defaults.sql` — Regelarbeitszeiten Mo–Fr,

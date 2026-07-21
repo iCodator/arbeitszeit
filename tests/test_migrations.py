@@ -101,7 +101,9 @@ def test_audit_log_enthaelt_seed_eintraege(conn: sqlite3.Connection) -> None:
     assert count == 9
 
 
-def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(conn: sqlite3.Connection) -> None:
+def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(
+    conn: sqlite3.Connection,
+) -> None:
     run_migrations(conn)
 
     versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
@@ -131,7 +133,9 @@ def test_migration_0005_fuegt_device_event_id_ein(conn: sqlite3.Connection) -> N
     assert "device_events" in fk_targets
 
 
-def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(conn: sqlite3.Connection) -> None:
+def test_migration_0005_erhaelt_time_bookings_foreign_keys_und_indizes(
+    conn: sqlite3.Connection,
+) -> None:
     run_migrations(conn)
 
     fk_targets = {
@@ -201,7 +205,9 @@ def test_migration_0005_datensatz_bleibt_erhalten(conn: sqlite3.Connection, tmp_
     assert row["device_event_id"] is None
 
 
-def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(conn: sqlite3.Connection, tmp_path: Path) -> None:
+def test_fehlgeschlagene_migration_hinterlaesst_keinen_schema_migrations_eintrag(
+    conn: sqlite3.Connection, tmp_path: Path
+) -> None:
     partial_dir = tmp_path / "partial"
     partial_dir.mkdir()
     shutil.copy(_MIGRATIONS_ROOT / "0001_schema.sql", partial_dir / "0001_schema.sql")
@@ -231,7 +237,9 @@ def test_migration_0006_application_error_event_type_verfuegbar(conn: sqlite3.Co
     assert row["event_type"] == "APPLICATION_ERROR"
 
 
-def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(conn: sqlite3.Connection) -> None:
+def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(
+    conn: sqlite3.Connection,
+) -> None:
     run_migrations(conn)
     run_migrations(conn)
 

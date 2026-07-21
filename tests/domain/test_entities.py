@@ -333,7 +333,13 @@ def test_work_schedule_gleiche_start_und_end_time_ist_ungueltig() -> None:
 
 def test_employee_mit_leerem_personnel_no_ist_ungueltig() -> None:
     with pytest.raises(ValueError):
-        Employee(id=EmployeeId(1), personnel_no="", first_name="Anna", last_name="Muster", is_active=True)
+        Employee(
+            id=EmployeeId(1),
+            personnel_no="",
+            first_name="Anna",
+            last_name="Muster",
+            is_active=True,
+        )
 
 
 def test_employee_mit_nur_leerzeichen_personnel_no_ist_ungueltig() -> None:
@@ -348,7 +354,13 @@ def test_employee_mit_nur_leerzeichen_personnel_no_ist_ungueltig() -> None:
 
 
 def test_employee_mit_gueltigem_personnel_no_ist_gueltig() -> None:
-    emp = Employee(id=EmployeeId(1), personnel_no="E001", first_name="Anna", last_name="Muster", is_active=True)
+    emp = Employee(
+        id=EmployeeId(1),
+        personnel_no="E001",
+        first_name="Anna",
+        last_name="Muster",
+        is_active=True,
+    )
     assert emp.personnel_no == "E001"
 
 
@@ -357,16 +369,34 @@ def test_employee_mit_gueltigem_personnel_no_ist_gueltig() -> None:
 
 def test_user_account_mit_leerem_username_ist_ungueltig() -> None:
     with pytest.raises(ValueError):
-        UserAccount(id=UserAccountId(1), employee_id=None, username="", role=UserRole.ADMIN, is_active=True)
+        UserAccount(
+            id=UserAccountId(1),
+            employee_id=None,
+            username="",
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
 
 
 def test_user_account_mit_nur_leerzeichen_username_ist_ungueltig() -> None:
     with pytest.raises(ValueError):
-        UserAccount(id=UserAccountId(1), employee_id=None, username="  ", role=UserRole.ADMIN, is_active=True)
+        UserAccount(
+            id=UserAccountId(1),
+            employee_id=None,
+            username="  ",
+            role=UserRole.ADMIN,
+            is_active=True,
+        )
 
 
 def test_user_account_mit_gueltigem_username_ist_gueltig() -> None:
-    acc = UserAccount(id=UserAccountId(1), employee_id=None, username="admin", role=UserRole.ADMIN, is_active=True)
+    acc = UserAccount(
+        id=UserAccountId(1),
+        employee_id=None,
+        username="admin",
+        role=UserRole.ADMIN,
+        is_active=True,
+    )
     assert acc.username == "admin"
 
 

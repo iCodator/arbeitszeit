@@ -90,7 +90,7 @@ def test_leere_eingabe_behaelt_bestehende_werte(tmp_path: Path, monkeypatch: obj
     config_path = tmp_path / "config.toml"
     original = AppConfig(
         database=DatabaseConfig(path=Path("/data/arbeitszeit.db")),
-        terminal=TerminalConfig(id=3, numpad="USB Numpad", rfid="RFID Reader"),
+        terminal=TerminalConfig(id=3, rfid="RFID Reader"),
         backup=BackupConfig(backup_dir=Path("/var/backups")),
     )
     write_config(original, config_path)
@@ -100,7 +100,6 @@ def test_leere_eingabe_behaelt_bestehende_werte(tmp_path: Path, monkeypatch: obj
 
     assert result.database.path == Path("/data/arbeitszeit.db")
     assert result.terminal.id == 3
-    assert result.terminal.numpad == "USB Numpad"
     assert result.terminal.rfid == "RFID Reader"
     assert result.backup.backup_dir == Path("/var/backups")
 
@@ -110,20 +109,19 @@ def test_einzelner_wert_geaendert_andere_bleiben(tmp_path: Path, monkeypatch: ob
     config_path = tmp_path / "config.toml"
     original = AppConfig(
         database=DatabaseConfig(path=Path("/data/arbeitszeit.db")),
-        terminal=TerminalConfig(id=1, numpad="USB Numpad", rfid="RFID Reader"),
+        terminal=TerminalConfig(id=1, rfid="RFID Reader"),
         backup=BackupConfig(backup_dir=Path("/var/backups")),
     )
     write_config(original, config_path)
 
-    # Reihenfolge der Prompts: database.path, terminal.id, terminal.numpad,
-    #   terminal.rfid, admin.user_id, backup.backup_dir, backup.export_dir, backup.log_dir
-    responses = iter(["", "5", "", "", "", "", "", ""])
+    # Reihenfolge der Prompts: database.path, terminal.id, terminal.rfid,
+    #   admin.user_id, backup.backup_dir, backup.export_dir, backup.log_dir
+    responses = iter(["", "5", "", "", "", "", ""])
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(responses))  # type: ignore[attr-defined]
     result = setup_config(config_path)
 
     assert result.terminal.id == 5
     assert result.database.path == Path("/data/arbeitszeit.db")
-    assert result.terminal.numpad == "USB Numpad"
     assert result.terminal.rfid == "RFID Reader"
     assert result.backup.backup_dir == Path("/var/backups")
 
@@ -151,8 +149,8 @@ def test_db_hinweis_explizite_eingabe_uebernimmt_wert(tmp_path: Path, monkeypatc
     _set_config(db, "backup.backup_dir", "/db/backups")
 
     config_path = tmp_path / "config.toml"
-    # Index 5 = backup.backup_dir (Reihenfolge: db.path, term.id, numpad, rfid, admin, backup_dir)
-    responses = iter(["", "", "", "", "", "/db/backups", "", ""])
+    # Index 4 = backup.backup_dir (Reihenfolge: db.path, term.id, rfid, admin, backup_dir)
+    responses = iter(["", "", "", "", "/db/backups", "", ""])
     monkeypatch.setattr("builtins.input", lambda _prompt="": next(responses))  # type: ignore[attr-defined]
     result = setup_config(config_path, db_path=db)
 

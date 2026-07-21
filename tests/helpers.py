@@ -19,7 +19,6 @@ def make_config_toml(
     *,
     database_path: Path | None = None,
     rfid: str | None = None,
-    numpad: str | None = None,
     backup_dir: Path | None = None,
     export_dir: Path | None = None,
     log_dir: Path | None = None,
@@ -28,7 +27,7 @@ def make_config_toml(
 ) -> Path:
     config = AppConfig(
         database=DatabaseConfig(path=database_path),
-        terminal=TerminalConfig(rfid=rfid, numpad=numpad),
+        terminal=TerminalConfig(rfid=rfid),
         backup=BackupConfig(backup_dir=backup_dir, export_dir=export_dir, log_dir=log_dir),
         admin=AdminConfig(user_id=admin_user_id),
     )

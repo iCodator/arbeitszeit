@@ -11,7 +11,7 @@ Suchreihenfolge:
 
 from __future__ import annotations
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import os
 import tomllib
@@ -28,7 +28,6 @@ class DatabaseConfig:
 @dataclass(frozen=True, slots=True)
 class TerminalConfig:
     id: int | None = None
-    numpad: str | None = None
     rfid: str | None = None
 
 
@@ -89,7 +88,6 @@ def _parse(data: dict[str, Any]) -> AppConfig:
         ),
         terminal=TerminalConfig(
             id=int(term_raw["id"]) if "id" in term_raw else None,
-            numpad=str(term_raw["numpad"]) if "numpad" in term_raw else None,
             rfid=str(term_raw["rfid"]) if "rfid" in term_raw else None,
         ),
         backup=BackupConfig(
@@ -114,8 +112,6 @@ def _terminal_section(config: AppConfig) -> list[str]:
     lines: list[str] = []
     if config.terminal.id is not None:
         lines.append(f"id = {config.terminal.id!r}")
-    if config.terminal.numpad is not None:
-        lines.append(f"numpad = {_toml_string(config.terminal.numpad)}")
     if config.terminal.rfid is not None:
         lines.append(f"rfid = {_toml_string(config.terminal.rfid)}")
     if lines:

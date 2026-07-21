@@ -95,22 +95,39 @@ def _make_uow(
 
 def _inject(
     reader: SimulatedHardwareReader,
-    booking_type: BookingType,
     occurred_at: datetime | None = None,
 ) -> None:
     reader.inject(
-        booking_type=booking_type,
         uid_hash=_UID_HASH,
         occurred_at=occurred_at or _dt(8),
     )
 
 
-def _make_reader(
-    booking_type: BookingType, occurred_at: datetime | None = None
-) -> SimulatedHardwareReader:
+def _make_reader(occurred_at: datetime | None = None) -> SimulatedHardwareReader:
     reader = SimulatedHardwareReader()
-    _inject(reader, booking_type, occurred_at)
+    _inject(reader, occurred_at)
     return reader
+
+
+def _add_prior_booking(
+    uow: FakeUnitOfWork,
+    booking_type: BookingType,
+    hour: int,
+) -> None:
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=TimeBookingId(0),
+            employee_id=EmployeeId(1),
+            booking_type=booking_type,
+            booked_at=_dt(hour),
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=TerminalId(_TERMINAL_ID),
+            rfid_card_id=RfidCardId(1),
+            device_event_id=None,
+            note=None,
+        )
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -161,7 +178,7 @@ def fake_uow_factory(monkeypatch: pytest.MonkeyPatch) -> Callable[[FakeUnitOfWor
 class TestProcessBookingErfolg:
 
     def test_kommen_buchung_gibt_booking_result_zurueck(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()  # leere History → COME
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -169,29 +186,18 @@ class TestProcessBookingErfolg:
         assert result.booking_id > 0
 
     def test_kommen_buchung_hat_status_open(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()  # leere History → COME
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
         assert result.status == BookingStatus.OPEN
 
     def test_gehen_buchung_nach_kommen_hat_status_ok(self, fake_uow: FakeUnitOfWork) -> None:
-        # COME vorher in die FakeUnitOfWork schreiben
-        fake_uow.time_booking_repo.add(
-            TimeBooking(
-                id=TimeBookingId(0),
-                employee_id=EmployeeId(1),
-                booking_type=BookingType.COME,
-                booked_at=_dt(8),
-                source=BookingSource.TERMINAL,
-                status=BookingStatus.OPEN,
-                terminal_id=TerminalId(_TERMINAL_ID),
-                rfid_card_id=RfidCardId(1),
-                device_event_id=None,
-                note=None,
-            )
-        )
-        reader = _make_reader(BookingType.GO, _dt(13))
+        # COME, BREAK_START, BREAK_END vorher eintragen → vierter Scan = GO
+        _add_prior_booking(fake_uow, BookingType.COME, 8)
+        _add_prior_booking(fake_uow, BookingType.BREAK_START, 9)
+        _add_prior_booking(fake_uow, BookingType.BREAK_END, 10)
+        reader = _make_reader(_dt(13))
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -208,7 +214,6 @@ class TestProcessBookingErfolg:
 
         reader = SimulatedHardwareReader()
         reader.inject(
-            booking_type=BookingType.COME,
             uid_hash=custom_hash,
             occurred_at=_dt(8),
         )
@@ -219,7 +224,7 @@ class TestProcessBookingErfolg:
 
     def test_terminal_id_wird_an_buchung_weitergegeben(self, fake_uow: FakeUnitOfWork) -> None:
         terminal_id = 42
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         result = process_booking(reader, Path("dummy.db"), terminal_id)
 
@@ -232,7 +237,7 @@ class TestProcessBookingErfolg:
     ) -> None:
         occurred = _dt(7, 30)
         reader = SimulatedHardwareReader()
-        reader.inject(BookingType.COME, uid_hash=_UID_HASH, occurred_at=occurred)
+        reader.inject(uid_hash=_UID_HASH, occurred_at=occurred)
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -241,7 +246,7 @@ class TestProcessBookingErfolg:
         assert booking.booked_at == occurred
 
     def test_booking_source_ist_terminal(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -250,7 +255,7 @@ class TestProcessBookingErfolg:
         assert booking.source == BookingSource.TERMINAL
 
     def test_uow_ist_nach_erfolgreicher_buchung_committed(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -259,21 +264,8 @@ class TestProcessBookingErfolg:
     def test_pause_start_buchung_nach_kommen_hat_status_open(
         self, fake_uow: FakeUnitOfWork
     ) -> None:
-        fake_uow.time_booking_repo.add(
-            TimeBooking(
-                id=TimeBookingId(0),
-                employee_id=EmployeeId(1),
-                booking_type=BookingType.COME,
-                booked_at=_dt(8),
-                source=BookingSource.TERMINAL,
-                status=BookingStatus.OPEN,
-                terminal_id=TerminalId(_TERMINAL_ID),
-                rfid_card_id=RfidCardId(1),
-                device_event_id=None,
-                note=None,
-            )
-        )
-        reader = _make_reader(BookingType.BREAK_START, _dt(12))
+        _add_prior_booking(fake_uow, BookingType.COME, 8)
+        reader = _make_reader(_dt(12))  # COME in History → nächster Scan = BREAK_START
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -288,14 +280,14 @@ class TestProcessBookingErfolg:
 class TestDeviceEventPersistenz:
 
     def test_device_event_wird_vor_buchung_geschrieben(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
         assert len(fake_uow.device_event_repo._records) == 1
 
     def test_device_event_hat_rfid_scan_typ(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -305,7 +297,7 @@ class TestDeviceEventPersistenz:
     def test_device_event_uid_hash_stimmt_mit_reader_ueberein(
         self, fake_uow: FakeUnitOfWork
     ) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -313,7 +305,7 @@ class TestDeviceEventPersistenz:
         assert event["rfid_uid_hash"] == _UID_HASH
 
     def test_device_event_terminal_id_stimmt_ueberein(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -333,7 +325,7 @@ class TestDeviceEventPersistenz:
         fake_uow_factory(uow)
 
         reader = SimulatedHardwareReader()
-        reader.inject(BookingType.COME, uid_hash=_UID_HASH, occurred_at=_dt(8))
+        reader.inject(uid_hash=_UID_HASH, occurred_at=_dt(8))
 
         with pytest.raises(UnknownCardError):
             process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
@@ -342,7 +334,7 @@ class TestDeviceEventPersistenz:
         assert len(uow.device_event_repo._records) == 1
 
     def test_buchung_referenziert_device_event_id(self, fake_uow: FakeUnitOfWork) -> None:
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         result = process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
 
@@ -364,7 +356,7 @@ class TestProcessBookingFehler:
         uow = _make_uow(uid_hash="andere_karte")
         fake_uow_factory(uow)
         reader = SimulatedHardwareReader()
-        reader.inject(BookingType.COME, uid_hash=_UID_HASH, occurred_at=_dt(8))
+        reader.inject(uid_hash=_UID_HASH, occurred_at=_dt(8))
 
         with pytest.raises(UnknownCardError):
             process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
@@ -374,7 +366,7 @@ class TestProcessBookingFehler:
     ) -> None:
         uow = _make_uow(card_status=CardStatus.INACTIVE)
         fake_uow_factory(uow)
-        reader = _make_reader(BookingType.COME)
+        reader = _make_reader()
 
         with pytest.raises(InactiveCardError):
             process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
@@ -382,10 +374,30 @@ class TestProcessBookingFehler:
     def test_ungueltige_sequenz_loest_invalid_booking_sequence_error(
         self, fake_uow_factory: Callable[[FakeUnitOfWork], None]
     ) -> None:
-        """GO als erste Buchung des Tages muss InvalidBookingSequenceError werfen."""
+        """Fünfter Scan nach abgeschlossenem Tagesablauf → InvalidBookingSequenceError."""
         uow = _make_uow()
+        for bt, h in [
+            (BookingType.COME, 8),
+            (BookingType.BREAK_START, 10),
+            (BookingType.BREAK_END, 11),
+            (BookingType.GO, 17),
+        ]:
+            uow.time_booking_repo.add(
+                TimeBooking(
+                    id=TimeBookingId(0),
+                    employee_id=EmployeeId(1),
+                    booking_type=bt,
+                    booked_at=_dt(h),
+                    source=BookingSource.TERMINAL,
+                    status=BookingStatus.OPEN,
+                    terminal_id=TerminalId(_TERMINAL_ID),
+                    rfid_card_id=RfidCardId(1),
+                    device_event_id=None,
+                    note=None,
+                )
+            )
         fake_uow_factory(uow)
-        reader = _make_reader(BookingType.GO, _dt(17))
+        reader = _make_reader(_dt(18))
 
         with pytest.raises(InvalidBookingSequenceError):
             process_booking(reader, Path("dummy.db"), _TERMINAL_ID)
@@ -397,7 +409,7 @@ class TestProcessBookingFehler:
         uow = _make_uow(uid_hash="falsch")
         fake_uow_factory(uow)
         reader = SimulatedHardwareReader()
-        reader.inject(BookingType.COME, uid_hash=_UID_HASH, occurred_at=_dt(8))
+        reader.inject(uid_hash=_UID_HASH, occurred_at=_dt(8))
 
         # UnknownCardError muss bis zum Aufrufer durchkommen
         with pytest.raises(UnknownCardError):
@@ -483,11 +495,10 @@ class TestSimulatedHardwareReaderGrundverhalten:
     def test_inject_und_read_next_liefert_request(self) -> None:
         reader = SimulatedHardwareReader()
         occurred = _dt(9, 15)
-        reader.inject(BookingType.COME, uid_hash="hash1", occurred_at=occurred)
+        reader.inject(uid_hash="hash1", occurred_at=occurred)
 
         request = reader.read_next()
 
-        assert request.booking_type == BookingType.COME
         assert request.uid_hash == "hash1"
         assert request.occurred_at == occurred
 
@@ -499,19 +510,19 @@ class TestSimulatedHardwareReaderGrundverhalten:
 
     def test_mehrere_requests_werden_in_reihenfolge_geliefert(self) -> None:
         reader = SimulatedHardwareReader()
-        reader.inject(BookingType.COME, uid_hash="h1", occurred_at=_dt(8))
-        reader.inject(BookingType.GO, uid_hash="h1", occurred_at=_dt(17))
+        reader.inject(uid_hash="h1", occurred_at=_dt(8))
+        reader.inject(uid_hash="h1", occurred_at=_dt(17))
 
         first = reader.read_next()
         second = reader.read_next()
 
-        assert first.booking_type == BookingType.COME
-        assert second.booking_type == BookingType.GO
+        assert first.occurred_at == _dt(8)
+        assert second.occurred_at == _dt(17)
 
     def test_pending_zaehler_stimmt(self) -> None:
         reader = SimulatedHardwareReader()
         assert reader.pending == 0
-        reader.inject(BookingType.COME, uid_hash="h1")
+        reader.inject(uid_hash="h1")
         assert reader.pending == 1
         reader.read_next()
         assert reader.pending == 0

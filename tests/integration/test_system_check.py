@@ -241,19 +241,19 @@ def test_geraete_check_uebersprungen_ohne_pfade(tmp_path: Path) -> None:
     assert "übersprungen" in dev_check.detail
 
 
-def test_geraete_check_schlaegt_fehl_bei_nicht_existierendem_numpad(tmp_path: Path) -> None:
+def test_geraete_check_schlaegt_fehl_bei_nicht_existierendem_rfid(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
-    result = run_system_check(db, numpad_path=tmp_path / "dev_numpad_ghost")
+    result = run_system_check(db, rfid_path=tmp_path / "dev_rfid_ghost")
     dev_check = next(c for c in result.checks if c.name == "device_availability")
     assert not dev_check.ok
-    assert "Numpad" in dev_check.detail
+    assert "RFID" in dev_check.detail
 
 
 def test_geraete_check_ok_bei_existierender_geraetedatei(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
-    fake_dev = tmp_path / "fake_numpad"
+    fake_dev = tmp_path / "fake_rfid"
     fake_dev.write_bytes(b"")
-    result = run_system_check(db, numpad_path=fake_dev)
+    result = run_system_check(db, rfid_path=fake_dev)
     dev_check = next(c for c in result.checks if c.name == "device_availability")
     assert dev_check.ok
 

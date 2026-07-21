@@ -85,7 +85,9 @@ def _insert_review_case(conn: sqlite3.Connection, employee_id: int) -> int:
 # --- SQLiteSupplementRepository: rowcount-Verhalten ---
 
 
-def test_approve_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Connection, user_id: int) -> None:
+def test_approve_auf_unbekannter_id_wirft_not_found_error(
+    conn: sqlite3.Connection, user_id: int
+) -> None:
     repo = SQLiteSupplementRepository(conn)
     with pytest.raises(NotFoundError):
         repo.approve(
@@ -95,7 +97,9 @@ def test_approve_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Connecti
         )
 
 
-def test_reject_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Connection, user_id: int) -> None:
+def test_reject_auf_unbekannter_id_wirft_not_found_error(
+    conn: sqlite3.Connection, user_id: int
+) -> None:
     repo = SQLiteSupplementRepository(conn)
     with pytest.raises(NotFoundError):
         repo.reject(
@@ -105,7 +109,9 @@ def test_reject_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Connectio
         )
 
 
-def test_approve_auf_bekannter_id_wirft_keinen_fehler(conn: sqlite3.Connection, employee_id: int, user_id: int) -> None:
+def test_approve_auf_bekannter_id_wirft_keinen_fehler(
+    conn: sqlite3.Connection, employee_id: int, user_id: int
+) -> None:
     supplement_id = _insert_supplement(conn, employee_id, user_id)
     repo = SQLiteSupplementRepository(conn)
     repo.approve(
@@ -119,7 +125,9 @@ def test_approve_auf_bekannter_id_wirft_keinen_fehler(conn: sqlite3.Connection, 
     assert row["approval_status"] == ApprovalStatus.APPROVED.value
 
 
-def test_reject_auf_bekannter_id_wirft_keinen_fehler(conn: sqlite3.Connection, employee_id: int, user_id: int) -> None:
+def test_reject_auf_bekannter_id_wirft_keinen_fehler(
+    conn: sqlite3.Connection, employee_id: int, user_id: int
+) -> None:
     supplement_id = _insert_supplement(conn, employee_id, user_id)
     repo = SQLiteSupplementRepository(conn)
     repo.reject(
@@ -136,7 +144,9 @@ def test_reject_auf_bekannter_id_wirft_keinen_fehler(conn: sqlite3.Connection, e
 # --- SQLiteReviewCaseRepository: rowcount-Verhalten ---
 
 
-def test_resolve_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Connection, user_id: int) -> None:
+def test_resolve_auf_unbekannter_id_wirft_not_found_error(
+    conn: sqlite3.Connection, user_id: int
+) -> None:
     repo = SQLiteReviewCaseRepository(conn)
     with pytest.raises(NotFoundError):
         repo.resolve(
@@ -146,7 +156,9 @@ def test_resolve_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Connecti
         )
 
 
-def test_resolve_auf_bekannter_id_setzt_status(conn: sqlite3.Connection, employee_id: int, user_id: int) -> None:
+def test_resolve_auf_bekannter_id_setzt_status(
+    conn: sqlite3.Connection, employee_id: int, user_id: int
+) -> None:
     case_id = _insert_review_case(conn, employee_id)
     repo = SQLiteReviewCaseRepository(conn)
     repo.resolve(
@@ -219,14 +231,18 @@ def test_close_version_auf_unbekannter_id_wirft_not_found_error(conn: sqlite3.Co
         repo.close_version(99999, date(2025, 6, 30))
 
 
-def test_close_version_mit_ungueltigem_datum_wirft_validation_error(conn: sqlite3.Connection) -> None:
+def test_close_version_mit_ungueltigem_datum_wirft_validation_error(
+    conn: sqlite3.Connection,
+) -> None:
     repo = SQLiteWorkScheduleRepository(conn)
     version_id = _insert_work_schedule_version(conn, valid_from="2025-06-01")
     with pytest.raises(ValidationError):
         repo.close_version(version_id, date(2025, 5, 31))
 
 
-def test_get_effective_employee_scope_hat_vorrang_vor_global(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_get_effective_employee_scope_hat_vorrang_vor_global(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     repo = SQLiteWorkScheduleRepository(conn)
     _insert_work_schedule_version(
         conn,
@@ -248,7 +264,9 @@ def test_get_effective_employee_scope_hat_vorrang_vor_global(conn: sqlite3.Conne
     assert result.scope_employee_id == employee_id
 
 
-def test_get_effective_faellt_auf_global_zurueck(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_get_effective_faellt_auf_global_zurueck(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     repo = SQLiteWorkScheduleRepository(conn)
     _insert_work_schedule_version(
         conn,
@@ -275,7 +293,9 @@ def test_set_status_aktualisiert_current_status(conn: sqlite3.Connection, employ
     assert row["current_status"] == BookingStatus.OK.value
 
 
-def test_set_status_schreibt_statushistorie_eintrag(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_set_status_schreibt_statushistorie_eintrag(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     repo = SQLiteTimeBookingRepository(conn)
     booking_id = _insert_time_booking(conn, employee_id, status="OPEN")
     repo.set_status(booking_id, BookingStatus.OK, reason="Tagesabschluss")

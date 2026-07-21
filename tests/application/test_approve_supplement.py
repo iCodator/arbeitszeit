@@ -91,7 +91,9 @@ def _make_uow_with_pending_supplement(
         Supplement(
             id=SupplementId(0),
             employee_id=emp.id,
-            related_booking_id=TimeBookingId(related_booking_id) if related_booking_id is not None else None,
+            related_booking_id=(
+                TimeBookingId(related_booking_id) if related_booking_id is not None else None
+            ),
             booking_type=booking_type,
             event_at=_EVENT_AT,
             recorded_at=_NOW,
@@ -139,7 +141,9 @@ def test_nachtrag_nicht_gefunden_loest_not_found_error() -> None:
 
 def test_nachtrag_nicht_pending_loest_validation_error() -> None:
     uow, supplement_id = _make_uow_with_pending_supplement()
-    uow.supplement_repo.approve(supplement_id, approved_by_user_id=UserAccountId(3), approved_at=_NOW)
+    uow.supplement_repo.approve(
+        supplement_id, approved_by_user_id=UserAccountId(3), approved_at=_NOW
+    )
     uc = ApproveSupplementUseCase(_as_uow(uow))
 
     with pytest.raises(ValidationError):

@@ -126,7 +126,9 @@ def test_employee_get_active_by_personnel_no(conn: sqlite3.Connection, employee_
     assert emp.id == employee_id
 
 
-def test_employee_get_active_by_personnel_no_gibt_none_fuer_inaktiven(conn: sqlite3.Connection) -> None:
+def test_employee_get_active_by_personnel_no_gibt_none_fuer_inaktiven(
+    conn: sqlite3.Connection,
+) -> None:
     conn.execute(
         "INSERT INTO employees "
         "(personnel_no, first_name, last_name, active, created_at, updated_at) "
@@ -158,19 +160,25 @@ def test_user_account_get_by_username_gibt_none_fuer_unbekannten(conn: sqlite3.C
 # --- RfidCardRepository ---
 
 
-def test_rfid_card_get_by_uid_hash_findet_aktive_karte(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_rfid_card_get_by_uid_hash_findet_aktive_karte(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     _insert_rfid_card(conn, employee_id, uid_hash="HASH_ACTIVE", status="ACTIVE")
     card = SQLiteRfidCardRepository(conn).get_by_uid_hash("HASH_ACTIVE")
     assert card is not None
     assert card.status == CardStatus.ACTIVE
 
 
-def test_rfid_card_get_by_uid_hash_findet_auch_inaktive_karte(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_rfid_card_get_by_uid_hash_findet_auch_inaktive_karte(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     _insert_rfid_card(conn, employee_id, uid_hash="HASH_INACTIVE", status="INACTIVE")
     assert SQLiteRfidCardRepository(conn).get_by_uid_hash("HASH_INACTIVE") is not None
 
 
-def test_rfid_card_get_active_by_uid_hash_gibt_none_fuer_inaktive_karte(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_rfid_card_get_active_by_uid_hash_gibt_none_fuer_inaktive_karte(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     _insert_rfid_card(conn, employee_id, uid_hash="HASH_INACTIVE", status="INACTIVE")
     assert SQLiteRfidCardRepository(conn).get_active_by_uid_hash("HASH_INACTIVE") is None
 
@@ -185,7 +193,9 @@ def test_rfid_card_get_by_id(conn: sqlite3.Connection, employee_id: int) -> None
 # --- TimeBookingRepository ---
 
 
-def test_time_booking_add_und_get_by_id_roundtrip(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_time_booking_add_und_get_by_id_roundtrip(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     repo = SQLiteTimeBookingRepository(conn)
     saved = repo.add(_make_booking(employee_id))
     assert saved.id > 0
@@ -196,7 +206,9 @@ def test_time_booking_add_und_get_by_id_roundtrip(conn: sqlite3.Connection, empl
     assert loaded.employee_id == employee_id
 
 
-def test_time_booking_list_for_employee_on_day_filtert_nach_tag(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_time_booking_list_for_employee_on_day_filtert_nach_tag(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     repo = SQLiteTimeBookingRepository(conn)
     b_mo = repo.add(
         _make_booking(employee_id, booked_at=datetime(2025, 6, 1, 8, 0, tzinfo=timezone.utc))
@@ -259,7 +271,9 @@ def test_work_schedule_add_und_get_effective_roundtrip(conn: sqlite3.Connection)
     assert found.id == added.id
 
 
-def test_work_schedule_list_versions_filtert_nach_scope(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_work_schedule_list_versions_filtert_nach_scope(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     repo = SQLiteWorkScheduleRepository(conn)
     repo.add(_make_work_schedule(scope_type=ScopeType.GLOBAL))
     repo.add(_make_work_schedule(scope_type=ScopeType.EMPLOYEE, scope_employee_id=employee_id))
@@ -269,7 +283,9 @@ def test_work_schedule_list_versions_filtert_nach_scope(conn: sqlite3.Connection
     assert all(v.scope_type == ScopeType.EMPLOYEE for v in employee_versions)
 
 
-def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(conn: sqlite3.Connection, employee_id: int) -> None:
+def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
     """Pflicht-Testfall: Infrastruktur selektiert deterministisch die neuere Version."""
     repo = SQLiteWorkScheduleRepository(conn)
     repo.add(
@@ -299,7 +315,9 @@ def test_work_schedule_get_effective_zwei_employee_versionen_waehlt_neuere(conn:
 # --- BookingCorrectionRepository ---
 
 
-def test_booking_correction_add_und_list_for_booking_roundtrip(conn: sqlite3.Connection, employee_id: int, user_id: int) -> None:
+def test_booking_correction_add_und_list_for_booking_roundtrip(
+    conn: sqlite3.Connection, employee_id: int, user_id: int
+) -> None:
     booking_repo = SQLiteTimeBookingRepository(conn)
     corr_repo = SQLiteBookingCorrectionRepository(conn)
     booking = booking_repo.add(_make_booking(employee_id))
@@ -346,11 +364,15 @@ def test_audit_log_add_weist_id_zu(conn: sqlite3.Connection) -> None:
 # --- SystemConfigRepository ---
 
 
-def test_system_config_get_current_gibt_none_fuer_unbekannten_schluessel(conn: sqlite3.Connection) -> None:
+def test_system_config_get_current_gibt_none_fuer_unbekannten_schluessel(
+    conn: sqlite3.Connection,
+) -> None:
     assert SQLiteSystemConfigRepository(conn).get_current("test.unbekannt") is None
 
 
-def test_system_config_set_current_und_get_current_roundtrip(conn: sqlite3.Connection, user_id: int) -> None:
+def test_system_config_set_current_und_get_current_roundtrip(
+    conn: sqlite3.Connection, user_id: int
+) -> None:
     repo = SQLiteSystemConfigRepository(conn)
     repo.set_current(
         config_key="test.wert",
@@ -362,7 +384,9 @@ def test_system_config_set_current_und_get_current_roundtrip(conn: sqlite3.Conne
     assert repo.get_current("test.wert") == '"hallo"'
 
 
-def test_system_config_set_current_zweimal_inkrementiert_version(conn: sqlite3.Connection, user_id: int) -> None:
+def test_system_config_set_current_zweimal_inkrementiert_version(
+    conn: sqlite3.Connection, user_id: int
+) -> None:
     repo = SQLiteSystemConfigRepository(conn)
     repo.set_current(
         config_key="test.versioniert",

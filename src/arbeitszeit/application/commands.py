@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from dataclasses import dataclass
 from datetime import date, datetime, time
@@ -19,7 +19,6 @@ from arbeitszeit.domain.value_objects import (
 class BookCommand:
     uid_hash: str
     terminal_id: TerminalId
-    booking_type: BookingType
     booked_at: datetime
     device_event_id: DeviceEventId | None
     source: BookingSource = BookingSource.TERMINAL

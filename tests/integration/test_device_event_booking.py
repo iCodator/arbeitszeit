@@ -9,7 +9,6 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
-from arbeitszeit.domain.enums import BookingType
 from arbeitszeit.domain.errors import UnknownCardError
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
@@ -78,9 +77,11 @@ def _bookings_with_device_event(db: Path) -> list[dict[str, object]]:
 # --- Test 1: Erfolgreiche Buchung ---
 
 
-def test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id(db: Path, terminal_id: int, card_id: int) -> None:
+def test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id(
+    db: Path, terminal_id: int, card_id: int
+) -> None:
     reader = SimulatedHardwareReader()
-    reader.inject(BookingType.COME, _UID_HASH, _NOW)
+    reader.inject(_UID_HASH, _NOW)
 
     process_booking(reader, db, terminal_id)
 
@@ -102,7 +103,7 @@ def test_erfolgreiche_buchung_schreibt_device_event_und_verknuepft_id(db: Path, 
 
 def test_unknown_card_schreibt_device_event_aber_keine_buchung(db: Path, terminal_id: int) -> None:
     reader = SimulatedHardwareReader()
-    reader.inject(BookingType.COME, "unbekannte_uid", _NOW)
+    reader.inject("unbekannte_uid", _NOW)
 
     with pytest.raises(UnknownCardError):
         process_booking(reader, db, terminal_id)
@@ -120,9 +121,11 @@ def test_unknown_card_schreibt_device_event_aber_keine_buchung(db: Path, termina
 # --- Test 3: Fehler beim device_events-INSERT ---
 
 
-def test_fehler_im_device_event_insert_verhindert_buchung(db: Path, terminal_id: int, card_id: int) -> None:
+def test_fehler_im_device_event_insert_verhindert_buchung(
+    db: Path, terminal_id: int, card_id: int
+) -> None:
     reader = SimulatedHardwareReader()
-    reader.inject(BookingType.COME, _UID_HASH, _NOW)
+    reader.inject(_UID_HASH, _NOW)
 
     # Fehler im device_event_repo.add() simulieren
     with patch(

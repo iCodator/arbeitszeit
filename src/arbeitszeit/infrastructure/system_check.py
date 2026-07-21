@@ -6,7 +6,7 @@ in system_events. Aufrufbar manuell und beim Systemstart.
 
 from __future__ import annotations
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import json
 import logging
@@ -50,7 +50,6 @@ class SystemCheckResult:
 def run_system_check(
     db_path: Path,
     *,
-    numpad_path: Path | None = None,
     rfid_path: Path | None = None,
     app_config: AppConfig | None = None,
 ) -> SystemCheckResult:
@@ -70,7 +69,7 @@ def run_system_check(
 
     checks.append(_check_config_file_paths(app_config))
     checks.append(_check_ntp())
-    checks.append(_check_devices(numpad_path, rfid_path))
+    checks.append(_check_devices(rfid_path))
 
     result = SystemCheckResult(checks=tuple(checks))
     _write_event(db_path, result)
@@ -285,26 +284,18 @@ def _check_ntp() -> CheckResult:
         return CheckResult(name="ntp_sync", ok=False, detail=f"NTP-Prüfung fehlgeschlagen: {exc}")
 
 
-def _check_devices(
-    numpad_path: Path | None,
-    rfid_path: Path | None,
-) -> CheckResult:
-    if numpad_path is None and rfid_path is None:
+def _check_devices(rfid_path: Path | None) -> CheckResult:
+    if rfid_path is None:
         return CheckResult(
             name="device_availability",
             ok=True,
-            detail="Keine Gerätepfade angegeben, übersprungen",
+            detail="Kein RFID-Gerätepfad angegeben, übersprungen",
         )
-    unavailable = [
-        f"{label}: {path}"
-        for label, path in (("Numpad", numpad_path), ("RFID", rfid_path))
-        if path is not None and (not path.exists() or not os.access(path, os.R_OK))
-    ]
-    if unavailable:
+    if not rfid_path.exists() or not os.access(rfid_path, os.R_OK):
         return CheckResult(
             name="device_availability",
             ok=False,
-            detail=f"Nicht erreichbar: {', '.join(unavailable)}",
+            detail=f"RFID-Gerät nicht erreichbar: {rfid_path}",
         )
     return CheckResult(name="device_availability", ok=True, detail="OK")
 
