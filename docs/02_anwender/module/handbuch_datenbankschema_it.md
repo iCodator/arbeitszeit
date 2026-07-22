@@ -1,10 +1,10 @@
 # Datenbankschema `arbeitszeit` — technisches Referenzhandbuch
 
 **Kapitel:** 6.1-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
-**Quelldateien:** `migrations/0001_schema.sql` bis `migrations/0006_system_events_application_error.sql`
+**Quelldateien:** `migrations/0001_schema.sql` bis `migrations/0007_remove_numpad_grace_config.sql`
 
 ## Zweck dieses Dokuments
 
@@ -23,11 +23,12 @@ nicht aus abgeleiteten oder vermuteten Zusammenhängen.
 | 0004 | `0004_supplement_reject_fields_and_review_note.sql` | Trennung von Genehmigung und Ablehnung bei Nachträgen; Notizfeld für Prüffälle |
 | 0005 | `0005_time_bookings_device_event_id.sql` | Verknüpfung von Buchungen mit Geräte-Ereignissen |
 | 0006 | `0006_system_events_application_error.sql` | Neuer Ereignistyp `APPLICATION_ERROR` in `system_events` |
+| 0007 | `0007_remove_numpad_grace_config.sql` | Entfernt `booking.grace_seconds_after_numpad_select` aus `system_config` (RFID-only-Umstellung) |
 
 Jede Migration ist in `schema_migrations` mit ihrer vierstelligen
 Versionsnummer und dem Anwendungszeitpunkt (`applied_at`) verzeichnet.
 
-## Tabellen im finalen Zustand (nach Migration 0006)
+## Tabellen im finalen Zustand (nach Migration 0007)
 
 ### employees
 
@@ -269,6 +270,11 @@ Migration 0002 seedet vier Startwerte: `app.timezone`
 (`"Europe/Berlin"`), `booking.grace_seconds_after_numpad_select`
 (`30`), `backup.nas_enabled` (`false`) und `backup.nas_path` (`null`),
 jeweils mit `version = 1` und `change_origin = 'SYSTEM_SEED'`.
+
+Migration 0007 entfernt `booking.grace_seconds_after_numpad_select`
+mit `DELETE FROM system_config WHERE config_key = '...'`. Nach
+Migration 0007 sind in produktiven Datenbanken noch drei Schlüssel
+aktiv: `app.timezone`, `backup.nas_enabled`, `backup.nas_path`.
 
 ### device_events
 
