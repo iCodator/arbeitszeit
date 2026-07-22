@@ -1,4 +1,4 @@
-__version__ = "1.5"
+__version__ = "1.6"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -8,6 +8,7 @@ from arbeitszeit.application.commands import BookCommand
 from arbeitszeit.application.results import BookResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases._booking_evaluation import evaluate_booking
+from arbeitszeit.application.use_cases._tz import to_local
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import (
     AuditLogEntry,
@@ -135,15 +136,16 @@ class BookUseCase:
 
             day_booking_types = [b.booking_type for b in day_bookings]
 
+            local_booked_at = to_local(cmd.booked_at)
             schedule = self._uow.work_schedule_repo.get_effective(
-                cmd.booked_at.isoweekday(), cmd.booked_at.date(), employee.id
+                local_booked_at.isoweekday(), local_booked_at.date(), employee.id
             )
             booking_type = derive_booking_type(day_booking_types, schedule)
             validate_booking_sequence(booking_type, day_booking_types)
 
             schedule_flags: list[ComplianceFlag] = []
             if schedule is not None and not (
-                schedule.start_time <= cmd.booked_at.time() <= schedule.end_time
+                schedule.start_time <= local_booked_at.time() <= schedule.end_time
             ):
                 schedule_flags = [
                     ComplianceFlag(ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN)
