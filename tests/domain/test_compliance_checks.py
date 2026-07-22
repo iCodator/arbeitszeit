@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import sys
 from datetime import datetime, timezone
@@ -160,3 +160,30 @@ def test_go_ohne_vorherigen_come_wird_ignoriert() -> None:
     bookings = [_booking(BookingType.GO, 12)]
     assert check_break_compliance(bookings) == []
     assert check_max_hours(bookings) == []
+
+
+# --- Regression: CRITICAL nicht durch WARN verdeckt ---
+
+
+def test_critical_nicht_durch_warn_verdeckt() -> None:
+    """Gleichzeitig max_continuous > 6 h UND net_work > 9 h mit < 45 min Pause.
+
+    Bugverhalten: erster Treffer (max_continuous > 6 h) gibt WARN zurück und
+    kehrt sofort zurück; die schwerwiegendere CRITICAL-Bedingung wird nie geprüft.
+    Korrekt: alle Bedingungen werden geprüft, schwerste Severity gewinnt → CRITICAL.
+
+    Szenario aus dem Audit-Befund [Hoch] compliance_checks.py:33–47:
+    COME 07:00 → BREAK_START 14:30 (7,5 h ununterbrochen, > 6 h)
+    BREAK_START 14:30 → BREAK_END 14:40 (10 min Pause, < 45 min)
+    BREAK_END 14:40 → GO 17:00 (2 h 20 min)
+    net_work = 7,5 h + 2,33 h = 9,83 h > 9 h, total_break = 10 min < 45 min.
+    """
+    bookings = [
+        _booking(BookingType.COME, 7, 0),
+        _booking(BookingType.BREAK_START, 14, 30),
+        _booking(BookingType.BREAK_END, 14, 40),
+        _booking(BookingType.GO, 17, 0),
+    ]
+    flags = check_break_compliance(bookings)
+    assert _has(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION)
+    assert _severity(flags, ReviewCaseType.POSSIBLE_BREAK_VIOLATION) == ReviewSeverity.CRITICAL

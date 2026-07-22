@@ -6,7 +6,7 @@ die Brutto-Anwesenheitszeit; die Netto-Betrachtung ist als fachliche Prüfhilfe
 konzipiert und ersetzt keine rechtsverbindliche Einzelfallbewertung.
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -31,20 +31,26 @@ class _WorkStats:
 
 def check_break_compliance(day_bookings: Sequence[TimeBooking]) -> list[ComplianceFlag]:
     stats = _work_stats(day_bookings)
+    severities: list[ReviewSeverity] = []
 
     # Verlaufstatbestand: ununterbrochener Arbeitsblock > 6h
     if stats.max_continuous > 6 * 3600:
-        return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.WARN)]
+        severities.append(ReviewSeverity.WARN)
 
     # > 9h Nettoarbeitszeit mit < 45min Gesamtpause
     if stats.net_work > 9 * 3600 and stats.total_break < 45 * 60:
-        return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.CRITICAL)]
+        severities.append(ReviewSeverity.CRITICAL)
 
     # > 6h Nettoarbeitszeit mit < 30min Gesamtpause
     if stats.net_work > 6 * 3600 and stats.total_break < 30 * 60:
-        return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, ReviewSeverity.WARN)]
+        severities.append(ReviewSeverity.WARN)
 
-    return []
+    if not severities:
+        return []
+    worst = (
+        ReviewSeverity.CRITICAL if ReviewSeverity.CRITICAL in severities else ReviewSeverity.WARN
+    )
+    return [ComplianceFlag(ReviewCaseType.POSSIBLE_BREAK_VIOLATION, worst)]
 
 
 def check_max_hours(day_bookings: Sequence[TimeBooking]) -> list[ComplianceFlag]:
