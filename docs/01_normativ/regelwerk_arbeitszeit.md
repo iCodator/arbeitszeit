@@ -1,4 +1,12 @@
-# Regelwerk Projekt arbeitszeit – Version 5.0
+# Regelwerk Projekt arbeitszeit
+
+| Feld | Wert |
+| --- | --- |
+| Version | 5.1 |
+| Stand | 2026-07-22 |
+| Status | aktiv |
+| Ablöst | regelwerk_arbeitszeit_v5.md |
+| Verantwortlich | Praxisleitung / technische Betreuung |
 
 ## 1. Zweck
 
@@ -12,8 +20,8 @@ Das System speichert reale Buchungen. Fehlende oder unplausible Sachverhalte wer
 
 Der verbindliche Bedienablauf lautet:
 
-1. Buchungsart wählen.
-2. RFID-Chip scannen.
+1. RFID-Chip scannen.
+2. Das System leitet den Buchungstyp anhand der Scanreihenfolge im Tagesablauf ab.
 
 Andere Reihenfolgen gelten nicht als Standardprozess.
 
@@ -41,14 +49,26 @@ Mindestens folgende Buchungsfolgen sind unzulässig oder auffällig:
 - `Pause Start` nach `Gehen`,
 - `Kommen` während offener Pause,
 - `Gehen` bei offener Pause ohne Klärung,
-- erste Tagesbuchung als `Gehen` oder `Pause Ende`.
+- erste Tagesbuchung als `Gehen` oder `Pause Ende`,
+- dritter Scan nach vollständig abgeschlossenem Tagesablauf.
+
+Scans derselben RFID-Karte innerhalb kurzer Zeit (Doppel-Scan) werden verworfen und nicht als Buchung gewertet.
+
+## 6a. Kurztag-Regelung
+
+Bei Schichten von bis zu 6 Stunden ist nach § 4 ArbZG keine Ruhepause erforderlich. Für diese Fälle gilt:
+
+- Der zweite Scan gilt als `Gehen`-Buchung.
+- Ein dritter Scan desselben Arbeitstages ist als unzulässige Buchungsfolge abzuweisen.
+
+Diese Regel ist vom System automatisch anzuwenden; eine manuelle Auswahl durch den Mitarbeiter ist nicht vorgesehen.
 
 ## 7. Regelarbeitszeiten
 
 Aktuelle Standard-Regelarbeitszeiten:
 
 | Tag | Beginn | Ende |
-|---|---:|---:|
+| --- | ---: | ---: |
 | Montag | 07:30 | 18:00 |
 | Dienstag | 07:30 | 18:00 |
 | Mittwoch | 07:30 | 18:00 |
@@ -64,6 +84,8 @@ Diese Zeiten dienen als Prüfrahmen und nicht als automatische Endbuchung.
 Eine offene Buchung liegt vor, wenn eine Arbeits- oder Pausenphase nicht abgeschlossen wurde. Offene Buchungen bleiben offen, bis sie durch reale Buchung, Nachtrag oder Korrektur geklärt wurden.
 
 Offene Arbeits- und Pausenphasen müssen in Pflichtauswertungen gesondert als offene Fälle ausweisbar sein.
+
+Erkennt das System beim nächsten Scan einer Mitarbeiterin, dass die Schicht des Vortages offen geblieben ist (vergessene Abmeldung), ist dieser Sachverhalt im Audit-Log zu protokollieren. Eine automatische Schlussbuchung ist nicht zulässig; der Fall ist administrativ zu klären. Offene Vortagsschichten müssen in einer gesonderten Pflichtauswertung einsehbar sein.
 
 ## 9. Warnregeln
 
@@ -211,3 +233,13 @@ Mindestens empfohlen sind:
 ## 23. Leitregel
 
 > Reale Buchungen haben Vorrang. Auffälligkeiten werden erkannt, dokumentiert und administrativ geklärt. Korrekturen, Nachträge und Regeländerungen müssen jederzeit nachvollziehbar bleiben. Fachliche Zustände müssen auch in Berichten und Pflichtauswertungen konsistent nachvollziehbar sein.
+
+## Änderungshistorie
+
+| Version | Datum | Inhalt |
+| --- | --- | --- |
+| 5.1 | 2026-07-22 | § 3: Numpad-Schritt entfernt, positionsbasierte Buchungstyp-Ableitung; § 6: Doppel-Scan-Schutz und abgeschlossener Tagesablauf als unzulässige Folge; neu § 6a: Kurztag-Regelung (§ 4 ArbZG); § 8: offene Vortagsschichten (Audit-Log, Pflichtauswertung) |
+| 5.0 | 2026-07-03 | Enum-Bezeichnung `MANUAL_ENTRY` → `MANUAL_ENTRY_REVIEW` in § 11 korrigiert (Prüfbericht-Befund); Versionswechsel v4→v5 |
+| 4.0 | 2026-06-11 | Benutzerkontenverwaltung § 16a ergänzt; Bootstrap-Prozess, Rollenprinzip und Audit-Log-Pflicht für Benutzerkonten in § 16 präzisiert |
+| 3.1 | 2026-05-27 | § 11: Prüfstatus in `BookingStatus`-Enum und fachliche Hinweislagen getrennt; `MANUAL_ENTRY_REVIEW` als eigenständige Kategorie |
+| 3.0 | 2026-05-22 | Erstfassung als versioniertes Regelwerk; Terminalbedienung, Plausibilitätsregeln, Warnregeln, ArbZG-Prüfhilfen, Prüfstatus, Korrekturen, Nachträge, Fallback, Backup/Restore, Leitregel |
