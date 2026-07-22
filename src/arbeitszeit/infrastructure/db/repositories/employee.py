@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import dataclasses
 import sqlite3
@@ -26,6 +26,14 @@ class SQLiteEmployeeRepository:
             "SELECT id, personnel_no, first_name, last_name, active "
             "FROM employees WHERE id = ?",
             (employee_id,),
+        ).fetchone()
+        return _row_to_employee(row) if row else None
+
+    def get_by_personnel_no(self, personnel_no: str) -> Employee | None:
+        row = self._conn.execute(
+            "SELECT id, personnel_no, first_name, last_name, active "
+            "FROM employees WHERE personnel_no = ?",
+            (personnel_no,),
         ).fetchone()
         return _row_to_employee(row) if row else None
 

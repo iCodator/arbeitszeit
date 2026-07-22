@@ -1,6 +1,6 @@
 """Use Cases für Mitarbeiterverwaltung (ADMIN-Rolle erforderlich)."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timezone
@@ -28,9 +28,10 @@ class CreateEmployeeUseCase:
                     "Mitarbeiter anzulegen."
                 )
 
-            if self._uow.employee_repo.get_active_by_personnel_no(cmd.personnel_no) is not None:
+            if self._uow.employee_repo.get_by_personnel_no(cmd.personnel_no) is not None:
                 raise ConflictError(
-                    f"Personalnummer '{cmd.personnel_no}' ist bereits vergeben."
+                    f"Personalnummer '{cmd.personnel_no}' ist bereits vergeben "
+                    "(aktiv oder inaktiv)."
                 )
 
             now = datetime.now(timezone.utc)

@@ -98,6 +98,12 @@ class FakeEmployeeRepository:
     def get_by_id(self, employee_id: int) -> Employee | None:
         return self._store.get(employee_id)
 
+    def get_by_personnel_no(self, personnel_no: str) -> Employee | None:
+        return next(
+            (e for e in self._store.values() if e.personnel_no == personnel_no),
+            None,
+        )
+
     def get_active_by_personnel_no(self, personnel_no: str) -> Employee | None:
         return next(
             (e for e in self._store.values() if e.personnel_no == personnel_no and e.is_active),

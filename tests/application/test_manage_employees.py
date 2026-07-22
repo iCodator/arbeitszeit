@@ -1,3 +1,5 @@
+__version__ = "1.1"
+
 import sys
 from pathlib import Path
 from typing import cast
@@ -115,6 +117,23 @@ class TestCreateEmployee:
         uow = FakeUnitOfWork()
         admin_id = _make_admin(uow)
         _make_employee(uow, "M001")
+        with pytest.raises(ConflictError):
+            CreateEmployeeUseCase(_as_uow(uow)).execute(
+                CreateEmployeeCommand(
+                    acting_user_id=UserAccountId(admin_id),
+                    personnel_no="M001",
+                    first_name="X",
+                    last_name="Y",
+                )
+            )
+        assert uow.committed is False
+
+    def test_wirft_conflict_bei_reaktivierter_inaktiver_personalnummer(self) -> None:
+        """Inaktiver Mitarbeiter mit gleicher Personalnummer darf nicht neu angelegt werden."""
+        uow = FakeUnitOfWork()
+        admin_id = _make_admin(uow)
+        emp_id = _make_employee(uow, "M001")
+        uow.employee_repo.deactivate(emp_id)
         with pytest.raises(ConflictError):
             CreateEmployeeUseCase(_as_uow(uow)).execute(
                 CreateEmployeeCommand(
