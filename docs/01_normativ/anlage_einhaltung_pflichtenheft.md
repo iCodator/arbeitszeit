@@ -1,5 +1,12 @@
 # Anlage zur Einhaltung der Vorgaben im Pflichtenheft
 
+| Feld | Wert |
+| --- | --- |
+| Version | 2.1 |
+| Stand | 2026-07-22 |
+| Status | aktiv |
+| Bezug | pflichtenheft_arbeitszeit.md v6.1, regelwerk_arbeitszeit.md v5.1 |
+
 Diese Anlage dient der systematischen Zuordnung der Anforderungen aus dem Pflichtenheft zu Rechtsgrundlagen, Kammerkommunikation und projektinterner Umsetzung. Die Pflicht zur Einführung eines objektiven, verlässlichen und zugänglichen Systems zur Arbeitszeiterfassung ergibt sich aus der Rechtsprechung von EuGH und BAG sowie aus dem Arbeitsschutzrecht. Zahnärztekammern und Landeszahnärztekammern kommunizieren diese Pflicht für Zahnarztpraxen inhaltlich übereinstimmend, ohne dabei eigene zusätzliche Spezialpflichten für die hier betrachteten Systemdetails zu begründen.
 
 ## Zweck der Anlage
@@ -25,7 +32,10 @@ Die Anlage macht nachvollziehbar, welche Inhalte des Pflichtenhefts unmittelbar 
 | Datenschutz | Schutz der Daten und Zugriffe | DSGVO Art. 32; BDSG § 26 | In Kammertexten nicht vertieft | Rechtsverbindliche Grundanforderung |
 | Organisation | Rollen- und Rechtekonzept | Projektinterne Compliance- und Sicherheitsentscheidung | Keine spezifische Kammerpflicht erkennbar | Projektinterne Muss-Anforderung |
 | Nachvollziehbarkeit | Audit-Log, Korrektur- und Nachtragslogik | Projektinterne Revisions- und Prüfentscheidung | Keine spezifische Kammerpflicht erkennbar | Projektinterne Muss-Anforderung |
-| Technik | RFID-Reader, USB-Numpad, SQLite, NAS, PDF/CSV | Keine gesetzliche oder kammerrechtliche Spezialvorgabe | Nein | Reine technische Projektentscheidung |
+| Buchungstyp-Ableitung | Kurztag-Regelung: Schicht ≤ 6 h → zweiter Scan = Gehen, dritter Scan unzulässig | ArbZG § 4 | Indirekt, über Verweis auf Arbeitszeitrecht | Gesetzlich getragen, technisch konkretisiert |
+| Plausibilitätsprüfung | Doppel-Scan-Schutz: Mehrfacherfassung derselben Karte innerhalb kurzer Zeit verwerfen | Projektinterne Sicherheits- und Robustheitsentscheidung | Keine spezifische Kammerpflicht erkennbar | Projektinterne Muss-Anforderung |
+| Nachvollziehbarkeit | Offene Vortagsschichten erkennen und im Audit-Log protokollieren; gesonderte Pflichtauswertung | Projektinterne Revisions- und Prüfentscheidung | Keine spezifische Kammerpflicht erkennbar | Projektinterne Muss-Anforderung |
+| Technik | RFID-Reader, SQLite, NAS, PDF/CSV | Keine gesetzliche oder kammerrechtliche Spezialvorgabe | Nein | Reine technische Projektentscheidung |
 
 ## Bewertung der Herkunft der Anforderungen
 
@@ -34,3 +44,11 @@ Die wesentlichen fachlichen Anforderungen des Pflichtenhefts beruhen auf allgeme
 ## Nutzung im Projekt
 
 Diese Anlage kann bei der weiteren Entwicklung als Prüfliste verwendet werden. Für jede Anforderung sollte im Projektstand zusätzlich festgehalten werden, ob sie bereits umgesetzt, getestet, freigegeben oder noch offen ist. Bei späteren Änderungen des Pflichtenhefts sollte dieselbe Tabelle fortgeschrieben werden, damit die Trennung zwischen gesetzlicher Pflicht, kammerseitiger Kommunikation und projektinterner Architekturentscheidung nachvollziehbar bleibt.
+
+## Änderungshistorie
+
+| Version | Datum | Inhalt |
+| --- | --- | --- |
+| 2.1 | 2026-07-22 | USB-Numpad aus Technik-Zeile entfernt; drei neue Zeilen: Kurztag-Regelung (§ 4 ArbZG), Doppel-Scan-Schutz, Offene Vortagsschichten; Versionsblock im Header; Bezug auf Pflichtenheft v6.1 und Regelwerk v5.1 aktualisiert |
+| 2.0 | 2026-06-10 | Anlage auf Version 2 angehoben; Tabelle um Datenschutz, Organisation, Nachvollziehbarkeit, Technik erweitert |
+| 1.0 | 2026-05-22 | Erstfassung; Zuordnungstabelle für Kernbereiche Erfassung, Prüflogik, Aufbewahrung |
