@@ -76,7 +76,10 @@ class ApproveSupplementUseCase:
                 supplement.employee_id,
                 supplement.event_at.date() - timedelta(days=1),
             )
-            projected = list(day_bookings) + [placeholder]
+            projected = sorted(
+                list(day_bookings) + [placeholder],
+                key=lambda b: b.booked_at,
+            )
             status, flags = evaluate_booking(
                 supplement.booking_type, projected, prev_bookings, schedule_flags
             )
