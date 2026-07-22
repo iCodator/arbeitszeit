@@ -20,7 +20,7 @@ header-includes:
 
 # Befehlsreferenz `arbeitszeit`
 
-**Version:** 1.6
+**Version:** 1.7
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -916,8 +916,7 @@ azadmin --db <PFAD> --user-id <ID> users change-role \
 
 ## Terminal-UI
 
-Die Terminal-UI läuft dauerhaft am Buchungsgerät und verarbeitet RFID-Scans
-und Numpad-Eingaben.
+Die Terminal-UI läuft dauerhaft am Buchungsgerät und verarbeitet RFID-Scans.
 
 ### Aufruf
 
@@ -925,7 +924,6 @@ und Numpad-Eingaben.
 python -m arbeitszeit.presentation.terminal_ui.main \
   [--config <CONFIG_PATH>] \
   [--db <DATENBANKPFAD>] \
-  [--numpad <GERÄTENAME_ODER_PFAD>] \
   [--rfid <GERÄTENAME_ODER_PFAD>] \
   [--terminal-id <ID>]
 ```
@@ -934,7 +932,6 @@ python -m arbeitszeit.presentation.terminal_ui.main \
 | --- | --- | --- |
 | `--config` | Pfad | Pfad zu `config.toml` |
 | `--db` | Pfad | SQLite-Datenbankdatei; alternativ aus `config.toml` |
-| `--numpad` | Gerätename oder -pfad | z. B. `USB Numpad` oder `/dev/input/event3` |
 | `--rfid` | Gerätename oder -pfad | z. B. `RFID Reader` oder `/dev/input/event4` |
 | `--terminal-id` | int | Eindeutige Terminal-ID; alternativ aus `config.toml` |
 
@@ -944,9 +941,9 @@ verstehen, müssen aber insgesamt auflösbar sein.
 
 ### Buchungszyklus
 
-1. Bildschirm wird geleert; das Buchungsarten-Menü erscheint.
-2. Mitarbeiter drückt auf dem Numpad eine Taste (`1` bis `4`).
-3. Mitarbeiter hält RFID-Karte an den Leser.
+1. Bildschirm wird geleert; Aufforderung „Karte an das RFID-Lesegerät halten …" erscheint.
+2. Mitarbeiter hält RFID-Karte an den Leser.
+3. System leitet Buchungstyp positionsbasiert ab (1. Scan → COME, 2. → BREAK_START/GO, …).
 4. System verarbeitet die Buchung und gibt Feedback aus.
 5. 2-Sekunden-Pause, dann startet der nächste Zyklus.
 
@@ -1005,7 +1002,6 @@ python scripts/setup.py \
   [--config <CONFIG_PATH>] \
   [--db <DB_PATH>] \
   [--terminal-id <ID>] \
-  [--numpad <NAME>] \
   [--rfid <NAME>] \
   [--admin-user-id <ID>] \
   [--backup-dir <PFAD>] \
@@ -1018,7 +1014,6 @@ python scripts/setup.py \
 | `--config` | Zielpfad für `config.toml` |
 | `--db` | Datenbankpfad; wird auch als Hinweisquelle für Migrationswerte genutzt |
 | `--terminal-id` | Terminal-ID |
-| `--numpad` | Numpad-Gerätename |
 | `--rfid` | RFID-Gerätename |
 | `--admin-user-id` | Admin-Benutzer-ID |
 | `--backup-dir` | Backup-Verzeichnis |
@@ -1053,24 +1048,24 @@ python scripts/backup.py \
 
 ### `scripts/verify_hardware.py`
 
-Interaktiver Hardware-Smoke-Test für Numpad und RFID-Leser.
+Interaktiver Hardware-Smoke-Test für den RFID-Leser. Das Skript enthält
+zusätzlich eine Numpad-Testfunktion (`--numpad`) für Diagnosezwecke; diese ist
+nicht Teil des regulären Buchungsbetriebs.
 
 ```bash
 python scripts/verify_hardware.py \
-  [--numpad <GERÄTEPFAD> --rfid <GERÄTEPFAD>] \
+  [--rfid <GERÄTEPFAD>] \
   [--list] \
   [--skip-interactive]
 ```
 
 | Argument | Beschreibung |
 | --- | --- |
-| `--numpad` | Numpad-Gerätepfad |
 | `--rfid` | RFID-Lesegerätepfad |
 | `--list` | Nur Gerätedateien auflisten |
 | `--skip-interactive` | Nur Gerätezugriff prüfen |
 
-**Wichtig:** `--numpad` und `--rfid` müssen gemeinsam angegeben werden. Werden
-beide weggelassen, startet eine interaktive Geräteauswahl.
+**Hinweis:** Wird `--rfid` weggelassen, startet eine interaktive Geräteauswahl.
 
 **Exit-Codes:** `0` = alle Tests bestanden, `1` = mindestens ein Test
 fehlgeschlagen, `2` = `evdev` nicht installiert
