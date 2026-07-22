@@ -26,3 +26,5 @@ htmlcov/
 
 docs/**/*.html
 docs/**/*.pdf
+
+docs/informelles/arbeitszeit-terminal.service
