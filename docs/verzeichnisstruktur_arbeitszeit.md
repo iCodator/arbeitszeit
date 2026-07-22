@@ -86,6 +86,7 @@ Enthält **Mermaid-Architekturdiagramme** des Projekts als Markdown-Dateien. Die
 - `rfid_buchungsablauf.md` – Flowchart des vollständigen RFID-Buchungsablaufs: von der Kartenauflegung über Entprellung, Kartenprüfung, Buchungstyp-Ableitung bis zur Persistenz und Fehlerbehandlung
 - `domain_architektur.md` – Komponentendiagramm der Domänenschicht: Entitäten, Aufzählungen, Fehlerklassen, Domänendienste und abstrakte Repository-Ports mit ihren Beziehungen
 - `sequenz_read_next_buchung.md` – Sequenzdiagramm des Datenflusses von `read_next()` durch `DebouncedHardwareReader` → `EvdevHardwareReader` → `BookUseCase` → SQLite-DB
+- `infrastruktur_architektur.md` – Flowchart der Infrastrukturschicht: Konfiguration, Hardware-Ports, Datenbank (UnitOfWork, alle Repositories), Export, Backup und Überwachungsdienste mit Domain-Port-Zuordnung
 
 ---
 
