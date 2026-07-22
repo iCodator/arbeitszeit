@@ -17,6 +17,7 @@ from arbeitszeit.infrastructure.hardware import EmptyUidError, HardwareTimeoutEr
 from arbeitszeit.infrastructure.hardware.evdev_reader import DeviceNotFoundError
 from arbeitszeit.presentation.admin_cli.employees import _resolve_uid_hash, _validate_uid_source
 from arbeitszeit.presentation.admin_cli.main import run as cli_run
+from tests.integration.conftest import make_seed_password_hash
 
 _MOD = "arbeitszeit.presentation.admin_cli.employees"
 
@@ -34,8 +35,9 @@ def _seed_admin(db: Path) -> int:
     row = conn.execute(
         "INSERT INTO user_accounts "
         "(username, password_hash, role, employee_id, active, created_at, updated_at) "
-        "VALUES ('admin', 'x', 'ADMIN', NULL, 1, '2026-01-01', '2026-01-01') "
-        "RETURNING id"
+        "VALUES ('admin', ?, 'ADMIN', NULL, 1, '2026-01-01', '2026-01-01') "
+        "RETURNING id",
+        (make_seed_password_hash(),),
     ).fetchone()
     conn.close()
     return int(row["id"])

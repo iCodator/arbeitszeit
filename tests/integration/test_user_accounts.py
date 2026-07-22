@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.presentation.admin_cli.main import run as cli_run
+from tests.integration.conftest import make_seed_password_hash
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -28,8 +29,9 @@ def _seed_admin(db: Path) -> int:
     row = conn.execute(
         "INSERT INTO user_accounts "
         "(username, password_hash, role, employee_id, active, created_at, updated_at) "
-        "VALUES ('bootstrap_admin', 'x', 'ADMIN', NULL, 1, '2026-01-01', '2026-01-01') "
-        "RETURNING id"
+        "VALUES ('bootstrap_admin', ?, 'ADMIN', NULL, 1, '2026-01-01', '2026-01-01') "
+        "RETURNING id",
+        (make_seed_password_hash(),),
     ).fetchone()
     conn.close()
     return int(row["id"])

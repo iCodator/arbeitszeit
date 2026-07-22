@@ -1,8 +1,11 @@
 """Tests für Fehler-Initialisierungspfade von admin_cli/main.py."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
+import binascii
+import hashlib
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -12,11 +15,14 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.config_file import AdminConfig, AppConfig, DatabaseConfig
+from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.presentation.admin_cli.main import (
     _dispatch,
     _load_app_config,
     _resolve_db_path,
+    _resolve_password,
     _resolve_user_id,
+    _verify_password,
 )
 
 _MOD = "arbeitszeit.presentation.admin_cli.main"
@@ -139,3 +145,90 @@ def test_dispatch_kein_handler_kein_fehler() -> None:
     finally:
         conn.close()
         audit_conn.close()
+
+
+# ---------------------------------------------------------------------------
+# _resolve_password
+# ---------------------------------------------------------------------------
+
+
+def test_resolve_password_nutzt_cli_argument() -> None:
+    """--admin-password gesetzt → direkte Rückgabe ohne getpass-Aufruf."""
+    args = _ns(admin_password="geheimnis")
+    assert _resolve_password(args) == "geheimnis"
+
+
+def test_resolve_password_nutzt_getpass_ohne_argument(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Kein --password → getpass.getpass() wird aufgerufen."""
+    import getpass as _gp
+
+    monkeypatch.setattr(_gp, "getpass", lambda prompt="": "interaktiv")
+    args = _ns()
+    assert _resolve_password(args) == "interaktiv"
+
+
+# ---------------------------------------------------------------------------
+# _verify_password
+# ---------------------------------------------------------------------------
+
+
+def _make_hash(password: str) -> str:
+    salt = os.urandom(16)
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 260_000)
+    return binascii.hexlify(salt).decode() + ":" + binascii.hexlify(dk).decode()
+
+
+def _db_with_user(password: str) -> tuple[sqlite3.Connection, int]:
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    run_migrations(conn)
+    row = conn.execute(
+        "INSERT INTO user_accounts "
+        "(username, password_hash, role, employee_id, active, created_at, updated_at) "
+        "VALUES ('testadmin', ?, 'ADMIN', NULL, 1, '2026-01-01', '2026-01-01') "
+        "RETURNING id",
+        (_make_hash(password),),
+    ).fetchone()
+    conn.commit()
+    return conn, int(row["id"])
+
+
+def test_verify_password_korrektes_passwort_kein_fehler() -> None:
+    """Richtiges Passwort → kein sys.exit, kein Fehler."""
+    conn, user_id = _db_with_user("geheimnis")
+    try:
+        _verify_password(conn, user_id, "geheimnis")
+    finally:
+        conn.close()
+
+
+def test_verify_password_falsches_passwort_beendet_prozess(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Falsches Passwort → sys.exit(1) mit Fehlermeldung."""
+    conn, user_id = _db_with_user("richtig")
+    try:
+        with pytest.raises(SystemExit) as exc_info:
+            _verify_password(conn, user_id, "falsch")
+        assert exc_info.value.code == 1
+        assert "Passwort" in capsys.readouterr().err
+    finally:
+        conn.close()
+
+
+def test_verify_password_unbekannter_benutzer_beendet_prozess(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Benutzer nicht in DB → sys.exit(1) mit Fehlermeldung."""
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    run_migrations(conn)
+    try:
+        with pytest.raises(SystemExit) as exc_info:
+            _verify_password(conn, 999, "x")
+        assert exc_info.value.code == 1
+        assert "999" in capsys.readouterr().err
+    finally:
+        conn.close()

@@ -51,6 +51,7 @@ from arbeitszeit.presentation.admin_cli.reports import (
     cmd_reports_supplements,
     cmd_reports_warn_cases,
 )
+from tests.integration.conftest import make_seed_password_hash
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -66,9 +67,9 @@ def _insert_user(db: Path, role: str) -> int:
     row = conn.execute(
         "INSERT INTO user_accounts "
         "(username, password_hash, role, employee_id, active, created_at, updated_at) "
-        "VALUES (?, 'x', ?, NULL, 1, '2026-01-01', '2026-01-01') "
+        "VALUES (?, ?, ?, NULL, 1, '2026-01-01', '2026-01-01') "
         "RETURNING id",
-        (role.lower(), role),
+        (role.lower(), make_seed_password_hash(), role),
     ).fetchone()
     conn.close()
     return int(row["id"])

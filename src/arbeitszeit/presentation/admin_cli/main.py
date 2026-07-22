@@ -1,9 +1,12 @@
 """Admin-CLI-Einstiegspunkt: administrative Verwaltung der Zeiterfassung."""
 
-__version__ = "1.4"
+__version__ = "1.5"
 
 import argparse
+import getpass
+import hashlib
 import os
+import secrets
 import sqlite3
 import sys
 from collections.abc import Callable
@@ -40,6 +43,36 @@ def _resolve_db_path(args: argparse.Namespace, app_config: AppConfig | None) -> 
         )
         sys.exit(1)
     return db
+
+
+def _resolve_password(args: argparse.Namespace) -> str:
+    """CLI-Passwort aus --admin-password oder interaktiver Eingabe."""
+    password: str | None = getattr(args, "admin_password", None)
+    if password is not None:
+        return password
+    return getpass.getpass("Passwort: ")
+
+
+def _verify_password(conn: sqlite3.Connection, user_id: int, password: str) -> None:
+    """PBKDF2-Verifikation gegen gespeicherten Hash. Beendet Prozess bei Fehler."""
+    row = conn.execute(
+        "SELECT password_hash FROM user_accounts WHERE id = ?", (user_id,)
+    ).fetchone()
+    if row is None:
+        print(f"Fehler: Benutzer {user_id} nicht gefunden.", file=sys.stderr)
+        sys.exit(1)
+    stored: str = row[0]
+    try:
+        hex_salt, hex_dk = stored.split(":", 1)
+        salt = bytes.fromhex(hex_salt)
+        expected_dk = bytes.fromhex(hex_dk)
+    except (ValueError, AttributeError):
+        print("Fehler: Passwort-Hash in der Datenbank hat ungültiges Format.", file=sys.stderr)
+        sys.exit(1)
+    dk = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 260_000, dklen=len(expected_dk))
+    if not secrets.compare_digest(dk, expected_dk):
+        print("Fehler: Passwort falsch.", file=sys.stderr)
+        sys.exit(1)
 
 
 def _resolve_user_id(args: argparse.Namespace, app_config: AppConfig | None = None) -> int:
@@ -94,6 +127,12 @@ def run(argv: list[str] | None = None) -> None:
         metavar="ID",
         help="Benutzer-ID (alternativ: ADMIN_USER_ID oder [admin] user_id in config.toml)",
     )
+    parser.add_argument(
+        "--admin-password",
+        default=None,
+        metavar="PASSWORT",
+        help="Admin-Passwort (Standard: interaktive Eingabe via getpass)",
+    )
 
     sub = parser.add_subparsers(dest="domain", required=True)
     employees.register_subcommands(sub)
@@ -124,10 +163,12 @@ def run(argv: list[str] | None = None) -> None:
         return
 
     user_id = _resolve_user_id(args, app_config)
+    password = _resolve_password(args)
 
     conn = open_connection(db_path)
     try:
         run_migrations(conn)
+        _verify_password(conn, user_id, password)
         audit_conn = open_connection(db_path)
         try:
             _dispatch(args, conn, audit_conn, user_id, db_path, app_config=app_config)
