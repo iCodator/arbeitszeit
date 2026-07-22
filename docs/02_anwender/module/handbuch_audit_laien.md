@@ -1,7 +1,7 @@
 # Wie überprüfe ich ob alles läuft?
 
 **Kapitel:** 9-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -41,13 +41,31 @@ azadmin system check --db arbeitszeit.db
 | 4 | Datenbankintegrität | Interne Datenbankverknüpfungen sind beschädigt |
 | 5 | Verzeichnisse | Backup- oder Exportordner existiert nicht |
 | 6 | Zeitserver | Systemzeit ist nicht synchronisiert |
-| 7 | Eingabegeräte | RFID-Reader oder Numpad nicht erreichbar |
+| 7 | Eingabegeräte | RFID-Reader nicht erreichbar |
 
 ### Was tun wenn die Prüfung Fehler zeigt?
 
 Bei Fehlern in der Systemprüfung wenden Sie sich an Ihre IT-Betreuung.
 Das System notiert alle Prüfergebnisse automatisch in der Datenbank
 (`SELFTEST_OK` oder `SELFTEST_FAIL`), damit der Verlauf nachvollziehbar bleibt.
+
+## Vergessene Abmeldungen abfragen
+
+Wenn eine Mitarbeiterin am Vortag vergessen hat, sich auszustempeln,
+speichert das System das beim nächsten Scan automatisch. Diese Fälle
+können Sie jederzeit abfragen:
+
+```bash
+azadmin audit open-shifts --db arbeitszeit.db
+```
+
+Das Programm zeigt eine Liste aller erkannten vergessenen Abmeldungen der
+letzten 30 Tage — mit Name, Datum und letzter bekannter Buchung. Falls
+Sie einen längeren Zeitraum prüfen möchten:
+
+```bash
+azadmin audit open-shifts --db arbeitszeit.db --days 90
+```
 
 ## Wann sollte ich die Systemprüfung manuell ausführen?
 

@@ -1,7 +1,7 @@
 # Handbuch – `scripts/show_config.py` — technisches Referenzhandbuch
 
 **Kapitel:** 8-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldatei:** `scripts/show_config.py`
@@ -96,7 +96,6 @@ Im Quellcode sind folgende ausgabefähige Felder belegt:
 
 - `database.path`
 - `terminal.id`
-- `terminal.numpad`
 - `terminal.rfid`
 - `backup.backup_dir`
 - `backup.export_dir`
@@ -120,11 +119,10 @@ backup.backup_dir  = /var/backups/arbeitszeit
 === DB (system_config): /home/user/data/arbeitszeit.db ===
 Schlüssel                                   Wert              Ver  Herkunft     Geändert am
 app.timezone                                Europe/Berlin       1   SYSTEM_SEED  2026-01-01T00:00
-booking.grace_seconds_after_numpad_select   30                  1   SYSTEM_SEED  2026-01-01T00:00
 backup.nas_enabled                          False               1   SYSTEM_SEED  2026-01-01T00:00
 backup.nas_path                             (nicht gesetzt)     1   SYSTEM_SEED  2026-01-01T00:00
 
-4 Einträge
+3 Einträge
 ```
 
 Die drei Fälle für `config.toml`:
@@ -167,7 +165,6 @@ Mit `--json` gibt das Skript ein JSON-Objekt auf `stdout` aus:
     "path": "/home/user/.config/arbeitszeit/config.toml",
     "database_path": "/home/user/data/arbeitszeit.db",
     "terminal_id": 1,
-    "terminal_numpad": "Usb KeyBoard Usb KeyBoard",
     "terminal_rfid": "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader",
     "backup_dir": "/var/backups/arbeitszeit",
     "export_dir": null,

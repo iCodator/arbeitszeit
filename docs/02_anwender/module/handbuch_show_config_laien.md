@@ -1,7 +1,7 @@
 # Aktuelle Konfiguration anzeigen
 
 **Kapitel:** 8-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -38,12 +38,11 @@ backup.log_dir    = /var/log/arbeitszeit
 
 === DB (system_config): /home/user/data/arbeitszeit.db ===
 Schlüssel                                 Wert           Ver  Herkunft     Geändert am
-app.timezone                              Europe/Berlin    1   SYSTEM_SEED  2026-01-01T00:00
-booking.grace_seconds_after_numpad_select 30               1   SYSTEM_SEED  2026-01-01T00:00
-backup.nas_enabled                        False            1   SYSTEM_SEED  2026-01-01T00:00
-backup.nas_path                           (nicht gesetzt)  1   SYSTEM_SEED  2026-01-01T00:00
+app.timezone       Europe/Berlin    1   SYSTEM_SEED  2026-01-01T00:00
+backup.nas_enabled False            1   SYSTEM_SEED  2026-01-01T00:00
+backup.nas_path    (nicht gesetzt)  1   SYSTEM_SEED  2026-01-01T00:00
 
-4 Einträge
+3 Einträge
 ```
 
 ## Was bedeuten die Angaben?
@@ -59,7 +58,6 @@ und normalerweise nicht manuell verändert.
 | Systemeinstellung | Bedeutung |
 | --- | --- |
 | `app.timezone` | Zeitzone des Systems (Standard: Europe/Berlin) |
-| `booking.grace_seconds_after_numpad_select` | Reaktionszeit am Terminal in Sekunden |
 | `backup.nas_enabled` | Ob Backups auf ein Netzlaufwerk synchronisiert werden |
 | `backup.nas_path` | Pfad zum Netzlaufwerk für Backups |
 
