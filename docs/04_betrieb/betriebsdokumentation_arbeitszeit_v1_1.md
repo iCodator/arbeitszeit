@@ -1,6 +1,6 @@
 # Betriebsdokumentation – arbeitszeit
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Datum:** 2026-06-13  
 **Grundlage:** `docs/claude_coding/claude_code_prompt_hoch_arbeitszeit_v1_2026-06-11_20-08.md`
 
@@ -95,12 +95,12 @@ Fremdschlüssel-Konsistenz, NTP-Synchronisation.
 ```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
   --db arbeitszeit.db \
-  --numpad /dev/input/eventX \
   --rfid /dev/input/eventY \
   --terminal-id 1
 ```
 
-`--numpad` und `--rfid` sind Pflichtargumente (`presentation/terminal_ui/main.py`).
+`--rfid` ist Pflichtargument (`presentation/terminal_ui/main.py`). Kein Numpad mehr —
+Buchungstyp wird positionsbasiert abgeleitet (1. Scan → COME, 2. → BREAK_START/GO, …).
 
 ### 3.1 Ablauf pro Zyklus
 
