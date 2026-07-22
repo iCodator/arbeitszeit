@@ -1,7 +1,7 @@
 # Anwendungsschicht — technisches Referenzhandbuch
 
 **Kapitel:** 3-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/application/`
@@ -85,13 +85,36 @@ Quelldatei: `use_cases/book_time.py`
 2. Karte muss `ACTIVE` sein → `InactiveCardError` sonst
 3. Mitarbeitenden laden → `NotFoundError` bei fehlendem Datensatz
 4. Mitarbeitender muss aktiv sein → `InactiveEmployeeError` sonst
-5. `validate_booking_sequence()` aufrufen → ggf. `InvalidBookingSequenceError`
+5. Tagesbuchungen laden (chronologisch sortiert)
+6. `derive_booking_type(day_bookings, schedule)` aufrufen → Buchungstyp
+   positionsbasiert ableiten (inkl. Kurztag-Ausnahme, siehe unten)
+7. `validate_booking_sequence()` aufrufen → ggf. `InvalidBookingSequenceError`
    oder `OpenPhaseConflictError`
-6. `TimeBooking` persistieren
-7. `evaluate_booking()` aufrufen → `BookingStatus` und `ComplianceFlag`-Liste
-8. Bei Compliance-Flags: `ReviewCase`-Objekte anlegen
-9. `commit()`, dann Audit-Log-Eintrag schreiben
-10. `BookResult` zurückgeben
+8. Vortags-Buchungen laden; `_detect_open_prev_shift()` prüfen →
+   ggf. `OPEN_SHIFT_PREVIOUS_DAY_DETECTED`-Audit-Eintrag vorbereiten
+9. `TimeBooking` persistieren
+10. `evaluate_booking()` aufrufen → `BookingStatus` und `ComplianceFlag`-Liste
+11. Bei Compliance-Flags: `ReviewCase`-Objekte anlegen
+12. `commit()`, dann Audit-Log-Eintrag(e) schreiben
+13. `BookResult` zurückgeben
+
+**Buchungstyp-Ableitung:**
+
+`derive_booking_type(day_bookings, schedule)` implementiert die positionsbasierte
+Buchungslogik:
+
+- Leere `day_bookings` → `COME`
+- Kurztag (`_is_short_day(schedule)` = True, d. h. Solldauer ≤ 6 h):
+  `_derive_for_short_day(day_bookings)` → 1 Buchung = `GO`; ≥ 2 = `InvalidBookingSequenceError`
+- Standard: `_NEXT_BOOKING_TYPE[day_bookings[-1]]` →
+  `COME→BREAK_START→BREAK_END→GO`; nach `GO` kein Folgetyp → `InvalidBookingSequenceError`
+
+**Offene Vortagsschicht:**
+
+`_detect_open_prev_shift()` erkennt, ob die aktuelle Buchung der erste Scan
+des Tages ist und am Vortag Buchungen ohne abschließendes `GO` vorlagen.
+Der Befund erzeugt keinen Review-Case und blockiert keine Buchung; er wird
+ausschließlich als `OPEN_SHIFT_PREVIOUS_DAY_DETECTED`-Audit-Eintrag geschrieben.
 
 **Command:** `BookCommand` (uid_hash, terminal_id, booking_type, booked_at,
 device_event_id, source)

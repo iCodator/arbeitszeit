@@ -1,7 +1,7 @@
 # Die Spielregeln des Systems
 
 **Kapitel:** 2.1-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -40,6 +40,21 @@ die Pause muss zuerst beendet werden.
 
 Das erste Buchungsereignis des Tages muss immer eine Kommen-Buchung sein.
 
+### Ausnahme: Kurztag (§ 4 ArbZG)
+
+Bei Schichten mit einer Solldauer von höchstens 6 Stunden entfällt der
+gesetzliche Pausenanspruch. Das System erkennt das automatisch anhand des
+eingetragenen Dienstplans und vereinfacht die Buchungsreihenfolge:
+
+| Scan | Was passiert? |
+| --- | --- |
+| 1. Scan | Kommen |
+| 2. Scan | Gehen (direkt — keine Pause nötig) |
+| 3. Scan | Fehlermeldung — Tagesablauf bereits abgeschlossen |
+
+Ist kein Dienstplan hinterlegt, gilt immer die Standardreihenfolge
+(Kommen → Pause beginnt → Pause endet → Gehen).
+
 ## Arbeitszeitgrenzen nach dem Arbeitszeitgesetz
 
 Das System prüft automatisch, ob die erfassten Zeiten die gesetzlichen
@@ -74,6 +89,14 @@ ArbZG-Verletzung oder eine unplausible Buchungssequenz — legt es
 automatisch einen Prüffall an. Prüffälle erscheinen im Bericht
 „Offene Prüffälle" (`reports open-review-cases`) und müssen von
 Ihnen oder einem Prüfer bearbeitet werden.
+
+## Vergessene Abmeldung am Vortag
+
+Wenn eine Mitarbeiterin am nächsten Morgen erstmals stempelt, aber am Vortag
+vergessen hat, sich auszustempeln, erkennt das System das automatisch beim
+ersten Scan. Die Buchung wird normal verarbeitet; zusätzlich wird ein
+interner Audit-Eintrag angelegt. Die Praxisleitung kann diese Fälle mit
+dem Befehl `azadmin audit open-shifts` abfragen.
 
 ## Was ist ein Nachtrag?
 

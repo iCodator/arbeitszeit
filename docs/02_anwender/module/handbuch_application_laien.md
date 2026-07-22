@@ -1,7 +1,7 @@
 # Was passiert im Hintergrund?
 
 **Kapitel:** 3-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -13,15 +13,19 @@ oder einen Nachtrag anlegen.
 
 ## Was passiert bei einer Buchung am Terminal?
 
-Wenn eine Mitarbeiterin ihre RFID-Karte ans Terminal hält und eine
-Buchungsart auswählt (z. B. Kommen), läuft im Hintergrund folgendes ab:
+Wenn eine Mitarbeiterin ihre RFID-Karte ans Terminal hält, läuft im
+Hintergrund folgendes ab:
 
 1. Das System prüft, ob die Karte bekannt und aktiv ist.
 2. Es prüft, ob die Mitarbeiterin aktiv ist.
-3. Es prüft, ob die gewählte Buchungsart zur bisherigen Tageshistorie passt.
-4. Es speichert die Buchung.
-5. Es prüft automatisch, ob Arbeitszeitgrenzen erreicht oder überschritten sind.
-6. Das Terminal zeigt eine Bestätigung an.
+3. Es ermittelt automatisch die nächste Buchungsart anhand der bisherigen
+   Tageshistorie (Kommen → Pause beginnt → Pause endet → Gehen).
+   Bei einem Kurztag (Solldauer ≤ 6 h) entfällt der Pausenschritt —
+   der 2. Scan bucht direkt Gehen.
+4. Es prüft, ob die ermittelte Buchungsart zur Tageshistorie passt.
+5. Es speichert die Buchung.
+6. Es prüft automatisch, ob Arbeitszeitgrenzen erreicht oder überschritten sind.
+7. Das Terminal zeigt eine Bestätigung an.
 
 Wenn eine dieser Prüfungen fehlschlägt, erscheint eine klare Fehlermeldung
 auf dem Terminal (z. B. „Unbekannte Karte" oder „Pause zuerst beenden").

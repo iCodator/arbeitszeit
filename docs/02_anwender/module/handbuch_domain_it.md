@@ -1,7 +1,7 @@
 # Domänenschicht — technisches Referenzhandbuch
 
 **Kapitel:** 2.1-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/domain/`
@@ -248,7 +248,7 @@ Quelldatei: `src/arbeitszeit/domain/enums.py`
 
 | Wert | Bedeutung |
 | --- | --- |
-| `TERMINAL` | Buchung am RFID/Numpad-Terminal |
+| `TERMINAL` | Buchung am RFID-Terminal |
 | `MANUAL` | manuell über Admin-CLI erfasst |
 | `IMPORT` | importiert |
 
@@ -307,6 +307,7 @@ chronologisch sortiert liefern.
 | Neuer Buchungstyp | Verletzungsbedingung | Ausgelöster Fehler |
 | --- | --- | --- |
 | `COME` | offene Arbeitsphase vorhanden | `InvalidBookingSequenceError` |
+| `COME` | Tagesablauf abgeschlossen (nach letztem `GO`) | `InvalidBookingSequenceError` |
 | `GO` | keine offene Arbeitsphase | `InvalidBookingSequenceError` |
 | `GO` | offene Pause vorhanden | `OpenPhaseConflictError` |
 | `BREAK_START` | keine offene Arbeitsphase | `InvalidBookingSequenceError` |
@@ -315,6 +316,53 @@ chronologisch sortiert liefern.
 | GO / BREAK_START / BREAK_END | `day_bookings` ist leer (kein COME voraus) | `InvalidBookingSequenceError` |
 
 Das erste Buchungsereignis des Tages muss immer `COME` sein.
+
+### Kurztag-Ausnahmeregel (§ 4 ArbZG)
+
+Quelldatei: `src/arbeitszeit/application/use_cases/book_time.py`
+
+Bei einer Sollarbeitszeit von ≤ 6 Stunden entfällt der Pausenanspruch nach
+§ 4 ArbZG. `_is_short_day(schedule)` erkennt diese Bedingung anhand der
+effektiven `WorkScheduleVersion`:
+
+| Scan | Standardsequenz | Kurztag-Sequenz (Sollzeit ≤ 6 h) |
+| --- | --- | --- |
+| 1. | `COME` | `COME` |
+| 2. | `BREAK_START` | `GO` (kein Pausenzwischenschritt) |
+| 3. | `BREAK_END` | `InvalidBookingSequenceError` — Tagesablauf abgeschlossen |
+| 4. | `GO` | — |
+
+`derive_booking_type(day_bookings, schedule)` leitet den nächsten Buchungstyp
+positionsbasiert ab. `_derive_for_short_day(day_bookings)` implementiert die
+Kurztag-Variante: bei 1 vorhandener Buchung → `GO`; bei ≥ 2 → `InvalidBookingSequenceError`
+mit Hinweis „Kurztag (Sollzeit ≤ 6 h): Tagesablauf … abgeschlossen".
+
+Ohne `schedule` (kein Dienstplan eingetragen) greift ausschließlich die
+Standardpositionslogik — die Kurztag-Ausnahme ist nicht aktiv.
+
+### Audit-Events
+
+Quelldatei: `src/arbeitszeit/domain/audit_events.py`
+
+Zentraler Katalog aller `event_type`-Strings für `AuditLogEntry`. Alle
+Use Cases importieren von hier statt freie String-Literale zu verwenden.
+
+| Konstante | Wert | Auslöser |
+| --- | --- | --- |
+| `TIME_BOOKED` | `"TIME_BOOKED"` | erfolgreiche Buchung |
+| `BOOKING_REJECTED_UNKNOWN_CARD` | `"BOOKING_REJECTED_UNKNOWN_CARD"` | unbekannte RFID-Karte |
+| `BOOKING_REJECTED_INACTIVE_CARD` | `"BOOKING_REJECTED_INACTIVE_CARD"` | deaktivierte Karte |
+| `OPEN_SHIFT_PREVIOUS_DAY_DETECTED` | `"OPEN_SHIFT_PREVIOUS_DAY_DETECTED"` | kein `GO` am Vortag erkannt |
+| `BOOKING_CORRECTED` | `"BOOKING_CORRECTED"` | Buchungskorrektur |
+| `SUPPLEMENT_CREATED` / `_APPROVED` / `_REJECTED` | — | Nachtragsprozess |
+| `WORK_SCHEDULE_CHANGED` | — | Dienstplanänderung |
+
+**`OPEN_SHIFT_PREVIOUS_DAY_DETECTED`** wird ausgelöst, wenn `BookUseCase` beim
+ersten Scan des Tages feststellt, dass am Vortag Buchungen vorlagen, die letzte
+davon aber kein `GO` war. Das deutet auf eine vergessene Abmeldung hin.
+Die aktuelle Buchung wird regulär verarbeitet; der Befund wird ausschließlich
+als Audit-Eintrag festgehalten (kein Review-Case, keine Blockade).
+`azadmin audit open-shifts` liest diese Einträge aus dem Audit-Log.
 
 ### ArbZG-Compliance-Schwellenwerte
 
