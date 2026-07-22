@@ -1,7 +1,7 @@
 # Systemübersicht — Was ist das und wer benutzt was?
 
 **Kapitel:** 1-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -16,7 +16,7 @@ als PDF-Bericht oder CSV-Tabelle exportiert werden.
 
 ## Was kann das System?
 
-- Arbeitszeiten per RFID-Karte oder Numpad erfassen (Kommen, Gehen, Pause)
+- Arbeitszeiten per RFID-Karte erfassen (Kommen, Gehen, Pause)
 - Buchungssequenzen automatisch prüfen (z. B. Pause muss vor Gehen kommen)
 - Arbeitszeitgrenzen nach dem Arbeitszeitgesetz automatisch überwachen
 - Nachträge anlegen und genehmigen (für vergessene Buchungen)
@@ -29,7 +29,7 @@ als PDF-Bericht oder CSV-Tabelle exportiert werden.
 
 | Personengruppe | Wie | Womit |
 | --- | --- | --- |
-| Alle Mitarbeitenden | Buchungsterminal | RFID-Karte + Numpad |
+| Alle Mitarbeitenden | Buchungsterminal | RFID-Karte |
 | Praxisleitung, Verwaltung | Admin-Programm (`azadmin`) | Kommandozeile |
 | IT-Betreuung | Admin-Programm + Systemdateien | Kommandozeile, Konfiguration |
 

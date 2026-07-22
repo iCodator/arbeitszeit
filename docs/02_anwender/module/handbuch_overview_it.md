@@ -1,7 +1,7 @@
 # Systemübersicht — technisches Referenzhandbuch
 
 **Kapitel:** 1-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `pyproject.toml`, `README.md`, `config.toml.example`
@@ -33,7 +33,7 @@ Seitliche Abhängigkeiten zwischen Peers sind verboten.
 | Schicht | Paket | Aufgabe |
 | --- | --- | --- |
 | Presentation | `arbeitszeit.presentation` | Admin-CLI und Terminal-UI |
-| Infrastructure | `arbeitszeit.infrastructure` | DB, Hardware, Backup, Systemprüfung |
+| Infrastructure | `arbeitszeit.infrastructure` | DB, RFID-Hardware (inkl. `DebouncedHardwareReader`), Backup, Systemprüfung |
 | Application | `arbeitszeit.application` | Use Cases, Commands, Results, UoW |
 | Domain | `arbeitszeit.domain` | Entitäten, Enumerationen, Regeln |
 
@@ -82,6 +82,8 @@ arbeitszeit/
 │       │   ├── db/
 │       │   ├── export/
 │       │   ├── hardware/
+│       │   │   ├── debounce.py      # DebouncedHardwareReader (3-s-Entprellung)
+│       │   │   └── evdev_reader.py  # EvdevHardwareReader (RFID via evdev)
 │       │   ├── config_file.py
 │       │   ├── system_check.py
 │       │   └── time_monitor.py
@@ -132,5 +134,5 @@ vollständig dokumentiert. Eine Beispielkonfiguration liegt als
 
 Migrationen werden über `migrations.run_migrations(conn)` ausgeführt.
 Die Admin-CLI führt Migrationen bei jedem Start aus. Das Datenbankschema
-(16 Tabellen, 17 Indizes, 6 Migrationen) ist in
+(16 Tabellen, 17 Indizes, 7 Migrationen) ist in
 `handbuch_datenbankschema_it.md` vollständig dokumentiert.
