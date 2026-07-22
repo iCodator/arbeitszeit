@@ -1,7 +1,7 @@
 # Das Verwaltungsprogramm — Kurzanleitung
 
 **Kapitel:** 4-Laien
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -140,10 +140,19 @@ azadmin users bootstrap --username admin
 ## Das Buchungsterminal
 
 Das Terminal läuft als eigenes Programm, das dauerhaft im Hintergrund
-aktiv ist. Am Beginn jedes Zyklus erscheint das Buchungsarten-Menü auf
-dem Bildschirm. Mitarbeitende wählen die Buchungsart (1–4) auf dem
-Numpad, halten anschließend ihre RFID-Karte vor den Reader und erhalten
-eine Bestätigung.
+aktiv ist. Am Beginn jedes Zyklus erscheint die Aufforderung „Karte an
+das RFID-Lesegerät halten …" auf dem Bildschirm. Mitarbeitende halten
+ihre RFID-Karte kurz an den Reader — das System erkennt automatisch,
+welche Buchungsart als nächste fällig ist (Kommen, Pause, Gehen), und
+bestätigt die Buchung auf dem Bildschirm.
+
+**Kurztag-Regelung:** Bei Schichten mit einer Solldauer von höchstens
+6 Stunden entfällt die Pausenpflicht (§ 4 ArbZG). Das System bucht
+beim zweiten Scan direkt „Gehen" statt „Pause beginnen". Ein dritter
+Scan wird mit einer Fehlermeldung abgewiesen.
+
+**Doppel-Scan-Schutz:** Wird dieselbe Karte innerhalb von 3 Sekunden
+nochmals vorgehalten, ignoriert das Terminal den Scan automatisch.
 
 Das Terminal läuft in einer Endlosschleife und muss nur bei Wartung
 oder Konfigurationsänderungen neu gestartet werden. Es überprüft beim
@@ -151,3 +160,13 @@ Start automatisch, ob alle Komponenten betriebsbereit sind.
 
 Fehler während einer Buchung führen nicht zum Absturz des Terminals —
 das System protokolliert den Fehler und läuft weiter.
+
+## Offene Vortagsschichten prüfen
+
+Wenn ein Mitarbeitender vergessen hat, sich am Vortag auszustempeln,
+erkennt das System das beim nächsten Scan und hinterlegt automatisch
+einen Audit-Eintrag. Die Praxisleitung kann diese Fälle abfragen:
+
+```bash
+azadmin audit open-shifts --db arbeitszeit.db
+```

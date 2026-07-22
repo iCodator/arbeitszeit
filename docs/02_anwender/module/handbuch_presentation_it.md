@@ -1,7 +1,7 @@
 # Präsentationsschicht — technisches Referenzhandbuch
 
 **Kapitel:** 4-IT
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/presentation/`
@@ -20,6 +20,7 @@ src/arbeitszeit/presentation/
 │   ├── main.py         # Einstiegspunkt, Argument-Routing
 │   ├── _auth.py        # Authentifizierungslogik
 │   ├── _intervals.py   # Hilfsfunktionen für Zeitintervalle
+│   ├── audit.py        # Audit-Abfragen (z. B. open-shifts)
 │   ├── bookings.py     # Korrekturen und Nachträge
 │   ├── employees.py    # Mitarbeitende und RFID-Karten
 │   ├── reports.py      # Berichte und Exporte
@@ -194,6 +195,23 @@ azadmin users bootstrap --username admin --password-hash <hash>
 azadmin users add --username reviewer1 --role REVIEWER
 ```
 
+#### audit
+
+| Befehl | Beschreibung |
+| --- | --- |
+| `audit open-shifts` | Mitarbeitende mit offener Vortagsschicht anzeigen |
+
+Implementiert in `admin_cli/audit.py`. Liest Audit-Log-Einträge
+mit `event_type = OPEN_SHIFT_PREVIOUS_DAY_DETECTED` und gibt
+die betroffenen Mitarbeitenden mit letztem bekanntem Buchungstyp
+und Zeitstempel aus.
+
+Beispiel:
+
+```bash
+azadmin audit open-shifts --db arbeitszeit.db
+```
+
 ## Terminal-UI
 
 Einstiegspunkt: `src/arbeitszeit/presentation/terminal_ui/main.py`
@@ -204,7 +222,6 @@ Einstiegspunkt: `src/arbeitszeit/presentation/terminal_ui/main.py`
 | --- | --- |
 | `--config PATH` | expliziter Pfad zur `config.toml` |
 | `--db PATH` | expliziter Datenbankpfad |
-| `--numpad NAME` | Gerätename des Numpads |
 | `--rfid NAME` | Gerätename des RFID-Readers |
 | `--terminal-id INT` | Terminal-ID für Buchungen |
 
@@ -216,20 +233,19 @@ sich das Programm mit Fehlermeldung.
 
 Vor der Buchungsschleife:
 
-1. `resolve_evdev_device()` — Gerätepfade auflösen
-2. `run_system_check()` — 7-Punkte-Prüfung (Fehler blockieren nicht)
+1. `resolve_evdev_device()` — RFID-Gerätepfad auflösen
+2. `run_system_check()` — Prüfung (Fehler blockieren nicht)
 3. `_ensure_terminal_exists()` — Terminal-Eintrag anlegen (`INSERT OR IGNORE`)
 4. `_setup_file_logging()` — dateibasiertes Logging einrichten
 5. `load_threshold_from_config(db_path)` — Zeitüberwachungs-Schwellwert laden
-6. `SQLiteSystemConfigRepository(...).get_current(...)` — `booking.grace_seconds_after_numpad_select` lesen
-7. `EvdevHardwareReader(...)` initialisieren
+6. `DebouncedHardwareReader(EvdevHardwareReader(rfid_path=rfid_path))` — Reader mit 3-s-Entprellung initialisieren
 
 ### Buchungsschleife
 
 Die Endlosschleife in `run()` führt bei jedem Durchlauf `_run_one_cycle()` aus:
 
 1. `_clear_screen()` — Bildschirm leeren
-2. `print(_BUCHUNGSARTEN)` — Buchungsarten-Menü ausgeben (Tasten 1–4)
+2. `print(_SCAN_PROMPT)` — Aufforderung „Karte an das RFID-Lesegerät halten …" ausgeben
 3. `monitor.check()` — Systemzeitüberwachung
 4. `process_booking(reader, db_path, terminal_id)` — Buchungszyklus
 5. `time.sleep(2)` — 2-Sekunden-Pause vor dem nächsten Zyklus
