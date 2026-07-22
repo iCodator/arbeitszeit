@@ -1,4 +1,4 @@
-# Pflichtenheft Projekt arbeitszeit – Version 6.0
+# Pflichtenheft Projekt arbeitszeit – Version 6.1
 
 ## 1. Dokumentzweck
 
@@ -41,9 +41,9 @@ Die Rechte dieser Rollen sind verbindlich zu trennen. Ein Mitarbeiter darf keine
 
 Der verbindliche Standardablauf ist:
 
-1. Buchungsart am USB-Numpad wählen.
-2. RFID-Chip an den Reader halten.
-3. RFID-ID einlesen.
+1. RFID-Chip an den Reader halten.
+2. RFID-ID einlesen.
+3. Buchungstyp anhand der Scanreihenfolge im Tagesablauf ableiten.
 4. Karte und Benutzer prüfen.
 5. Buchungsfolge prüfen.
 6. Buchung speichern oder verwerfen.
@@ -73,11 +73,17 @@ RFID-Karten müssen aktiv, bekannt und einem aktiven Benutzer zugeordnet sein. U
 
 Das System muss unplausible Buchungsfolgen erkennen und verwerfen oder mindestens als auffällig markieren.
 
-### 7.5 Offene Buchungen
+Das System muss Mehrfacherfassungen derselben RFID-Karte innerhalb kurzer Zeit erkennen und verwerfen (Doppel-Scan-Schutz).
+
+### 7.5 Kurztag-Regelung
+
+Bei Schichten von bis zu 6 Stunden ist nach § 4 ArbZG keine Ruhepause erforderlich.[^3] Das System muss diese Regelung bei der Buchungstyp-Ableitung berücksichtigen: Beträgt die bis zum zweiten Scan verstrichene Zeit höchstens 6 Stunden, gilt dieser Scan als Gehen-Buchung. Ein dritter Scan innerhalb desselben Arbeitstages ist in diesem Fall als ungültig abzuweisen.
+
+### 7.6 Offene Buchungen
 
 Das System muss offene Buchungen erkennen und kennzeichnen. Eine offene Buchung darf nicht automatisch in eine endgültige künstliche Abschlussbuchung umgewandelt werden.
 
-### 7.6 Prüfstatus
+### 7.7 Prüfstatus
 
 Buchungen und Prüffälle müssen mindestens folgende Statuswerte nutzen können:
 
@@ -94,11 +100,11 @@ Zusätzlich sollen Kennzeichnungen für mögliche gesetzliche Verstöße vorgese
 - `POSSIBLE_REST_VIOLATION`
 - `POSSIBLE_MAX_HOURS_VIOLATION`
 
-### 7.7 Korrekturen und Nachträge
+### 7.8 Korrekturen und Nachträge
 
 Das System muss Korrekturen und Nachträge unterscheiden können. Korrekturen und Nachträge müssen jeweils begründet und protokolliert werden.
 
-### 7.8 Regelarbeitszeiten
+### 7.9 Regelarbeitszeiten
 
 Das System muss die Regelarbeitszeiten pro Wochentag verwalten und administrativ änderbar machen. Änderungen müssen in der Datenbank gespeichert und protokolliert werden.
 
@@ -112,7 +118,7 @@ Die initialen Zeiten sind:
 | Donnerstag | 07:30 | 14:00 |
 | Freitag | 07:30 | 16:00 |
 
-### 7.9 Benutzer- und Rollenverwaltung
+### 7.10 Benutzer- und Rollenverwaltung
 
 Das System muss die lokale Verwaltung von Benutzerkonten für administrative und prüfende Rollen unterstützen.
 
@@ -130,7 +136,7 @@ Das System muss einen dokumentierten Bootstrap-Prozess zur erstmaligen Einrichtu
 
 Die Rechteprüfung für Benutzer- und Rollenverwaltung muss technisch in der Anwendung erzwungen werden und darf nicht nur organisatorisch beschrieben sein.
 
-### 7.10 Prüflogik Arbeitszeitgesetz
+### 7.11 Prüflogik Arbeitszeitgesetz
 
 Das System muss Prüfhinweise für folgende Sachverhalte erzeugen können:
 
@@ -142,11 +148,11 @@ Das System muss Prüfhinweise für folgende Sachverhalte erzeugen können:
 
 Diese Prüfungen erzeugen Warnungen oder Prüfstatus, ersetzen aber keine juristische Einzelfallprüfung.
 
-### 7.11 Selbsttest
+### 7.12 Selbsttest
 
 Das System muss Konfiguration, Geräteverfügbarkeit, NAS-Erreichbarkeit, Datenbankerreichbarkeit und Grundkonsistenz prüfen können.
 
-### 7.12 Export
+### 7.13 Export
 
 Das System muss Export- und Berichtsfunktionen für Gesamt, Tag, Woche, Monat und einzelne Mitarbeiter bereitstellen. Es muss dabei mindestens CSV-Exporte für die Weiterverarbeitung sowie PDF-Berichte für druckbare Auswertungen erzeugen können.
 
@@ -161,13 +167,14 @@ Mindestens folgende Anforderungen sind vorzusehen:
 - Nachvollziehbare Benennung und Ablage der Exportdateien in einem definierten Exportverzeichnis.
 - Einbeziehung der Exportdateien in das Schutz-, Backup- und Archivierungskonzept.
 
-### 7.13 Pflichtauswertungen
+### 7.14 Pflichtauswertungen
 
 Das System muss Pflichtauswertungen bereitstellen, mit denen offene, auffällige, korrigierte und nachgetragene Sachverhalte gezielt geprüft und nachvollzogen werden können. Die Auswertungen müssen nach Zeitraum und Mitarbeiter filterbar sein und sowohl in der Anwendung einsehbar als auch exportierbar sein.
 
 Mindestens folgende Pflichtauswertungen sind vorzusehen:
 
 - offene Buchungen und offene Pausen,
+- offene Vortagsschichten (vergessene Abmeldung am Vortag),
 - Korrekturen mit Bezug auf alten und neuen Zustand, Begründung, korrigierende Person und Zeitstempel,
 - Nachträge mit Kennzeichnung als nachträglich erfasster Datensatz, Begründung und Freigabebezug, soweit vorgesehen,
 - mögliche Pausenverstöße,
@@ -211,7 +218,6 @@ Erforderlich sind mindestens:
 - Python 3,
 - SQLite,
 - RFID-Reader,
-- separates USB-Numpad,
 - optionale NAS-Anbindung,
 - Bibliothek `evdev`,
 - eine geeignete Komponente zur Erzeugung von PDF-Berichten.
