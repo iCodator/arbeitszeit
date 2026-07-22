@@ -1,7 +1,7 @@
 # Das technische Rückgrat — Konfiguration und Betrieb
 
 **Kapitel:** 6-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -10,7 +10,7 @@
 Das System besteht aus mehreren Teilen: der Benutzeroberfläche (Terminal und
 Admin-Programm), der Datenbank und dem technischen Rückgrat. Das technische
 Rückgrat kümmert sich automatisch um Datenbankzugriff, Konfiguration, Backups,
-Hardwareanschluss (RFID, Numpad) und Systemprüfungen.
+Hardwareanschluss (RFID) und Systemprüfungen.
 
 Als Praxisleitung oder Verwaltung müssen Sie hier in der Regel nichts
 konfigurieren — Ihre IT-Betreuung hat das beim Einrichten des Systems erledigt.
@@ -26,7 +26,6 @@ path = "/home/user/data/arbeitszeit.db"
 
 [terminal]
 id = 1
-numpad = "Usb KeyBoard Usb KeyBoard"
 rfid = "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader"
 
 [backup]
@@ -82,5 +81,13 @@ Die Konfigurationsdatei sollte ausschließlich von Ihrer IT-Betreuung geändert
 werden. Falsche Einstellungen können dazu führen, dass das Terminal oder das
 Admin-Programm nicht mehr starten.
 
-Bei Problemen mit der Hardware (RFID-Reader, Numpad) oder der Datenbankverbindung
+Bei Problemen mit der Hardware (RFID-Reader) oder der Datenbankverbindung
 wenden Sie sich ebenfalls an Ihre IT-Betreuung.
+
+## Doppel-Scan-Schutz
+
+Das System erkennt automatisch, wenn dieselbe RFID-Karte innerhalb von
+3 Sekunden ein zweites Mal vorgehalten wird. Der zweite Scan wird dann
+stillschweigend ignoriert — es genügt, die Karte einmal kurz an den
+Reader zu halten. Dieser Schutz verhindert technisches Rauschen durch
+unbeabsichtigtes doppeltes Auflegen.

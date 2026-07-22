@@ -1,7 +1,7 @@
 # Infrastrukturschicht — technisches Referenzhandbuch
 
 **Kapitel:** 6-IT
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/infrastructure/`
@@ -9,7 +9,7 @@
 ## Zweck der Infrastrukturschicht
 
 Die Infrastrukturschicht enthält alle technischen Adapter: Datenbankzugriff,
-RFID/Numpad-Hardware, Konfigurationsdatei, Backup, Systemprüfung und
+RFID-Hardware, Konfigurationsdatei, Backup, Systemprüfung und
 Zeitüberwachung. Sie implementiert die Repository-Protokolle der Domänenschicht
 und liegt im Schichtenmodell zwischen Anwendung und Präsentation.
 
@@ -43,7 +43,7 @@ Quelldatei: `src/arbeitszeit/infrastructure/config_file.py`
 | Klasse | Felder |
 | --- | --- |
 | `DatabaseConfig` | `path: str \| None` |
-| `TerminalConfig` | `id: int \| None`, `numpad: str \| None`, `rfid: str \| None` |
+| `TerminalConfig` | `id: int \| None`, `rfid: str \| None` |
 | `BackupConfig` | `backup_dir: str \| None`, `export_dir: str \| None`, `log_dir: str \| None` |
 | `AdminConfig` | `user_id: int \| None` |
 | `AppConfig` | database, terminal, backup, admin |
@@ -72,7 +72,6 @@ path = "/var/data/arbeitszeit.db"
 
 [terminal]
 id = 1
-numpad = "Usb KeyBoard Usb KeyBoard"
 rfid = "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader"
 
 [backup]
@@ -141,13 +140,44 @@ Quelldatei: `src/arbeitszeit/infrastructure/hardware/evdev_reader.py`
 
 | Symbol | Aufgabe |
 | --- | --- |
-| `EvdevHardwareReader` | liest Ereignisse von Numpad und RFID-Reader via `evdev` |
+| `EvdevHardwareReader` | liest Ereignisse vom RFID-Reader via `evdev` |
 | `resolve_evdev_device(name)` | sucht ein `/dev/input/event*`-Gerät anhand des Namens |
 | `HardwareReader` | Protokollklasse (Port der Domänenschicht) |
 | `DeviceNotFoundError` | ausgelöst wenn das Gerät nicht gefunden wird |
 
-Die Terminal-UI initialisiert `EvdevHardwareReader` mit Numpad-Pfad,
-RFID-Pfad und einem Timeout-Wert aus `system_config`.
+Die Terminal-UI initialisiert den Reader als
+`DebouncedHardwareReader(EvdevHardwareReader(rfid_path=rfid_path))`.
+`EvdevHardwareReader` öffnet exklusiv das RFID-Gerät via `evdev`.
+`DebouncedHardwareReader` ist ein transparenter Wrapper (siehe Abschnitt
+„Doppel-Scan-Schutz"), der Scans derselben Karte innerhalb von 3 Sekunden
+verwirft.
+
+## Doppel-Scan-Schutz
+
+Quelldatei: `src/arbeitszeit/infrastructure/hardware/debounce.py`
+
+`DebouncedHardwareReader` wraps jeden `HardwareReader` und verwirft Scans
+derselben Karte, die innerhalb von `DEBOUNCE_SECONDS` (3,0 s) aufeinanderfolgen.
+
+| Symbol | Bedeutung |
+| --- | --- |
+| `DEBOUNCE_SECONDS` | Entprellungsfenster: 3,0 Sekunden |
+| `_last_accepted` | `dict[uid_hash, float]` — Zeitstempel des letzten akzeptierten Scans pro Karte |
+
+**Invariante:** Der Zeitstempel in `_last_accepted` wird **nur** aktualisiert, wenn
+ein Scan akzeptiert wird — nicht bei verworfenen Scans. Dadurch verlängert kurzes
+Auflegen das Sperrfenster nicht.
+
+Verschiedene Karten können beliebig schnell nacheinander gescannt werden; die Sperre
+gilt ausschließlich pro `uid_hash`. Verworfene Scans werden als `INFO` geloggt.
+
+### Interne RFID-Polling-Schleife
+
+`EvdevHardwareReader._read_rfid_uid()` verwendet ein internes 1-Sekunden-Poll-Intervall
+(`deadline = time.monotonic() + 1.0`) statt eines konfigurierbaren Timeouts.
+`HardwareTimeoutError` nach Ablauf des Intervalls wird von `read_next()` transparent
+abgefangen und der nächste Versuch gestartet. Dieses Intervall ermöglicht es, dass
+`SIGTERM` nach spätestens 1 Sekunde wirksam wird.
 
 ## Backup-Service
 
@@ -180,19 +210,19 @@ Quelldatei: `src/arbeitszeit/infrastructure/backup/backup_service.py`
 
 Quelldatei: `src/arbeitszeit/infrastructure/system_check.py`
 
-`run_system_check(db_path, *, numpad_path, rfid_path, app_config)` führt
+`run_system_check(db_path, *, rfid_path, app_config)` führt
 7 Prüfungen aus und schreibt `SELFTEST_OK` oder `SELFTEST_FAIL` in die
 Tabelle `system_events`.
 
 | Prüfung | Beschreibung |
 | --- | --- |
 | `_check_db_access` | Vergleicht `schema_migrations`-Tabelle mit `.sql`-Dateien in `migrations/` |
-| `_check_config_keys` | Prüft 4 Pflicht-Keys: `app.timezone`, `booking.grace_seconds_after_numpad_select`, `backup.nas_enabled`, `backup.nas_path` |
+| `_check_config_keys` | Prüft 3 Pflicht-Keys: `app.timezone`, `backup.nas_enabled`, `backup.nas_path` |
 | `_check_nas` | Prüft `Path.exists()` und `os.access(W_OK)` — kein Netzwerktest |
 | `_check_fk_consistency` | Führt `PRAGMA foreign_key_check` aus |
 | `_check_config_file_paths` | Prüft, ob `backup_dir` und `export_dir` existieren |
 | `_check_ntp` | Führt `/usr/bin/timedatectl show` aus (absoluter Pfad, kein `shell=True`), timeout 5 s; prüft `NTP=yes` und `NTPSynchronized=yes` |
-| `_check_devices` | Prüft `Path.exists()` und `os.access(R_OK)` für `numpad_path` und `rfid_path` |
+| `_check_devices` | Prüft `Path.exists()` und `os.access(R_OK)` für `rfid_path` |
 
 Die Terminal-UI führt `run_system_check()` vor dem Start der Buchungsschleife
 aus. Bei Fehlern wird eine Warnung ausgegeben; der Buchungsbetrieb wird
