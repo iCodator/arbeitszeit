@@ -1,4 +1,4 @@
-__version__ = "1.2"
+__version__ = "1.3"
 
 import json
 import sys
@@ -603,6 +603,49 @@ def test_kurztag_dritter_scan_wird_abgewiesen_ohne_buchung() -> None:
         uc.execute(_cmd(booked_at=_T(14)))
 
     assert len(uow.time_booking_repo._store) == buchungen_vorher
+
+
+# --- Regression: UTC vs. Lokalzeit bei Regelzeitfenster-Prüfung ---
+
+
+def test_buchung_innerhalb_cest_regelzeitfenster_kein_schedule_flag() -> None:
+    """Buchung 06:00 UTC = 08:00 CEST liegt innerhalb Fenster 07:30–18:00.
+
+    Bugverhalten: book_time.py:145 vergleicht UTC-Zeit (06:00) mit lokalem
+    Regelzeitplan (07:30–18:00) → 06:00 < 07:30 → fälschlich
+    OUTSIDE_SCHEDULE_WINDOW gesetzt. Korrekt: Lokalzeit 08:00 ≥ 07:30 → kein Flag.
+    Datum: 2025-06-16 (Montag, isoweekday=1) → CEST = UTC+2.
+    """
+    uow = _make_uow()
+    _add_global_schedule(uow, weekday=1, start=time(7, 30), end=time(18, 0))
+    uc = BookUseCase(_as_uow(uow))
+
+    booked_at = datetime(2025, 6, 16, 6, 0, tzinfo=timezone.utc)  # = 08:00 CEST
+    result = uc.execute(_cmd(booked_at=booked_at))
+
+    assert result.status == BookingStatus.OPEN  # COME-Buchung hat immer OPEN
+    cases = uow.review_case_repo.list_open_for_employee(1)
+    assert not any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)
+
+
+def test_schedule_lookup_verwendet_lokalen_wochentag() -> None:
+    """Buchung Sonntag 22:30 UTC = Montag 00:30 CEST → Montag-Zeitplan muss verwendet werden.
+
+    Bugverhalten: book_time.py:139 verwendet cmd.booked_at.isoweekday() = 7 (Sonntag,
+    UTC-Datum) → kein Montag-Zeitplan gefunden → schedule=None → kein Schedule-Flag.
+    Korrekt: Lokal-Wochentag 1 (Montag) → Montag-Zeitplan gefunden; 00:30 < 07:30
+    → OUTSIDE_SCHEDULE_WINDOW wird korrekt gesetzt.
+    Datum: 2025-06-15 (Sonntag UTC) = 2025-06-16 (Montag CEST).
+    """
+    uow = _make_uow()
+    _add_global_schedule(uow, weekday=1, start=time(7, 30), end=time(18, 0))  # nur Montag
+    uc = BookUseCase(_as_uow(uow))
+
+    booked_at = datetime(2025, 6, 15, 22, 30, tzinfo=timezone.utc)  # = 00:30 Montag CEST
+    uc.execute(_cmd(booked_at=booked_at))
+
+    cases = uow.review_case_repo.list_open_for_employee(1)
+    assert any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)
 
 
 def test_langtag_dritter_scan_ergibt_break_end() -> None:
