@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import sqlite3
 from datetime import date, datetime, timedelta, timezone
@@ -108,6 +108,21 @@ class SQLiteTimeBookingRepository:
             "(time_booking_id, old_status, new_status, reason, changed_by_user_id, changed_at) "
             "VALUES (?, ?, ?, ?, ?, ?)",
             (booking_id, old_status, status.value, reason, changed_by_user_id, now),
+        )
+
+    def update(
+        self,
+        booking_id: int,
+        new_booking_type: BookingType,
+        new_booked_at: datetime,
+    ) -> None:
+        if self._conn.execute(
+            "SELECT 1 FROM time_bookings WHERE id = ?", (booking_id,)
+        ).fetchone() is None:
+            raise NotFoundError(f"TimeBooking {booking_id} nicht gefunden.")
+        self._conn.execute(
+            "UPDATE time_bookings SET booking_type = ?, booked_at = ? WHERE id = ?",
+            (new_booking_type.value, new_booked_at.isoformat(), booking_id),
         )
 
 

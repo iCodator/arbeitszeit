@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timezone
@@ -81,6 +81,11 @@ class CorrectBookingUseCase:
                 BookingStatus.CORRECTED,
                 reason=cmd.reason,
                 changed_by_user_id=cmd.corrected_by_user_id,
+            )
+            self._uow.time_booking_repo.update(
+                booking.id,
+                cmd.new_booking_type,
+                cmd.new_booked_at,
             )
 
             review_case_id = self._close_correctable_cases(

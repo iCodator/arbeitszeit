@@ -21,6 +21,7 @@ from arbeitszeit.domain.entities import (
 from arbeitszeit.domain.enums import (
     ApprovalStatus,
     BookingStatus,
+    BookingType,
     CardStatus,
     ChangeOrigin,
     ReviewCaseStatus,
@@ -244,6 +245,17 @@ class FakeTimeBookingRepository:
     ) -> None:
         existing = self._store[booking_id]
         self._store[booking_id] = dataclasses.replace(existing, status=status)
+
+    def update(
+        self,
+        booking_id: int,
+        new_booking_type: BookingType,
+        new_booked_at: datetime,
+    ) -> None:
+        existing = self._store[booking_id]
+        self._store[booking_id] = dataclasses.replace(
+            existing, booking_type=new_booking_type, booked_at=new_booked_at
+        )
 
 
 class FakeWorkScheduleRepository:

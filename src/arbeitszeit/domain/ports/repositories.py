@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from datetime import date, datetime
 from typing import Literal, Protocol
@@ -16,6 +16,7 @@ from arbeitszeit.domain.entities import (
 )
 from arbeitszeit.domain.enums import (
     BookingStatus,
+    BookingType,
     CardStatus,
     ChangeOrigin,
     ReviewCaseStatus,
@@ -84,6 +85,13 @@ class TimeBookingRepository(Protocol):
         status: BookingStatus,
         reason: str | None = None,
         changed_by_user_id: UserAccountId | None = None,
+    ) -> None: ...
+
+    def update(
+        self,
+        booking_id: TimeBookingId,
+        new_booking_type: BookingType,
+        new_booked_at: datetime,
     ) -> None: ...
 
 

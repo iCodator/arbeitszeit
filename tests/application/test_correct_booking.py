@@ -1,3 +1,5 @@
+__version__ = "1.1"
+
 import dataclasses
 import json
 import sys
@@ -196,6 +198,28 @@ def test_buchung_erhaelt_status_corrected() -> None:
     assert booking is not None
     assert booking.status == BookingStatus.CORRECTED
     assert uow.committed
+
+
+def test_buchung_erhaelt_korrigierten_booking_type() -> None:
+    uow, booking_id = _make_uow_with_booking()
+    uc = CorrectBookingUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booking_id))
+
+    booking = uow.time_booking_repo.get_by_id(result.updated_booking_id)
+    assert booking is not None
+    assert booking.booking_type == BookingType.GO
+
+
+def test_buchung_erhaelt_korrigiertes_booked_at() -> None:
+    uow, booking_id = _make_uow_with_booking()
+    uc = CorrectBookingUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booking_id))
+
+    booking = uow.time_booking_repo.get_by_id(result.updated_booking_id)
+    assert booking is not None
+    assert booking.booked_at == _NOW
 
 
 def test_korrekturobjekt_wird_angelegt() -> None:
