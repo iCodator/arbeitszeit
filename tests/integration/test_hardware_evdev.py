@@ -305,7 +305,8 @@ class TestScanRfidUidHash:
         ):
             return scan_rfid_uid_hash("/dev/input/event5", timeout=timeout)
 
-    def test_erfolgreicher_scan_gibt_hash_zurück(self) -> None:
+    def test_erfolgreicher_scan_gibt_hash_zurück(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("RFID_PEPPER", "testsecret")
         dev = MagicMock()
         dev.fd = 42
         result = self._run_scan(

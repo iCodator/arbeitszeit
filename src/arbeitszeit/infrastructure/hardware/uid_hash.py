@@ -1,8 +1,12 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
-import hashlib
+import hmac
+import os
 
 
 def hash_uid(raw_uid: str) -> str:
-    """SHA-256-Hash des rohen RFID-UIDs (Hex-String oder Dezimalfolge vom Leser)."""
-    return hashlib.sha256(raw_uid.encode()).hexdigest()
+    """HMAC-SHA256-Hash des rohen RFID-UIDs mit Pepper aus RFID_PEPPER-Umgebungsvariable."""
+    pepper = os.environ.get("RFID_PEPPER")
+    if not pepper:
+        raise ValueError("Umgebungsvariable RFID_PEPPER ist nicht gesetzt.")
+    return hmac.new(pepper.encode(), raw_uid.encode(), "sha256").hexdigest()

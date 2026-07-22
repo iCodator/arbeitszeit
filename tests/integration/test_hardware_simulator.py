@@ -80,21 +80,41 @@ def test_raw_booking_request_ist_immutable() -> None:
 # --- uid_hash ---
 
 
-def test_hash_uid_ist_deterministisch() -> None:
+def test_hash_uid_ohne_pepper_wirft_value_error(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("RFID_PEPPER", raising=False)
+    with pytest.raises(ValueError, match="RFID_PEPPER"):
+        hash_uid("AABBCCDD")
+
+
+def test_hash_uid_ist_pepper_abhaengig(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RFID_PEPPER", "secret1")
+    hash1 = hash_uid("AABBCCDD")
+    monkeypatch.setenv("RFID_PEPPER", "secret2")
+    hash2 = hash_uid("AABBCCDD")
+    assert hash1 != hash2
+
+
+def test_hash_uid_ist_deterministisch(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RFID_PEPPER", "testsecret")
     assert hash_uid("AABBCCDD") == hash_uid("AABBCCDD")
 
 
-def test_hash_uid_verschiedene_uids_haben_verschiedene_hashes() -> None:
+def test_hash_uid_verschiedene_uids_haben_verschiedene_hashes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("RFID_PEPPER", "testsecret")
     assert hash_uid("AABBCCDD") != hash_uid("11223344")
 
 
-def test_hash_uid_ist_sha256_hex() -> None:
+def test_hash_uid_ist_hmac_sha256_hex64(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RFID_PEPPER", "testsecret")
     result = hash_uid("test")
     assert len(result) == 64
     assert all(c in "0123456789abcdef" for c in result)
 
 
-def test_hash_uid_gross_klein_sensitiv() -> None:
+def test_hash_uid_gross_klein_sensitiv(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("RFID_PEPPER", "testsecret")
     assert hash_uid("aabbccdd") != hash_uid("AABBCCDD")
 
 
