@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -7,6 +7,7 @@ from arbeitszeit.application.commands import ApproveSupplementCommand
 from arbeitszeit.application.results import ApproveSupplementResult
 from arbeitszeit.application.unit_of_work import UnitOfWork
 from arbeitszeit.application.use_cases._booking_evaluation import evaluate_booking
+from arbeitszeit.application.use_cases._tz import to_local
 from arbeitszeit.domain import audit_events
 from arbeitszeit.domain.entities import AuditLogEntry, Employee, ReviewCase, Supplement, TimeBooking
 from arbeitszeit.domain.enums import (
@@ -185,13 +186,14 @@ class ApproveSupplementUseCase:
         supplement: Supplement,
         employee: Employee,
     ) -> list[ComplianceFlag]:
+        local_event_at = to_local(supplement.event_at)
         schedule = self._uow.work_schedule_repo.get_effective(
-            supplement.event_at.isoweekday(),
-            supplement.event_at.date(),
+            local_event_at.isoweekday(),
+            local_event_at.date(),
             employee.id,
         )
         if schedule is not None and not (
-            schedule.start_time <= supplement.event_at.time() <= schedule.end_time
+            schedule.start_time <= local_event_at.time() <= schedule.end_time
         ):
             return [ComplianceFlag(ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW, ReviewSeverity.WARN)]
         return []

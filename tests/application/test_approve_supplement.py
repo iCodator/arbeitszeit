@@ -1,3 +1,5 @@
+__version__ = "1.1"
+
 import json
 import sys
 from datetime import date, datetime, time, timedelta, timezone
@@ -17,6 +19,7 @@ from arbeitszeit.domain.entities import (
     Employee,
     ReviewCase,
     Supplement,
+    TimeBooking,
     UserAccount,
     WorkScheduleVersion,
 )
@@ -512,8 +515,10 @@ def test_nur_passender_review_case_wird_geschlossen() -> None:
 
 
 def test_nachtrag_ausserhalb_regelzeitfenster_erzeugt_review_case() -> None:
-    # _EVENT_AT = 2025-03-10 08:00 UTC, isoweekday=1 (Montag)
-    # Fenster 09:00–17:00 → 08:00 liegt vor Fensterbeginn → OUTSIDE_SCHEDULE_WINDOW
+    # _EVENT_AT = 2025-03-10 08:00 UTC = 09:00 CET (März = UTC+1, Montag)
+    # Fenster 10:00–17:00 → lokale Zeit 09:00 CET < 10:00 → OUTSIDE_SCHEDULE_WINDOW.
+    # Hinweis: start_time=10:00 (nicht 09:00) damit der Test nach der Zeitzonen-Fix
+    # (UTC→Lokal) korrekt bleibt: mit Fix = 09:00 CET < 10:00 → außerhalb ✓.
     uow, supplement_id = _make_uow_with_pending_supplement()
     uow.work_schedule_repo.add(
         WorkScheduleVersion(
@@ -521,7 +526,7 @@ def test_nachtrag_ausserhalb_regelzeitfenster_erzeugt_review_case() -> None:
             scope_type=ScopeType.GLOBAL,
             scope_employee_id=None,
             weekday=1,
-            start_time=time(9, 0),
+            start_time=time(10, 0),
             end_time=time(17, 0),
             valid_from=date(2000, 1, 1),
             valid_until=None,
@@ -538,3 +543,136 @@ def test_nachtrag_ausserhalb_regelzeitfenster_erzeugt_review_case() -> None:
     assert len(result.follow_up_case_ids) > 0
     cases = uow.review_case_repo.list_open_for_employee(1)
     assert any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)
+
+
+# --- Regression: UTC vs. Lokalzeit bei Regelzeitfenster-Prüfung ---
+
+
+def test_supplement_innerhalb_cest_regelzeitfenster_kein_schedule_flag() -> None:
+    """Nachtrag event_at=06:00 UTC = 08:00 CEST liegt innerhalb Fenster 07:30–18:00.
+
+    Bugverhalten: approve_supplement.py:194 vergleicht UTC-Zeit (06:00) mit lokalem
+    Regelzeitplan → 06:00 < 07:30 → fälschlich OUTSIDE_SCHEDULE_WINDOW.
+    Korrekt: Lokalzeit 08:00 CEST ≥ 07:30 → kein Flag.
+    Datum: 2025-06-16 (Montag) → CEST = UTC+2.
+    """
+    event_at = datetime(2025, 6, 16, 6, 0, tzinfo=timezone.utc)  # = 08:00 CEST, Montag
+    uow = _uow_with_reviewer()
+    emp = uow.employee_repo.add(
+        Employee(
+            id=EmployeeId(0),
+            personnel_no="E001",
+            first_name="A",
+            last_name="M",
+            is_active=True,
+        )
+    )
+    supplement = uow.supplement_repo.add(
+        Supplement(
+            id=SupplementId(0),
+            employee_id=emp.id,
+            related_booking_id=None,
+            booking_type=BookingType.COME,
+            event_at=event_at,
+            recorded_at=_NOW,
+            reason="Regression: CEST Zeitfenster",
+            recorded_by_user_id=UserAccountId(2),
+            approval_status=ApprovalStatus.PENDING,
+            approved_by_user_id=None,
+            approved_at=None,
+            rejected_by_user_id=None,
+            rejected_at=None,
+        )
+    )
+    uow.work_schedule_repo.add(
+        WorkScheduleVersion(
+            id=WorkScheduleVersionId(0),
+            scope_type=ScopeType.GLOBAL,
+            scope_employee_id=None,
+            weekday=1,  # Montag
+            start_time=time(7, 30),
+            end_time=time(18, 0),
+            valid_from=date(2000, 1, 1),
+            valid_until=None,
+            change_origin=ChangeOrigin.SYSTEM_SEED,
+            changed_by_user_id=None,
+        )
+    )
+    uc = ApproveSupplementUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(supplement.id))
+
+    assert result.booking_status == BookingStatus.OPEN  # COME-Buchung hat immer OPEN
+    cases = uow.review_case_repo.list_open_for_employee(emp.id)
+    assert not any(c.case_type == ReviewCaseType.OUTSIDE_SCHEDULE_WINDOW for c in cases)
+
+
+# --- Regression: projected-Liste muss chronologisch sortiert sein ---
+
+
+def test_go_supplement_vor_break_start_projected_korrekt_sortiert() -> None:
+    """Nachtrag GO@08:00 liegt zeitlich vor vorhandenen Buchungen BREAK_START@14:30.
+
+    Bugverhalten: projected = list(day_bookings) + [placeholder] → GO am Ende,
+    obwohl es zeitlich vor BREAK_START liegt. _work_stats berechnet mit der
+    unsortierten Liste max_continuous=7,5 h (COME→BREAK_START) > 6 h → WARN.
+    Korrekt: sorted(projected, key=booked_at) → max_continuous=1 h (COME→GO) → OK.
+
+    Szenario:
+    Existing: COME@07:00, BREAK_START@14:30, BREAK_END@14:40 (alle 2025-03-10)
+    Supplement: GO@08:00 (= _EVENT_AT, zeitlich zwischen COME und BREAK_START)
+    """
+    uow, supplement_id = _make_uow_with_pending_supplement(booking_type=BookingType.GO)
+    # COME eine Stunde vor _EVENT_AT (07:00 UTC)
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=TimeBookingId(0),
+            employee_id=EmployeeId(1),
+            booking_type=BookingType.COME,
+            booked_at=_EVENT_AT - timedelta(hours=1),
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=TerminalId(1),
+            rfid_card_id=RfidCardId(1),
+            device_event_id=None,
+            note=None,
+        )
+    )
+    # BREAK_START 6,5 h nach _EVENT_AT (14:30 UTC), d. h. zeitlich NACH dem GO@08:00
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=TimeBookingId(0),
+            employee_id=EmployeeId(1),
+            booking_type=BookingType.BREAK_START,
+            booked_at=_EVENT_AT + timedelta(hours=6, minutes=30),
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=TerminalId(1),
+            rfid_card_id=RfidCardId(1),
+            device_event_id=None,
+            note=None,
+        )
+    )
+    # BREAK_END 6,67 h nach _EVENT_AT (14:40 UTC)
+    uow.time_booking_repo.add(
+        TimeBooking(
+            id=TimeBookingId(0),
+            employee_id=EmployeeId(1),
+            booking_type=BookingType.BREAK_END,
+            booked_at=_EVENT_AT + timedelta(hours=6, minutes=40),
+            source=BookingSource.TERMINAL,
+            status=BookingStatus.OPEN,
+            terminal_id=TerminalId(1),
+            rfid_card_id=RfidCardId(1),
+            device_event_id=None,
+            note=None,
+        )
+    )
+    uc = ApproveSupplementUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(supplement_id))
+
+    # Korrekt sortiert: [COME@07, GO@08, BREAK_START@14:30, BREAK_END@14:40]
+    # max_continuous = 1 h (COME@07 bis GO@08) < 6 h → kein Flag → status=OK
+    assert result.booking_status == BookingStatus.OK
+    assert result.follow_up_case_ids == ()
