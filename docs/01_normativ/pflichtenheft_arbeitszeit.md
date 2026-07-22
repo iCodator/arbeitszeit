@@ -1,4 +1,12 @@
-# Pflichtenheft Projekt arbeitszeit – Version 6.1
+# Pflichtenheft Projekt arbeitszeit
+
+| Feld | Wert |
+| --- | --- |
+| Version | 6.1 |
+| Stand | 2026-07-22 |
+| Status | aktiv |
+| Ablöst | pflichtenheft_arbeitszeit_v6.md |
+| Verantwortlich | Praxisleitung / technische Betreuung |
 
 ## 1. Dokumentzweck
 
@@ -327,6 +335,16 @@ Das System ist nur dann abnahmefähig, wenn zusätzlich zu den bisherigen Kriter
 - Fallback-Prozess ist dokumentiert,
 - Restore wurde praktisch getestet,
 - offene und auffällige Fälle sind auswertbar.
+
+## Änderungshistorie
+
+| Version | Datum | Inhalt |
+| --- | --- | --- |
+| 6.1 | 2026-07-22 | § 6: Numpad-Schritt entfernt, Buchungstyp per Scanreihenfolge; § 7.4: Doppel-Scan-Schutz; neu § 7.5 Kurztag-Regelung (§ 4 ArbZG); § 7.14: offene Vortagsschichten; § 9.2: USB-Numpad entfernt |
+| 6.0 | 2026-07-03 | Rechtskonformitätskorrekturen (Fußnoten, ArbSchG-Grundlage); Fußnote 9 (Referentenentwurf ArbZG-Novelle) ergänzt; Versionswechsel v5→v6 |
+| 5.0 | 2026-06-11 | Benutzer- und Rollenverwaltung (§ 7.9): Bootstrap-Prozess, Audit-Log-Pflicht, Rollenwechsel; Testanforderungen und Abnahmekriterien erweitert |
+| 4.0 | 2026-06-10 | Prüflogik Arbeitszeitgesetz präzisiert; IT-Sicherheitsrichtlinie ergänzt; Datenschutz-Addendum ausgegliedert |
+| 3.0 | 2026-05-22 | Erstfassung als versioniertes Pflichtenheft; Rechts- und Regelrahmen, Datenmodell, Backup/Restore, Abnahmekriterien |
 
 ## Fußnoten
 
