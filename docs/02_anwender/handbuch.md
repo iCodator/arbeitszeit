@@ -20,7 +20,7 @@ header-includes:
 
 # Handbuch: Zeiterfassungssystem arbeitszeit
 
-**Version:** 1.9
+**Version:** 2.0
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -70,7 +70,7 @@ Das System besteht aus zwei Teilen:
 
 | Teil | Beschreibung |
 | --- | --- |
-| **Buchungsterminal** | Läuft dauerhaft im Hintergrund; nimmt Buchungen per Numpad und RFID-Karte entgegen |
+| **Buchungsterminal** | Läuft dauerhaft im Hintergrund; nimmt Buchungen per RFID-Karte entgegen |
 | **Admin-Programm** | Wird von der Administratorin bei Bedarf aufgerufen; dient der Verwaltung und Auswertung |
 
 ---
@@ -131,7 +131,6 @@ path = "/home/praxis/daten/arbeitszeit.db"
 
 [terminal]
 id = 1
-numpad = "Usb KeyBoard Usb KeyBoard"
 rfid = "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader"
 
 [backup]
@@ -140,7 +139,7 @@ export_dir  = "/var/exports/arbeitszeit"
 log_dir     = "/var/log/arbeitszeit"
 ```
 
-Die genauen Gerätenamen für `numpad` und `rfid` liefert
+Den genauen Gerätenamen für `rfid` liefert
 `scripts/verify_hardware.py --list`.
 
 ### 2.3 Ersten Administrator anlegen
@@ -266,7 +265,6 @@ azadmin --db db.db --user-id 1 cards deactivate 2
 ```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
   --db /pfad/zur/datenbank.db \
-  --numpad "Usb KeyBoard Usb KeyBoard" \
   --rfid "Sycreader RFID Technology Co., Ltd SYC ID&IC USB Reader" \
   --terminal-id 1
 ```
@@ -283,23 +281,34 @@ Systemstart automatisch gestartet wird, erklärt Kapitel 10.
 
 ### 4.2 Buchung durchführen
 
-Am Beginn jedes Buchungszyklus wird der Bildschirm geleert und das
-Buchungsarten-Menü angezeigt. Jede Buchung läuft dann in zwei Schritten ab:
+Am Beginn jedes Buchungszyklus wird der Bildschirm geleert und die
+Aufforderung „Karte an das RFID-Lesegerät halten …" angezeigt.
 
-**Schritt 1 — Buchungsart auf dem Numpad wählen:**
+**So funktioniert eine Buchung:**
 
-| Taste | Buchungsart |
+Karte einmal kurz an den RFID-Reader halten — fertig. Das System
+erkennt automatisch, welche Buchungsart als nächste fällig ist:
+
+| Scan | Normale Buchungsart |
 | --- | --- |
-| **1** | Kommen (Schichtbeginn) |
-| **2** | Gehen (Schichtende) |
-| **3** | Pause beginnen |
-| **4** | Pause beenden |
+| 1. Scan des Tages | Kommen |
+| 2. Scan des Tages | Pause beginnen |
+| 3. Scan des Tages | Pause beenden |
+| 4. Scan des Tages | Gehen |
 
-Schritt 2: RFID-Karte vorhalten.
+**Kurztag-Regelung (Solldauer ≤ 6 Stunden, § 4 ArbZG):**
+Bei kürzeren Arbeitstagen ohne gesetzliche Pausenpflicht gilt eine
+vereinfachte Reihenfolge:
 
-Das System hat nach der Numpad-Eingabe 30 Sekunden Zeit für den
-Kartenscan (konfigurierbar über `booking.grace_seconds_after_numpad_select`
-in der Datenbank).
+| Scan | Buchungsart |
+| --- | --- |
+| 1. Scan | Kommen |
+| 2. Scan | Gehen |
+| 3. Scan und mehr | Fehlermeldung — Tagesablauf bereits abgeschlossen |
+
+**Hinweis Doppel-Scan:** Wird dieselbe Karte innerhalb von 3 Sekunden
+nochmals vorgehalten, ignoriert das System den zweiten Scan automatisch.
+Eine bewusste zweite Buchung ist erst nach Ablauf dieser Wartezeit möglich.
 
 Nach der Rückmeldung wartet das System 2 Sekunden, dann beginnt der
 nächste Zyklus.
@@ -682,7 +691,7 @@ Das System prüft automatisch:
 - Datenbankintegrität (Fremdschlüssel)
 - Dateipfade aus `config.toml`
 - Zeitsynchronisation der Systemuhr (NTP)
-- RFID-Reader und Numpad erreichbar
+- RFID-Reader erreichbar
 
 **Rolle:** ADMIN oder TECH
 
@@ -710,7 +719,7 @@ nebeneinander an.
 # Alle erkannten Eingabegeräte auflisten
 python scripts/verify_hardware.py --list
 
-# Numpad und RFID-Reader interaktiv testen
+# RFID-Reader interaktiv testen
 python scripts/verify_hardware.py
 ```
 
@@ -829,7 +838,7 @@ gewohnt.
 | Autostart deaktivieren | `sudo systemctl disable arbeitszeit-terminal` |
 
 `systemctl stop` sendet ein Stoppsignal an das Terminal. Das Terminal
-beendet den laufenden Buchungsschritt, gibt Numpad und RFID-Reader frei
+beendet den laufenden Buchungsschritt, gibt den RFID-Reader frei
 und schaltet sich dann ab. Das dauert wenige Sekunden.
 
 ### 10.6 Meldungen des Terminals einsehen
@@ -902,7 +911,7 @@ Keine Ausgabe: Terminal ist gestoppt.
 | `Karte nicht erkannt.` | Karte nicht zugewiesen | `cards assign` ausführen |
 | `Karte deaktiviert.` | Karte gesperrt oder ersetzt | Neue Karte zuweisen (`cards assign`) |
 | `Mitarbeiter inaktiv.` | Mitarbeiterkonto deaktiviert | Mit ADMIN klären |
-| `Ungültige Buchungsreihenfolge.` | Z. B. zweimal Kommen ohne Gehen | Korrektur via `bookings correct` |
+| `Ungültige Buchungsreihenfolge.` | Tagesablauf abgeschlossen (z. B. Kurztag: 3. Scan), oder zweimal Kommen ohne Gehen | Korrektur via `bookings correct` |
 | `Offene Phase — bitte zuerst abschließen.` | Noch eine offene Schicht oder Pause | Offene Buchung via `bookings correct` schließen |
 
 ### 11.2 Buchungsstatus verstehen
