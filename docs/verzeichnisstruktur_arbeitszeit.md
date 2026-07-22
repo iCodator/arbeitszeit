@@ -78,6 +78,15 @@ Enthält **interne Arbeits- und Planungsdokumente**, die den Entwicklungsprozess
 
 Die ursprünglich hier beschriebenen Dokumente liegen tatsächlich in anderen Verzeichnissen: Phasenpläne, Abschlussnotizen, `audit_evidenzgrenzen_v1.md`, `audit_klarstellungen_niedrig_v1.md`, `device_event_abschlussprotokoll_v1.md`, `migrationsuebersicht_notiz_v1.md` und `terminologie_harmonisierung_v1.md` befinden sich in `docs/archive/`; die Architekturentscheidung `device_event_architekturentscheidung_v1.md` liegt in `docs/adr/`; die Testmatrix- und Nachtragsdokumente `nachtragsmatrix_phasen_v1.md`, `testmatrix_planabweichungen_v1.md`, `testmatrix_pruefbericht_v1.md` und `testmatrix_revision_v1.md` befinden sich in `docs/betrieb/nachweise/`.
 
+### `docs/09_diagramme/`
+
+Enthält **Mermaid-Architekturdiagramme** des Projekts als Markdown-Dateien. Die Diagramme sind in GitHub, VS Code (mit Mermaid-Extension), Obsidian und anderen Werkzeugen direkt renderbar:
+
+- `architektur_gesamt.md` – Flowchart der Gesamtarchitektur: alle Schichten (Hardware → Präsentation → Anwendung → Domäne → Infrastruktur) mit ihren Komponenten und Datenflüssen auf einen Blick
+- `rfid_buchungsablauf.md` – Flowchart des vollständigen RFID-Buchungsablaufs: von der Kartenauflegung über Entprellung, Kartenprüfung, Buchungstyp-Ableitung bis zur Persistenz und Fehlerbehandlung
+- `domain_architektur.md` – Komponentendiagramm der Domänenschicht: Entitäten, Aufzählungen, Fehlerklassen, Domänendienste und abstrakte Repository-Ports mit ihren Beziehungen
+- `sequenz_read_next_buchung.md` – Sequenzdiagramm des Datenflusses von `read_next()` durch `DebouncedHardwareReader` → `EvdevHardwareReader` → `BookUseCase` → SQLite-DB
+
 ---
 
 ## `migrations/`
