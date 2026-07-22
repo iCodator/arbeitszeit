@@ -1,3 +1,5 @@
+__version__ = "1.1"
+
 import sys
 from pathlib import Path
 from typing import cast
@@ -163,6 +165,32 @@ class TestDeactivateUserAccount:
                 )
             )
 
+    def test_wirft_conflict_beim_deaktivieren_des_letzten_admins(self) -> None:
+        """Letzter aktiver Admin darf nicht deaktiviert werden."""
+        uow = FakeUnitOfWork()
+        admin_id = _make_admin(uow)
+        with pytest.raises(ConflictError):
+            DeactivateUserAccountUseCase(_as_uow(uow)).execute(
+                DeactivateUserAccountCommand(
+                    acting_user_id=UserAccountId(admin_id),
+                    target_user_id=UserAccountId(admin_id),
+                )
+            )
+        assert uow.committed is False
+
+    def test_kein_conflict_wenn_zweiter_admin_vorhanden(self) -> None:
+        """Deaktivierung eines Admins ist erlaubt, wenn ein weiterer aktiver Admin existiert."""
+        uow = FakeUnitOfWork()
+        admin1_id = _make_admin(uow, "admin1")
+        admin2_id = _make_admin(uow, "admin2")
+        DeactivateUserAccountUseCase(_as_uow(uow)).execute(
+            DeactivateUserAccountCommand(
+                acting_user_id=UserAccountId(admin1_id),
+                target_user_id=UserAccountId(admin2_id),
+            )
+        )
+        assert uow.committed is True
+
 
 # --- ReactivateUserAccountUseCase ---
 
@@ -240,6 +268,34 @@ class TestChangeUserRole:
                     new_role=UserRole.TECH,
                 )
             )
+
+    def test_wirft_conflict_beim_degradieren_des_letzten_admins(self) -> None:
+        """Rollenwechsel weg von ADMIN ist verboten, wenn kein anderer aktiver Admin existiert."""
+        uow = FakeUnitOfWork()
+        admin_id = _make_admin(uow)
+        with pytest.raises(ConflictError):
+            ChangeUserRoleUseCase(_as_uow(uow)).execute(
+                ChangeUserRoleCommand(
+                    acting_user_id=UserAccountId(admin_id),
+                    target_user_id=UserAccountId(admin_id),
+                    new_role=UserRole.REVIEWER,
+                )
+            )
+        assert uow.committed is False
+
+    def test_kein_conflict_wenn_zweiter_admin_bei_rollenwechsel(self) -> None:
+        """Rollenwechsel eines Admins ist erlaubt, wenn ein weiterer aktiver Admin existiert."""
+        uow = FakeUnitOfWork()
+        admin1_id = _make_admin(uow, "admin1")
+        admin2_id = _make_admin(uow, "admin2")
+        ChangeUserRoleUseCase(_as_uow(uow)).execute(
+            ChangeUserRoleCommand(
+                acting_user_id=UserAccountId(admin1_id),
+                target_user_id=UserAccountId(admin2_id),
+                new_role=UserRole.REVIEWER,
+            )
+        )
+        assert uow.committed is True
 
 
 # --- BootstrapAdminUseCase ---

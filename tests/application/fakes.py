@@ -152,6 +152,12 @@ class FakeUserAccountRepository:
             a.role == UserRole.ADMIN and a.is_active for a in self._store.values()
         )
 
+    def has_other_active_admin(self, user_id: int) -> bool:
+        return any(
+            a.role == UserRole.ADMIN and a.is_active and a.id != user_id
+            for a in self._store.values()
+        )
+
 
 class FakeRfidCardRepository:
     def __init__(self) -> None:

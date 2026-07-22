@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import dataclasses
 import sqlite3
@@ -59,6 +59,14 @@ class SQLiteUserAccountRepository:
     def has_active_admin(self) -> bool:
         row = self._conn.execute(
             "SELECT COUNT(*) FROM user_accounts WHERE role = 'ADMIN' AND active = 1"
+        ).fetchone()
+        return bool(row[0])
+
+    def has_other_active_admin(self, user_id: int) -> bool:
+        row = self._conn.execute(
+            "SELECT COUNT(*) FROM user_accounts "
+            "WHERE role = 'ADMIN' AND active = 1 AND id != ?",
+            (user_id,),
         ).fetchone()
         return bool(row[0])
 

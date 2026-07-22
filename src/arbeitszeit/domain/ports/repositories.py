@@ -1,4 +1,4 @@
-__version__ = "1.2"
+__version__ = "1.3"
 
 from datetime import date, datetime
 from typing import Literal, Protocol
@@ -51,6 +51,7 @@ class UserAccountRepository(Protocol):
     def reactivate(self, user_id: UserAccountId) -> None: ...
     def set_role(self, user_id: UserAccountId, role: UserRole) -> None: ...
     def has_active_admin(self) -> bool: ...
+    def has_other_active_admin(self, user_id: UserAccountId) -> bool: ...
 
 
 class RfidCardRepository(Protocol):

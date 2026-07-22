@@ -1,6 +1,6 @@
 """Use Cases für Benutzerkontenverwaltung (ADMIN-Rolle, Ausnahme: Bootstrap)."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timezone
@@ -103,6 +103,14 @@ class DeactivateUserAccountUseCase:
             if target is None:
                 raise NotFoundError(f"Benutzerkonto {cmd.target_user_id} nicht gefunden.")
 
+            is_last_admin = target.role == UserRole.ADMIN and not (
+                self._uow.user_account_repo.has_other_active_admin(cmd.target_user_id)
+            )
+            if is_last_admin:
+                raise ConflictError(
+                    "Das letzte aktive Administratorkonto kann nicht deaktiviert werden."
+                )
+
             now = datetime.now(timezone.utc)
             self._uow.user_account_repo.deactivate(cmd.target_user_id)
 
@@ -183,6 +191,15 @@ class ChangeUserRoleUseCase:
             target = self._uow.user_account_repo.get_by_id(cmd.target_user_id)
             if target is None:
                 raise NotFoundError(f"Benutzerkonto {cmd.target_user_id} nicht gefunden.")
+
+            if (
+                target.role == UserRole.ADMIN
+                and cmd.new_role != UserRole.ADMIN
+                and not self._uow.user_account_repo.has_other_active_admin(cmd.target_user_id)
+            ):
+                raise ConflictError(
+                    "Die Rolle des letzten aktiven Administrators kann nicht geändert werden."
+                )
 
             now = datetime.now(timezone.utc)
             self._uow.user_account_repo.set_role(cmd.target_user_id, cmd.new_role)
