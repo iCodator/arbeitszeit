@@ -57,6 +57,9 @@ _DOMAIN_MESSAGES: dict[type[DomainError], str] = {
     InactiveCardError: "Karte deaktiviert.",
     InactiveEmployeeError: "Mitarbeiter inaktiv.",
     InvalidBookingSequenceError: "Ungültige Buchungsreihenfolge.",
+    # Defensiv vorgehalten: im normalen RFID-Flow nicht erreichbar (siehe
+    # booking_rules._validate_go). Greift bei direktem validate_booking_sequence-
+    # Aufruf mit GO bei offener Pause (Nachträge, zukünftige Pfade).
     OpenPhaseConflictError: "Offene Phase — bitte zuerst abschließen.",
 }
 

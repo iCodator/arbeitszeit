@@ -45,6 +45,10 @@ def _validate_go(open_work: bool, open_break: bool) -> None:
     if not open_work:
         raise InvalidBookingSequenceError("GO ohne offene Arbeitsphase nicht zulässig.")
     if open_break:
+        # Im normalen RFID-Flow nie erreichbar: derive_booking_type gibt bei
+        # offener Pause BREAK_END zurück, nicht GO. Dieser Zweig greift nur,
+        # wenn validate_booking_sequence direkt mit GO aufgerufen wird (z. B.
+        # aus Nachträgen oder künftigen Code-Pfaden). Defensives Sicherheitsnetz.
         raise OpenPhaseConflictError("GO bei offener Pause: Pause zuerst schließen.")
 
 
