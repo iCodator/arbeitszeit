@@ -27,7 +27,7 @@ Anmerkung: Dieses Modul wird nur auf dem Zielsystem (Raspberry Pi o. ä.) genutz
 Im Testbetrieb ist SimulatedHardwareReader zu verwenden.
 """
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 import logging
 import select
@@ -201,11 +201,11 @@ class EvdevHardwareReader(HardwareReader):
         """
         while True:
             try:
+                occurred_at = datetime.now(timezone.utc)
                 raw_uid = self._read_rfid_uid().strip()
                 break
             except HardwareTimeoutError:
                 continue
-        occurred_at = datetime.now(timezone.utc)
         if not raw_uid:
             raise EmptyUidError("RFID-Lesegerät lieferte leere UID – Buchungsvorgang abgebrochen.")
         return RawBookingRequest(

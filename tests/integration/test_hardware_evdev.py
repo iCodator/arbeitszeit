@@ -3,10 +3,11 @@ Tests für evdev-spezifische Logik: Hex-Filter (map_rfid_key), Fehlerhierarchie
 und Unit-Tests für EvdevHardwareReader-Methoden (ohne physische Hardware).
 """
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 import logging
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -209,6 +210,41 @@ class TestReadRfidUid:
         assert result == "1"
 
 
+# --- EvdevHardwareReader.read_next() ---
+
+
+class TestReadNext:
+    def test_occurred_at_wird_vor_uid_lesebeginn_gesetzt(self) -> None:
+        """occurred_at muss VOR _read_rfid_uid() gesetzt werden, damit der
+        Zeitstempel den tatsächlichen Beginn des Scan-Vorgangs erfasst."""
+        reader = _make_reader()
+        call_order: list[str] = []
+        fixed_time = datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc)
+
+        def mock_now(tz: Any = None) -> datetime:
+            call_order.append("now")
+            return fixed_time
+
+        def mock_read_uid() -> str:
+            call_order.append("read_uid")
+            return "aabbccdd"
+
+        with (
+            patch.object(reader, "_read_rfid_uid", side_effect=mock_read_uid),
+            patch(
+                "arbeitszeit.infrastructure.hardware.evdev_reader.datetime"
+            ) as mock_dt,
+            patch(
+                "arbeitszeit.infrastructure.hardware.evdev_reader.hash_uid",
+                return_value="a" * 64,
+            ),
+        ):
+            mock_dt.now.side_effect = mock_now
+            reader.read_next()
+
+        assert call_order.index("now") < call_order.index("read_uid"), (
+            "datetime.now() muss VOR _read_rfid_uid() aufgerufen werden"
+        )
 
 
 # --- resolve_evdev_device() ---
