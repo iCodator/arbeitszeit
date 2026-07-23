@@ -62,7 +62,7 @@ def _table_names(conn: sqlite3.Connection) -> set[str]:
 def test_leere_db_wird_vollstaendig_migriert(conn: sqlite3.Connection) -> None:
     executed = run_migrations(conn)
 
-    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008"]
+    assert executed == ["0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009"]
     assert _EXPECTED_TABLES.issubset(_table_names(conn))
 
 
@@ -107,7 +107,7 @@ def test_schema_migrations_enthaelt_genau_die_erwarteten_versionen(
     run_migrations(conn)
 
     versions = {row[0] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()}
-    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008"}
+    assert versions == {"0001", "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009"}
 
 
 def test_migration_0004_fuegt_neue_spalten_ein(conn: sqlite3.Connection) -> None:
@@ -235,6 +235,21 @@ def test_migration_0006_application_error_event_type_verfuegbar(conn: sqlite3.Co
     )
     row = conn.execute("SELECT event_type FROM system_events WHERE source = 'test'").fetchone()
     assert row["event_type"] == "APPLICATION_ERROR"
+
+
+def test_migration_0009_fuegt_chain_hash_spalte_hinzu(conn: sqlite3.Connection) -> None:
+    run_migrations(conn)
+
+    audit_cols = {row[1] for row in conn.execute("PRAGMA table_info(audit_log)").fetchall()}
+    assert "chain_hash" in audit_cols
+
+    conn.execute(
+        "INSERT INTO audit_log "
+        "(event_type, object_type, object_id, user_id, employee_id, event_at, details_json, chain_hash) "
+        "VALUES ('TEST', 'test', 0, NULL, NULL, '2026-01-01T00:00:00+00:00', '{}', 'abc123')"
+    )
+    row = conn.execute("SELECT chain_hash FROM audit_log WHERE event_type = 'TEST'").fetchone()
+    assert row["chain_hash"] == "abc123"
 
 
 def test_wiederholte_ausfuehrung_erzeugt_keine_doppelten_seed_daten(
