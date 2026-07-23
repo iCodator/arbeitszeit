@@ -6,7 +6,7 @@ in system_events. Aufrufbar manuell und beim Systemstart.
 
 from __future__ import annotations
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 import json
 import logging
@@ -70,6 +70,7 @@ def run_system_check(
     checks.append(_check_config_file_paths(app_config))
     checks.append(_check_ntp())
     checks.append(_check_devices(rfid_path))
+    checks.append(_check_audit_hmac_key())
 
     result = SystemCheckResult(checks=tuple(checks))
     _write_event(db_path, result)
@@ -282,6 +283,16 @@ def _check_ntp() -> CheckResult:
         )
     except Exception as exc:
         return CheckResult(name="ntp_sync", ok=False, detail=f"NTP-Prüfung fehlgeschlagen: {exc}")
+
+
+def _check_audit_hmac_key() -> CheckResult:
+    if not os.environ.get("AUDIT_HMAC_KEY", ""):
+        return CheckResult(
+            name="audit_hmac_key",
+            ok=False,
+            detail="AUDIT_HMAC_KEY nicht gesetzt — Audit-Log ohne HMAC-Integritätsschutz",
+        )
+    return CheckResult(name="audit_hmac_key", ok=True, detail="OK")
 
 
 def _check_devices(rfid_path: Path | None) -> CheckResult:

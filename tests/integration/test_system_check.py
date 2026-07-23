@@ -4,6 +4,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.infrastructure.db.connection import open_connection
@@ -11,6 +13,7 @@ from arbeitszeit.infrastructure.db.migrations import run_migrations
 from arbeitszeit.infrastructure.system_check import (
     CheckResult,
     SystemCheckResult,
+    _check_audit_hmac_key,
     _check_ntp,
     run_system_check,
 )
@@ -67,14 +70,20 @@ def test_selftest_gibt_system_check_result_zurueck(tmp_path: Path) -> None:
     assert isinstance(result, SystemCheckResult)
 
 
-def test_selftest_ok_bei_korrekt_migrierter_db(tmp_path: Path) -> None:
+def test_selftest_ok_bei_korrekt_migrierter_db(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         result = run_system_check(db)
     assert result.overall_ok
 
 
-def test_selftest_protokolliert_selftest_ok_in_system_events(tmp_path: Path) -> None:
+def test_selftest_protokolliert_selftest_ok_in_system_events(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         run_system_check(db)
@@ -82,7 +91,10 @@ def test_selftest_protokolliert_selftest_ok_in_system_events(tmp_path: Path) -> 
     assert any(e["event_type"] == "SELFTEST_OK" for e in events)
 
 
-def test_selftest_ok_event_hat_source_system_check(tmp_path: Path) -> None:
+def test_selftest_ok_event_hat_source_system_check(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         run_system_check(db)
@@ -91,7 +103,10 @@ def test_selftest_ok_event_hat_source_system_check(tmp_path: Path) -> None:
     assert ok_event["source"] == "system_check"
 
 
-def test_selftest_ok_event_hat_severity_info(tmp_path: Path) -> None:
+def test_selftest_ok_event_hat_severity_info(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
     db = _make_db(tmp_path)
     with patch(_PATCH_NTP, return_value=_NTP_OK):
         run_system_check(db)
@@ -298,3 +313,28 @@ def test_ntp_fail_wenn_timedatectl_fehlt() -> None:
         result = _check_ntp()
     assert not result.ok
     assert "timedatectl" in result.detail
+
+
+# --- AUDIT_HMAC_KEY-Check ---
+
+
+def test_audit_hmac_key_check_ok_wenn_gesetzt(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
+    result = _check_audit_hmac_key()
+    assert result.ok
+    assert result.name == "audit_hmac_key"
+
+
+def test_audit_hmac_key_check_fail_wenn_nicht_gesetzt(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("AUDIT_HMAC_KEY", raising=False)
+    result = _check_audit_hmac_key()
+    assert not result.ok
+    assert result.name == "audit_hmac_key"
+    assert "AUDIT_HMAC_KEY" in result.detail
+
+
+def test_selftest_enthaelt_audit_hmac_key_pruefung(tmp_path: Path) -> None:
+    db = _make_db(tmp_path)
+    result = run_system_check(db)
+    names = {c.name for c in result.checks}
+    assert "audit_hmac_key" in names
