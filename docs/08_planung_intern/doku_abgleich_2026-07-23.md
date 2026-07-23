@@ -80,6 +80,37 @@ Die Rollenübersicht endet nach `users change-role`. Die Befehle
 
 ---
 
+### 1.6 Umgebungsvariable `RFID_PEPPER` fehlt vollständig — kritisch
+
+`src/arbeitszeit/infrastructure/hardware/uid_hash.py` implementiert das
+Hashing aller RFID-Karten-UIDs ausschließlich per HMAC-SHA256 mit einem
+Pepper aus der Umgebungsvariable `RFID_PEPPER`:
+
+```python
+def hash_uid(raw_uid: str) -> str:
+    pepper = os.environ.get("RFID_PEPPER")
+    if not pepper:
+        raise ValueError("Umgebungsvariable RFID_PEPPER ist nicht gesetzt.")
+    return hmac.new(pepper.encode(), raw_uid.encode(), "sha256").hexdigest()
+```
+
+Ist `RFID_PEPPER` nicht gesetzt, wirft jeder RFID-Scan eine `ValueError`-
+Ausnahme — der Buchungsbetrieb ist vollständig lahmgelegt.
+
+`RFID_PEPPER` wird in keiner der drei geprüften Dokumentationsdateien
+erwähnt. `system_check.py` prüft die Variable ebenfalls nicht (kein
+Treffer im Quellcode), sodass der Systemcheck keinen Hinweis gibt.
+
+**Folgen bei fehlendem Pepper:**
+
+- Buchungsbetrieb nicht möglich (ValueError bei jedem Scan).
+- Geht der Pepper verloren, sind alle gespeicherten Karten-Hashes
+  dauerhaft unbrauchbar — alle Karten müssen neu zugewiesen werden.
+- In der systemd-Service-Datei (Handbuch Kapitel 10.2) fehlt der Eintrag
+  `Environment="RFID_PEPPER=..."`.
+
+---
+
 ## 2. Installationsanleitung (`docs/03_installation_technik/installationsanleitung.md`)
 
 ### 2.1 `--numpad` existiert nicht in `terminal_ui` — kritisch
@@ -186,6 +217,46 @@ Der Beispielaufruf ist nicht falsch, kann aber verwirren.
 ---
 
 ## 4. Handlungsvorschläge
+
+### Priorität 0 — Vor dem nächsten Produktivbetrieb obligatorisch
+
+**I) `RFID_PEPPER` in allen drei Dokumenten vollständig beschreiben.**
+
+Ohne diese Variable ist kein Buchungsbetrieb möglich.
+
+*Installationsanleitung:* Eigenen Schritt zwischen Schritt 11
+(Verzeichnisse anlegen) und Schritt 12 (Bootstrap) einführen:
+
+1. Pepper generieren:
+
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+2. In `~/.bashrc` eintragen:
+
+   ```bash
+   export RFID_PEPPER="<generierter-wert>"
+   ```
+
+3. In der systemd-Service-Datei (späterer Schritt, Handbuch Kap. 10.2)
+   als `Environment="RFID_PEPPER=..."` ergänzen.
+
+4. **Unbedingt sichern** — Verlust macht alle gespeicherten Karten-Hashes
+   dauerhaft unbrauchbar.
+
+*Befehlsreferenz:* Neuen Abschnitt „Umgebungsvariablen" aufnehmen:
+
+| Variable | Pflicht | Beschreibung |
+| --- | --- | --- |
+| `RFID_PEPPER` | ja | HMAC-Schlüssel für RFID-UID-Hashing; fehlt er, schlägt jeder Buchungs-Scan fehl |
+| `AUDIT_HMAC_KEY` | für `audit verify-chain` | HMAC-Schlüssel für Audit-Log-Kettenprüfung |
+| `ADMIN_USER_ID` | alternativ zu `--user-id` | Admin-Benutzer-ID |
+
+*Handbuch Kapitel 10.2 (systemd-Service-Datei):* `Environment="RFID_PEPPER=..."`
+als Pflichtzeile im Service-Block ergänzen.
+
+---
 
 ### Priorität 1 — Sofort beheben
 
