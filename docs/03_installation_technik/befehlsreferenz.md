@@ -1133,13 +1133,10 @@ python scripts/backup.py \
 
 ### `scripts/verify_hardware.py`
 
-Interaktiver Hardware-Smoke-Test für den RFID-Leser. Das Skript enthält
-zusätzlich eine Numpad-Testfunktion (`--numpad`) für Diagnosezwecke; diese ist
-nicht Teil des regulären Buchungsbetriebs.
+Interaktiver Hardware-Smoke-Test für den RFID-Leser.
 
 ```bash
 python scripts/verify_hardware.py \
-  [--numpad <GERÄTEPFAD>] \
   [--rfid <GERÄTEPFAD>] \
   [--list] \
   [--skip-interactive]
@@ -1147,14 +1144,12 @@ python scripts/verify_hardware.py \
 
 | Argument | Beschreibung |
 | --- | --- |
-| `--numpad` | USB-Numpad-Gerätepfad (muss gemeinsam mit `--rfid` angegeben werden) |
-| `--rfid` | RFID-Lesegerätepfad (muss gemeinsam mit `--numpad` angegeben werden) |
+| `--rfid` | RFID-Lesegerätepfad|
 | `--list` | Nur Gerätedateien auflisten, kein Test |
 | `--skip-interactive` | Nur Dateisystemzugriff prüfen; Tastendruck- und Karten-Tests entfallen |
 
-**Hinweis:** Werden weder `--numpad` noch `--rfid` angegeben, startet eine
-interaktive Geräteauswahl. `--numpad` und `--rfid` müssen stets gemeinsam
-angegeben werden; eines allein ist ein Fehler.
+**Hinweis:** Wird `--rfid` nicht angegeben, startet eine
+interaktive Geräteauswahl.
 
 **Exit-Codes:** `0` = alle Tests bestanden, `1` = mindestens ein Test
 fehlgeschlagen, `2` = `evdev` nicht installiert
@@ -1251,7 +1246,6 @@ macht gespeicherte Kettenhashes unprüfbar.
   ADMIN/REVIEWER und `AUDIT_HMAC_KEY`-Voraussetzung); globale Option
   `--admin-password` in „Globale optionale Argumente" ergänzt; neuer Abschnitt
   „Umgebungsvariablen" mit `RFID_PEPPER`, `AUDIT_HMAC_KEY`, `ADMIN_USER_ID`
-  und `ARBEITSZEIT_CONFIG`; `scripts/verify_hardware.py` um Argument `--numpad`
-  und überarbeiteten Hinweistext ergänzt; Rollenübersicht um `audit open-shifts`
+  und `ARBEITSZEIT_CONFIG`; Rollenübersicht um `audit open-shifts`
   und `audit verify-chain` erweitert; Passwortausgabe bei `users bootstrap` und
   `users add` als stderr-Ausgabe gekennzeichnet.
