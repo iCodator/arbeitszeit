@@ -1,7 +1,7 @@
 # Wie überprüfe ich ob alles läuft?
 
 **Kapitel:** 9-Laien
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -17,7 +17,7 @@ Das System bietet zwei verschiedene Arten von Prüfungen:
 
 ## Die Systemprüfung
 
-Die Systemprüfung prüft automatisch 7 Punkte und zeigt an, ob alles
+Die Systemprüfung prüft automatisch 8 Punkte und zeigt an, ob alles
 in Ordnung ist.
 
 ### Wann wird die Systemprüfung ausgeführt?
@@ -42,6 +42,7 @@ azadmin system check --db arbeitszeit.db
 | 5 | Verzeichnisse | Backup- oder Exportordner existiert nicht |
 | 6 | Zeitserver | Systemzeit ist nicht synchronisiert |
 | 7 | Eingabegeräte | RFID-Reader nicht erreichbar |
+| 8 | Sicherheitsschlüssel | Audit-Log-Schlüssel `AUDIT_HMAC_KEY` fehlt oder ist leer |
 
 ### Was tun wenn die Prüfung Fehler zeigt?
 

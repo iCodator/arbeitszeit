@@ -5,6 +5,42 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [docs: Code-Doku-Abgleich 2026-07-23b — Modul-Dokumentation korrigiert] – 2026-07-23
+
+### Geändert
+
+- `docs/02_anwender/module/handbuch_overview_laien.md` (v1.1 → v1.2):
+  - `export-pdf-month`: `--output`-Argument entfernt; Hinweis auf `export_dir` ergänzt.
+  - `export-csv`: `--output` entfernt; `--from`/`--to` als Pflichtargumente ergänzt.
+- `docs/02_anwender/module/handbuch_audit_laien.md` (v1.1 → v1.2):
+  - „7 Punkte" → „8 Punkte"; Tabellenzeile 8 für `AUDIT_HMAC_KEY`-Prüfung ergänzt.
+- `docs/02_anwender/module/handbuch_audit_it.md` (v1.2 → v1.3):
+  - Reihenfolge der Systemchecks 7/8 korrigiert: Nr. 7 = `_check_devices`,
+    Nr. 8 = `_check_audit_hmac_key` (war vertauscht).
+  - Neuer Abschnitt „Admin-CLI: audit verify-chain" ergänzt (Berechtigung,
+    Aufruf, Ergebnistabelle).
+- `docs/02_anwender/module/handbuch_infrastructure_it.md` (v1.2 → v1.3):
+  - `DatabaseConfig.path` und `BackupConfig`-Felder: Typ `str | None` →
+    `Path | None`.
+  - Reihenfolge der Systemchecks 7/8 korrigiert (identisch zu audit_it.md).
+- `docs/02_anwender/module/handbuch_presentation_it.md` (v1.2 → v1.3):
+  - `--admin-password` in Tabelle „Globale Optionen" aufgenommen.
+  - `export-pdf-month`: `--output` entfernt; Hinweis auf `export_dir` ergänzt.
+  - `system check (7 Checks)` → `(8 Checks)`.
+  - `users bootstrap`: `--password-hash` → `--password`.
+  - `audit verify-chain` in Befehls-Tabelle aufgenommen.
+  - Fehlermeldungen auf exakte UI-Texte aus `_DOMAIN_MESSAGES` aktualisiert.
+- `docs/02_anwender/module/handbuch_presentation_laien.md` (v1.2 → v1.3):
+  - `employees deactivate --employee-id 5` → `employees deactivate 5` (positional).
+  - `cards deactivate --card-id 7` → `cards deactivate 7` (positional).
+  - `warn-cases`: `--from`/`--to` als Pflichtargumente ergänzt.
+  - `export-pdf-month`: `--output` entfernt.
+  - `export-csv`: `--output` entfernt; `--from`/`--to` als Pflichtargumente ergänzt.
+- `docs/08_planung_intern/code_doku_abgleich_2026-07-23b.md`:
+  - Übersichtstabelle: alle 20 Einträge auf „erledigt" gesetzt.
+
+---
+
 ## [fix+docs: Code-Doku-Abgleich 2026-07-23 — Bugs behoben, Dokumentation bereinigt] – 2026-07-23
 
 ### Behoben

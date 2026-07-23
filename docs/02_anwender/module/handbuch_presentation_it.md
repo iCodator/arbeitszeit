@@ -1,7 +1,7 @@
 # Präsentationsschicht — technisches Referenzhandbuch
 
 **Kapitel:** 4-IT
-**Version:** 1.2
+**Version:** 1.3
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/presentation/`
@@ -55,6 +55,7 @@ alias azadmin='python -m arbeitszeit.presentation.admin_cli.main'
 | `--config PATH` | expliziter Pfad zur `config.toml` |
 | `--db PATH` | expliziter Datenbankpfad |
 | `--user-id INT` | Admin-Benutzer-ID |
+| `--admin-password PASSWORT` | Admin-Passwort (Standard: interaktive Eingabe via `getpass`) |
 
 ### Auflösungsreihenfolge
 
@@ -158,15 +159,16 @@ azadmin schedule set --weekday 1 --start 07:30 --end 18:00 --from 01.08.2026
 Beispiel:
 
 ```bash
-azadmin reports export-pdf-month --year 2026 --month 7 \
-  --output /tmp/juli2026.pdf
+azadmin reports export-pdf-month --year 2026 --month 7
 ```
+
+Der Ausgabepfad wird aus dem `export_dir`-Eintrag in `config.toml` bestimmt.
 
 #### system
 
 | Befehl | Beschreibung |
 | --- | --- |
-| `system check` | Systemprüfung ausführen (7 Checks) |
+| `system check` | Systemprüfung ausführen (8 Checks) |
 | `system backup` | Backup erstellen und optional auf NAS synchronisieren |
 | `system setup` | Konfiguration einrichten |
 
@@ -191,7 +193,7 @@ azadmin system backup --db arbeitszeit.db
 Beispiel:
 
 ```bash
-azadmin users bootstrap --username admin --password-hash <hash>
+azadmin users bootstrap --username admin --password <passwort>
 azadmin users add --username reviewer1 --role REVIEWER
 ```
 
@@ -200,6 +202,7 @@ azadmin users add --username reviewer1 --role REVIEWER
 | Befehl | Beschreibung |
 | --- | --- |
 | `audit open-shifts` | Mitarbeitende mit offener Vortagsschicht anzeigen |
+| `audit verify-chain` | HMAC-Kettensignatur des Audit-Logs prüfen |
 
 Implementiert in `admin_cli/audit.py`. Liest Audit-Log-Einträge
 mit `event_type = OPEN_SHIFT_PREVIOUS_DAY_DETECTED` und gibt
@@ -263,10 +266,10 @@ Bestätigung aus.
 
 ### Domänenfehler-Meldungen
 
-| Fehler | Angezeigter Hinweis |
+| Fehler | Angezeigte Meldung (exakt) |
 | --- | --- |
-| `UnknownCardError` | Unbekannte Karte |
-| `InactiveCardError` | Deaktivierte Karte |
-| `InactiveEmployeeError` | Inaktiver Mitarbeitender |
-| `InvalidBookingSequenceError` | Ungültige Buchungsfolge |
-| `OpenPhaseConflictError` | Offene Pause — erst Pause beenden |
+| `UnknownCardError` | `Karte nicht erkannt.` |
+| `InactiveCardError` | `Karte deaktiviert.` |
+| `InactiveEmployeeError` | `Mitarbeiter inaktiv.` |
+| `InvalidBookingSequenceError` | `Ungültige Buchungsreihenfolge.` |
+| `OpenPhaseConflictError` | `Offene Phase — bitte zuerst abschließen.` |

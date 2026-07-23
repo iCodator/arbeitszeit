@@ -1,7 +1,7 @@
 # Das Verwaltungsprogramm — Kurzanleitung
 
 **Kapitel:** 4-Laien
-**Version:** 1.2
+**Version:** 1.3
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -46,7 +46,7 @@ azadmin employees add --personnel-no 042 \
   --first-name Anna --last-name Muster
 
 # Mitarbeitende deaktivieren
-azadmin employees deactivate --employee-id 5
+azadmin employees deactivate 5
 ```
 
 ## RFID-Karten verwalten
@@ -59,7 +59,7 @@ azadmin cards assign --employee-id 3 --uid-hash abc123
 azadmin cards replace --old-card-id 7 --uid-hash xyz789
 
 # Karte deaktivieren (z. B. bei Verlust)
-azadmin cards deactivate --card-id 7
+azadmin cards deactivate 7
 ```
 
 ## Buchungen korrigieren und Nachträge
@@ -89,18 +89,17 @@ azadmin bookings reject-supplement --supplement-id 12 \
 # Offene Buchungsphasen (ohne passendes Ende)
 azadmin reports open-bookings
 
-# Warnungen anzeigen
-azadmin reports warn-cases
+# Warnungen anzeigen (--from und --to sind Pflicht)
+azadmin reports warn-cases --from 01.07.2026 --to 31.07.2026
 
 # Offene Prüffälle anzeigen
 azadmin reports open-review-cases
 
 # Monatsbericht als PDF erstellen
-azadmin reports export-pdf-month --year 2026 --month 7 \
-  --output /tmp/bericht_juli.pdf
+azadmin reports export-pdf-month --year 2026 --month 7
 
-# Buchungen als CSV exportieren
-azadmin reports export-csv --output /tmp/buchungen.csv
+# Buchungen als CSV exportieren (--from und --to sind Pflicht)
+azadmin reports export-csv --from 01.07.2026 --to 31.07.2026
 ```
 
 ## Dienstplan

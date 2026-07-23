@@ -547,29 +547,27 @@ Kein Befund.
 
 | ID | Datei | Typ | Schwere | Status |
 | --- | --- | --- | --- | --- |
-| BR-01 | `befehlsreferenz.md` | `--numpad` in `verify_hardware.py` | FEHLER | Priorität 0 |
-| MD-01 | `handbuch_overview_laien.md` | `export-pdf-month --output` | FEHLER | Priorität 0 |
-| MD-02 | `handbuch_overview_laien.md` | `export-csv --output` + fehlende Pflichtargs | FEHLER | Priorität 0 |
-| MD-03 | `handbuch_infrastructure_it.md` | `DatabaseConfig.path` Typ `str` statt `Path` | HINWEIS | Priorität 2 |
-| MD-04 | `handbuch_infrastructure_it.md` | `BackupConfig`-Felder Typ `str` statt `Path` | HINWEIS | Priorität 2 |
-| MD-05 | `handbuch_infrastructure_it.md` | Checks 7/8 in Tabelle vertauscht | HINWEIS | Priorität 2 |
-| MD-06 | `handbuch_audit_it.md` | `audit verify-chain` nicht dokumentiert | HINWEIS | Priorität 1 |
-| MD-07 | `handbuch_audit_it.md` | Checks 7/8 in Tabelle vertauscht | HINWEIS | Priorität 2 |
-| MD-08 | `handbuch_audit_laien.md` | Systemcheck „7 Punkte" statt 8 | FEHLER | Priorität 1 |
-| MD-09 | `handbuch_presentation_it.md` | `audit verify-chain` fehlt in Tabelle | FEHLER | Priorität 1 |
-| MD-10 | `handbuch_presentation_it.md` | `system check (7 Checks)` statt 8 | FEHLER | Priorität 1 |
-| MD-11 | `handbuch_presentation_it.md` | `--password-hash` statt `--password` | FEHLER | Priorität 0 |
-| MD-12 | `handbuch_presentation_it.md` | `export-pdf-month --output` | FEHLER | Priorität 0 |
-| MD-13 | `handbuch_presentation_it.md` | `--admin-password` fehlt in Globale Optionen | HINWEIS | Priorität 2 |
-| MD-14 | `handbuch_presentation_it.md` | Fehlermeldungen nicht wortgetreu | HINWEIS | Priorität 2 |
-| MD-15 | `handbuch_presentation_laien.md` | `employees deactivate --employee-id` statt positional | FEHLER | Priorität 0 |
-| MD-16 | `handbuch_presentation_laien.md` | `cards deactivate --card-id` statt positional | FEHLER | Priorität 0 |
-| MD-17 | `handbuch_presentation_laien.md` | `warn-cases` ohne Pflichtargs `--from`/`--to` | FEHLER | Priorität 0 |
-| MD-18 | `handbuch_presentation_laien.md` | `export-pdf-month --output` | FEHLER | Priorität 0 |
-| MD-19 | `handbuch_presentation_laien.md` | `export-csv --output` + fehlende Pflichtargs | FEHLER | Priorität 0 |
+| BR-01 | `befehlsreferenz.md` | `--numpad` in `verify_hardware.py` | FEHLER | erledigt 2026-07-23 (war bereits korrekt) |
+| MD-01 | `handbuch_overview_laien.md` | `export-pdf-month --output` | FEHLER | erledigt 2026-07-23 |
+| MD-02 | `handbuch_overview_laien.md` | `export-csv --output` + fehlende Pflichtargs | FEHLER | erledigt 2026-07-23 |
+| MD-03 | `handbuch_infrastructure_it.md` | `DatabaseConfig.path` Typ `str` statt `Path` | HINWEIS | erledigt 2026-07-23 |
+| MD-04 | `handbuch_infrastructure_it.md` | `BackupConfig`-Felder Typ `str` statt `Path` | HINWEIS | erledigt 2026-07-23 |
+| MD-05 | `handbuch_infrastructure_it.md` | Checks 7/8 in Tabelle vertauscht | HINWEIS | erledigt 2026-07-23 |
+| MD-06 | `handbuch_audit_it.md` | `audit verify-chain` nicht dokumentiert | HINWEIS | erledigt 2026-07-23 |
+| MD-07 | `handbuch_audit_it.md` | Checks 7/8 in Tabelle vertauscht | HINWEIS | erledigt 2026-07-23 |
+| MD-08 | `handbuch_audit_laien.md` | Systemcheck „7 Punkte" statt 8 | FEHLER | erledigt 2026-07-23 |
+| MD-09 | `handbuch_presentation_it.md` | `audit verify-chain` fehlt in Tabelle | FEHLER | erledigt 2026-07-23 |
+| MD-10 | `handbuch_presentation_it.md` | `system check (7 Checks)` statt 8 | FEHLER | erledigt 2026-07-23 |
+| MD-11 | `handbuch_presentation_it.md` | `--password-hash` statt `--password` | FEHLER | erledigt 2026-07-23 |
+| MD-12 | `handbuch_presentation_it.md` | `export-pdf-month --output` | FEHLER | erledigt 2026-07-23 |
+| MD-13 | `handbuch_presentation_it.md` | `--admin-password` fehlt in Globale Optionen | HINWEIS | erledigt 2026-07-23 |
+| MD-14 | `handbuch_presentation_it.md` | Fehlermeldungen nicht wortgetreu | HINWEIS | erledigt 2026-07-23 |
+| MD-15 | `handbuch_presentation_laien.md` | `employees deactivate --employee-id` statt positional | FEHLER | erledigt 2026-07-23 |
+| MD-16 | `handbuch_presentation_laien.md` | `cards deactivate --card-id` statt positional | FEHLER | erledigt 2026-07-23 |
+| MD-17 | `handbuch_presentation_laien.md` | `warn-cases` ohne Pflichtargs `--from`/`--to` | FEHLER | erledigt 2026-07-23 |
+| MD-18 | `handbuch_presentation_laien.md` | `export-pdf-month --output` | FEHLER | erledigt 2026-07-23 |
+| MD-19 | `handbuch_presentation_laien.md` | `export-csv --output` + fehlende Pflichtargs | FEHLER | erledigt 2026-07-23 |
 
 **Gesamtzählung:** 13 FEHLER, 7 HINWEISE, alle anderen Abschnitte BESTÄTIGT.
 
-**Fehler nach Priorität:** 9 × Priorität 0, 4 × Priorität 1, 0 × Priorität 2
-
-**Hinweise nach Priorität:** 0 × Priorität 0, 1 × Priorität 1, 6 × Priorität 2
+**Alle Befunde abgearbeitet am 2026-07-23.**

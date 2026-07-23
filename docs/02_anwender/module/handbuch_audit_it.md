@@ -1,7 +1,7 @@
 # Audit und Codeprüfung — technisches Referenzhandbuch
 
 **Kapitel:** 9-IT
-**Version:** 1.2
+**Version:** 1.3
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `run_audit.sh`, `scripts/generate_audit_notes.py`,
@@ -99,8 +99,8 @@ aber **nicht**.
 | 4 | `_check_fk_consistency` | `PRAGMA foreign_key_check` — prüft referenzielle Integrität aller Fremdschlüssel |
 | 5 | `_check_config_file_paths` | `backup_dir` und `export_dir` müssen als Verzeichnisse existieren |
 | 6 | `_check_ntp` | `/usr/bin/timedatectl show` (absoluter Pfad, kein `shell=True`), timeout 5 s; prüft `NTP=yes` und `NTPSynchronized=yes` |
-| 7 | `_check_audit_hmac_key` | `AUDIT_HMAC_KEY` Umgebungsvariable gesetzt und nicht leer — fehlt sie, meldet der Systemcheck `SELFTEST_FAIL: audit_hmac_key` |
-| 8 | `_check_devices` | `Path.exists()` + `os.access(R_OK)` für den RFID-Gerätepfad |
+| 7 | `_check_devices` | `Path.exists()` + `os.access(R_OK)` für den RFID-Gerätepfad |
+| 8 | `_check_audit_hmac_key` | `AUDIT_HMAC_KEY` Umgebungsvariable gesetzt und nicht leer — fehlt sie, meldet der Systemcheck `SELFTEST_FAIL: audit_hmac_key` |
 
 ### Ergebnisauswertung
 
@@ -153,3 +153,28 @@ geschrieben, wenn der erste Scan eines Tages erkennt, dass am Vortag
 Buchungen ohne abschließendes `GO` vorlagen. Der Befund blockiert keine
 laufende Buchung und erzeugt keinen Review-Case — er erfordert manuelle
 Nachbearbeitung durch die Praxisleitung.
+
+## Admin-CLI: audit verify-chain
+
+Quelldatei: `src/arbeitszeit/presentation/admin_cli/audit.py`
+
+Berechtigung: `ADMIN` oder `REVIEWER`
+
+```bash
+azadmin audit verify-chain --db arbeitszeit.db
+```
+
+Der Befehl liest die Umgebungsvariable `AUDIT_HMAC_KEY` und prüft die
+HMAC-SHA256-Kettensignatur des gesamten Audit-Logs. Jeder Eintrag enthält
+einen `chain_hash`, der aus dem vorigen Eintrag und dem aktuellen Inhalt
+berechnet wurde. Stimmt die Kette lückenlos überein, gilt das Audit-Log
+als unverändert.
+
+| Szenario | Exit-Code | Ausgabe |
+| --- | --- | --- |
+| Kette vollständig und korrekt | 0 | Bestätigung auf `stdout` |
+| `AUDIT_HMAC_KEY` fehlt in der Umgebung | 1 | Fehlermeldung auf `stderr` |
+| Mindestens ein Hash stimmt nicht überein | 1 | Fehlermeldung mit erstem fehlerhaften Eintrag |
+
+Der Befehl hat keine Pflichtargumente außer dem globalen `--db`-Argument
+(bzw. dem Datenbankpfad aus `config.toml`).

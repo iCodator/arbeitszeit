@@ -1,7 +1,7 @@
 # Infrastrukturschicht — technisches Referenzhandbuch
 
 **Kapitel:** 6-IT
-**Version:** 1.2
+**Version:** 1.3
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/infrastructure/`
@@ -42,9 +42,9 @@ Quelldatei: `src/arbeitszeit/infrastructure/config_file.py`
 
 | Klasse | Felder |
 | --- | --- |
-| `DatabaseConfig` | `path: str \| None` |
+| `DatabaseConfig` | `path: Path \| None` |
 | `TerminalConfig` | `id: int \| None`, `rfid: str \| None` |
-| `BackupConfig` | `backup_dir: str \| None`, `export_dir: str \| None`, `log_dir: str \| None` |
+| `BackupConfig` | `backup_dir: Path \| None`, `export_dir: Path \| None`, `log_dir: Path \| None` |
 | `AdminConfig` | `user_id: int \| None` |
 | `AppConfig` | database, terminal, backup, admin |
 
@@ -222,8 +222,8 @@ Tabelle `system_events`.
 | `_check_fk_consistency` | Führt `PRAGMA foreign_key_check` aus |
 | `_check_config_file_paths` | Prüft, ob `backup_dir` und `export_dir` existieren |
 | `_check_ntp` | Führt `/usr/bin/timedatectl show` aus (absoluter Pfad, kein `shell=True`), timeout 5 s; prüft `NTP=yes` und `NTPSynchronized=yes` |
-| `_check_audit_hmac_key` | `AUDIT_HMAC_KEY` Umgebungsvariable gesetzt und nicht leer; fehlt sie → `SELFTEST_FAIL: audit_hmac_key` |
 | `_check_devices` | Prüft `Path.exists()` und `os.access(R_OK)` für `rfid_path` |
+| `_check_audit_hmac_key` | `AUDIT_HMAC_KEY` Umgebungsvariable gesetzt und nicht leer; fehlt sie → `SELFTEST_FAIL: audit_hmac_key` |
 
 Die Terminal-UI führt `run_system_check()` vor dem Start der Buchungsschleife
 aus. Bei Fehlern wird eine Warnung ausgegeben; der Buchungsbetrieb wird

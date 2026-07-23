@@ -1,7 +1,7 @@
 # Systemübersicht — Was ist das und wer benutzt was?
 
 **Kapitel:** 1-Laien
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -47,12 +47,13 @@ dieser Datei sind wichtig — das System kann sie auf Befehl erstellen.
 
 ```bash
 # Monatsbericht Juli 2026 als PDF
-azadmin reports export-pdf-month --year 2026 --month 7 \
-  --output /tmp/bericht_juli.pdf
+azadmin reports export-pdf-month --year 2026 --month 7
 
-# Alle Buchungen als CSV
-azadmin reports export-csv --output /tmp/buchungen.csv
+# Alle Buchungen als CSV (--from und --to sind Pflicht)
+azadmin reports export-csv --from 01.01.2026 --to 31.07.2026
 ```
+
+Der Ausgabepfad wird automatisch aus dem `export_dir`-Eintrag in `config.toml` bestimmt.
 
 ## Was brauche ich um loszulegen?
 
