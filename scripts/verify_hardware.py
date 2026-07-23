@@ -23,7 +23,7 @@ Verwendung:
 
 from __future__ import annotations
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import os
@@ -73,6 +73,12 @@ def _compute_uid_hash(raw_uid: str) -> str:
 # ---------------------------------------------------------------------------
 # Ausgabe-Hilfsfunktionen
 # ---------------------------------------------------------------------------
+
+
+def _mask_uid(uid: str) -> str:
+    """Gibt die ersten 4 Zeichen der UID in Großbuchstaben zurück, Rest maskiert."""
+    return uid.upper()[:4] + "****"
+
 
 def _ok(msg: str) -> None:
     print(f"  \033[32m✔\033[0m  {msg}")
@@ -331,7 +337,7 @@ def test_rfid(rfid_path: str) -> bool:
 
         uid_hash = _compute_uid_hash(uid_raw)
         _ok("RFID-Karte erkannt:")
-        _info(f"Rohe UID (Hex):  {uid_raw.upper()}")
+        _info(f"Rohe UID (Hex):  {_mask_uid(uid_raw)}  (erste 4 Zeichen, Rest maskiert)")
         _info(f"Länge:           {len(uid_raw)} Zeichen ({len(uid_raw) * 4} Bit)")
         _info(f"SHA-256-Hash:    {uid_hash}  (wie in DB gespeichert)")
         return True
