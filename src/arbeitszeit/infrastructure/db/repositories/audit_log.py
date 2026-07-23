@@ -1,8 +1,15 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import sqlite3
 
 from arbeitszeit.domain.entities import AuditLogEntry
+
+_INSERT = (
+    "INSERT INTO audit_log "
+    "(event_type, object_type, object_id, user_id, employee_id, "
+    "event_at, details_json) "
+    "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id"
+)
 
 
 class SQLiteAuditLogRepository:
@@ -17,14 +24,12 @@ class SQLiteAuditLogRepository:
         # SQLiteUnitOfWork ruft BEGIN/COMMIT/ROLLBACK ausschließlich auf conn, nie auf
         # audit_conn – die Autocommit-Garantie ist damit durch die Architektur gesichert.
         # Ohne audit_conn fällt write auf conn zurück: kein Rollback-Schutz.
+        self._conn = conn
         self._write_conn = audit_conn if audit_conn is not None else conn
 
-    def add(self, entry: AuditLogEntry) -> AuditLogEntry:
-        row = self._write_conn.execute(
-            "INSERT INTO audit_log "
-            "(event_type, object_type, object_id, user_id, employee_id, "
-            "event_at, details_json) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id",
+    def _write(self, conn: sqlite3.Connection, entry: AuditLogEntry) -> AuditLogEntry:
+        row = conn.execute(
+            _INSERT,
             (
                 entry.event_type,
                 entry.object_type,
@@ -45,3 +50,11 @@ class SQLiteAuditLogRepository:
             event_at=entry.event_at,
             details_json=entry.details_json,
         )
+
+    def add(self, entry: AuditLogEntry) -> AuditLogEntry:
+        return self._write(self._write_conn, entry)
+
+    def add_transactional(self, entry: AuditLogEntry) -> AuditLogEntry:
+        # Schreibt via conn (in aktiver Transaktion). Wird bei Rollback rückgängig gemacht.
+        # Für Write-Ahead-Einträge, die atomar mit der Buchung committen sollen.
+        return self._write(self._conn, entry)

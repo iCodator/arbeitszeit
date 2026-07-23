@@ -1,10 +1,11 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 # Zentraler Katalog aller Audit-Log-Eventnamen (event_type in AuditLogEntry).
 # Alle Use Cases und Infrastrukturkomponenten importieren hier — keine freien
 # String-Literale, damit Tippfehler zur Compile-Zeit auffallen.
 
 # --- Buchungsereignisse ---
+TIME_BOOKED_PENDING = "TIME_BOOKED_PENDING"
 TIME_BOOKED = "TIME_BOOKED"
 BOOKING_REJECTED_UNKNOWN_CARD = "BOOKING_REJECTED_UNKNOWN_CARD"
 BOOKING_REJECTED_INACTIVE_CARD = "BOOKING_REJECTED_INACTIVE_CARD"

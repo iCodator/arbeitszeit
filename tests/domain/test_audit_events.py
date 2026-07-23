@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 from arbeitszeit.domain import audit_events
 
 _EXPECTED = {
+    audit_events.TIME_BOOKED_PENDING,
     audit_events.TIME_BOOKED,
     audit_events.BOOKING_REJECTED_UNKNOWN_CARD,
     audit_events.BOOKING_REJECTED_INACTIVE_CARD,

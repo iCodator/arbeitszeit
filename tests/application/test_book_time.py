@@ -1,4 +1,4 @@
-__version__ = "1.4"
+__version__ = "1.5"
 
 import json
 import sys
@@ -306,10 +306,38 @@ def test_audit_log_eintrag_vorhanden() -> None:
 
     uc.execute(_cmd())
 
-    assert len(uow.audit_log_repo.entries) == 1
-    entry = uow.audit_log_repo.entries[0]
-    assert entry.event_type == audit_events.TIME_BOOKED
-    assert entry.employee_id == 1
+    event_types = [e.event_type for e in uow.audit_log_repo.entries]
+    assert audit_events.TIME_BOOKED in event_types
+    booked = next(e for e in uow.audit_log_repo.entries if e.event_type == audit_events.TIME_BOOKED)
+    assert booked.employee_id == 1
+
+
+def test_buchung_schreibt_time_booked_pending_ins_audit_log() -> None:
+    """TIME_BOOKED_PENDING muss vor TIME_BOOKED im Audit-Log erscheinen."""
+    uow = _make_uow()
+    BookUseCase(_as_uow(uow)).execute(_cmd())
+
+    event_types = [e.event_type for e in uow.audit_log_repo.entries]
+    assert audit_events.TIME_BOOKED_PENDING in event_types
+    pending_idx = event_types.index(audit_events.TIME_BOOKED_PENDING)
+    booked_idx = event_types.index(audit_events.TIME_BOOKED)
+    assert pending_idx < booked_idx
+
+
+def test_pending_audit_eintrag_hat_object_id_null_und_felder() -> None:
+    """TIME_BOOKED_PENDING-Eintrag hat object_id=0 (Booking-ID noch unbekannt)."""
+    uow = _make_uow()
+    BookUseCase(_as_uow(uow)).execute(_cmd())
+
+    pending = next(
+        e for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.TIME_BOOKED_PENDING
+    )
+    assert pending.object_id == 0
+    assert pending.employee_id == EmployeeId(1)
+    details = json.loads(pending.details_json)
+    assert details["booking_type"] == BookingType.COME.value
+    assert "booked_at" in details
 
 
 # --- device_event_id wird durchgereicht ---

@@ -438,6 +438,9 @@ class FakeAuditLogRepository:
         self._next_id += 1
         return new
 
+    def add_transactional(self, entry: AuditLogEntry) -> AuditLogEntry:
+        return self.add(entry)
+
     @property
     def entries(self) -> list[AuditLogEntry]:
         return list(self._store.values())

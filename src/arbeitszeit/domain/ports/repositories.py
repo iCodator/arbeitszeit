@@ -1,4 +1,4 @@
-__version__ = "1.3"
+__version__ = "1.4"
 
 from datetime import date, datetime
 from typing import Literal, Protocol
@@ -154,6 +154,13 @@ class AuditLogRepository(Protocol):
         # Grund: Abweisungen (UnknownCard, InactiveCard) schreiben hier vor
         # dem Rollback — das ist auditpflichtig und darf nicht verloren gehen.
         # SQLite-Implementierung: separate autocommit-Verbindung verwenden.
+        ...
+
+    def add_transactional(self, entry: AuditLogEntry) -> AuditLogEntry:
+        # Schreibt den Eintrag über die Haupt-Transaktion (conn), nicht via
+        # audit_conn. Wird für Write-Ahead-Einträge verwendet (z.B.
+        # TIME_BOOKED_PENDING), die atomar mit der Buchung committed werden.
+        # Bei Rollback geht dieser Eintrag verloren — das ist gewollt.
         ...
 
 

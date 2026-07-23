@@ -1,4 +1,4 @@
-__version__ = "1.7"
+__version__ = "1.8"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -179,6 +179,36 @@ class BookUseCase:
             projected = list(day_bookings) + [placeholder]
             status, flags = evaluate_booking(
                 booking_type, projected, prev_bookings, schedule_flags
+            )
+
+            # Write-Ahead via conn (in aktiver Transaktion): Absicht festhalten
+            # bevor die Buchung geschrieben wird. Wird atomar mit der Buchung
+            # committed. Bei Rollback geht PENDING verloren — das ist gewollt.
+            # Crash-Detektion: PENDING ohne nachfolgendes TIME_BOOKED für
+            # (employee_id, booking_type, booked_at) deutet auf Absturz hin.
+            # HINWEIS: audit_conn (autocommit) darf hier NICHT schreiben, weil
+            # conn nach dem BEGIN-DEFERRED noch keine Schreiboperation hatte —
+            # ein autocommit-Write zwischen erstem SELECT und erstem conn-Write
+            # löst SQLITE_BUSY_SNAPSHOT aus.
+            self._uow.audit_log_repo.add_transactional(
+                AuditLogEntry(
+                    id=AuditLogEntryId(0),
+                    event_type=audit_events.TIME_BOOKED_PENDING,
+                    object_type="time_bookings",
+                    object_id=0,
+                    user_id=None,
+                    employee_id=employee.id,
+                    event_at=datetime.now(timezone.utc),
+                    details_json=json.dumps(
+                        {
+                            "booking_type": booking_type.value,
+                            "booked_at": cmd.booked_at.isoformat(),
+                            "terminal_id": cmd.terminal_id,
+                        },
+                        ensure_ascii=False,
+                        sort_keys=True,
+                    ),
+                )
             )
 
             booking = self._uow.time_booking_repo.add(
