@@ -1,7 +1,7 @@
 # Audit und Codeprüfung — technisches Referenzhandbuch
 
 **Kapitel:** 9-IT
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `run_audit.sh`, `scripts/generate_audit_notes.py`,
@@ -62,7 +62,7 @@ für das Praxispersonal.
 
 `lint-imports` prüft die Schichtengrenzen gemäß `pyproject.toml`:
 
-```
+```text
 presentation > infrastructure > application > domain
 ```
 
@@ -74,7 +74,7 @@ Verstöße werden in `import-linter.txt` protokolliert.
 Quelldatei: `src/arbeitszeit/infrastructure/system_check.py`
 
 `run_system_check(db_path, *, rfid_path, app_config)` führt
-7 Prüfungen aus. Das Ergebnis wird in `system_events` geschrieben:
+8 Prüfungen aus. Das Ergebnis wird in `system_events` geschrieben:
 `SELFTEST_OK` bei Erfolg, `SELFTEST_FAIL` bei mindestens einem Fehler.
 
 ### Aufruf über die Admin-CLI
@@ -89,7 +89,7 @@ Die Terminal-UI ruft `run_system_check()` vor dem Start der Buchungsschleife
 auf. Bei Fehlern gibt sie eine Warnung aus, blockiert den Buchungsbetrieb
 aber **nicht**.
 
-### Die 7 Prüfungen
+### Die 8 Prüfungen
 
 | Nr. | Prüfung | Beschreibung |
 | --- | --- | --- |
@@ -99,7 +99,8 @@ aber **nicht**.
 | 4 | `_check_fk_consistency` | `PRAGMA foreign_key_check` — prüft referenzielle Integrität aller Fremdschlüssel |
 | 5 | `_check_config_file_paths` | `backup_dir` und `export_dir` müssen als Verzeichnisse existieren |
 | 6 | `_check_ntp` | `/usr/bin/timedatectl show` (absoluter Pfad, kein `shell=True`), timeout 5 s; prüft `NTP=yes` und `NTPSynchronized=yes` |
-| 7 | `_check_devices` | `Path.exists()` + `os.access(R_OK)` für den RFID-Gerätepfad |
+| 7 | `_check_audit_hmac_key` | `AUDIT_HMAC_KEY` Umgebungsvariable gesetzt und nicht leer — fehlt sie, meldet der Systemcheck `SELFTEST_FAIL: audit_hmac_key` |
+| 8 | `_check_devices` | `Path.exists()` + `os.access(R_OK)` für den RFID-Gerätepfad |
 
 ### Ergebnisauswertung
 

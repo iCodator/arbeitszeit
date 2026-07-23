@@ -81,7 +81,7 @@ RFID-only-Umstellung).
 
 ### 1.3 Wichtige Hilfsskripte
 
-- `scripts/setup.py` (v1.0) — Ersteinrichtung und Pflege von `config.toml`.
+- `scripts/setup.py` (v1.1) — Ersteinrichtung und Pflege von `config.toml`.
   Ruft `config_setup.py::setup_config()` auf.
 - `scripts/show_config.py` — Zeigt aktuelle Konfiguration aus `config.toml`
   und `system_config`.
@@ -547,18 +547,18 @@ für automatisierte Setups.
 
 | ID | Datei | Typ | Schwere | Status |
 | --- | --- | --- | --- | --- |
-| Bug 1 | `scripts/setup.py` | Quellcode-Bug | kritisch | offen |
-| Bug 2 | `scripts/show_config.py` | Quellcode-Bug | kritisch | offen |
-| BR-2 | `befehlsreferenz.md` | fehlender Hinweis | mittel | offen |
-| BR-3 | `befehlsreferenz.md` | fehlender Hinweis | mittel | offen |
-| IA-1 | `installationsanleitung.md` | Inhaltsfehler | mittel | offen |
-| IA-2 | `installationsanleitung.md` | Inhaltsfehler | kritisch | offen |
-| IA-3 | `installationsanleitung.md` | Inhaltsfehler | kritisch | offen |
-| IA-4 | `installationsanleitung.md` | Inhaltsfehler | mittel | offen |
-| IA-5 | `installationsanleitung.md` | Hinweis | niedrig | offen |
-| IA-6 | `installationsanleitung.md` | Hinweis | niedrig | offen |
-| HB-1 | `handbuch.md` | Inhaltsfehler | mittel | offen |
-| HB-2 | `handbuch.md` | Hinweis | niedrig | offen |
-| HB-3 | `handbuch.md` | Inhaltsfehler (Bug 2) | kritisch | offen |
-| MD-1 | `handbuch_audit_it.md` | Inhaltsfehler | mittel | offen |
-| MD-2 | `module/*.md` | Vollständigkeit | niedrig | offen |
+| Bug 1 | `scripts/setup.py` | Quellcode-Bug | kritisch | behoben 2026-07-23 |
+| Bug 2 | `scripts/show_config.py` | Quellcode-Bug | kritisch | behoben 2026-07-23 |
+| BR-2 | `befehlsreferenz.md` | fehlender Hinweis | mittel | entfällt (Bug behoben) |
+| BR-3 | `befehlsreferenz.md` | fehlender Hinweis | mittel | entfällt (Bug behoben) |
+| IA-1 | `installationsanleitung.md` | Inhaltsfehler | mittel | erledigt 2026-07-23 |
+| IA-2 | `installationsanleitung.md` | Inhaltsfehler | kritisch | erledigt 2026-07-23 |
+| IA-3 | `installationsanleitung.md` | Inhaltsfehler | kritisch | erledigt 2026-07-23 |
+| IA-4 | `installationsanleitung.md` | Inhaltsfehler | mittel | erledigt 2026-07-23 |
+| IA-5 | `installationsanleitung.md` | Hinweis | niedrig | erledigt 2026-07-23 (Option 1) |
+| IA-6 | `installationsanleitung.md` | Hinweis | niedrig | erledigt 2026-07-23 |
+| HB-1 | `handbuch.md` | Inhaltsfehler | mittel | erledigt 2026-07-23 |
+| HB-2 | `handbuch.md` | Hinweis | niedrig | erledigt 2026-07-23 |
+| HB-3 | `handbuch.md` | Inhaltsfehler (Bug 2) | kritisch | entfällt (Bug behoben) |
+| MD-1 | `handbuch_audit_it.md` | Inhaltsfehler | mittel | erledigt 2026-07-23 |
+| MD-2 | `module/*.md` | Vollständigkeit | niedrig | erledigt 2026-07-23 |

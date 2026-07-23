@@ -20,7 +20,7 @@ header-includes:
 
 # Handbuch: Zeiterfassungssystem arbeitszeit
 
-**Version:** 2.1
+**Version:** 2.2
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -273,7 +273,7 @@ Wenn `config.toml` vollständig ausgefüllt ist, reicht:
 
 ```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
-  --db /pfad/zur/datenbank.db
+  --config ~/.config/arbeitszeit/config.toml
 ```
 
 Das Terminal läuft dann dauerhaft im Hintergrund. Wie es beim
@@ -691,6 +691,7 @@ Das System prüft automatisch:
 - Datenbankintegrität (Fremdschlüssel)
 - Dateipfade aus `config.toml`
 - Zeitsynchronisation der Systemuhr (NTP)
+- Sicherheitsschlüssel `AUDIT_HMAC_KEY` gesetzt
 - RFID-Reader erreichbar
 
 **Rolle:** ADMIN oder TECH

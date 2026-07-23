@@ -5,6 +5,53 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [fix+docs: Code-Doku-Abgleich 2026-07-23 — Bugs behoben, Dokumentation bereinigt] – 2026-07-23
+
+### Behoben
+
+- `scripts/setup.py` (v1.0 → v1.1): `--numpad`-Argument und `cli_numpad`-Übergabe
+  entfernt — `setup_config()` akzeptiert diesen Parameter seit Migration 0007 nicht
+  mehr; jeder Aufruf endete bisher mit `TypeError`.
+- `scripts/show_config.py` (v1.0 → v1.1): `cfg.terminal.numpad`-Zugriffe entfernt
+  (Textausgabe und JSON-Pfad) — `TerminalConfig` hat kein `numpad`-Feld mehr
+  (`slots=True`); jeder Aufruf endete bisher mit `AttributeError`.
+- `scripts/verify_hardware.py` (v1.1 → v1.2): `--numpad`-Argument vollständig
+  entfernt; `test_numpad()`, `select_devices_interactively()` (Tuple-Rückgabe) und
+  `check_device_access()` (Numpad-Pfad) angepasst — nur noch RFID-Reader-Test.
+
+### Geändert
+
+- `docs/03_installation_technik/installationsanleitung.md` (v1.8 → v1.9):
+  - Vorwort: „RFID-Karte und Numpad" → „RFID-Karte".
+  - „Was du vorher benötigst": USB-Numpad aus Geräteliste entfernt.
+  - Schritt 8: `--numpad` aus Argumentliste und Beispielaufruf entfernt.
+  - Schritt 9: Umbenennung → „Zugriff auf RFID-Reader einrichten"; alle
+    Numpad-Referenzen entfernt; `setup.py`-Aufruf auf `--rfid` reduziert.
+  - Schritt 10: Numpad-Test vollständig entfernt; nur noch RFID-Reader-Test
+    (`verify_hardware.py --rfid <pfad>`); Überprüfungsanzahl 3 → 2.
+  - Schritt 13: Hinweis ergänzt, dass das generierte Passwort auf `stderr`
+    erscheint (relevant für automatisierte Setups).
+- `docs/02_anwender/handbuch.md` (v2.1 → v2.2):
+  - Abschnitt 4.1: zweites Terminal-Start-Beispiel von `--db` auf `--config`
+    korrigiert (semantisch konsistent mit vollständiger `config.toml`).
+  - Abschnitt 9.2: achten Systemcheck `AUDIT_HMAC_KEY gesetzt` in die Liste
+    aufgenommen.
+- `docs/02_anwender/module/handbuch_audit_it.md` (v1.1 → v1.2):
+  - „7 Prüfungen" → „8 Prüfungen" (Überschrift und Tabellentext).
+  - Neue Tabellenzeile 7 für `_check_audit_hmac_key` eingefügt;
+    `_check_devices` auf Zeile 8 verschoben.
+  - Fehlende Sprachangabe in Code-Block nachgetragen (`text`).
+- `docs/02_anwender/module/handbuch_infrastructure_it.md` (v1.1 → v1.2):
+  - „7 Prüfungen" → „8 Prüfungen"; `_check_audit_hmac_key` zur Prüftabelle
+    hinzugefügt.
+  - Neuer Abschnitt „Pflicht-Umgebungsvariablen" mit `RFID_PEPPER` und
+    `AUDIT_HMAC_KEY` (Verwendungsstelle, Konsequenz bei fehlendem Wert).
+- `docs/08_planung_intern/code_doku_abgleich_2026-07-23.md`:
+  - Übersichtstabelle: alle 15 Einträge auf „erledigt" / „behoben" / „entfällt"
+    gesetzt.
+
+---
+
 ## [docs: Doku-Abgleich 2026-07-23 — alle Handlungsvorschläge umgesetzt] – 2026-07-23
 
 ### Geändert

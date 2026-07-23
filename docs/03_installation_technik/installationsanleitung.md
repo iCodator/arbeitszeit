@@ -20,7 +20,7 @@ header-includes:
 
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.8
+**Version:** 1.9
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
@@ -41,7 +41,7 @@ Fehlern und ihren Lösungen.
 
 Nach dem vollständigen Durchlaufen dieser Anleitung ist auf dem Rechner
 ein lauffähiges Zeiterfassungssystem eingerichtet, mit dem Mitarbeitende
-per RFID-Karte und Numpad ihre Arbeitszeiten buchen können, und mit dem
+per RFID-Karte ihre Arbeitszeiten buchen können, und mit dem
 eine verantwortliche Person Mitarbeiterdaten, Karten, Berichte und
 Sicherungen verwalten kann.
 
@@ -92,8 +92,7 @@ kopieren, wie er dort steht.
   `sudo`-Befehle funktionieren).
 - Ausreichend Zeit — plane für die komplette Ersteinrichtung etwa
   30 bis 60 Minuten ein.
-- Für den Betrieb notwendig: ein RFID-Kartenlesegerät und ein USB-Numpad,
-  beide über USB angeschlossen.
+- Für den Betrieb notwendig: ein RFID-Kartenlesegerät, über USB angeschlossen.
 
 ---
 
@@ -379,7 +378,6 @@ XDG-Standardpfad `~/.config/arbeitszeit/config.toml`.
 
 - Datenbankpfad (`--db` beziehungsweise `database.path` in der Konfiguration).
 - Terminal-ID (`--terminal-id`).
-- Gerätename für das Numpad (`--numpad`).
 - Gerätename für den RFID-Reader (`--rfid`).
 - Benutzer-ID eines Administrators (`--admin-user-id`).
 - Backup-Verzeichnis (`--backup-dir`).
@@ -392,7 +390,6 @@ XDG-Standardpfad `~/.config/arbeitszeit/config.toml`.
 python scripts/setup.py \
   --db arbeitszeit.db \
   --terminal-id 1 \
-  --numpad "USB Numpad" \
   --rfid "HID 1234:5678" \
   --admin-user-id 1 \
   --backup-dir /var/backups/arbeitszeit \
@@ -400,7 +397,7 @@ python scripts/setup.py \
   --log-dir /var/log/arbeitszeit
 ```
 
-Die Gerätenamen für `--numpad` und `--rfid` können in diesem Schritt noch
+Der Gerätename für `--rfid` kann in diesem Schritt noch
 leer gelassen und in Schritt 9 nachgetragen werden.
 
 ### Was zeigt das Script am Ende an?
@@ -408,9 +405,9 @@ leer gelassen und in Schritt 9 nachgetragen werden.
 Nach erfolgreicher Ausführung gibt `setup.py` Startbeispiele für die
 Terminal-UI und die Admin-CLI aus.
 
-## Schritt 9: Zugriff auf RFID-Reader und Numpad einrichten
+## Schritt 9: Zugriff auf RFID-Reader einrichten
 
-RFID-Reader und Numpad erscheinen unter Linux als Eingabegeräte. Um ihre
+Der RFID-Reader erscheint unter Linux als Eingabegerät. Um seinen
 Gerätenamen zu ermitteln, führe aus:
 
 ```bash
@@ -421,14 +418,12 @@ Beispielausgabe:
 
 ```text
 /dev/input/event0:  Power Button
-/dev/input/event3:  USB Numpad
 /dev/input/event4:  HID 1234:5678
 ```
 
-Wichtig ist vor allem der **Gerätename** nach dem Doppelpunkt, zum
-Beispiel `USB Numpad` oder `HID 1234:5678`. Das Projekt unterstützt
-stabile Gerätenamen als Eingabe für `--numpad` und `--rfid`; zusätzlich
-werden auch direkte Gerätepfade akzeptiert.
+Wichtig ist der **Gerätename** des RFID-Readers nach dem Doppelpunkt,
+zum Beispiel `HID 1234:5678`. Das Projekt unterstützt stabile Gerätenamen
+als Eingabe für `--rfid`; zusätzlich werden auch direkte Gerätepfade akzeptiert.
 
 > **Achtung: Gerätenamen exakt übernehmen.** Der Gerätename muss
 > buchstabengenau mit der Ausgabe von `sudo evtest` übereinstimmen,
@@ -461,38 +456,32 @@ cd ~/arbeitszeit
 source .venv/bin/activate
 ```
 
-Trage jetzt die ermittelten Gerätenamen in `config.toml` ein, falls
-du sie in Schritt 8 noch nicht angegeben hast:
+Trage jetzt den ermittelten Gerätenamen in `config.toml` ein, falls
+du ihn in Schritt 8 noch nicht angegeben hast:
 
 ```bash
 python scripts/setup.py \
-  --numpad "Gerätename Numpad" \
   --rfid "Gerätename RFID-Reader"
 ```
 
 ## Schritt 10: Hardware testen
 
 Bevor das erste Benutzerkonto angelegt wird, solltest du prüfen, ob
-Numpad und RFID-Reader korrekt funktionieren. Dafür gibt es das Script
+der RFID-Reader korrekt funktioniert. Dafür gibt es das Script
 `scripts/verify_hardware.py`.
 
-Zuerst die Gerätepfade mit `sudo evtest` oder anhand der Ausgabe von
-Schritt 9 ermitteln (zum Beispiel `/dev/input/event3` und
-`/dev/input/event4`):
+Den Gerätepfad mit `sudo evtest` oder anhand der Ausgabe von Schritt 9
+ermitteln (zum Beispiel `/dev/input/event4`):
 
 ```bash
-python scripts/verify_hardware.py \
-  --numpad /dev/input/event3 \
-  --rfid /dev/input/event4
+python scripts/verify_hardware.py --rfid /dev/input/event4
 ```
 
-Das Script führt drei Überprüfungen durch:
+Das Script führt zwei Überprüfungen durch:
 
-1. **Gerätezugriff:** Sind die Dateien `/dev/input/eventX` vorhanden
+1. **Gerätezugriff:** Ist die Datei `/dev/input/eventX` vorhanden
    und lesbar?
-2. **Numpad:** Drücke innerhalb von 15 Sekunden eine Taste auf dem
-   Numpad (1 = Kommen, 2 = Gehen, 3 = Pause Start, 4 = Pause Ende).
-3. **RFID-Reader:** Halte innerhalb von 15 Sekunden eine RFID-Karte
+2. **RFID-Reader:** Halte innerhalb von 15 Sekunden eine RFID-Karte
    an den Leser.
 
 Wenn alles funktioniert, zeigt das Script für jeden Test `OK` an. Bei
@@ -502,13 +491,10 @@ Das Script gibt außerdem den **SHA-256-Hash** der eingelesenen RFID-Karte
 aus. Dieser Hash wird in der Datenbank gespeichert und kann später beim
 Zuweisen von Karten verwendet werden.
 
-Um nur die Gerätedateien zu prüfen (ohne interaktive Tasteneingabe):
+Um nur die Gerätedatei zu prüfen (ohne interaktiven Karten-Test):
 
 ```bash
-python scripts/verify_hardware.py \
-  --numpad /dev/input/event3 \
-  --rfid /dev/input/event4 \
-  --skip-interactive
+python scripts/verify_hardware.py --rfid /dev/input/event4 --skip-interactive
 ```
 
 Die konkreten Gerätenamen dieser Installation sind in der Datei
@@ -689,6 +675,10 @@ Generiertes Passwort (einmalig sichtbar): <zufälliges Passwort>
 > kann danach nicht mehr abgerufen werden. Notiere es jetzt sofort
 > und verwahre es sicher — zum Beispiel in einem verschlossenen
 > Umschlag oder einem Passwortmanager.
+>
+> **Hinweis:** Das Passwort erscheint auf `stderr`, nicht auf `stdout`.
+> Bei automatisierten Setups muss `stderr` separat mitgelesen werden
+> (z. B. `2>&1` oder `2>passwort.txt`).
 >
 > Ohne dieses Passwort ist kein Zugang zur Admin-Verwaltung möglich.
 

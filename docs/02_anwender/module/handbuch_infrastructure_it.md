@@ -1,7 +1,7 @@
 # Infrastrukturschicht — technisches Referenzhandbuch
 
 **Kapitel:** 6-IT
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/infrastructure/`
@@ -211,7 +211,7 @@ Quelldatei: `src/arbeitszeit/infrastructure/backup/backup_service.py`
 Quelldatei: `src/arbeitszeit/infrastructure/system_check.py`
 
 `run_system_check(db_path, *, rfid_path, app_config)` führt
-7 Prüfungen aus und schreibt `SELFTEST_OK` oder `SELFTEST_FAIL` in die
+8 Prüfungen aus und schreibt `SELFTEST_OK` oder `SELFTEST_FAIL` in die
 Tabelle `system_events`.
 
 | Prüfung | Beschreibung |
@@ -222,11 +222,26 @@ Tabelle `system_events`.
 | `_check_fk_consistency` | Führt `PRAGMA foreign_key_check` aus |
 | `_check_config_file_paths` | Prüft, ob `backup_dir` und `export_dir` existieren |
 | `_check_ntp` | Führt `/usr/bin/timedatectl show` aus (absoluter Pfad, kein `shell=True`), timeout 5 s; prüft `NTP=yes` und `NTPSynchronized=yes` |
+| `_check_audit_hmac_key` | `AUDIT_HMAC_KEY` Umgebungsvariable gesetzt und nicht leer; fehlt sie → `SELFTEST_FAIL: audit_hmac_key` |
 | `_check_devices` | Prüft `Path.exists()` und `os.access(R_OK)` für `rfid_path` |
 
 Die Terminal-UI führt `run_system_check()` vor dem Start der Buchungsschleife
 aus. Bei Fehlern wird eine Warnung ausgegeben; der Buchungsbetrieb wird
 **nicht** mit `sys.exit()` blockiert.
+
+## Pflicht-Umgebungsvariablen
+
+Zwei Umgebungsvariablen müssen vor dem Start der Terminal-UI gesetzt sein.
+Fehlen sie, bricht das System mit `ValueError` ab.
+
+| Variable | Verwendungsstelle | Konsequenz bei fehlendem Wert |
+| --- | --- | --- |
+| `RFID_PEPPER` | `infrastructure/hardware/uid_hash.py` — HMAC-SHA256-Hashing der Karten-UID | `ValueError` beim ersten Buchungsscan |
+| `AUDIT_HMAC_KEY` | `infrastructure/db/repositories/audit_log.py` — HMAC-Kettenintegrität beim Schreiben ins Audit-Log | `ValueError` bei jedem Audit-Log-Schreibvorgang; Systemcheck meldet `SELFTEST_FAIL: audit_hmac_key` |
+
+Beide Schlüssel werden typischerweise in `~/.bashrc` und in der
+systemd-Service-Datei als `Environment=`-Zeilen eingetragen
+(siehe Installationsanleitung Schritt 12).
 
 ## Zeitüberwachung
 

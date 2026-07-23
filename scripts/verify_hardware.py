@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Interaktiver Hardware-Smoke-Test für USB-Numpad und RFID-Reader.
+"""Interaktiver Hardware-Smoke-Test für den RFID-Reader.
 
-Prüft in drei Stufen:
-  1. Gerätedateien erreichbar und lesbar (ohne Anschluss an laufenden Dienst)
-  2. Numpad: Wartet auf Tastendruck einer gültigen Buchungstaste (1–4)
-  3. RFID-Reader: Wartet auf Karten-Scan (UID-Lesung bis Enter)
+Prüft in zwei Stufen:
+  1. Gerätedatei erreichbar und lesbar
+  2. RFID-Reader: Wartet auf Karten-Scan (UID-Lesung bis Enter)
 
 Wird typischerweise einmalig bei Erstinbetriebnahme oder nach Hardware-Tausch
 aufgerufen, bevor der Terminal-UI-Dienst gestartet wird.
@@ -13,17 +12,17 @@ Voraussetzungen:
   - Linux mit evdev-Kernelmodul
   - python-evdev installiert (pip install evdev)
   - Lesezugriff auf /dev/input/event* (Gruppe 'input' oder root)
-  - Gerätepfade via --numpad und --rfid oder interaktive Auswahl
+  - Gerätepfad via --rfid oder interaktive Auswahl
 
 Verwendung:
-    python scripts/verify_hardware.py --numpad /dev/input/event3 --rfid /dev/input/event4
+    python scripts/verify_hardware.py --rfid /dev/input/event4
     python scripts/verify_hardware.py                          # interaktive Geräteauswahl
-    python scripts/verify_hardware.py --list                   # nur Gerätliste anzeigen
+    python scripts/verify_hardware.py --list                   # nur Geräteliste anzeigen
 """
 
 from __future__ import annotations
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 import argparse
 import os
@@ -155,117 +154,37 @@ def _prompt_device(label: str, devices: list[dict[str, Any]]) -> str:
         print("  Ungültige Eingabe. Bitte Nummer oder 'm' eingeben.")
 
 
-def select_devices_interactively() -> tuple[str, str]:
+def select_rfid_interactively() -> str:
     devices = list_input_devices()
     if not devices:
         print("\n\033[31mFehler:\033[0m Keine lesbaren Eingabegeräte gefunden.", file=sys.stderr)
         print("Prüfe ob Gruppe 'input' zugewiesen oder sudo erforderlich ist.", file=sys.stderr)
         sys.exit(1)
     print_device_list()
-    numpad_path = _prompt_device("USB-Numpad", devices)
-    rfid_path = _prompt_device("RFID-Reader", devices)
-    return numpad_path, rfid_path
+    return _prompt_device("RFID-Reader", devices)
 
 
 # ---------------------------------------------------------------------------
-# Stufe 1: Gerätedateien prüfen
+# Stufe 1: Gerätedatei prüfen
 # ---------------------------------------------------------------------------
 
-def check_device_access(numpad_path: str, rfid_path: str) -> bool:
-    _header("Stufe 1 — Gerätedateien")
-    all_ok = True
-    for label, path_str in (("Numpad", numpad_path), ("RFID-Reader", rfid_path)):
-        p = Path(path_str)
-        if not p.exists():
-            _fail(f"{label}: Gerätedatei nicht gefunden: {path_str}")
-            all_ok = False
-        elif not os.access(path_str, os.R_OK):
-            _fail(f"{label}: Keine Leseberechtigung: {path_str}")
-            _info("Prüfe: sudo usermod -aG input $USER && Neuanmeldung")
-            all_ok = False
-        else:
-            _ok(f"{label}: {path_str} — lesbar")
-    return all_ok
-
-
-# ---------------------------------------------------------------------------
-# Stufe 2: Numpad-Test
-# ---------------------------------------------------------------------------
-
-# Tastencode → (Anzeigename, Buchungstyp-Bezeichnung)
-_NUMPAD_KEYS: dict[str, tuple[str, str]] = {
-    "KEY_KP1": ("1", "KOMMEN"),
-    "KEY_1":   ("1", "KOMMEN"),
-    "KEY_KP2": ("2", "GEHEN"),
-    "KEY_2":   ("2", "GEHEN"),
-    "KEY_KP3": ("3", "PAUSE START"),
-    "KEY_3":   ("3", "PAUSE START"),
-    "KEY_KP4": ("4", "PAUSE ENDE"),
-    "KEY_4":   ("4", "PAUSE ENDE"),
-}
-
-_NUMPAD_TIMEOUT = 15.0  # Sekunden
-
-
-def test_numpad(numpad_path: str) -> bool:
-    _header("Stufe 2 — USB-Numpad")
-    print(f"  Gerät: {numpad_path}")
-    print(f"  Bitte innerhalb von {_NUMPAD_TIMEOUT:.0f}s eine Buchungstaste drücken:")
-    print("    [1] Kommen   [2] Gehen   [3] Pause Start   [4] Pause Ende")
-
-    try:
-        dev = InputDevice(numpad_path)
-    except Exception as exc:
-        _fail(f"Gerät konnte nicht geöffnet werden: {exc}")
+def check_device_access(rfid_path: str) -> bool:
+    _header("Stufe 1 — Gerätedatei")
+    p = Path(rfid_path)
+    if not p.exists():
+        _fail(f"RFID-Reader: Gerätedatei nicht gefunden: {rfid_path}")
         return False
-
-    # grab=False damit kein anderer Prozess blockiert wird
-    try:
-        deadline = time.monotonic() + _NUMPAD_TIMEOUT
-        detected_key: str | None = None
-
-        while time.monotonic() < deadline:
-            remaining = deadline - time.monotonic()
-            ready, _, _ = select.select([dev.fd], [], [], min(remaining, 0.5))
-            if not ready:
-                continue
-            for event in dev.read():
-                if event.type != ecodes.EV_KEY:
-                    continue
-                key_event = cast(KeyEvent, categorize(event))
-                if key_event.keystate != key_event.key_down:
-                    continue
-                keycode = key_event.keycode
-                if isinstance(keycode, tuple):
-                    keycode = keycode[0]
-                if keycode in _NUMPAD_KEYS:
-                    taste, buchungstyp = _NUMPAD_KEYS[keycode]
-                    detected_key = keycode
-                    break
-            if detected_key:
-                break
-
-        if detected_key:
-            taste, buchungstyp = _NUMPAD_KEYS[detected_key]
-            _ok(f"Taste erkannt: [{taste}] → Buchungstyp: {buchungstyp}  (Keycode: {detected_key})")
-            return True
-        else:
-            _fail(f"Keine gültige Buchungstaste innerhalb von {_NUMPAD_TIMEOUT:.0f}s erkannt.")
-            _info("Prüfe ob das richtige Gerät ausgewählt ist (--list zum Anzeigen).")
-            return False
-
-    except Exception as exc:
-        _fail(f"Fehler beim Lesen vom Numpad: {exc}")
+    elif not os.access(rfid_path, os.R_OK):
+        _fail(f"RFID-Reader: Keine Leseberechtigung: {rfid_path}")
+        _info("Prüfe: sudo usermod -aG input $USER && Neuanmeldung")
         return False
-    finally:
-        try:
-            dev.close()
-        except Exception:
-            pass
+    else:
+        _ok(f"RFID-Reader: {rfid_path} — lesbar")
+        return True
 
 
 # ---------------------------------------------------------------------------
-# Stufe 3: RFID-Reader-Test
+# Stufe 2: RFID-Reader-Test
 # ---------------------------------------------------------------------------
 
 _HEX_KEY_CHAR: dict[str, str] = {
@@ -279,7 +198,7 @@ _RFID_TIMEOUT = 15.0  # Sekunden
 
 
 def test_rfid(rfid_path: str) -> bool:
-    _header("Stufe 3 — RFID-Reader")
+    _header("Stufe 2 — RFID-Reader")
     print(f"  Gerät: {rfid_path}")
     print(f"  Bitte innerhalb von {_RFID_TIMEOUT:.0f}s eine RFID-Karte an den Leser halten.")
 
@@ -360,7 +279,6 @@ def print_summary(results: dict[str, bool]) -> None:
     _header("Ergebnis")
     labels = {
         "access":  "Gerätezugriff",
-        "numpad":  "USB-Numpad",
         "rfid":    "RFID-Reader",
     }
     all_ok = True
@@ -379,7 +297,7 @@ def print_summary(results: dict[str, bool]) -> None:
         print("  \033[32m\033[1mAlle Prüfungen bestanden — Hardware betriebsbereit.\033[0m")
     else:
         print("  \033[31m\033[1mMindestens eine Prüfung fehlgeschlagen.\033[0m")
-        print("  Bitte Gerätepfade und Berechtigungen prüfen.")
+        print("  Bitte Gerätepfad und Berechtigungen prüfen.")
         print("  Hinweise zur udev-Regel: docs/betrieb/hardware_inbetriebnahme_protokoll.md")
     print()
 
@@ -390,21 +308,15 @@ def print_summary(results: dict[str, bool]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Interaktiver Hardware-Smoke-Test für USB-Numpad und RFID-Reader.",
+        description="Interaktiver Hardware-Smoke-Test für den RFID-Reader.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Beispiele:\n"
             "  python scripts/verify_hardware.py --list\n"
             "  python scripts/verify_hardware.py\n"
-            "  python scripts/verify_hardware.py"
-            " --numpad /dev/input/event3 --rfid /dev/input/event4\n"
+            "  python scripts/verify_hardware.py --rfid /dev/input/event4\n"
             "  python scripts/verify_hardware.py --skip-interactive\n"
         ),
-    )
-    parser.add_argument(
-        "--numpad",
-        metavar="GERÄTPFAD",
-        help="Pfad zum USB-Numpad, z. B. /dev/input/event3",
     )
     parser.add_argument(
         "--rfid",
@@ -419,20 +331,18 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--skip-interactive",
         action="store_true",
-        help="Nur Gerätezugriff prüfen, keine Tastendruck-/Karten-Tests",
+        help="Nur Gerätedatei prüfen, keinen Karten-Test durchführen",
     )
     args = parser.parse_args(argv)
 
     print("\n\033[1marbeitszeit — Hardware-Smoke-Test\033[0m")
     print("=" * 50)
 
-    # Reine Auflistung
     if args.list:
         print_device_list()
         print()
         return 0
 
-    # evdev-Verfügbarkeit
     if not _EVDEV_AVAILABLE:
         print(
             "\n\033[31mFehler:\033[0m python-evdev ist nicht installiert.\n"
@@ -441,35 +351,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 2
 
-    # Gerätepfade: aus Argumenten oder interaktiv
-    if args.numpad and args.rfid:
-        numpad_path = args.numpad
+    if args.rfid:
         rfid_path = args.rfid
-    elif args.numpad or args.rfid:
-        parser.error("Bitte beide Gerätepfade angeben: --numpad und --rfid")
-        return 2
     else:
-        print("\nKeine Gerätepfade angegeben — interaktive Auswahl.\n")
-        numpad_path, rfid_path = select_devices_interactively()
+        print("\nKein Gerätepfad angegeben — interaktive Auswahl.\n")
+        rfid_path = select_rfid_interactively()
 
     results: dict[str, bool] = {}
 
-    # Stufe 1: Dateisystemzugriff
-    results["access"] = check_device_access(numpad_path, rfid_path)
+    results["access"] = check_device_access(rfid_path)
 
     if not results["access"]:
         print_summary(results)
         return 1
 
     if args.skip_interactive:
-        _info("--skip-interactive: Tastendruck- und Karten-Tests übersprungen.")
+        _info("--skip-interactive: Karten-Test übersprungen.")
         print_summary(results)
         return 0
 
-    # Stufe 2: Numpad
-    results["numpad"] = test_numpad(numpad_path)
-
-    # Stufe 3: RFID (auch wenn Numpad-Test fehlschlug)
     results["rfid"] = test_rfid(rfid_path)
 
     print_summary(results)
