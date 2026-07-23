@@ -263,6 +263,7 @@ def _dispatch(
         ),
         ("users", "bootstrap"): lambda: user_accounts.cmd_users_bootstrap(conn, audit_conn, args),
         ("audit", "open-shifts"): lambda: audit.cmd_audit_open_shifts(conn, args, user_id),
+        ("audit", "verify-chain"): lambda: audit.cmd_audit_verify_chain(conn, args, user_id),
     }
     domain: str = args.domain
     cmd: str | None = getattr(args, f"{domain}_cmd", None)

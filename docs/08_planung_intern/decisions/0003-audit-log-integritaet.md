@@ -2,7 +2,7 @@
 
 ## Status
 
-Vorgeschlagen
+Angenommen (2026-07-23, Option A implementiert)
 
 ## Kontext
 

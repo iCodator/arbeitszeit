@@ -1,6 +1,6 @@
 """Integrationstests für admin_cli audit-Befehle."""
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import json
@@ -13,11 +13,27 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parents[2] / "src"))
 
 from arbeitszeit.domain import audit_events
+from arbeitszeit.domain.entities import AuditLogEntry
+from arbeitszeit.domain.value_objects import AuditLogEntryId
 from arbeitszeit.infrastructure.db.connection import open_connection
 from arbeitszeit.infrastructure.db.migrations import run_migrations
-from arbeitszeit.presentation.admin_cli.audit import cmd_audit_open_shifts
+from arbeitszeit.infrastructure.db.repositories.audit_log import SQLiteAuditLogRepository
+from arbeitszeit.presentation.admin_cli.audit import cmd_audit_open_shifts, cmd_audit_verify_chain
 from arbeitszeit.presentation.admin_cli.main import run as cli_run
 from tests.integration.conftest import make_seed_password_hash
+
+_T0 = datetime(2026, 1, 1, 8, 0, 0, tzinfo=timezone.utc)
+
+_ENTRY = AuditLogEntry(
+    id=AuditLogEntryId(0),
+    event_type="TEST_EVENT",
+    object_type="test",
+    object_id=0,
+    user_id=None,
+    employee_id=None,
+    event_at=_T0,
+    details_json='{"x": 1}',
+)
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -247,3 +263,127 @@ def test_tech_wird_abgewiesen(tmp_path: Path) -> None:
         assert exc.value.code == 1
     finally:
         conn.close()
+
+
+# ---------------------------------------------------------------------------
+# verify-chain
+# ---------------------------------------------------------------------------
+
+
+def _args_vc() -> argparse.Namespace:
+    return argparse.Namespace()
+
+
+def test_verify_chain_kein_key_exit_1(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("AUDIT_HMAC_KEY", raising=False)
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+    conn = open_connection(db)
+    try:
+        with pytest.raises(SystemExit) as exc:
+            cmd_audit_verify_chain(conn, _args_vc(), admin_id)
+        assert exc.value.code == 1
+    finally:
+        conn.close()
+    err = capsys.readouterr().err
+    assert "AUDIT_HMAC_KEY" in err
+
+
+def test_verify_chain_ok_leere_datenbank(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+    conn = open_connection(db)
+    try:
+        cmd_audit_verify_chain(conn, _args_vc(), admin_id)
+    finally:
+        conn.close()
+    out = capsys.readouterr().out
+    assert "OK" in out
+    assert "0" in out
+
+
+def test_verify_chain_ok_gueltige_kette(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+    conn = open_connection(db)
+    try:
+        repo = SQLiteAuditLogRepository(conn, conn)
+        repo.add(_ENTRY)
+        repo.add(_ENTRY)
+        cmd_audit_verify_chain(conn, _args_vc(), admin_id)
+    finally:
+        conn.close()
+    out = capsys.readouterr().out
+    assert "OK" in out
+    assert "2" in out
+
+
+def test_verify_chain_erkennt_manipulierten_eintrag(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+    conn = open_connection(db)
+    try:
+        repo = SQLiteAuditLogRepository(conn, conn)
+        repo.add(_ENTRY)
+        # chain_hash direkt verfälschen
+        conn.execute(
+            "UPDATE audit_log SET chain_hash = ? WHERE id = (SELECT MAX(id) FROM audit_log)",
+            ("f" * 64,),
+        )
+        with pytest.raises(SystemExit) as exc:
+            cmd_audit_verify_chain(conn, _args_vc(), admin_id)
+        assert exc.value.code == 1
+    finally:
+        conn.close()
+    err = capsys.readouterr().err
+    assert "FEHLER" in err
+
+
+def test_verify_chain_ueberspringt_null_eintraege(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
+    db = _make_db(tmp_path)
+    admin_id = _insert_user(db, "ADMIN")
+    conn = open_connection(db)
+    try:
+        # Eintrag ohne HMAC (kein Key beim Schreiben)
+        conn.execute(
+            "INSERT INTO audit_log "
+            "(event_type, object_type, object_id, user_id, employee_id, event_at, details_json) "
+            "VALUES ('OLD_EVENT', 'test', 0, NULL, NULL, '2026-01-01T00:00:00+00:00', '{}')"
+        )
+        # Eintrag mit HMAC
+        repo = SQLiteAuditLogRepository(conn, conn)
+        repo.add(_ENTRY)
+        cmd_audit_verify_chain(conn, _args_vc(), admin_id)
+    finally:
+        conn.close()
+    out = capsys.readouterr().out
+    assert "OK" in out
+    assert "übersprungen" in capsys.readouterr().out or "Hinweis" in out
+
+
+def test_verify_chain_reviewer_hat_zugriff(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "testkey")
+    db = _make_db(tmp_path)
+    reviewer_id = _insert_user(db, "REVIEWER")
+    conn = open_connection(db)
+    try:
+        cmd_audit_verify_chain(conn, _args_vc(), reviewer_id)
+    finally:
+        conn.close()
+    assert "OK" in capsys.readouterr().out
