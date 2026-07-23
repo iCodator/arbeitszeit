@@ -1,6 +1,6 @@
 """Buchungsablauf: RFID-Scan → BookUseCase → Feedback."""
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 from pathlib import Path
 
@@ -40,35 +40,37 @@ def process_booking(
     """
     request = reader.read_next()
     conn = open_connection(db_path)
-    audit_conn = open_connection(db_path)
     try:
-        uow = SQLiteUnitOfWork(conn, audit_conn)
+        audit_conn = open_connection(db_path)
+        try:
+            uow = SQLiteUnitOfWork(conn, audit_conn)
 
-        # device_events-Record VOR dem BookUseCase-Aufruf schreiben.
-        # Läuft auf derselben Verbindung im Autocommit-Modus (isolation_level=None,
-        # kein BEGIN aktiv), wird also sofort committed und bleibt auch dann erhalten,
-        # wenn die Buchung fachlich scheitert (z. B. UnknownCard). Das ist gewollt:
-        # Das Geräteereignis ist real eingetreten, unabhängig vom Buchungsergebnis.
-        # Schlägt dieser INSERT fehl, wird keine Buchung versucht (Exception weiterreichen).
-        device_event_id = uow.device_event_repo.add(
-            event_type="RFID_SCAN",
-            terminal_id=TerminalId(terminal_id),
-            rfid_uid_hash=request.uid_hash,
-            payload_json="{}",
-            occurred_at=request.occurred_at,
-        )
+            # device_events-Record VOR dem BookUseCase-Aufruf schreiben.
+            # Läuft auf derselben Verbindung im Autocommit-Modus (isolation_level=None,
+            # kein BEGIN aktiv), wird also sofort committed und bleibt auch dann erhalten,
+            # wenn die Buchung fachlich scheitert (z. B. UnknownCard). Das ist gewollt:
+            # Das Geräteereignis ist real eingetreten, unabhängig vom Buchungsergebnis.
+            # Schlägt dieser INSERT fehl, wird keine Buchung versucht (Exception weiterreichen).
+            device_event_id = uow.device_event_repo.add(
+                event_type="RFID_SCAN",
+                terminal_id=TerminalId(terminal_id),
+                rfid_uid_hash=request.uid_hash,
+                payload_json="{}",
+                occurred_at=request.occurred_at,
+            )
 
-        cmd = BookCommand(
-            uid_hash=request.uid_hash,
-            terminal_id=TerminalId(terminal_id),
-            booked_at=request.occurred_at,
-            device_event_id=device_event_id,
-            source=BookingSource.TERMINAL,
-        )
-        return BookUseCase(uow).execute(cmd)
+            cmd = BookCommand(
+                uid_hash=request.uid_hash,
+                terminal_id=TerminalId(terminal_id),
+                booked_at=request.occurred_at,
+                device_event_id=device_event_id,
+                source=BookingSource.TERMINAL,
+            )
+            return BookUseCase(uow).execute(cmd)
+        finally:
+            audit_conn.close()
     finally:
         conn.close()
-        audit_conn.close()
 
 
 def format_feedback(result: BookResult) -> str:
