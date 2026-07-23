@@ -1,4 +1,4 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 import json
 from datetime import datetime, timezone
@@ -88,7 +88,7 @@ class CorrectBookingUseCase:
                 cmd.new_booked_at,
             )
 
-            review_case_id = self._close_correctable_cases(
+            review_case_ids = self._close_correctable_cases(
                 booking, cmd.corrected_by_user_id, cmd.reason
             )
 
@@ -113,7 +113,7 @@ class CorrectBookingUseCase:
                             "new_booked_at": cmd.new_booked_at.isoformat(),
                             "reason": cmd.reason,
                             "status_after": BookingStatus.CORRECTED.value,
-                            "review_case_id": review_case_id,
+                            "review_case_ids": review_case_ids,
                         },
                         ensure_ascii=False,
                         sort_keys=True,
@@ -124,7 +124,7 @@ class CorrectBookingUseCase:
             return CorrectionResult(
                 correction_id=correction.id,
                 updated_booking_id=booking.id,
-                review_case_id=review_case_id,
+                review_case_ids=review_case_ids,
             )
 
     def _check_permission(self, user_id: UserAccountId) -> None:
@@ -143,9 +143,9 @@ class CorrectBookingUseCase:
         booking: TimeBooking,
         closed_by_user_id: UserAccountId,
         reason: str,
-    ) -> ReviewCaseId | None:
+    ) -> list[ReviewCaseId]:
         open_cases = self._uow.review_case_repo.list_open_for_employee(booking.employee_id)
-        review_case_id: ReviewCaseId | None = None
+        closed_ids: list[ReviewCaseId] = []
         for case in open_cases:
             if case.booking_id == booking.id and case.case_type in _CORRECTABLE_CASE_TYPES:
                 self._uow.review_case_repo.resolve(
@@ -154,6 +154,5 @@ class CorrectBookingUseCase:
                     closed_by_user_id=closed_by_user_id,
                     note=reason,
                 )
-                if review_case_id is None:
-                    review_case_id = case.id
-        return review_case_id
+                closed_ids.append(case.id)
+        return closed_ids

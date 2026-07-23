@@ -1,4 +1,4 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 import dataclasses
 import json
@@ -284,7 +284,7 @@ def test_nur_passender_review_case_wird_geschlossen() -> None:
     uc = CorrectBookingUseCase(_as_uow(uow))
     result = uc.execute(_cmd(booking_id))
 
-    assert result.review_case_id == case_matching.id
+    assert case_matching.id in result.review_case_ids
 
     closed = uow.review_case_repo._store[case_matching.id]
     assert closed.status == ReviewCaseStatus.RESOLVED
@@ -299,7 +299,7 @@ def test_kein_review_case_wenn_keiner_passt() -> None:
 
     result = uc.execute(_cmd(booking_id))
 
-    assert result.review_case_id is None
+    assert result.review_case_ids == []
 
 
 def test_audit_log_eintrag_vorhanden() -> None:
@@ -381,7 +381,7 @@ def test_manual_entry_review_bleibt_offen_trotz_gleicher_booking_id() -> None:
     result = uc.execute(_cmd(booking_id))
 
     assert uow.review_case_repo._store[manual_case.id].status == ReviewCaseStatus.OPEN
-    assert result.review_case_id is None
+    assert result.review_case_ids == []
 
 
 def test_mehrere_korrigierbare_faelle_werden_alle_geschlossen() -> None:
@@ -421,4 +421,17 @@ def test_mehrere_korrigierbare_faelle_werden_alle_geschlossen() -> None:
 
     assert uow.review_case_repo._store[case1.id].status == ReviewCaseStatus.RESOLVED
     assert uow.review_case_repo._store[case2.id].status == ReviewCaseStatus.RESOLVED
-    assert result.review_case_id == case1.id  # erster geschlossener Fall
+    # Beide IDs müssen in review_case_ids stehen, nicht nur die erste
+    assert case1.id in result.review_case_ids
+    assert case2.id in result.review_case_ids
+    assert len(result.review_case_ids) == 2
+
+
+def test_keine_prueffaelle_ergibt_leere_liste() -> None:
+    """Wenn keine schließbaren Prüffälle existieren, ist review_case_ids leer."""
+    uow, booking_id = _make_uow_with_booking()
+    uc = CorrectBookingUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booking_id))
+
+    assert result.review_case_ids == []

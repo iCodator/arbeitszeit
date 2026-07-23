@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -37,7 +37,7 @@ class SupplementResult:
 class CorrectionResult:
     correction_id: BookingCorrectionId
     updated_booking_id: TimeBookingId
-    review_case_id: ReviewCaseId | None
+    review_case_ids: list[ReviewCaseId]
 
 
 @dataclass(frozen=True, slots=True)
