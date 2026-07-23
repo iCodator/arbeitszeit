@@ -632,6 +632,56 @@ def test_users_change_role_erstellt_audit_log_eintrag(tmp_path: Path) -> None:
     assert details["new_role"] == "TECH"
 
 
+# --- Passwort-Ausgabe auf stderr ---
+
+
+def test_users_add_generiertes_passwort_auf_stderr(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    admin_id = _seed_admin(db)
+    cli_run(
+        [
+            "--db",
+            str(db),
+            "--user-id",
+            str(admin_id),
+            "users",
+            "add",
+            "--username",
+            "pw_stderr_test",
+            "--role",
+            "TECH",
+        ]
+    )
+    captured = capsys.readouterr()
+    assert "Generiertes Passwort" not in captured.out, (
+        "Generiertes Passwort darf nicht auf stdout erscheinen"
+    )
+    assert "Generiertes Passwort" in captured.err
+
+
+def test_users_bootstrap_generiertes_passwort_auf_stderr(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    db = _make_db(tmp_path)
+    cli_run(
+        [
+            "--db",
+            str(db),
+            "users",
+            "bootstrap",
+            "--username",
+            "boot_stderr_test",
+        ]
+    )
+    captured = capsys.readouterr()
+    assert "Generiertes Passwort" not in captured.out, (
+        "Generiertes Passwort darf nicht auf stdout erscheinen"
+    )
+    assert "Generiertes Passwort" in captured.err
+
+
 # --- users bootstrap ---
 
 

@@ -4,7 +4,7 @@ Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import binascii
@@ -74,7 +74,7 @@ def cmd_users_add(
 
     print(f"Benutzerkonto angelegt (ID {result.user_id}).")
     if not args.password:
-        print(f"Generiertes Passwort (einmalig sichtbar): {password}")
+        print(f"Generiertes Passwort (einmalig sichtbar): {password}", file=sys.stderr)
 
 
 def cmd_users_list(conn: sqlite3.Connection, args: argparse.Namespace) -> None:
@@ -159,7 +159,7 @@ def cmd_users_bootstrap(
 
     print(f"Erstes Administratorkonto angelegt (ID {result.user_id}).")
     if not args.password:
-        print(f"Generiertes Passwort (einmalig sichtbar): {password}")
+        print(f"Generiertes Passwort (einmalig sichtbar): {password}", file=sys.stderr)
 
 
 def register_subcommands(
