@@ -18,7 +18,7 @@ Wenn --db angegeben wird, liest das Script vorhandene DB-Werte als
 Migrationsvorschläge ein (Migrationspfad für Bestandsinstallationen).
 """
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import sys
@@ -56,12 +56,6 @@ def main() -> None:
         default=None,
         metavar="ID",
         help="Terminal-ID (nicht-interaktiv)",
-    )
-    parser.add_argument(
-        "--numpad",
-        default=None,
-        metavar="NAME",
-        help="Numpad-Gerätename (nicht-interaktiv)",
     )
     parser.add_argument(
         "--rfid",
@@ -109,7 +103,6 @@ def main() -> None:
         db_path=args.db,
         cli_db_path=cli_db_path,
         cli_terminal_id=args.terminal_id,
-        cli_numpad=args.numpad,
         cli_rfid=args.rfid,
         cli_admin_user_id=args.admin_user_id,
         cli_backup_dir=args.backup_dir,

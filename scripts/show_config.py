@@ -9,7 +9,7 @@ Verwendung:
 
 from __future__ import annotations
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 import argparse
 import json
@@ -143,8 +143,6 @@ def _print_config_toml(config_path: Path) -> None:
         rows.append(("database.path", str(cfg.database.path)))
     if cfg.terminal.id is not None:
         rows.append(("terminal.id", str(cfg.terminal.id)))
-    if cfg.terminal.numpad is not None:
-        rows.append(("terminal.numpad", cfg.terminal.numpad))
     if cfg.terminal.rfid is not None:
         rows.append(("terminal.rfid", cfg.terminal.rfid))
     if cfg.backup.backup_dir is not None:
@@ -228,7 +226,6 @@ def main(argv: list[str] | None = None) -> None:
                     "path": str(config_path),
                     "database_path": str(cfg.database.path) if cfg.database.path else None,
                     "terminal_id": cfg.terminal.id,
-                    "terminal_numpad": cfg.terminal.numpad,
                     "terminal_rfid": cfg.terminal.rfid,
                     "backup_dir": str(cfg.backup.backup_dir) if cfg.backup.backup_dir else None,
                     "export_dir": str(cfg.backup.export_dir) if cfg.backup.export_dir else None,
