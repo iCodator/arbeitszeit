@@ -41,8 +41,10 @@ Quellcode und Changelog des Repositorys.
   - [reports](#reports)
   - [system](#system)
   - [users](#users)
+  - [audit](#audit)
 - [Terminal-UI](#terminal-ui)
 - [Hilfsskripte](#hilfsskripte)
+- [Umgebungsvariablen](#umgebungsvariablen)
 - [Rollenübersicht](#rollenübersicht)
 - [Versionsvermerk](#versionsvermerk)
 
@@ -98,6 +100,7 @@ azadmin --db arbeitszeit.db employees list
 | --- | --- |
 | `--config CONFIG_PATH` | Pfad zu `config.toml` (Standard: automatische Suche) |
 | `--user-id ID` | Benutzer-ID des ausführenden Kontos |
+| `--admin-password PASSWORT` | Admin-Passwort; Standard: interaktive Eingabe via `getpass` |
 
 ### Auflösung der Benutzer-ID
 
@@ -799,6 +802,8 @@ Erstes Administratorkonto angelegt (ID 1).
 Generiertes Passwort (einmalig sichtbar): xKj8!mP2nqR5
 ```
 
+**Hinweis:** Die Zeile „Generiertes Passwort" wird auf **stderr** ausgegeben.
+
 ---
 
 #### `users add`
@@ -827,6 +832,8 @@ azadmin --db <PFAD> --user-id <ID> users add \
 Benutzerkonto angelegt (ID 2).
 Generiertes Passwort (einmalig sichtbar): mN7$qZ3vLp9w
 ```
+
+**Hinweis:** Die Zeile „Generiertes Passwort" wird auf **stderr** ausgegeben.
 
 ---
 
@@ -911,6 +918,84 @@ azadmin --db <PFAD> --user-id <ID> users change-role \
 
 **Rolle:** ADMIN
 **Ausgabe:** `Rolle von Benutzerkonto 2 geändert.`
+
+---
+
+### audit
+
+Audit-Log-Abfragen. Alle Befehle erfordern `ADMIN` oder `REVIEWER`.
+
+---
+
+#### `audit open-shifts`
+
+Listet alle erkannten offenen Vortagsschichten im gewählten Zeitraum auf.
+Eine offene Vortagsschicht liegt vor, wenn ein Mitarbeiter eine Buchung als
+erste Buchung des Tages auslöst, obwohl die Schicht des Vortags ohne
+Gehen-Buchung endete.
+
+```bash
+azadmin --db <PFAD> --user-id <ID> audit open-shifts [--days N]
+```
+
+| Argument | Typ | Pflicht | Beschreibung |
+| --- | --- | --- | --- |
+| `--days` | int | nein | Anzahl Tage rückwirkend (Standard: 30) |
+
+**Rolle:** ADMIN, REVIEWER
+**Ausgabe:**
+
+```text
+Offene Vortagsschichten — letzte 30 Tag(e):
+
+  Erkannt am        Mitarbeiter                Vortag      Letzter Typ  Letzte Buchung
+  ----------------  -------------------------  ----------  -----------  ----------------
+  23.07.2026 08:15  Mustermann, Maria          2026-07-22  COME         22.07.2026 17:30
+
+1 offene Vortagsschicht(en) in den letzten 30 Tag(en).
+```
+
+oder `Keine offenen Vortagsschichten in den letzten N Tag(en) gefunden.`
+
+**Fehler:** `--days` ≤ 0 oder nicht numerisch → Exit 1
+
+---
+
+#### `audit verify-chain`
+
+Liest alle Audit-Log-Einträge in ID-Reihenfolge und prüft, ob die
+HMAC-SHA256-Kettenhashes konsistent sind. Einträge ohne `chain_hash`
+(vor Aktivierung des HMAC-Schutzes) werden übersprungen.
+
+```bash
+azadmin --db <PFAD> --user-id <ID> audit verify-chain
+```
+
+**Voraussetzung:** Umgebungsvariable `AUDIT_HMAC_KEY` muss gesetzt sein
+(Exit 1, wenn fehlend).
+
+**Rolle:** ADMIN, REVIEWER
+**Exit-Codes:** `0` = alle prüfbaren Einträge verifiziert, `1` = Kettenfehler
+oder `AUDIT_HMAC_KEY` nicht gesetzt
+
+**Ausgabe (Erfolg):**
+
+```text
+OK: 147 Audit-Eintrag(-einträge) erfolgreich verifiziert.
+```
+
+**Ausgabe (Einträge ohne Hash vorhanden):**
+
+```text
+Hinweis: 12 Eintrag(-einträge) ohne HMAC übersprungen.
+OK: 135 Audit-Eintrag(-einträge) erfolgreich verifiziert.
+```
+
+**Ausgabe (Kettenfehler):**
+
+```text
+FEHLER: 3 Eintrag(-einträge) mit ungültigem Kettenhash: IDs [42, 43, 44]
+```
 
 ---
 
@@ -1054,6 +1139,7 @@ nicht Teil des regulären Buchungsbetriebs.
 
 ```bash
 python scripts/verify_hardware.py \
+  [--numpad <GERÄTEPFAD>] \
   [--rfid <GERÄTEPFAD>] \
   [--list] \
   [--skip-interactive]
@@ -1061,11 +1147,14 @@ python scripts/verify_hardware.py \
 
 | Argument | Beschreibung |
 | --- | --- |
-| `--rfid` | RFID-Lesegerätepfad |
-| `--list` | Nur Gerätedateien auflisten |
-| `--skip-interactive` | Nur Gerätezugriff prüfen |
+| `--numpad` | USB-Numpad-Gerätepfad (muss gemeinsam mit `--rfid` angegeben werden) |
+| `--rfid` | RFID-Lesegerätepfad (muss gemeinsam mit `--numpad` angegeben werden) |
+| `--list` | Nur Gerätedateien auflisten, kein Test |
+| `--skip-interactive` | Nur Dateisystemzugriff prüfen; Tastendruck- und Karten-Tests entfallen |
 
-**Hinweis:** Wird `--rfid` weggelassen, startet eine interaktive Geräteauswahl.
+**Hinweis:** Werden weder `--numpad` noch `--rfid` angegeben, startet eine
+interaktive Geräteauswahl. `--numpad` und `--rfid` müssen stets gemeinsam
+angegeben werden; eines allein ist ein Fehler.
 
 **Exit-Codes:** `0` = alle Tests bestanden, `1` = mindestens ein Test
 fehlgeschlagen, `2` = `evdev` nicht installiert
@@ -1129,17 +1218,40 @@ python scripts/show_config.py \
 | `users deactivate` | ADMIN | Use Case |
 | `users reactivate` | ADMIN | Use Case |
 | `users change-role` | ADMIN | Use Case |
+| `audit open-shifts` | ADMIN, REVIEWER | CLI (`_auth.py`) |
+| `audit verify-chain` | ADMIN, REVIEWER | CLI (`_auth.py`) |
 | Terminal-UI | keine CLI-Rolle | Use Case |
+
+---
+
+## Umgebungsvariablen
+
+| Variable | Pflicht | Beschreibung |
+| --- | --- | --- |
+| `RFID_PEPPER` | ja | HMAC-SHA256-Schlüssel für RFID-UID-Hashing; fehlt er, schlägt jeder Buchungs-Scan mit `ValueError` fehl |
+| `AUDIT_HMAC_KEY` | ja | HMAC-SHA256-Schlüssel für Audit-Log-Kettenintegrität; fehlt er, schlägt jeder Schreibversuch ins Audit-Log mit `ValueError` fehl |
+| `ADMIN_USER_ID` | alternativ zu `--user-id` | Admin-Benutzer-ID; Auflösung: `--user-id` > `ADMIN_USER_ID` > `config.toml` |
+| `ARBEITSZEIT_CONFIG` | nein | Pfad zur `config.toml`; Auflösung: `--config` > `ARBEITSZEIT_CONFIG` > `~/.config/arbeitszeit/config.toml` > `./config.toml` |
+
+**Sicherheitshinweis:** `RFID_PEPPER` und `AUDIT_HMAC_KEY` müssen **vor** dem
+ersten Produktivstart gesetzt sein. Nachträgliches Setzen schützt nur neue
+Einträge; bereits gespeicherte Hashes sind dann nicht rückwirkend verknüpft.
+Beide Schlüssel sicher aufbewahren — Verlust von `RFID_PEPPER` macht alle
+gespeicherten Karten-Hashes dauerhaft unbrauchbar; Verlust von `AUDIT_HMAC_KEY`
+macht gespeicherte Kettenhashes unprüfbar.
 
 ---
 
 ## Versionsvermerk
 
-- **Vorversion:** 1.5
-- **Neue Version:** 1.6
-- **Begründung:** Datumsformate auf `TT.MM.JJJJ` umgestellt (`--from`, `--to`,
-  `--date`); `--at`-Format von ISO-8601 auf `TT.MM.JJJJ HH:MM` (UTC) umgestellt;
-  Ausgabebeispiele von `schedule set` und `schedule show` angepasst; Terminal-UI
-  Buchungszyklus um Bildschirmleerung, Menüanzeige und 2-Sekunden-Pause ergänzt;
-  `scripts/init_db.py` um `--config`-Flag und interaktive Datenbankpfad-Abfrage
-  dokumentiert.
+- **Vorversion:** 1.6
+- **Neue Version:** 1.7
+- **Begründung:** Domain `audit` vollständig dokumentiert (`audit open-shifts`,
+  `audit verify-chain` inkl. Exit-Codes, Ausgabeformat, Rollenanforderung
+  ADMIN/REVIEWER und `AUDIT_HMAC_KEY`-Voraussetzung); globale Option
+  `--admin-password` in „Globale optionale Argumente" ergänzt; neuer Abschnitt
+  „Umgebungsvariablen" mit `RFID_PEPPER`, `AUDIT_HMAC_KEY`, `ADMIN_USER_ID`
+  und `ARBEITSZEIT_CONFIG`; `scripts/verify_hardware.py` um Argument `--numpad`
+  und überarbeiteten Hinweistext ergänzt; Rollenübersicht um `audit open-shifts`
+  und `audit verify-chain` erweitert; Passwortausgabe bei `users bootstrap` und
+  `users add` als stderr-Ausgabe gekennzeichnet.

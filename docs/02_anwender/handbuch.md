@@ -20,7 +20,7 @@ header-includes:
 
 # Handbuch: Zeiterfassungssystem arbeitszeit
 
-**Version:** 2.0
+**Version:** 2.1
 **Stand:** Juli 2026
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
 
@@ -723,9 +723,35 @@ python scripts/verify_hardware.py --list
 python scripts/verify_hardware.py
 ```
 
-Exit-Codes: 0 = alles in Ordnung, 1 = Fehler, 2 = Gerät nicht gefunden.
+Exit-Codes: 0 = alles in Ordnung, 1 = Fehler, 2 = evdev nicht installiert.
 
-### 9.5 Regelmäßige Wartungsaufgaben
+### 9.5 Audit-Log prüfen
+
+Das System schreibt alle sicherheitsrelevanten Ereignisse in ein
+Audit-Log und sichert deren Reihenfolge mit einer HMAC-Kette. Mit dem
+folgenden Befehl wird geprüft, ob die Kette lückenlos und unverändert ist:
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+  --config ~/.config/arbeitszeit/config.toml \
+  --user-id 1 \
+  audit verify-chain
+```
+
+Der Befehl gibt `OK` aus, wenn alle Einträge integer sind. Bei einer
+Abweichung erscheint eine Fehlermeldung mit dem betroffenen Eintrag.
+
+Offene Schichten (Buchungen ohne Ausstemp­elung) können ebenfalls
+im Audit-Log gemeldet werden:
+
+```bash
+python -m arbeitszeit.presentation.admin_cli.main \
+  --config ~/.config/arbeitszeit/config.toml \
+  --user-id 1 \
+  audit open-shifts
+```
+
+### 9.6 Regelmäßige Wartungsaufgaben
 
 Das Betriebshandbuch `docs/04_betrieb/handbuch_backup_restore.md`
 beschreibt:

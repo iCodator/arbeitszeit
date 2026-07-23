@@ -5,6 +5,40 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [docs: Doku-Abgleich 2026-07-23 — alle Handlungsvorschläge umgesetzt] – 2026-07-23
+
+### Geändert
+
+- `docs/03_installation_technik/befehlsreferenz.md` (v1.6 → v1.7):
+  - `audit`-Domain mit `audit open-shifts` und `audit verify-chain` ergänzt (Prio 1-A).
+  - `--admin-password` als globales optionales Argument dokumentiert (Prio 2-C).
+  - Abschnitt `scripts/verify_hardware.py` um `--numpad`-Argument und Hinweis auf
+    Exit-Code 2 (evdev nicht installiert) erweitert (Prio 3-H).
+  - Neue Tabelle `## Umgebungsvariablen` mit `RFID_PEPPER`, `AUDIT_HMAC_KEY`,
+    `ADMIN_USER_ID` und `ARBEITSZEIT_CONFIG` eingefügt (Prio 0-I/J).
+  - `users bootstrap` und `users add`: Passwortausgabe auf stderr vermerkt (Prio 3-F).
+  - `audit open-shifts` und `audit verify-chain` in Rollenübersicht aufgenommen.
+  - Versionsvermerk auf 1.7 aktualisiert (Prio 2-D).
+
+- `docs/03_installation_technik/installationsanleitung.md` (v1.7 → v1.8):
+  - Neuer `## Schritt 12: Sicherheitsschlüssel einrichten` mit `RFID_PEPPER`
+    und `AUDIT_HMAC_KEY` (je 3 Unterschritte + HMAC-Warnung) eingefügt (Prio 0-I/J).
+  - Bisherige Schritte 12–15 zu Schritten 13–16 umnummeriert.
+  - `## Schritt 16`: `--numpad` aus Terminal-UI-Direktstart-Beispiel und aus der
+    config.toml-Beschreibung entfernt (Prio 1-B).
+
+- `docs/02_anwender/handbuch.md` (v2.0 → v2.1):
+  - Exit-Code 2 von `verify_hardware.py` korrigiert:
+    „Gerät nicht gefunden" → „evdev nicht installiert" (Prio 2-E).
+  - Neue `### 9.5 Audit-Log prüfen` mit `audit verify-chain` und `audit open-shifts`
+    eingefügt; bisherige 9.5 → 9.6 (Prio 3-G).
+
+- `docs/08_planung_intern/doku_abgleich_2026-07-23.md`:
+  - Abschnitt 4-J: veralteten Hinweis „lautlos weiterläuft" durch aktuelles
+    Verhalten (ValueError-Abbruch seit v1.3) ersetzt.
+
+---
+
 ## [fix(audit-log): AUDIT_HMAC_KEY fehlt → ValueError statt lautlosem Weiterlaufen] – 2026-07-23
 
 ### Geändert

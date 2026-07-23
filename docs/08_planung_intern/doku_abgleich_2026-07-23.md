@@ -286,8 +286,10 @@ als Pflichtzeile im Service-Block ergänzen.
 
 **J) `AUDIT_HMAC_KEY` in allen drei Dokumenten beschreiben.**
 
-Der fehlende Hinweis ist besonders trügerisch, weil der Betrieb ohne die
-Variable lautlos weiterläuft, aber die Audit-Log-Integrität nie aufgebaut wird.
+Der fehlende Hinweis ist besonders trügerisch: seit der Verhaltensänderung
+in `audit_log.py` v1.3 bricht jeder Schreibversuch mit `ValueError` ab,
+wenn `AUDIT_HMAC_KEY` nicht gesetzt ist — das System startet also nicht mehr
+lautlos ohne Integrität, sondern mit einem harten Fehler.
 
 *Installationsanleitung:* Im gleichen neuen Schritt wie `RFID_PEPPER`:
 
@@ -314,7 +316,7 @@ Variable lautlos weiterläuft, aber die Audit-Log-Integrität nie aufgebaut wird
 
 *Befehlsreferenz:* In der neuen Umgebungsvariablen-Tabelle (Vorschlag I)
 die Spalte „Pflicht" für `AUDIT_HMAC_KEY` auf
-„ja — fehlt er lautlos, Integritätsschutz deaktiviert" anpassen.
+„ja — fehlt sie, bricht das System mit ValueError ab" anpassen.
 
 *Handbuch Kapitel 10.2:* `Environment="AUDIT_HMAC_KEY=..."` als zweite
 Pflichtzeile neben `RFID_PEPPER` in den Service-Block aufnehmen.

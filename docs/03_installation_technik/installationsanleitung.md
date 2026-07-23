@@ -20,7 +20,7 @@ header-includes:
 
 # Installationsanleitung `arbeitszeit`
 
-**Version:** 1.7
+**Version:** 1.8
 **Stand:** Juli 2026
 **Zielgruppe:** Laien ohne Linux- oder Programmiererfahrung
 **Projekt:** Lokales Zeiterfassungssystem für eine Zahnarztpraxis
@@ -535,7 +535,117 @@ sudo chown $USER /var/log/arbeitszeit
 Falls du in Schritt 8 andere Verzeichnispfade gewählt hast, passe die
 obigen Befehle entsprechend an.
 
-## Schritt 12: Erstes Administratorkonto anlegen
+## Schritt 12: Sicherheitsschlüssel einrichten
+
+Zwei Umgebungsvariablen sind für den Betrieb **zwingend erforderlich**. Ohne
+sie startet das System mit einer Fehlermeldung, sobald eine Buchung gebucht
+oder ins Protokoll geschrieben werden soll. Richte sie jetzt ein, **bevor**
+das erste Administratorkonto angelegt wird.
+
+### `RFID_PEPPER` — Schlüssel für RFID-Karten-Hashing
+
+`RFID_PEPPER` ist ein geheimer Schlüssel, mit dem die Karten-IDs vor dem
+Speichern verschlüsselt werden. Ohne ihn schlägt jeder Buchungsscan fehl.
+
+**Schritt 1: Schlüssel generieren:**
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Die Ausgabe ist eine zufällige Zeichenkette aus 64 Zeichen. Das ist dein
+`RFID_PEPPER`. Notiere diesen Wert sofort.
+
+**Schritt 2: Schlüssel dauerhaft verfügbar machen:**
+
+Trage den Schlüssel in `~/.bashrc` ein (ersetze `<dein-wert>` durch die
+Ausgabe aus Schritt 1 oben):
+
+```bash
+nano ~/.bashrc
+```
+
+Füge am Ende der Datei ein:
+
+```bash
+export RFID_PEPPER="<dein-wert>"
+```
+
+Speichern: `Strg` + `O`, dann `Enter`. Beenden: `Strg` + `X`.
+
+Damit der Schlüssel sofort verfügbar ist:
+
+```bash
+source ~/.bashrc
+```
+
+**Schritt 3: Schlüssel in der systemd-Service-Datei eintragen:**
+
+Wenn du den systemd-Dienst einrichtest (Handbuch Kapitel 10.2), füge im
+Abschnitt `[Service]` folgende Zeile ein:
+
+```ini
+Environment="RFID_PEPPER=<dein-wert>"
+```
+
+> **Unbedingt sichern:** Notiere den Schlüssel auf einem Zettel in einem
+> verschlossenen Umschlag oder in einem Passwortmanager. **Verlust des
+> `RFID_PEPPER` macht alle gespeicherten Karten-Hashes dauerhaft
+> unbrauchbar.** Das System kann dann keine Buchungen mehr zuordnen —
+> alle Karten müssten neu zugewiesen werden.
+
+### `AUDIT_HMAC_KEY` — Schlüssel für Audit-Log-Integrität
+
+`AUDIT_HMAC_KEY` sichert die Manipulationsschutz-Kette im Protokollspeicher.
+Ohne ihn verweigert das System jeden Schreibvorgang ins Buchungsprotokoll.
+
+**Schritt 1: Schlüssel generieren:**
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Einen neuen Wert generieren — **nicht denselben** wie für `RFID_PEPPER`.
+
+**Schritt 2: Schlüssel dauerhaft verfügbar machen:**
+
+```bash
+nano ~/.bashrc
+```
+
+Füge am Ende der Datei ein:
+
+```bash
+export AUDIT_HMAC_KEY="<dein-wert>"
+```
+
+Speichern: `Strg` + `O`, dann `Enter`. Beenden: `Strg` + `X`.
+
+Anschließend:
+
+```bash
+source ~/.bashrc
+```
+
+**Schritt 3: Schlüssel in der systemd-Service-Datei eintragen:**
+
+In der systemd-Service-Datei (Handbuch Kapitel 10.2) zusätzlich:
+
+```ini
+Environment="AUDIT_HMAC_KEY=<dein-wert>"
+```
+
+> **Unbedingt sichern:** Verlust des `AUDIT_HMAC_KEY` macht gespeicherte
+> Prüfsummen unprüfbar — `audit verify-chain` kann die Integrität dann nicht
+> mehr bestätigen.
+>
+> **Beide Schlüssel müssen vor dem ersten Produktivstart gesetzt sein.**
+> Nachträgliches Setzen schützt nur neue Einträge. Bereits vorhandene
+> Einträge sind dann nicht rückwirkend in die Sicherheitskette eingebunden.
+
+---
+
+## Schritt 13: Erstes Administratorkonto anlegen
 
 Bevor das System genutzt werden kann, muss ein erstes
 Administrator-Benutzerkonto angelegt werden.
@@ -654,7 +764,7 @@ langen Befehl. Alle folgenden Schritte dieser Anleitung verwenden
 > dem mehrere Benutzerkonten existieren, muss dieser Schritt für jedes
 > Benutzerkonto separat durchgeführt werden.
 
-## Schritt 13: Mitarbeitende und Karten anlegen
+## Schritt 14: Mitarbeitende und Karten anlegen
 
 Nach dem Administrator-Konto können weitere Benutzer, Mitarbeitende und
 RFID-Karten angelegt werden.
@@ -716,7 +826,7 @@ azadmin --config ~/.config/arbeitszeit/config.toml \
   --last-name Mustermann
 ```
 
-## Schritt 14: Funktionstest durchführen
+## Schritt 15: Funktionstest durchführen
 
 Zum Prüfen der Installation können die automatisierten Tests ausgeführt
 werden:
@@ -731,7 +841,7 @@ Wenn nur gezielt ein Teil geprüft werden soll, können einzelne Testdateien
 unter `tests/` ausgeführt werden. Der genaue Dateiname sollte dabei vorab
 im Repository geprüft werden.
 
-## Schritt 15: Terminal-Betrieb starten
+## Schritt 16: Terminal-Betrieb starten
 
 Die Terminal-UI unterstützt zwei Wege: direkte Übergabe aller Werte
 oder Start über die zentrale `config.toml`. Der Code priorisiert dabei
@@ -742,7 +852,6 @@ CLI-Werte vor Konfigurationswerten.
 ```bash
 python -m arbeitszeit.presentation.terminal_ui.main \
   --db arbeitszeit.db \
-  --numpad "USB Numpad" \
   --rfid "HID 1234:5678" \
   --terminal-id 1
 ```
@@ -756,14 +865,13 @@ python -m arbeitszeit.presentation.terminal_ui.main \
   --config ~/.config/arbeitszeit/config.toml
 ```
 
-Die Terminal-UI liest dann `database.path`, `terminal.numpad`,
-`terminal.rfid` und `terminal.id` aus der Konfiguration.
+Die Terminal-UI liest dann `database.path`, `terminal.rfid`
+und `terminal.id` aus der Konfiguration.
 
 ### Gerätenamen statt Gerätepfade
 
-Für `--numpad` und `--rfid` sind stabile Gerätenamen ausdrücklich
-vorgesehen. Vor dem Start werden diese Namen intern in konkrete
-Gerätepfade aufgelöst.
+Für `--rfid` sind stabile Gerätenamen ausdrücklich vorgesehen.
+Vor dem Start werden diese Namen intern in konkrete Gerätepfade aufgelöst.
 
 ### Wie wird der Betrieb beendet?
 
