@@ -4,9 +4,10 @@ Alle Schreiboperationen laufen über Use Cases der Application-Schicht.
 Die Rollenprüfung erfolgt dort; hier wird nur noch Fehler-Handling und Ausgabe gemacht.
 """
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 import argparse
+import re
 import sqlite3
 import sys
 
@@ -108,9 +109,21 @@ def _validate_uid_source(args: argparse.Namespace, rfid_device: str | None) -> N
         sys.exit(1)
 
 
+def _validate_uid_hash_format(uid_hash: str) -> None:
+    """Bricht mit SystemExit(1) ab, wenn uid_hash kein 64-stelliger Hex-String ist."""
+    if not re.fullmatch(r"[0-9a-f]{64}", uid_hash):
+        print(
+            f"Fehler: --uid-hash hat ungültiges Format: {uid_hash!r}. "
+            "Erwartet: 64 Hex-Zeichen (SHA-256).",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+
 def _resolve_uid_hash(args: argparse.Namespace, rfid_device: str | None) -> str:
     """Gibt uid_hash zurück: direkt aus --uid-hash oder via RFID-Scan."""
     if not args.scan:
+        _validate_uid_hash_format(args.uid_hash)
         return args.uid_hash  # type: ignore[no-any-return]
     if rfid_device is None:
         print(
@@ -161,6 +174,7 @@ def cmd_cards_assign(
 def cmd_cards_replace(
     conn: sqlite3.Connection, audit_conn: sqlite3.Connection, args: argparse.Namespace, user_id: int
 ) -> None:
+    _validate_uid_hash_format(args.uid_hash)
     cmd = ReplaceRfidCardCommand(
         acting_user_id=UserAccountId(user_id),
         old_card_id=RfidCardId(args.old_card_id),

@@ -1,6 +1,6 @@
 """Integrationstests für admin_cli employees- und cards-Befehle."""
 
-__version__ = "1.1"
+__version__ = "1.3"
 
 import argparse
 import sys
@@ -20,6 +20,10 @@ from arbeitszeit.presentation.admin_cli.main import run as cli_run
 from tests.integration.conftest import make_seed_password_hash
 
 _MOD = "arbeitszeit.presentation.admin_cli.employees"
+
+_HASH_A = "aabbccdd" * 8  # 64 Hex-Zeichen für Standardkarte
+_HASH_B = "ddeeff00" * 8  # 64 Hex-Zeichen für Ersatzkarte
+_VALID_HASH = "deadbeef" * 8  # 64 Hex-Zeichen
 
 
 def _make_db(tmp_path: Path) -> Path:
@@ -68,7 +72,7 @@ def _seed_employee(db: Path, admin_id: int, personnel_no: str = "E001") -> int:
     return int(row["id"])
 
 
-def _seed_rfid_card(db: Path, employee_id: int, admin_id: int, uid_hash: str = "aabbcc") -> int:
+def _seed_rfid_card(db: Path, employee_id: int, admin_id: int, uid_hash: str = _HASH_A) -> int:
     cli_run(
         [
             "--db",
@@ -256,13 +260,14 @@ def test_cards_assign_legt_rfid_karte_an(tmp_path: Path) -> None:
             "--employee-id",
             str(emp_id),
             "--uid-hash",
-            "deadbeef",
+            _VALID_HASH,
         ]
     )
 
     conn = open_connection(db)
     row = conn.execute(
-        "SELECT status, employee_id FROM rfid_cards WHERE uid_hash = 'deadbeef'"
+        "SELECT status, employee_id FROM rfid_cards WHERE uid_hash = ?",
+        (_VALID_HASH,),
     ).fetchone()
     conn.close()
     assert row is not None
@@ -278,7 +283,7 @@ def test_cards_replace_deaktiviert_alte_karte(tmp_path: Path) -> None:
     db = _make_db(tmp_path)
     admin_id = _seed_admin(db)
     emp_id = _seed_employee(db, admin_id)
-    old_card_id = _seed_rfid_card(db, emp_id, admin_id, "aabbcc")
+    old_card_id = _seed_rfid_card(db, emp_id, admin_id, _HASH_A)
 
     cli_run(
         [
@@ -291,7 +296,7 @@ def test_cards_replace_deaktiviert_alte_karte(tmp_path: Path) -> None:
             "--old-card-id",
             str(old_card_id),
             "--uid-hash",
-            "ddeeff",
+            _HASH_B,
         ]
     )
 
@@ -300,7 +305,9 @@ def test_cards_replace_deaktiviert_alte_karte(tmp_path: Path) -> None:
     assert old["status"] == "REPLACED"
 
     conn = open_connection(db)
-    new_row = conn.execute("SELECT status FROM rfid_cards WHERE uid_hash = 'ddeeff'").fetchone()
+    new_row = conn.execute(
+        "SELECT status FROM rfid_cards WHERE uid_hash = ?", (_HASH_B,)
+    ).fetchone()
     conn.close()
     assert new_row is not None
     assert new_row["status"] == "ACTIVE"
@@ -401,7 +408,17 @@ def test_validate_uid_source_scan_mit_rfid_gueltig() -> None:
 
 
 def test_resolve_uid_hash_uid_hash_direkt() -> None:
-    assert _resolve_uid_hash(_args(scan=False, uid_hash="abc123"), None) == "abc123"
+    assert _resolve_uid_hash(_args(scan=False, uid_hash=_VALID_HASH), None) == _VALID_HASH
+
+
+def test_resolve_uid_hash_ungueltige_formatierung_loest_fehler(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """--uid-hash mit ungültigem Format (nicht 64 Hex-Zeichen) muss SystemExit auslösen."""
+    with pytest.raises(SystemExit) as exc_info:
+        _resolve_uid_hash(_args(scan=False, uid_hash="abc123"), None)
+    assert exc_info.value.code == 1
+    assert "uid-hash" in capsys.readouterr().err.lower()
 
 
 def test_resolve_uid_hash_scan_device_not_found(
@@ -477,7 +494,7 @@ def test_cards_assign_unbekannte_employee_id_fehler(
         cli_run(
             [
                 "--db", str(db), "--user-id", str(admin_id),
-                "cards", "assign", "--employee-id", "9999", "--uid-hash", "abc",
+                "cards", "assign", "--employee-id", "9999", "--uid-hash", _VALID_HASH,
             ]
         )
     assert exc_info.value.code == 1
@@ -493,7 +510,7 @@ def test_cards_replace_unbekannte_karte_fehler(
         cli_run(
             [
                 "--db", str(db), "--user-id", str(admin_id),
-                "cards", "replace", "--old-card-id", "9999", "--uid-hash", "newhash",
+                "cards", "replace", "--old-card-id", "9999", "--uid-hash", _VALID_HASH,
             ]
         )
     assert exc_info.value.code == 1
