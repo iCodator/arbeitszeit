@@ -109,6 +109,38 @@ Treffer im Quellcode), sodass der Systemcheck keinen Hinweis gibt.
 - In der systemd-Service-Datei (Handbuch Kapitel 10.2) fehlt der Eintrag
   `Environment="RFID_PEPPER=..."`.
 
+### 1.7 Umgebungsvariable `AUDIT_HMAC_KEY` fehlt vollständig — kritisch
+
+`src/arbeitszeit/infrastructure/db/repositories/audit_log.py` liest beim
+Schreiben jedes Audit-Eintrags die Variable `AUDIT_HMAC_KEY`:
+
+```python
+key = _os.environ.get("AUDIT_HMAC_KEY", "").encode("utf-8")
+if key:
+    chain_hash = compute_audit_chain_hash(...)
+else:
+    chain_hash = None   # kein Fehler, keine Warnung
+```
+
+Ist `AUDIT_HMAC_KEY` nicht gesetzt, wird `chain_hash = None` still
+gespeichert. Der Betrieb läuft weiter — es erscheint **keine Fehlermeldung**.
+
+**Unterschied zu `RFID_PEPPER`:**
+
+| Variable | Fehlt → Betrieb | Fehlt → Sicherheitsfolge |
+| --- | --- | --- |
+| `RFID_PEPPER` | sofortiger Abbruch (ValueError) | — |
+| `AUDIT_HMAC_KEY` | läuft weiter, **lautlos** | Audit-Log baut keine Integritätskette auf; Manipulationen bleiben unentdeckt |
+
+Das macht das fehlende `AUDIT_HMAC_KEY` in gewisser Weise gefährlicher:
+Es gibt kein sichtbares Signal, dass der Schutz fehlt. Erst wenn
+`audit verify-chain` ausgeführt wird, fällt auf, dass alle Einträge
+ohne `chain_hash` sind.
+
+`AUDIT_HMAC_KEY` wird in keiner der drei geprüften Dokumentationsdateien
+erwähnt. In der systemd-Service-Datei (Handbuch Kapitel 10.2) fehlt der
+Eintrag `Environment="AUDIT_HMAC_KEY=..."`.
+
 ---
 
 ## 2. Installationsanleitung (`docs/03_installation_technik/installationsanleitung.md`)
@@ -255,6 +287,41 @@ Ohne diese Variable ist kein Buchungsbetrieb möglich.
 
 *Handbuch Kapitel 10.2 (systemd-Service-Datei):* `Environment="RFID_PEPPER=..."`
 als Pflichtzeile im Service-Block ergänzen.
+
+**J) `AUDIT_HMAC_KEY` in allen drei Dokumenten beschreiben.**
+
+Der fehlende Hinweis ist besonders trügerisch, weil der Betrieb ohne die
+Variable lautlos weiterläuft, aber die Audit-Log-Integrität nie aufgebaut wird.
+
+*Installationsanleitung:* Im gleichen neuen Schritt wie `RFID_PEPPER`:
+
+1. Schlüssel generieren:
+
+   ```bash
+   python -c "import secrets; print(secrets.token_hex(32))"
+   ```
+
+2. In `~/.bashrc` eintragen:
+
+   ```bash
+   export AUDIT_HMAC_KEY="<generierter-wert>"
+   ```
+
+3. In der systemd-Service-Datei als `Environment="AUDIT_HMAC_KEY=..."` ergänzen.
+
+4. **Unbedingt sichern** — ohne den Schlüssel kann `audit verify-chain`
+   keine bereits gespeicherten Hashes prüfen.
+
+5. **Hinweis:** Beide Schlüssel (`RFID_PEPPER` und `AUDIT_HMAC_KEY`) müssen
+   **vor** dem ersten Produktivstart gesetzt sein. Nachträgliches Setzen
+   schützt nur neue Einträge; ältere Einträge bleiben ohne chain_hash.
+
+*Befehlsreferenz:* In der neuen Umgebungsvariablen-Tabelle (Vorschlag I)
+die Spalte „Pflicht" für `AUDIT_HMAC_KEY` auf
+„ja — fehlt er lautlos, Integritätsschutz deaktiviert" anpassen.
+
+*Handbuch Kapitel 10.2:* `Environment="AUDIT_HMAC_KEY=..."` als zweite
+Pflichtzeile neben `RFID_PEPPER` in den Service-Block aufnehmen.
 
 ---
 
