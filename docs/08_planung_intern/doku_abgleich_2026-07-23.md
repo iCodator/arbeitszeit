@@ -111,31 +111,27 @@ Treffer im Quellcode), sodass der Systemcheck keinen Hinweis gibt.
 
 ### 1.7 Umgebungsvariable `AUDIT_HMAC_KEY` fehlt vollständig — kritisch
 
-`src/arbeitszeit/infrastructure/db/repositories/audit_log.py` liest beim
-Schreiben jedes Audit-Eintrags die Variable `AUDIT_HMAC_KEY`:
+`src/arbeitszeit/infrastructure/db/repositories/audit_log.py` erzwingt
+seit v1.3, dass `AUDIT_HMAC_KEY` gesetzt ist — analog zu `RFID_PEPPER`:
 
 ```python
 key = _os.environ.get("AUDIT_HMAC_KEY", "").encode("utf-8")
 if key:
     chain_hash = compute_audit_chain_hash(...)
 else:
-    chain_hash = None   # kein Fehler, keine Warnung
+    raise ValueError("Umgebungsvariable AUDIT_HMAC_KEY ist nicht gesetzt.")
 ```
 
-Ist `AUDIT_HMAC_KEY` nicht gesetzt, wird `chain_hash = None` still
-gespeichert. Der Betrieb läuft weiter — es erscheint **keine Fehlermeldung**.
+Ist `AUDIT_HMAC_KEY` nicht gesetzt, bricht jeder Schreibversuch in das
+Audit-Log sofort mit `ValueError` ab. Der Betrieb ist ohne die Variable
+nicht möglich.
 
-**Unterschied zu `RFID_PEPPER`:**
+**Verhalten beider Pflicht-Variablen (Stand v1.3):**
 
-| Variable | Fehlt → Betrieb | Fehlt → Sicherheitsfolge |
-| --- | --- | --- |
-| `RFID_PEPPER` | sofortiger Abbruch (ValueError) | — |
-| `AUDIT_HMAC_KEY` | läuft weiter, **lautlos** | Audit-Log baut keine Integritätskette auf; Manipulationen bleiben unentdeckt |
-
-Das macht das fehlende `AUDIT_HMAC_KEY` in gewisser Weise gefährlicher:
-Es gibt kein sichtbares Signal, dass der Schutz fehlt. Erst wenn
-`audit verify-chain` ausgeführt wird, fällt auf, dass alle Einträge
-ohne `chain_hash` sind.
+| Variable | Fehlt → Verhalten |
+| --- | --- |
+| `RFID_PEPPER` | sofortiger Abbruch (ValueError) |
+| `AUDIT_HMAC_KEY` | sofortiger Abbruch (ValueError) |
 
 `AUDIT_HMAC_KEY` wird in keiner der drei geprüften Dokumentationsdateien
 erwähnt. In der systemd-Service-Datei (Handbuch Kapitel 10.2) fehlt der

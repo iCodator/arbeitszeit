@@ -5,6 +5,28 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [fix(audit-log): AUDIT_HMAC_KEY fehlt → ValueError statt lautlosem Weiterlaufen] – 2026-07-23
+
+### Geändert
+
+- `src/arbeitszeit/infrastructure/db/repositories/audit_log.py` (v1.2 → v1.3):
+  `_write()` wirft jetzt `ValueError("Umgebungsvariable AUDIT_HMAC_KEY ist nicht
+  gesetzt.")` wenn `AUDIT_HMAC_KEY` fehlt — analog zu `hash_uid()` / `RFID_PEPPER`.
+  Vorher: stille `chain_hash = None`, Integritätskette wurde nie aufgebaut.
+
+- `tests/infrastructure/test_audit_log_repository.py` (v1.0):
+  `test_chain_hash_ist_none_ohne_key` umbenannt zu `test_ohne_key_wirft_value_error`
+  und auf `pytest.raises(ValueError, match="AUDIT_HMAC_KEY")` umgestellt.
+
+- `tests/conftest.py` (v1.0):
+  Neues `autouse=True`-Fixture `_set_audit_hmac_key` setzt `AUDIT_HMAC_KEY` für alle
+  Tests — verhindert `ValueError` in Tests, die nicht explizit die Variable steuern.
+
+- `docs/08_planung_intern/doku_abgleich_2026-07-23.md`:
+  Abschnitt 1.7 aktualisiert: neues Verhalten (Fehlermeldung + Abbruch) dokumentiert.
+
+---
+
 ## [feat(hardware): Anti-Doppel-Scan-Schutz (Entprellung, 3 s) eingeführt] – 2026-07-21
 
 ### Hinzugefügt

@@ -1,4 +1,4 @@
-__version__ = "1.2"
+__version__ = "1.3"
 
 import hmac as _hmac
 import json as _json
@@ -83,7 +83,7 @@ class SQLiteAuditLogRepository:
                 key=key,
             )
         else:
-            chain_hash = None
+            raise ValueError("Umgebungsvariable AUDIT_HMAC_KEY ist nicht gesetzt.")
 
         row = conn.execute(
             _INSERT,

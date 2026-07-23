@@ -103,17 +103,13 @@ class TestAuditLogRepositoryChainHash:
         assert row["chain_hash"] is not None
         assert len(row["chain_hash"]) == 64
 
-    def test_chain_hash_ist_none_ohne_key(
+    def test_ohne_key_wirft_value_error(
         self, conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.delenv("AUDIT_HMAC_KEY", raising=False)
         repo = SQLiteAuditLogRepository(conn, conn)
-        repo.add(_ENTRY)
-
-        row = conn.execute(
-            "SELECT chain_hash FROM audit_log ORDER BY id DESC LIMIT 1"
-        ).fetchone()
-        assert row["chain_hash"] is None
+        with pytest.raises(ValueError, match="AUDIT_HMAC_KEY"):
+            repo.add(_ENTRY)
 
     def test_zweiter_eintrag_referenziert_ersten_hash(
         self, conn: sqlite3.Connection, monkeypatch: pytest.MonkeyPatch

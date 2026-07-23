@@ -10,6 +10,12 @@ import pytest
 from tests.helpers import make_config_toml as _make_config_toml
 
 
+@pytest.fixture(autouse=True)
+def _set_audit_hmac_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Setzt AUDIT_HMAC_KEY für alle Tests — verhindert ValueError im Repository."""
+    monkeypatch.setenv("AUDIT_HMAC_KEY", "test-hmac-key-fuer-tests")
+
+
 @pytest.fixture
 def make_config_toml(tmp_path: Path) -> Callable[..., Path]:
     def factory(
