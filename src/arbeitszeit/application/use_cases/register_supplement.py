@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 import json
 from datetime import datetime, timezone
@@ -20,6 +20,7 @@ from arbeitszeit.domain.errors import (
     NotFoundError,
     PermissionDeniedError,
 )
+from arbeitszeit.domain.services.booking_rules import validate_booking_sequence
 from arbeitszeit.domain.value_objects import (
     AuditLogEntryId,
     ReviewCaseId,
@@ -56,6 +57,14 @@ class RegisterSupplementUseCase:
                         f"Buchung {cmd.related_booking_id} nicht gefunden — "
                         "related_booking_id muss auf eine existente Buchung zeigen."
                     )
+
+            day_bookings = self._uow.time_booking_repo.list_for_employee_on_day(
+                cmd.employee_id, cmd.event_at.date()
+            )
+            validate_booking_sequence(
+                cmd.booking_type,
+                [b.booking_type for b in day_bookings],
+            )
 
             supplement = self._uow.supplement_repo.add(
                 Supplement(

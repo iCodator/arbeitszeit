@@ -1,3 +1,5 @@
+__version__ = "1.1"
+
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -23,6 +25,7 @@ from arbeitszeit.domain.enums import (
 )
 from arbeitszeit.domain.errors import (
     InactiveEmployeeError,
+    InvalidBookingSequenceError,
     NotFoundError,
     PermissionDeniedError,
 )
@@ -221,13 +224,13 @@ def test_audit_log_enthaelt_fachliche_felder() -> None:
     import json
 
     uow = _make_uow_with_employee()
-    booking_id = _add_booking(uow)
+    booking_id = _add_booking(uow)  # COME bereits vorhanden
     uc = RegisterSupplementUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(related_booking_id=booking_id))
+    result = uc.execute(_cmd(related_booking_id=booking_id, booking_type=BookingType.GO))
 
     details = json.loads(uow.audit_log_repo.entries[0].details_json)
-    assert details["booking_type"] == "COME"
+    assert details["booking_type"] == "GO"
     assert details["reason"] == "Vergessen einzustempeln"
     assert details["approval_status"] == "PENDING"
     assert details["related_booking_id"] == booking_id
@@ -237,10 +240,10 @@ def test_audit_log_enthaelt_fachliche_felder() -> None:
 
 def test_related_booking_id_wird_durchgereicht() -> None:
     uow = _make_uow_with_employee()
-    booking_id = _add_booking(uow)
+    booking_id = _add_booking(uow)  # COME bereits vorhanden
     uc = RegisterSupplementUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(related_booking_id=booking_id))
+    result = uc.execute(_cmd(related_booking_id=booking_id, booking_type=BookingType.GO))
 
     supplement = uow.supplement_repo.get_by_id(result.supplement_id)
     assert supplement is not None
@@ -313,10 +316,10 @@ def _add_booking(uow: FakeUnitOfWork) -> int:
 
 def test_related_booking_id_existiert_nachtrag_wird_angelegt() -> None:
     uow = _make_uow_with_employee()
-    booking_id = _add_booking(uow)
+    booking_id = _add_booking(uow)  # COME bereits vorhanden
     uc = RegisterSupplementUseCase(_as_uow(uow))
 
-    result = uc.execute(_cmd(related_booking_id=booking_id))
+    result = uc.execute(_cmd(related_booking_id=booking_id, booking_type=BookingType.GO))
 
     assert result.supplement_id > 0
     supplement = uow.supplement_repo.get_by_id(result.supplement_id)
@@ -334,3 +337,31 @@ def test_related_booking_id_nicht_gefunden_loest_not_found_error() -> None:
     assert not uow.committed
     assert len(uow.audit_log_repo.entries) == 0
     assert len(uow.supplement_repo.list_pending()) == 0
+
+
+# --- Sequenzprüfung ---
+
+
+def test_invalide_sequenz_come_auf_offene_arbeitsphase_loest_fehler() -> None:
+    """Nachtrag COME bei bereits offenem COME muss fehlschlagen."""
+    uow = _make_uow_with_employee()
+    _add_booking(uow)  # bestehende COME-Buchung
+    uc = RegisterSupplementUseCase(_as_uow(uow))
+
+    with pytest.raises(InvalidBookingSequenceError):
+        uc.execute(_cmd(booking_type=BookingType.COME))
+
+    assert not uow.committed
+    assert len(uow.supplement_repo.list_pending()) == 0
+
+
+def test_valide_sequenz_go_nach_come_wird_angelegt() -> None:
+    """Nachtrag GO nach offenem COME ist erlaubt."""
+    uow = _make_uow_with_employee()
+    _add_booking(uow)  # bestehende COME-Buchung
+    uc = RegisterSupplementUseCase(_as_uow(uow))
+
+    result = uc.execute(_cmd(booking_type=BookingType.GO))
+
+    assert result.supplement_id > 0
+    assert uow.committed
