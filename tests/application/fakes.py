@@ -243,7 +243,7 @@ class FakeTimeBookingRepository:
             (
                 b
                 for b in self._store.values()
-                if b.employee_id == employee_id and from_dt <= b.booked_at <= to_dt
+                if b.employee_id == employee_id and from_dt <= b.booked_at < to_dt
             ),
             key=lambda b: b.booked_at,
         )

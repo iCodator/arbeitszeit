@@ -259,6 +259,21 @@ def test_time_booking_list_between(conn: sqlite3.Connection, employee_id: int) -
     assert result[0].id == b_in.id
 
 
+def test_time_booking_list_between_to_dt_exklusiv(
+    conn: sqlite3.Connection, employee_id: int
+) -> None:
+    """Buchung genau an to_dt darf nicht zurückgegeben werden (halboffenes Intervall [from, to))."""
+    repo = SQLiteTimeBookingRepository(conn)
+    to_dt = datetime(2025, 6, 2, 0, 0, tzinfo=timezone.utc)
+    repo.add(_make_booking(employee_id, booked_at=to_dt))
+    result = repo.list_between(
+        employee_id,
+        datetime(2025, 6, 1, 0, 0, tzinfo=timezone.utc),
+        to_dt,
+    )
+    assert len(result) == 0
+
+
 # --- WorkScheduleRepository ---
 
 

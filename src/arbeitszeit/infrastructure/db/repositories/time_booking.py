@@ -1,4 +1,4 @@
-__version__ = "1.1"
+__version__ = "1.2"
 
 import sqlite3
 from datetime import date, datetime, timedelta, timezone
@@ -78,7 +78,7 @@ class SQLiteTimeBookingRepository:
         self, employee_id: int, from_dt: datetime, to_dt: datetime
     ) -> list[TimeBooking]:
         rows = self._conn.execute(
-            f"{_SELECT} WHERE employee_id = ? AND booked_at >= ? AND booked_at <= ? "
+            f"{_SELECT} WHERE employee_id = ? AND booked_at >= ? AND booked_at < ? "
             "ORDER BY booked_at",
             (employee_id, from_dt.isoformat(), to_dt.isoformat()),
         ).fetchall()
