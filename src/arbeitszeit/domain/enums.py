@@ -1,4 +1,4 @@
-__version__ = "1.0"
+__version__ = "1.1"
 
 from enum import StrEnum
 
@@ -16,7 +16,6 @@ class BookingStatus(StrEnum):
     WARN = "WARN"
     NEEDS_REVIEW = "NEEDS_REVIEW"
     CORRECTED = "CORRECTED"
-    CLOSED_WITH_NOTE = "CLOSED_WITH_NOTE"
 
 
 class ReviewCaseType(StrEnum):
