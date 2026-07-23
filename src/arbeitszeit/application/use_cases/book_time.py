@@ -1,4 +1,4 @@
-__version__ = "1.6"
+__version__ = "1.7"
 
 import json
 from datetime import datetime, timedelta, timezone
@@ -273,7 +273,7 @@ class BookUseCase:
                     employee_id=None,
                     event_at=datetime.now(timezone.utc),
                     details_json=json.dumps(
-                        {"uid_hash": uid_hash, "terminal_id": terminal_id},
+                        {"uid_hash_prefix": uid_hash[:8], "terminal_id": terminal_id},
                         ensure_ascii=False,
                         sort_keys=True,
                     ),

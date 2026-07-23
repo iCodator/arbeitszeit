@@ -1,4 +1,4 @@
-__version__ = "1.3"
+__version__ = "1.4"
 
 import json
 import sys
@@ -342,6 +342,25 @@ def test_unbekannte_karte_schreibt_audit_log() -> None:
         if e.event_type == audit_events.BOOKING_REJECTED_UNKNOWN_CARD
     ]
     assert len(entries) == 1
+
+
+def test_unbekannte_karte_audit_log_nur_hash_praefix() -> None:
+    """BOOKING_REJECTED_UNKNOWN_CARD darf nur uid_hash_prefix (8 Zeichen) loggen."""
+    uow = _make_uow()
+    uid = "deadbeef" * 8  # 64 Hex-Zeichen wie SHA-256
+    uc = BookUseCase(_as_uow(uow))
+
+    with pytest.raises(UnknownCardError):
+        uc.execute(_cmd(uid_hash=uid))
+
+    entries = [
+        e
+        for e in uow.audit_log_repo.entries
+        if e.event_type == audit_events.BOOKING_REJECTED_UNKNOWN_CARD
+    ]
+    details = json.loads(entries[0].details_json)
+    assert details.get("uid_hash_prefix") == uid[:8]
+    assert "uid_hash" not in details
 
 
 def test_inaktive_karte_schreibt_audit_log() -> None:
