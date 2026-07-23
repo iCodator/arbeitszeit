@@ -1,7 +1,7 @@
 # Audit und Codeprüfung — technisches Referenzhandbuch
 
 **Kapitel:** 9-IT
-**Version:** 1.3
+**Version:** 1.4
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `run_audit.sh`, `scripts/generate_audit_notes.py`,
@@ -80,7 +80,7 @@ Quelldatei: `src/arbeitszeit/infrastructure/system_check.py`
 ### Aufruf über die Admin-CLI
 
 ```bash
-azadmin system check --db arbeitszeit.db
+azadmin --db arbeitszeit.db system check
 ```
 
 ### Aufruf automatisch im Terminalbetrieb
@@ -120,7 +120,7 @@ Quelldatei: `src/arbeitszeit/presentation/admin_cli/audit.py`
 Berechtigung: `ADMIN` oder `REVIEWER`
 
 ```bash
-azadmin audit open-shifts --db arbeitszeit.db [--days N]
+azadmin --db arbeitszeit.db audit open-shifts [--days N]
 ```
 
 | Option | Standard | Beschreibung |
@@ -161,7 +161,7 @@ Quelldatei: `src/arbeitszeit/presentation/admin_cli/audit.py`
 Berechtigung: `ADMIN` oder `REVIEWER`
 
 ```bash
-azadmin audit verify-chain --db arbeitszeit.db
+azadmin --db arbeitszeit.db audit verify-chain
 ```
 
 Der Befehl liest die Umgebungsvariable `AUDIT_HMAC_KEY` und prüft die
@@ -174,7 +174,7 @@ als unverändert.
 | --- | --- | --- |
 | Kette vollständig und korrekt | 0 | Bestätigung auf `stdout` |
 | `AUDIT_HMAC_KEY` fehlt in der Umgebung | 1 | Fehlermeldung auf `stderr` |
-| Mindestens ein Hash stimmt nicht überein | 1 | Fehlermeldung mit erstem fehlerhaften Eintrag |
+| Mindestens ein Hash stimmt nicht überein | 1 | Fehlermeldung mit Gesamtanzahl und vollständiger ID-Liste aller ungültigen Einträge |
 
 Der Befehl hat keine Pflichtargumente außer dem globalen `--db`-Argument
 (bzw. dem Datenbankpfad aus `config.toml`).

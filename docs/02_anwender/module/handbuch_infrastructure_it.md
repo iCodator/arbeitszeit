@@ -1,7 +1,7 @@
 # Infrastrukturschicht — technisches Referenzhandbuch
 
 **Kapitel:** 6-IT
-**Version:** 1.3
+**Version:** 1.4
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/infrastructure/`
@@ -26,6 +26,7 @@ src/arbeitszeit/infrastructure/
 ├── export/
 │   └── report_queries.py
 ├── hardware/
+│   ├── debounce.py
 │   └── evdev_reader.py
 ├── config_file.py
 ├── config_setup.py

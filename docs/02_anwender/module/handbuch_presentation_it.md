@@ -1,7 +1,7 @@
 # Präsentationsschicht — technisches Referenzhandbuch
 
 **Kapitel:** 4-IT
-**Version:** 1.3
+**Version:** 1.4
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `src/arbeitszeit/presentation/`
@@ -175,8 +175,8 @@ Der Ausgabepfad wird aus dem `export_dir`-Eintrag in `config.toml` bestimmt.
 Beispiel:
 
 ```bash
-azadmin system check --db arbeitszeit.db
-azadmin system backup --db arbeitszeit.db
+azadmin --db arbeitszeit.db system check
+azadmin --db arbeitszeit.db system backup
 ```
 
 #### users
@@ -212,7 +212,7 @@ und Zeitstempel aus.
 Beispiel:
 
 ```bash
-azadmin audit open-shifts --db arbeitszeit.db
+azadmin --db arbeitszeit.db audit open-shifts
 ```
 
 ## Terminal-UI
@@ -234,14 +234,18 @@ sich das Programm mit Fehlermeldung.
 
 ### Initialisierungsschritte
 
-Vor der Buchungsschleife:
+`_setup_file_logging()` wird in `main()` aufgerufen, bevor `run()` gestartet wird.
+
+Innerhalb von `run()`:
 
 1. `resolve_evdev_device()` — RFID-Gerätepfad auflösen
 2. `run_system_check()` — Prüfung (Fehler blockieren nicht)
 3. `_ensure_terminal_exists()` — Terminal-Eintrag anlegen (`INSERT OR IGNORE`)
-4. `_setup_file_logging()` — dateibasiertes Logging einrichten
+4. Signal-Handler registrieren: `SIGTERM` und `SIGINT` setzen `running = False`
 5. `load_threshold_from_config(db_path)` — Zeitüberwachungs-Schwellwert laden
-6. `DebouncedHardwareReader(EvdevHardwareReader(rfid_path=rfid_path))` — Reader mit 3-s-Entprellung initialisieren
+6. `SystemTimeMonitor(db_path, threshold_seconds=threshold)` — Zeitmonitor instanziieren
+7. `monitor.check()` — Basiszeitpunkt setzen (vor dem Start der Buchungsschleife)
+8. `DebouncedHardwareReader(EvdevHardwareReader(rfid_path=rfid_path))` — Reader mit 3-s-Entprellung initialisieren
 
 ### Buchungsschleife
 

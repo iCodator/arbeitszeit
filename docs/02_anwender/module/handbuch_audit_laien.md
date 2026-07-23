@@ -1,7 +1,7 @@
 # Wie überprüfe ich ob alles läuft?
 
 **Kapitel:** 9-Laien
-**Version:** 1.2
+**Version:** 1.3
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -28,7 +28,7 @@ in Ordnung ist.
 - **Manuell auf Abruf** über den folgenden Befehl:
 
 ```bash
-azadmin system check --db arbeitszeit.db
+azadmin --db arbeitszeit.db system check
 ```
 
 ### Was wird geprüft?
@@ -57,7 +57,7 @@ speichert das System das beim nächsten Scan automatisch. Diese Fälle
 können Sie jederzeit abfragen:
 
 ```bash
-azadmin audit open-shifts --db arbeitszeit.db
+azadmin --db arbeitszeit.db audit open-shifts
 ```
 
 Das Programm zeigt eine Liste aller erkannten vergessenen Abmeldungen der
@@ -65,7 +65,7 @@ letzten 30 Tage — mit Name, Datum und letzter bekannter Buchung. Falls
 Sie einen längeren Zeitraum prüfen möchten:
 
 ```bash
-azadmin audit open-shifts --db arbeitszeit.db --days 90
+azadmin --db arbeitszeit.db audit open-shifts --days 90
 ```
 
 ## Wann sollte ich die Systemprüfung manuell ausführen?

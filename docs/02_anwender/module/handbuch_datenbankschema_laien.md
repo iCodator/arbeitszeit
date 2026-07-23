@@ -1,7 +1,7 @@
 # Die Datenbank — was wird gespeichert?
 
 **Kapitel:** 7-Laien
-**Version:** 1.0
+**Version:** 1.1
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -37,7 +37,7 @@ Regelmäßige Backups der Datenbankdatei sind wichtig. Das System erstellt
 auf Befehl eine Sicherungskopie, ohne den laufenden Betrieb zu unterbrechen:
 
 ```bash
-azadmin system backup --db arbeitszeit.db
+azadmin --db arbeitszeit.db system backup
 ```
 
 Bei Datenverlust kann die Datenbank aus einer Sicherungskopie

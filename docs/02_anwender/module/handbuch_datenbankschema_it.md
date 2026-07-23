@@ -1,10 +1,10 @@
 # Datenbankschema `arbeitszeit` — technisches Referenzhandbuch
 
 **Kapitel:** 6.1-IT
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
-**Quelldateien:** `migrations/0001_schema.sql` bis `migrations/0007_remove_numpad_grace_config.sql`
+**Quelldateien:** `migrations/0001_schema.sql` bis `migrations/0009_audit_log_chain_hash.sql`
 
 ## Zweck dieses Dokuments
 
@@ -24,11 +24,13 @@ nicht aus abgeleiteten oder vermuteten Zusammenhängen.
 | 0005 | `0005_time_bookings_device_event_id.sql` | Verknüpfung von Buchungen mit Geräte-Ereignissen |
 | 0006 | `0006_system_events_application_error.sql` | Neuer Ereignistyp `APPLICATION_ERROR` in `system_events` |
 | 0007 | `0007_remove_numpad_grace_config.sql` | Entfernt `booking.grace_seconds_after_numpad_select` aus `system_config` (RFID-only-Umstellung) |
+| 0008 | `0008_remove_booking_status_closed_with_note.sql` | Entfernt `CLOSED_WITH_NOTE` aus den `CHECK`-Constraints von `time_bookings.current_status` und `booking_status_history.new_status` (Table-Rebuild-Muster) |
+| 0009 | `0009_audit_log_chain_hash.sql` | Fügt `chain_hash TEXT` zur Tabelle `audit_log` hinzu (`ALTER TABLE ADD COLUMN`); bestehende Einträge erhalten `NULL` |
 
 Jede Migration ist in `schema_migrations` mit ihrer vierstelligen
 Versionsnummer und dem Anwendungszeitpunkt (`applied_at`) verzeichnet.
 
-## Tabellen im finalen Zustand (nach Migration 0007)
+## Tabellen im finalen Zustand (nach Migration 0009)
 
 ### employees
 
@@ -104,7 +106,7 @@ Migration 0005 (`device_event_id`) jeweils vollständig neu angelegt.
 | `source` | TEXT | NOT NULL, CHECK IN ('TERMINAL', 'MANUAL', 'IMPORT') |
 | `terminal_id` | INTEGER | FOREIGN KEY → `terminals(id)` |
 | `device_event_id` | INTEGER | FOREIGN KEY → `device_events(id)` (seit 0005) |
-| `current_status` | TEXT | NOT NULL, CHECK IN ('OK', 'OPEN', 'WARN', 'NEEDS_REVIEW', 'CORRECTED', 'CLOSED_WITH_NOTE') |
+| `current_status` | TEXT | NOT NULL, CHECK IN ('OK', 'OPEN', 'WARN', 'NEEDS_REVIEW', 'CORRECTED') |
 | `note` | TEXT | — |
 | `created_at` | TEXT | NOT NULL |
 
@@ -117,7 +119,9 @@ Sachverhalte seither ausschließlich über `review_cases` mit einer
 (manuell oder Terminal) wird über `source` abgebildet. Migration 0005
 legte die Tabelle erneut vollständig neu an, da das Hinzufügen eines
 Foreign-Key-Constraints auf `device_events` in SQLite keinen
-`ALTER TABLE`-Weg erlaubt.
+`ALTER TABLE`-Weg erlaubt. Migration 0008 hat `CLOSED_WITH_NOTE` aus
+dem `CHECK`-Constraint entfernt — dieser Status wurde nie von einem
+Use Case gesetzt und war fachlich nicht vorgesehen.
 
 ### booking_status_history
 
@@ -126,7 +130,7 @@ Foreign-Key-Constraints auf `device_events` in SQLite keinen
 | `id` | INTEGER | PRIMARY KEY |
 | `time_booking_id` | INTEGER | NOT NULL, FOREIGN KEY → `time_bookings(id)` |
 | `old_status` | TEXT | — |
-| `new_status` | TEXT | NOT NULL, CHECK IN ('OK', 'OPEN', 'WARN', 'NEEDS_REVIEW', 'CORRECTED', 'CLOSED_WITH_NOTE', 'MANUAL_ENTRY') |
+| `new_status` | TEXT | NOT NULL, CHECK IN ('OK', 'OPEN', 'WARN', 'NEEDS_REVIEW', 'CORRECTED', 'MANUAL_ENTRY') |
 | `reason` | TEXT | — |
 | `changed_by_user_id` | INTEGER | FOREIGN KEY → `user_accounts(id)` |
 | `changed_at` | TEXT | NOT NULL |
@@ -134,7 +138,8 @@ Foreign-Key-Constraints auf `device_events` in SQLite keinen
 Anders als bei `time_bookings.current_status` bleibt `MANUAL_ENTRY`
 hier seit Migration 0003 als zulässiger Wert erhalten, da es in dieser
 Tabelle die Herkunft eines Statuswechsels kennzeichnet, nicht den
-Buchungsstatus selbst.
+Buchungsstatus selbst. Migration 0008 hat gleichzeitig `CLOSED_WITH_NOTE`
+aus dem `CHECK`-Constraint entfernt.
 
 ### booking_corrections
 
@@ -335,6 +340,7 @@ Terminal-UI-Schleife, ohne dass der Prozess beendet wird).
 | `employee_id` | INTEGER | FOREIGN KEY → `employees(id)` |
 | `event_at` | TEXT | NOT NULL |
 | `details_json` | TEXT | NOT NULL |
+| `chain_hash` | TEXT | — (NULL für Altdaten vor Migration 0009; neue Einträge: HMAC-SHA256-Kettenhash) |
 
 Anders als bei `system_events` ist `event_type` hier nicht über einen
 `CHECK`-Constraint eingeschränkt, sondern ein freier Text. Migration
@@ -342,6 +348,13 @@ Anders als bei `system_events` ist `event_type` hier nicht über einen
 `event_type = 'SEEDED'`: je einen Eintrag pro geseedeter Zeile in
 `work_schedule_versions` (5 Einträge) und `system_config` (4 Einträge),
 insgesamt 9 Zeilen.
+
+Migration 0009 fügt `chain_hash TEXT` per `ALTER TABLE ADD COLUMN`
+hinzu. Bestehende Einträge erhalten `chain_hash = NULL`. Jeder neue
+Eintrag erhält einen HMAC-SHA256-Hash, der den Hash des Vorgänger-
+Eintrags und den Inhalt des aktuellen Eintrags verknüpft (Kettensignatur).
+Die Unversehrtheit der Kette wird mit `azadmin audit verify-chain`
+geprüft (Umgebungsvariable `AUDIT_HMAC_KEY` erforderlich).
 
 ### schema_migrations
 
@@ -374,14 +387,14 @@ insgesamt 9 Zeilen.
 
 ## Technisches Muster: Table-Rebuild bei Schema-Änderungen
 
-Migrationen 0003, 0004 und 0006 folgen demselben Muster, weil SQLite
+Migrationen 0003, 0004, 0006 und 0008 folgen demselben Muster, weil SQLite
 bestehende `CHECK`-Constraints nicht per `ALTER TABLE` ändern kann.
 Migration 0005 folgt demselben Muster, weil SQLite das nachträgliche
 Hinzufügen eines Foreign-Key-Constraints per `ALTER TABLE ADD COLUMN`
 nicht unterstützt (laut Kommentar in
 `0005_time_bookings_device_event_id.sql`).
 
-Das Muster lautet in allen vier Fällen:
+Das Muster lautet in allen fünf Fällen:
 
 1. Neue Tabelle mit Suffix `_new` und geändertem Schema anlegen.
 2. Daten aus der alten Tabelle per `INSERT INTO ... SELECT` übertragen
@@ -396,7 +409,9 @@ Migration 0004 nutzt dieses Muster nur für `supplements`; die
 Ergänzung von `note` in `review_cases` erfolgt dort direkt per
 `ALTER TABLE review_cases ADD COLUMN note TEXT`, da das Hinzufügen
 einer nullable Spalte ohne `CHECK`-Constraint in SQLite ohne
-Table-Rebuild möglich ist.
+Table-Rebuild möglich ist. Migration 0009 folgt ebenfalls diesem
+einfacheren Weg (`ALTER TABLE audit_log ADD COLUMN chain_hash TEXT`),
+da `chain_hash` nullable ist und keinen `CHECK`-Constraint erhält.
 
 ## Globale Einstellung
 

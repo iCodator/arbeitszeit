@@ -1,7 +1,7 @@
 # Das technische Rückgrat — Konfiguration und Betrieb
 
 **Kapitel:** 6-Laien
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -51,7 +51,7 @@ Das System kann Datensicherungen erstellen:
 
 ```bash
 # Lokale Sicherung erstellen
-azadmin system backup --db arbeitszeit.db
+azadmin --db arbeitszeit.db system backup
 ```
 
 Das Backup läuft im Hintergrund, ohne den laufenden Betrieb zu unterbrechen —
@@ -69,7 +69,7 @@ Sie wird automatisch bei jedem Start des Buchungsterminals ausgeführt und
 kann auch manuell aufgerufen werden:
 
 ```bash
-azadmin system check --db arbeitszeit.db
+azadmin --db arbeitszeit.db system check
 ```
 
 Was die Systemprüfung prüft und wann Sie sie aufrufen sollten, ist im

@@ -1,7 +1,7 @@
 # Das Verwaltungsprogramm — Kurzanleitung
 
 **Kapitel:** 4-Laien
-**Version:** 1.3
+**Version:** 1.4
 **Stand:** Juli 2026
 **Zielgruppe:** Praxisleitung, Verwaltung
 
@@ -167,5 +167,5 @@ erkennt das System das beim nächsten Scan und hinterlegt automatisch
 einen Audit-Eintrag. Die Praxisleitung kann diese Fälle abfragen:
 
 ```bash
-azadmin audit open-shifts --db arbeitszeit.db
+azadmin --db arbeitszeit.db audit open-shifts
 ```

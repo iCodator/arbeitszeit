@@ -1018,6 +1018,9 @@ azadmin --db db.db --user-id 1 bookings correct \
 
 | Version | Datum | Änderungen |
 | --- | --- | --- |
+| v2.2 | 2026-07-23 | Abschnitt 4.1: Terminal-Start-Beispiel auf `--config` korrigiert; Abschnitt 9.2: Systemcheck `AUDIT_HMAC_KEY gesetzt` ergänzt |
+| v2.1 | 2026-07-23 | Neues Kapitel 9.5: Audit-Log prüfen (`audit verify-chain`, `audit open-shifts`); Exit-Code 2 von `verify_hardware.py` korrigiert |
+| v2.0 | 2026-07-22 | Numpad-Referenzen entfernt; Buchungsablauf auf RFID-only umgestellt (Scan-Tabelle statt Numpad-Menü); Kurztag-Regelung ergänzt |
 | v1.9 | 2026-07-20 | Neues Kapitel 10: Terminal als systemd-Dienst einrichten und verwalten (inkl. SSH-Fallback); Kapitel 10 (FAQ) → 11 |
 | v1.8 | 2026-07-20 | Datumsformat auf TT.MM.JJJJ umgestellt; --at-Format auf TT.MM.JJJJ HH:MM; Terminal-UI: Hinweis auf Menüanzeige und 2-Sekunden-Pause ergänzt |
 | v1.7 | 2026-07-17 | Vollständige Neustrukturierung als Laien-Handbuch: aufgabenorientiert, ohne Architekturdetails, mit konkreten Beispielen für alle Befehle |

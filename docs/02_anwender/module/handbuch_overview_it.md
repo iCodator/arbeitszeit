@@ -1,7 +1,7 @@
 # Systemübersicht — technisches Referenzhandbuch
 
 **Kapitel:** 1-IT
-**Version:** 1.1
+**Version:** 1.2
 **Stand:** Juli 2026
 **Zielgruppe:** Entwickler, Systemverantwortliche
 **Quelldateien:** `pyproject.toml`, `README.md`, `config.toml.example`
@@ -23,7 +23,7 @@ Zahnarztpraxis, implementiert als Python-Paket im `src`-Layout.
 
 Das Schichtenmodell ist in `pyproject.toml` via import-linter erzwungen:
 
-```
+```text
 presentation > infrastructure > application > domain
 ```
 
@@ -52,7 +52,7 @@ arbeitszeit/
 │   ├── 06_architektur/
 │   ├── 07_pruefberichte/
 │   └── audits/reports/      # Audit-Ausgaben (run_audit.sh)
-├── migrations/              # 0001–0006 SQL-Migrationsdateien
+├── migrations/              # 0001–0009 SQL-Migrationsdateien
 ├── pyproject.toml
 ├── run_audit.sh
 ├── scripts/                 # Hilfs- und Betriebsskripte
@@ -134,5 +134,5 @@ vollständig dokumentiert. Eine Beispielkonfiguration liegt als
 
 Migrationen werden über `migrations.run_migrations(conn)` ausgeführt.
 Die Admin-CLI führt Migrationen bei jedem Start aus. Das Datenbankschema
-(16 Tabellen, 17 Indizes, 7 Migrationen) ist in
+(16 Tabellen, 17 Indizes, 9 Migrationen) ist in
 `handbuch_datenbankschema_it.md` vollständig dokumentiert.

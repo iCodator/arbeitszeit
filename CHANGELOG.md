@@ -5,6 +5,43 @@ Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.1.0/).
 
 ---
 
+## [docs: Code-Doku-Abgleich 2026-07-23c — Modul-Dokumentation korrigiert] – 2026-07-23
+
+### Geändert
+
+- `docs/02_anwender/module/handbuch_presentation_it.md` (v1.3 → v1.4):
+  - F01-A: `--db`-Argument in 3 Befehlsbeispielen vor den Subcommand verschoben.
+  - F03: Initialisierungsschritte der Terminal-UI vollständig neu dokumentiert
+    (8 Schritte; `_setup_file_logging()` als Vorschritt in `main()` kenntlich gemacht;
+    Signalhandler, `SystemTimeMonitor` und `monitor.check()` ergänzt).
+- `docs/02_anwender/module/handbuch_audit_it.md` (v1.3 → v1.4):
+  - F01-B: `--db`-Argument in 3 Befehlsbeispielen vor den Subcommand verschoben.
+  - F02: `verify-chain`-Ausgabe: „erstem fehlerhaften Eintrag" →
+    „Gesamtanzahl und vollständiger ID-Liste aller ungültigen Einträge".
+- `docs/02_anwender/module/handbuch_audit_laien.md` (v1.2 → v1.3):
+  - F01-C: `--db`-Argument in 3 Befehlsbeispielen vor den Subcommand verschoben.
+- `docs/02_anwender/module/handbuch_infrastructure_laien.md` (v1.1 → v1.2):
+  - F01-D: `--db`-Argument in 2 Befehlsbeispielen vor den Subcommand verschoben.
+- `docs/02_anwender/module/handbuch_datenbankschema_laien.md` (v1.0 → v1.1):
+  - F01-E: `--db`-Argument in 1 Befehlsbeispiel vor den Subcommand verschoben.
+- `docs/02_anwender/module/handbuch_presentation_laien.md` (v1.3 → v1.4):
+  - F01-F: `--db`-Argument in 1 Befehlsbeispiel vor den Subcommand verschoben.
+- `docs/02_anwender/module/handbuch_datenbankschema_it.md` (v1.1 → v1.2):
+  - F04: Migrationsübersicht auf 0009 aktualisiert; `time_bookings.current_status`
+    und `booking_status_history.new_status` ohne `CLOSED_WITH_NOTE`; `audit_log`
+    um Spalte `chain_hash` (Migration 0009) ergänzt; Musterabschnitt auf 5 Fälle
+    aktualisiert.
+- `docs/02_anwender/handbuch.md` (v2.2):
+  - F05: Versionstabelle um Einträge v2.0, v2.1, v2.2 ergänzt.
+- `docs/02_anwender/module/handbuch_infrastructure_it.md` (v1.3 → v1.4):
+  - F06: `debounce.py` im Verzeichnisbaum ergänzt.
+- `docs/02_anwender/module/handbuch_overview_it.md` (v1.1 → v1.2):
+  - F07: Migrationszählung auf 9 aktualisiert (`0001–0009`, „9 Migrationen").
+- `docs/08_planung_intern/code_doku_abgleich_2026-07-23c.md`:
+  - Übersichtstabelle: alle 12 Einträge (F01-A–F07) auf „erledigt 2026-07-23" gesetzt.
+
+---
+
 ## [docs: Code-Doku-Abgleich 2026-07-23b — Modul-Dokumentation korrigiert] – 2026-07-23
 
 ### Geändert
